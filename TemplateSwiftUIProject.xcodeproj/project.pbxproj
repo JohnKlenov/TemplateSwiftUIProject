@@ -21,6 +21,15 @@
 		5EC949F12CBBE556003736A9 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5EC949F02CBBE556003736A9 /* FirebaseFirestore */; };
 		5EC949F32CBBE556003736A9 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 5EC949F22CBBE556003736A9 /* FirebaseStorage */; };
 		5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949F42CBBF5F7003736A9 /* AppDelegate.swift */; };
+		5EC94A002CC291DB003736A9 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949FF2CC291DB003736A9 /* ProfileView.swift */; };
+		5EC94A022CC2954C003736A9 /* GalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A012CC2954C003736A9 /* GalleryView.swift */; };
+		5EC94A042CC29607003736A9 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A032CC29607003736A9 /* HomeView.swift */; };
+		5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A052CC29770003736A9 /* AuthenticationService.swift */; };
+		5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A082CC3C762003736A9 /* ValidationFB.swift */; };
+		5EC94A0D2CC3CA4E003736A9 /* ErrorsFB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A0C2CC3CA4E003736A9 /* ErrorsFB.swift */; };
+		5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */; };
+		5EC94A122CC59585003736A9 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A112CC59585003736A9 /* HomeViewModel.swift */; };
+		5EC94A152CC66DCF003736A9 /* HomeViewModelWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A142CC66DCE003736A9 /* HomeViewModelWrapper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +45,15 @@
 		5EC949E92CBA954F003736A9 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		5EC949EB2CBBE280003736A9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5EC949F42CBBF5F7003736A9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		5EC949FF2CC291DB003736A9 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		5EC94A012CC2954C003736A9 /* GalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryView.swift; sourceTree = "<group>"; };
+		5EC94A032CC29607003736A9 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		5EC94A052CC29770003736A9 /* AuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationService.swift; sourceTree = "<group>"; };
+		5EC94A082CC3C762003736A9 /* ValidationFB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationFB.swift; sourceTree = "<group>"; };
+		5EC94A0C2CC3CA4E003736A9 /* ErrorsFB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorsFB.swift; sourceTree = "<group>"; };
+		5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreCollectionObserverService.swift; sourceTree = "<group>"; };
+		5EC94A112CC59585003736A9 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		5EC94A142CC66DCE003736A9 /* HomeViewModelWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModelWrapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +89,10 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5EC94A0A2CC3C9BF003736A9 /* Utilities */,
+				5EC949F82CC29137003736A9 /* Profile */,
+				5EC949F72CC2912C003736A9 /* Gallery */,
+				5EC949F62CC29109003736A9 /* Home */,
 				5EC949DD2CB5271A003736A9 /* Onboarding */,
 				5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */,
 				5EC949D12CB526E5003736A9 /* ContentView.swift */,
@@ -124,6 +146,115 @@
 				5EC949E92CBA954F003736A9 /* OnboardingView.swift */,
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		5EC949F62CC29109003736A9 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				5EC949FE2CC291BD003736A9 /* ViewModel */,
+				5EC949FD2CC291B6003736A9 /* Model */,
+				5EC949FC2CC291A6003736A9 /* Service */,
+				5EC949FB2CC2919F003736A9 /* View */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		5EC949F72CC2912C003736A9 /* Gallery */ = {
+			isa = PBXGroup;
+			children = (
+				5EC949FA2CC29197003736A9 /* View */,
+			);
+			path = Gallery;
+			sourceTree = "<group>";
+		};
+		5EC949F82CC29137003736A9 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				5EC949F92CC2918F003736A9 /* View */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		5EC949F92CC2918F003736A9 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5EC949FF2CC291DB003736A9 /* ProfileView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EC949FA2CC29197003736A9 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5EC94A012CC2954C003736A9 /* GalleryView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EC949FB2CC2919F003736A9 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5EC94A032CC29607003736A9 /* HomeView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EC949FC2CC291A6003736A9 /* Service */ = {
+			isa = PBXGroup;
+			children = (
+				5EC94A052CC29770003736A9 /* AuthenticationService.swift */,
+				5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */,
+			);
+			path = Service;
+			sourceTree = "<group>";
+		};
+		5EC949FD2CC291B6003736A9 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		5EC949FE2CC291BD003736A9 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5EC94A112CC59585003736A9 /* HomeViewModel.swift */,
+				5EC94A142CC66DCE003736A9 /* HomeViewModelWrapper.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		5EC94A072CC3C729003736A9 /* Helper */ = {
+			isa = PBXGroup;
+			children = (
+				5EC94A082CC3C762003736A9 /* ValidationFB.swift */,
+			);
+			path = Helper;
+			sourceTree = "<group>";
+		};
+		5EC94A0A2CC3C9BF003736A9 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				5EC94A0E2CC3CBBB003736A9 /* Extension */,
+				5EC94A0B2CC3CA2F003736A9 /* Errors */,
+				5EC94A072CC3C729003736A9 /* Helper */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		5EC94A0B2CC3CA2F003736A9 /* Errors */ = {
+			isa = PBXGroup;
+			children = (
+				5EC94A0C2CC3CA4E003736A9 /* ErrorsFB.swift */,
+			);
+			path = Errors;
+			sourceTree = "<group>";
+		};
+		5EC94A0E2CC3CBBB003736A9 /* Extension */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Extension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -206,13 +337,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */,
+				5EC94A002CC291DB003736A9 /* ProfileView.swift in Sources */,
+				5EC94A0D2CC3CA4E003736A9 /* ErrorsFB.swift in Sources */,
+				5EC94A152CC66DCF003736A9 /* HomeViewModelWrapper.swift in Sources */,
+				5EC94A122CC59585003736A9 /* HomeViewModel.swift in Sources */,
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
+				5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */,
+				5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */,
 				5EC949E52CBA8FC5003736A9 /* OnboardingViewModel.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
+				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
 				5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */,
 				5EC949E02CBA88F2003736A9 /* OnboardingPage.swift in Sources */,
 				5EC949E32CBA89FC003736A9 /* OnboardingService .swift in Sources */,
 				5EC949EA2CBA954F003736A9 /* OnboardingView.swift in Sources */,
+				5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */,
+				5EC94A022CC2954C003736A9 /* GalleryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
