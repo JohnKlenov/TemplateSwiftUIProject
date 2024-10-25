@@ -17,8 +17,8 @@ struct ContentView: View {
         TabView(selection: $selection) {
             let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
             let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
-//            let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver) as (any HomeViewModelProtocol)
-            let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver)
+            let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
+            let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, errorHandler: errorHandler)
             HomeView(viewModel: viewModel)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
@@ -53,3 +53,7 @@ struct LazyView<Content: View>: View {
         build()
     }
 }
+
+
+
+//            let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver) as (any HomeViewModelProtocol)

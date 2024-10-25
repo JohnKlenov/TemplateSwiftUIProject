@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -26,13 +27,14 @@
 		5EC94A042CC29607003736A9 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A032CC29607003736A9 /* HomeView.swift */; };
 		5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A052CC29770003736A9 /* AuthenticationService.swift */; };
 		5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A082CC3C762003736A9 /* ValidationFB.swift */; };
-		5EC94A0D2CC3CA4E003736A9 /* ErrorsFB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A0C2CC3CA4E003736A9 /* ErrorsFB.swift */; };
+		5EC94A0D2CC3CA4E003736A9 /* CustomErrorsFB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A0C2CC3CA4E003736A9 /* CustomErrorsFB.swift */; };
 		5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */; };
 		5EC94A122CC59585003736A9 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A112CC59585003736A9 /* HomeViewModel.swift */; };
 		5EC94A152CC66DCF003736A9 /* HomeViewModelWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A142CC66DCE003736A9 /* HomeViewModelWrapper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedErrorHandler.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -50,7 +52,7 @@
 		5EC94A032CC29607003736A9 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		5EC94A052CC29770003736A9 /* AuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationService.swift; sourceTree = "<group>"; };
 		5EC94A082CC3C762003736A9 /* ValidationFB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationFB.swift; sourceTree = "<group>"; };
-		5EC94A0C2CC3CA4E003736A9 /* ErrorsFB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorsFB.swift; sourceTree = "<group>"; };
+		5EC94A0C2CC3CA4E003736A9 /* CustomErrorsFB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomErrorsFB.swift; sourceTree = "<group>"; };
 		5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreCollectionObserverService.swift; sourceTree = "<group>"; };
 		5EC94A112CC59585003736A9 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		5EC94A142CC66DCE003736A9 /* HomeViewModelWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModelWrapper.swift; sourceTree = "<group>"; };
@@ -245,7 +247,8 @@
 		5EC94A0B2CC3CA2F003736A9 /* Errors */ = {
 			isa = PBXGroup;
 			children = (
-				5EC94A0C2CC3CA4E003736A9 /* ErrorsFB.swift */,
+				5EC94A0C2CC3CA4E003736A9 /* CustomErrorsFB.swift */,
+				5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */,
 			);
 			path = Errors;
 			sourceTree = "<group>";
@@ -338,7 +341,7 @@
 			files = (
 				5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */,
 				5EC94A002CC291DB003736A9 /* ProfileView.swift in Sources */,
-				5EC94A0D2CC3CA4E003736A9 /* ErrorsFB.swift in Sources */,
+				5EC94A0D2CC3CA4E003736A9 /* CustomErrorsFB.swift in Sources */,
 				5EC94A152CC66DCF003736A9 /* HomeViewModelWrapper.swift in Sources */,
 				5EC94A122CC59585003736A9 /* HomeViewModel.swift in Sources */,
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
@@ -352,6 +355,7 @@
 				5EC949E32CBA89FC003736A9 /* OnboardingService .swift in Sources */,
 				5EC949EA2CBA954F003736A9 /* OnboardingView.swift in Sources */,
 				5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */,
+				5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */,
 				5EC94A022CC2954C003736A9 /* GalleryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

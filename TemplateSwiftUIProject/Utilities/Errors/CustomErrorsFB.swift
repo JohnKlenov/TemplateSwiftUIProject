@@ -11,7 +11,7 @@ import Foundation
 enum PathFirestoreError: Error, LocalizedError {
     case invalidCollectionPath
     
-    var errorDescription: String? {
+    var errorDescription: String {
         switch self {
         case .invalidCollectionPath:
             return "The provided path is invalid. It must be a path to a collection, not a document."

@@ -26,10 +26,12 @@ class HomeViewModel: HomeViewModelProtocol {
     private var cancellables = Set<AnyCancellable>()
     private var authenticationService: AuthenticationServiceProtocol
     private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
+    private let errorHandler: ErrorHandlerProtocol
     
-    init(authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol) {
+    init(authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, errorHandler: ErrorHandlerProtocol) {
         self.authenticationService = authenticationService
         self.firestorColletionObserverService = firestorColletionObserverService
+        self.errorHandler = errorHandler
         bind()
     }
     
@@ -71,7 +73,8 @@ class HomeViewModel: HomeViewModelProtocol {
     }
     
     private func handleError(_ error: Error) {
-        self.errorMessage = error.localizedDescription
+        print("HomeViewModel.handleError - \(error.localizedDescription)")
+        self.errorMessage = errorHandler.handle(error: error)
         self.isLoading = false
     }
     

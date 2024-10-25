@@ -12,7 +12,7 @@ import Foundation
 struct PathValidator {
     static func validateCollectionPath(_ path:String) -> Bool {
         let pathComponent = path.split(separator:"/")
-        return pathComponent.count % 2 == 0
+        return pathComponent.count % 2 != 0
     }
 }
 
