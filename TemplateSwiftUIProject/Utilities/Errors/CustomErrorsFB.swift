@@ -19,15 +19,3 @@ enum PathFirestoreError: Error, LocalizedError {
     }
 }
 
-
-//class UserDataService: UserDataServiceProtocol {
-//    private let db: Firestore
-//    private var listener: ListenerRegistration?
-//
-//    init(db: Firestore = Firestore.firestore()) {
-//        self.db = db
-//    }
-//
-//    func getData(for path: String) -> AnyPublisher<[String], Error> {
-//        guard isValidCollectionPath(path) else {
-//            return Fail(error: PathError.invalidPath).eraseToAnyPublisher()

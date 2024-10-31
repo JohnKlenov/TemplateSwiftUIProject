@@ -14,6 +14,7 @@ import FirebaseAuth
 protocol AuthenticationServiceProtocol {
     func authenticate() -> AnyPublisher<Result<String, Error>, Never>
     func reset()
+    func signOutUser()
 }
 
 
@@ -45,20 +46,20 @@ class AuthenticationService: AuthenticationServiceProtocol {
     }
     
     private func createAnonymousUser() {
-            Auth.auth().signInAnonymously { [weak self] authResult, error in
-                guard let self = self else { return }
-                guard let _ = authResult?.user else {
-                    if let error = error {
-                        
-                        self.authenticationPublisher.send(.failure(error))
-                    } else {
-                        self.authenticationPublisher.send(.failure(NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])))
-                    }
-                    return
+        Auth.auth().signInAnonymously { [weak self] authResult, error in
+            guard let self = self else { return }
+            guard let _ = authResult?.user else {
+                if let error = error {
+                    
+                    self.authenticationPublisher.send(.failure(error))
+                } else {
+                    self.authenticationPublisher.send(.failure(NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])))
                 }
-                // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
+                return
             }
+            // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
         }
+    }
     
     func authenticate() -> AnyPublisher<Result<String, any Error>, Never> {
         return authenticationPublisher.eraseToAnyPublisher()
@@ -67,6 +68,15 @@ class AuthenticationService: AuthenticationServiceProtocol {
     func reset() {
         authenticationPublisher = PassthroughSubject<Result<String, Error>, Never>()
         addListeners()
+    }
+    
+    func signOutUser() {
+        do {
+            try Auth.auth().signOut()
+            print("Success signOut!")
+        } catch let error {
+            print("Failed signOut - \(error.localizedDescription)")
+        }
     }
 }
 
