@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */; };
 		5EA4FDB82CD10579001CA401 /* PlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDB72CD10579001CA401 /* PlaceholderView.swift */; };
+		5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDBA2CD51037001CA401 /* AppColors.swift */; };
+		5EA4FDC32CD64D2B001CA401 /* AddBookSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDC22CD64D2B001CA401 /* AddBookSheet.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -37,6 +39,8 @@
 /* Begin PBXFileReference section */
 		5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedErrorHandler.swift; sourceTree = "<group>"; };
 		5EA4FDB72CD10579001CA401 /* PlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderView.swift; sourceTree = "<group>"; };
+		5EA4FDBA2CD51037001CA401 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
+		5EA4FDC22CD64D2B001CA401 /* AddBookSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddBookSheet.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -74,6 +78,46 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5EA4FDB92CD51013001CA401 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5EA4FDBA2CD51037001CA401 /* AppColors.swift */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		5EA4FDBC2CD64971001CA401 /* AddBookSheet */ = {
+			isa = PBXGroup;
+			children = (
+				5EA4FDBF2CD649B5001CA401 /* Model */,
+				5EA4FDBE2CD649AC001CA401 /* ViewModel */,
+				5EA4FDBD2CD649A6001CA401 /* View */,
+			);
+			path = AddBookSheet;
+			sourceTree = "<group>";
+		};
+		5EA4FDBD2CD649A6001CA401 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5EA4FDC22CD64D2B001CA401 /* AddBookSheet.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EA4FDBE2CD649AC001CA401 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		5EA4FDBF2CD649B5001CA401 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		5EC949C32CB526E5003736A9 = {
 			isa = PBXGroup;
 			children = (
@@ -93,6 +137,8 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5EA4FDBC2CD64971001CA401 /* AddBookSheet */,
+				5EA4FDB92CD51013001CA401 /* Resources */,
 				5EC94A0A2CC3C9BF003736A9 /* Utilities */,
 				5EC949F82CC29137003736A9 /* Profile */,
 				5EC949F72CC2912C003736A9 /* Gallery */,
@@ -354,7 +400,9 @@
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
 				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
 				5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */,
+				5EA4FDC32CD64D2B001CA401 /* AddBookSheet.swift in Sources */,
 				5EA4FDB82CD10579001CA401 /* PlaceholderView.swift in Sources */,
+				5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */,
 				5EC949E02CBA88F2003736A9 /* OnboardingPage.swift in Sources */,
 				5EC949E32CBA89FC003736A9 /* OnboardingService .swift in Sources */,
 				5EC949EA2CBA954F003736A9 /* OnboardingView.swift in Sources */,

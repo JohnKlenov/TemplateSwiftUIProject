@@ -25,6 +25,12 @@
 ///else if showPlaceholder: Отображает ContentUnavailableView, если showPlaceholder = true.
 ///else: Отображает content, когда оба viewModel.isLoading и showPlaceholder равны false.
 
+///Неизменное состояние: Мы используем .constant, когда значение, которое мы передаём, не должно изменяться. В данном случае, viewModel.viewState.isError возвращает значение, которое не изменяется напрямую, а зависит от состояния представления.
+///Облегчение кода: Это упрощает код, так как нам не нужно создавать отдельное состояние для управления видимостью алерта.
+
+///Когда case .loading:, ProgressView автоматически отображается и начинает анимацию.
+///Когда viewModel.isLoading становится false, ProgressView исчезает из экрана.
+
 import SwiftUI
 import Combine
 
@@ -32,6 +38,7 @@ import Combine
 struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
+    @State var presentAddBookSheet:Bool = false
     
     init(viewModel:HomeViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -44,42 +51,69 @@ struct HomeView: View {
                 case .loading:
                     ProgressView("Loading...")
                 case .error(let error):
-                    VStack{
-                        Spacer() // Отступ сверху, который растягивается до начала Safe Area
-                        ContentUnavailableView {
-                            Label("Connection issue", systemImage: "wifi.slash")
-                        } description: {
-                            Text("Check your internet connection")
-                        } actions: {
-                            Button("Refresh") {
-                                print("Did Tap Refresh ContentUnavailableView")
-                                viewModel.retry()
-                            }
-                        }
-                        .background(Color.red.opacity(0.5))
-                        .frame(maxWidth: .infinity)
-                        Spacer() // Отступ снизу, который растягивается до конца Safe Area
-                    }
-                    .edgesIgnoringSafeArea([.horizontal])
+                    errorView(error: error)
                 case .content(let data):
-                    List(data, id: \.self) { item in
-                        Text(item)
-                    }
-                    .background(Color.green)
+                    contentView(data: data)
                 }
             }
-        }
-        .navigationTitle("Home")
-        .alert("Error", isPresented: .constant(viewModel.viewState.isError) ) {
-            Button("Retry") {
-                viewModel.retry()
+            .background(AppColors.background)
+            .navigationTitle("Home")
+//            .navigationBarTitleDisplayMode(.inline)
+            .toolbar{
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Add") {
+                        self.presentAddBookSheet.toggle()
+                    }
+                    .foregroundStyle(AppColors.activeColor)
+                    .padding()
+                    .disabled(viewModel.viewState.isError)
+                }
             }
-            Button("Cancel", role: .cancel) {
-                print("DidTapAlertCancel")
+            .alert("Error", isPresented: .constant(viewModel.viewState.isError) ) {
+                Button("Retry") {
+                    viewModel.retry()
+                }
+                Button("Cancel", role: .cancel) {
+                    print("DidTapAlertCancel")
+                }
+            } message: {
+                Text(viewModel.viewState.errorMessage ?? "Try again later")
             }
-        } message: {
-            Text(viewModel.viewState.errorMessage ?? "Try again later")
+            .sheet(isPresented: $presentAddBookSheet) {
+                AddBookSheet()
+            }
         }
+    }
+    
+    private func errorView(error:String) -> some View {
+        VStack {
+            Spacer()
+            ContentUnavailableView(label: {
+                Label("Connection issue", systemImage: "wifi.slash")
+            }, description: {
+                Text("Check your internet connection")
+            }, actions: {
+                Button("Refresh") {
+                    viewModel.retry()
+                }
+            })
+            .background(AppColors.secondaryBackground)
+            .frame(maxWidth: .infinity)
+            Spacer()
+        }
+        .ignoresSafeArea(edges: [.horizontal])
+    }
+    
+    private func contentView(data:[String]) -> some View {
+        VStack {
+            Spacer()
+            List(data, id: \.self) { item in
+                Text(item)
+            }
+            .background(AppColors.activeColor)
+            Spacer()
+        }
+        .ignoresSafeArea(edges: [.horizontal])
     }
 }
     
@@ -101,15 +135,31 @@ extension ViewState {
 
 
     
-    
-    
-//    private var content: some View {
-//        
-//        List(viewModel.data, id: \.self) { item in
-//            Text(item)
+
+//        .navigationTitle("Home")
+//        .toolbar{
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button("Add") {
+//                    print("Add item for List")
+//                }
+//                .foregroundStyle(AppColors.activeColor)
+//                .padding()
+//
+//            }
 //        }
-//        .background(Color.green)
-//    }
+//        .background(AppColors.background)
+//        .alert("Error", isPresented: .constant(viewModel.viewState.isError) ) {
+//            Button("Retry") {
+//                viewModel.retry()
+//            }
+//            Button("Cancel", role: .cancel) {
+//                print("DidTapAlertCancel")
+//            }
+//        } message: {
+//            Text(viewModel.viewState.errorMessage ?? "Try again later")
+//        }
+    
+// MARK: - Trush
 
 //struct HomeView: View {
 //    @StateObject private var viewModel: HomeViewModel
@@ -192,246 +242,6 @@ extension ViewState {
 
 
 
-//            ZStack {
-//                if viewModel.isLoading {
-//                    ProgressView("Loading...")
-//                } else {
-//                    content
-//                }
-//            }
-//            .navigationTitle("Home")
-//            .overlay {
-//                if showPlaceholder {
-//                    ContentUnavailableView {
-//                        Label("Connection issue", systemImage: "wifi.slash")
-//                    } description: {
-//                        Text("Check your internet connection")
-//                    } actions: {
-//                        Button("Refresh") {
-//                            print("Did Tap Refresh ContentUnavailableView")
-//                            viewModel.retry()
-//                        }
-//                    }
-//                    .background(Color.red.opacity(0.5))
-//                    .padding()
-//
-//                }
-//            }
 
 
-//struct HomeView: View {
-//    @StateObject private var viewModel: HomeViewModel
-//    @State private var showPlaceholder = false
-//    @State private var showAlert = false
-//
-//    init(viewModel: HomeViewModel) {
-//        _viewModel = StateObject(wrappedValue: viewModel)
-//        _showPlaceholder = State(initialValue: viewModel.errorMessage != nil)
-//    }
-//
-//    var body: some View {
-//        NavigationView {
-//            ZStack {
-//                if viewModel.isLoading {
-//                    ProgressView("Loading...")
-//                } else {
-//                    content
-//                }
-//            }
-//            .navigationTitle("Home")
-//            .overlay {
-//                if showPlaceholder {
-//                    ContentUnavailableView {
-//                        Label("Connection issue", systemImage: "wifi.slash")
-//                    } description: {
-//                        Text("Check your internet connection")
-//                    } actions: {
-//                        Button("Refresh") {
-//                            print("Did Tap Refresh ContentUnavailableView")
-//                            viewModel.retry()
-//                        }
-//                    }
-//                    .background(Color.red.opacity(0.5))
-//                    .padding()
-//
-//                }
-//            }
-//            .alert("Error", isPresented: $showAlert) {
-//                Button("Retry") {
-////                    showAlert = false // Сброс состояния алерта перед новой попыткой
-//                    viewModel.retry()
-//                }
-//                Button("Cancel", role: .cancel) {
-//                    print("DidTapAlertCancel")
-//                    showAlert = false
-//                }
-//            } message: {
-//                Text(viewModel.errorMessage ?? "Try again later")
-//            }
-//            .onChange(of: viewModel.errorMessage) { _, newValue in
-//                          showAlert = false // Сброс состояния алерта перед новой попыткой
-//                          if newValue == nil {
-//                              showPlaceholder = false
-//                          } else {
-//                              showPlaceholder = true
-//                              showAlert = true // Отобразить алерт при новой ошибке
-//                          }
-//                      }
-////            .onChange(of: viewModel.errorMessage) { oldValue, newValue in
-////                if newValue == nil {
-////                    showPlaceholder = false
-////                } else {
-////                    showPlaceholder = true
-////                    showAlert = true // Отобразить алерт при наличии ошибки
-////                }
-////            }
-//        }
-//    }
-//
-//    private var content: some View {
-//        List(viewModel.data, id: \.self) { item in
-//            Text(item)
-//        }
-//    }
-//}
 
-
-//    private func isAlertPresented() -> Binding<Bool> {
-//        return Binding {
-//            viewModel.errorMessage != nil
-//        } set: { newValue in
-//            print("newValue - \(newValue)")
-//            if !newValue  {
-//                viewModel.errorMessage = nil
-//            }
-//        }
-//    }
-
-//            ZStack {
-//                if viewModel.isLoading {
-//                    ProgressView("Loading...")
-//                } else if showPlaceholder {
-//                    ContentUnavailableView {
-//                        Label("Connection issue", systemImage: "wifi.slash")
-//                    } description: {
-//                        Text("Check your internet connection")
-//                    } actions: {
-//                        Button("Refresh") {
-//                            print("Did Tap Refresh ContentUnavailableView")
-//                        }
-//                    }
-//                    .background(Color.red.opacity(0.5))
-//                } else {
-//                    content
-//                }
-//            }
-
-//struct HomeView: View {
-//    
-//    @StateObject private var viewModel: HomeViewModel
-//    @State private var showPlaceholder = false
-//    
-//    init(viewModel: HomeViewModel) {
-//        _viewModel = StateObject(wrappedValue: viewModel)
-//        _showPlaceholder = State(initialValue: viewModel.errorMessage != nil)
-//    }
-//    
-//    var body: some View {
-//        
-//        ZStack {
-//            if viewModel.isLoading {
-//                ProgressView("Loading...")
-//            } else if showPlaceholder {
-//                //                PlaceholderView()
-//            } else {
-//                content
-//            }
-//            
-//        }
-//        .alert("Error", isPresented: isAlertPresented()) {
-//            Button("Retry") {
-//                viewModel.retry()
-//            }
-//            Button("Cancel", role: .cancel) {
-//                print("DidTapAlertCancel")
-//            }
-//        } message: {
-//            Text(viewModel.errorMessage ?? "Try again later")
-//        }
-//        .onChange(of: viewModel.errorMessage) { oldValue, newValue in
-//            if newValue == nil {
-//                showPlaceholder = false
-//            } else {
-//                showPlaceholder = true
-//            }
-//        }
-//    }
-//    
-//    private var content: some View {
-//        List(viewModel.data, id: \.self) { item in
-//            Text(item)
-//        }
-//    }
-//    
-//    private func isAlertPresented() -> Binding<Bool> {
-//        Binding {
-//            viewModel.errorMessage != nil
-//        } set: { newValue in
-//            if !newValue  {
-//                viewModel.errorMessage = nil
-//            }
-//        }
-//    }
-//}
-
-
-//ZStack {
-//    if viewModel.isLoading {
-//        ProgressView("Loading...")
-//    } else {
-//        content
-//    }
-//}
-
-//        .overlay {
-//            if showPlaceholder {
-//                ContentUnavailableView {
-//                    Label("Connection issue", systemImage: "wifi.slash")
-//                } description: {
-//                    Text("Check your internet connection")
-//                } actions: {
-//                    Button("Refresh") {
-//                        print("Did Tap Refresh ContentUnavailableView")
-//                    }
-//                }
-//                .background(Color.red.opacity(0.5))
-//            }
-//        }
-// MARK: - Trush
-
-//    @ObservedObject private var viewModelWrapper: AnyViewModelWrapper
-//
-//    init(viewModel: any HomeViewModelProtocol) {
-//        self.viewModelWrapper = AnyViewModelWrapper(wrapped: viewModel)
-//    }
-
-//struct HomeView: View {
-//
-//    @StateObject private var viewModel: HomeViewModel
-//
-//        init(viewModel: HomeViewModel) {
-//            _viewModel = StateObject(wrappedValue: viewModel)
-//        }
-//
-//    var body: some View {
-//        ZStack {
-//
-//        }
-//
-//    }
-//}
-
-//            Color.purple
-//                .ignoresSafeArea()
-//            Text("I'm Home")
-//                .font(.system(.largeTitle, design: .monospaced, weight: .black))

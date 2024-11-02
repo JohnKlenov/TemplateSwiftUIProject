@@ -15,6 +15,10 @@ struct GalleryView: View {
             Text("I'm Gallery")
                 .font(.system(.largeTitle, design: .default, weight: .regular))
         }
+//        .onAppear(perform: {
+//            let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
+//            authenticationService.signOutUser()
+//        })
         
     }
 }
@@ -22,3 +26,4 @@ struct GalleryView: View {
 #Preview {
     GalleryView()
 }
+
