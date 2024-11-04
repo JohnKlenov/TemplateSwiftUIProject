@@ -12,7 +12,7 @@ import SwiftUI
 enum ViewState {
     case loading
     case error(String)
-    case content([String])
+    case content([Book])
 }
 
 protocol HomeViewModelProtocol: ObservableObject {
@@ -41,7 +41,7 @@ class HomeViewModel: HomeViewModelProtocol {
         
         //        authenticationService.signOutUser()
         authenticationService.authenticate()
-            .flatMap { [weak self] result -> AnyPublisher<Result<[String], Error>, Never> in
+            .flatMap { [weak self] result -> AnyPublisher<Result<[Book], Error>, Never> in
                 guard let self = self else {
                     return Just(.success([])).eraseToAnyPublisher()
                 }

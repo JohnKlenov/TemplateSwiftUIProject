@@ -25,7 +25,8 @@ import FirebaseFirestore
 
 
 protocol FirestoreCollectionObserverProtocol {
-    func observeCollection(at path: String) -> AnyPublisher<Result<[String], Error>, Never>
+//    func observeCollection(at path: String) -> AnyPublisher<Result<[String], Error>, Never>
+    func observeCollection(at path: String) -> AnyPublisher<Result<[Book], Error>, Never>
 }
 
 import Combine
@@ -41,11 +42,11 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
         self.db = db
     }
 
-    func observeCollection(at path: String) -> AnyPublisher<Result<[String], Error>, Never> {
+    func observeCollection(at path: String) -> AnyPublisher<Result<[Book], Error>, Never> {
         guard PathValidator.validateCollectionPath(path) else {
             return Just(.failure(PathFirestoreError.invalidCollectionPath)).eraseToAnyPublisher()
         }
-        let subject = PassthroughSubject<Result<[String], Error>, Never>()
+        let subject = PassthroughSubject<Result<[Book], Error>, Never>()
         listener?.remove()
         
         listener = db.collection(path)
@@ -54,8 +55,12 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
                 if let error = error {
                     subject.send(.failure(error))
                 } else {
-                    let data = querySnapshot?.documents.compactMap { $0.get("value") as? String } ?? []
-                    subject.send(.success(data))
+//                    let data = querySnapshot?.documents.compactMap { $0.get("value") as? String } ?? []
+                    ///
+                    let data = querySnapshot?.documents.compactMap({ queryDocumentSnapshot in
+                        try? queryDocumentSnapshot.data(as: Book.self)
+                    })
+                    subject.send(.success(data ?? []))
                 }
             }
 

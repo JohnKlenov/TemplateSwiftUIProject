@@ -31,6 +31,7 @@ struct TemplateSwiftUIProjectApp: App {
                 let onboardingService = OnboardingService()
                 let viewModel = OnboardingViewModel(onboardingService: onboardingService)
                 OnboardingView(viewModel: viewModel)
+                
             }
                 
         }

@@ -24,6 +24,7 @@ class AuthenticationService: AuthenticationServiceProtocol {
     private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
     
     init() {
+//        signOutUser()
         addListeners()
     }
     

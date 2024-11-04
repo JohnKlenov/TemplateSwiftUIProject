@@ -80,7 +80,8 @@ struct HomeView: View {
                 Text(viewModel.viewState.errorMessage ?? "Try again later")
             }
             .sheet(isPresented: $presentAddBookSheet) {
-                AddBookSheet()
+                let viewModel = BookViewModel()
+                BookEditView(viewModel: viewModel)
             }
         }
     }
@@ -104,11 +105,11 @@ struct HomeView: View {
         .ignoresSafeArea(edges: [.horizontal])
     }
     
-    private func contentView(data:[String]) -> some View {
+    private func contentView(data:[Book]) -> some View {
         VStack {
             Spacer()
-            List(data, id: \.self) { item in
-                Text(item)
+            List(data) { item in
+                Text(item.title)
             }
             .background(AppColors.activeColor)
             Spacer()

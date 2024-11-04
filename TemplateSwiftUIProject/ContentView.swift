@@ -15,6 +15,8 @@ struct ContentView: View {
     
     var body: some View {
         TabView(selection: $selection) {
+//            var authenticationService = AuthenticationService()
+//            GalleryView()
             let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
             let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
             let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
