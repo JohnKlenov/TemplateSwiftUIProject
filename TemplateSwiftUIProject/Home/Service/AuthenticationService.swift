@@ -6,10 +6,20 @@
 //
 
 
-import Combine
-import SwiftUI
-import FirebaseAuth
 
+///вызов authenticationService.authenticate() в bind() действительно произойдет раньше, чем любое authenticationPublisher.send в асинхронном коде. Это связано с порядком выполнения синхронного и асинхронного кода.
+///что синхронные операции выполняются сразу, а асинхронные операции могут начаться позже. Это означает, что если вы вызываете синхронную операцию, она завершится до того, как начнется асинхронная операция.
+///private var authenticationPublisher = CurrentValueSubject<Result<String, Error>, Never>(.success("nul"))
+///if userId == "nul" {
+///return Empty().eraseToAnyPublisher() // Завершение цепочки
+///} else {
+///return firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")}
+
+
+
+
+import Combine
+import FirebaseAuth
 
 protocol AuthenticationServiceProtocol {
     func authenticate() -> AnyPublisher<Result<String, Error>, Never>
@@ -18,13 +28,14 @@ protocol AuthenticationServiceProtocol {
 }
 
 
+
 class AuthenticationService: AuthenticationServiceProtocol {
     
     private var authenticationPublisher = PassthroughSubject<Result<String, Error>, Never>()
     private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
     
     init() {
-//        signOutUser()
+//                signOutUser()
         addListeners()
     }
     
@@ -80,6 +91,11 @@ class AuthenticationService: AuthenticationServiceProtocol {
         }
     }
 }
+
+
+
+
+
 
 
 

@@ -8,6 +8,8 @@
 import SwiftUI
 
 
+//            let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
+//            GalleryView()
 
 struct ContentView: View {
     
@@ -15,10 +17,11 @@ struct ContentView: View {
     
     var body: some View {
         TabView(selection: $selection) {
-//            var authenticationService = AuthenticationService()
-//            GalleryView()
+
             let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
-            let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+//            let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+            let firestoreCollectionObserver = RealtimeCollectionObserverService() as FirestoreCollectionObserverProtocol
+            
             let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
             let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, errorHandler: errorHandler)
             HomeView(viewModel: viewModel)

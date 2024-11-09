@@ -41,14 +41,18 @@ struct BookEditView: View {
             Form {
                 Section {
                     TextField("Title", text: $viewModel.book.title)
+                        .keyboardType(.default)
                     TextField("Description", text: $viewModel.book.description)
+                        .keyboardType(.default)
                     TextField("PathImage", text: $viewModel.book.pathImage)
+                        .keyboardType(.default)
                 } header: {
                     Text("Book")
                 }
                 
                 Section {
                     TextField("Author", text: $viewModel.book.author)
+                        .keyboardType(.default)
                 } header: {
                     Text("Author")
                 }

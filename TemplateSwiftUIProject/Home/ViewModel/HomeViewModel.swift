@@ -5,6 +5,13 @@
 //  Created by Evgenyi on 20.10.24.
 //
 
+
+///Когда выполнится return Empty().eraseToAnyPublisher(), flatMap не отправит никаких значений дальше по цепочке.
+///Последующие операторы (receive, sink) не получат никаких данных и обработка завершится.
+///Если вам нужно, чтобы sink срабатывал даже в случае отсутствия данных, можно использовать Just.
+
+
+
 import Combine
 import SwiftUI
 
@@ -37,9 +44,8 @@ class HomeViewModel: HomeViewModelProtocol {
     }
     
     func bind() {
-        viewState = .loading
         
-        //        authenticationService.signOutUser()
+        viewState = .loading
         authenticationService.authenticate()
             .flatMap { [weak self] result -> AnyPublisher<Result<[Book], Error>, Never> in
                 guard let self = self else {
@@ -65,7 +71,6 @@ class HomeViewModel: HomeViewModelProtocol {
     }
     
     func retry() {
-        print("func retry()")
         authenticationService.reset()
         bind()
     }

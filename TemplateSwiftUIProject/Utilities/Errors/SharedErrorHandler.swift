@@ -8,6 +8,8 @@
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseStorage
+import FirebaseDatabase
+
 
 protocol ErrorHandlerProtocol {
     func handle(error:Error) -> String
@@ -19,6 +21,7 @@ protocol ErrorHandlerProtocol {
 
 class SharedErrorHandler: ErrorHandlerProtocol {
     
+    private let RealtimeDatabaseErrorDomain = "com.firebase.database"
     
     func handle(error: any Error) -> String {
         // Преобразуем ошибку в NSError для работы с кодами ошибок
@@ -32,6 +35,9 @@ class SharedErrorHandler: ErrorHandlerProtocol {
             if let storageErrorCode = StorageErrorCode(rawValue: nsError.code) {
                 return handleStorageError(storageErrorCode)
             }
+            if nsError.domain == RealtimeDatabaseErrorDomain {
+                return handleRealtimeDatabaseError(nsError)
+            }
         }
         
         if let customError = error as? PathFirestoreError {
@@ -40,7 +46,8 @@ class SharedErrorHandler: ErrorHandlerProtocol {
         // Обработка неопознанных ошибок
         return "SharedErrorHandler Что-то пошло не так. Попробуйте еще раз."
     }
-    
+
+
     private func handleAuthError(_ code: AuthErrorCode) -> String {
         switch code {
         case .providerAlreadyLinked:
@@ -167,6 +174,33 @@ class SharedErrorHandler: ErrorHandlerProtocol {
             return "Ошибка StorageErrorCode. Попробуйте еще раз."
         }
     }
+    
+    // Метод для обработки ошибок Realtime Database
+    private func handleRealtimeDatabaseError(_ nsError: NSError) -> String {
+        switch nsError.code {
+        case NSURLErrorNotConnectedToInternet:
+            return "RealtimeDatabase. NetworkError. Произошла ошибка сети. Пожалуйста, проверьте подключение и попробуйте снова."
+        case NSURLErrorTimedOut:
+            return "RealtimeDatabase. NetworkError. Время ожидания истекло. Пожалуйста, попробуйте снова."
+        case NSURLErrorCancelled:
+            return "RealtimeDatabase. OperationCancelled. Операция была отменена. Попробуйте еще раз."
+        case NSURLErrorCannotFindHost:
+            return "RealtimeDatabase. NetworkError. Невозможно найти хост. Проверьте настройки сети и попробуйте снова."
+        case NSURLErrorCannotConnectToHost:
+            return "RealtimeDatabase. NetworkError. Невозможно подключиться к хосту. Проверьте подключение и попробуйте снова."
+        case NSURLErrorNetworkConnectionLost:
+            return "RealtimeDatabase. NetworkError. Потеряно сетевое подключение. Пожалуйста, переподключитесь и попробуйте снова."
+        case NSURLErrorResourceUnavailable:
+            return "RealtimeDatabase. ServiceUnavailable. Ресурс временно недоступен. Попробуйте позже."
+        case NSURLErrorUserCancelledAuthentication:
+            return "RealtimeDatabase. AuthenticationError. Пользователь отменил аутентификацию. Попробуйте снова."
+        case NSURLErrorUserAuthenticationRequired:
+            return "RealtimeDatabase. AuthenticationError. Необходима аутентификация пользователя. Пожалуйста, войдите в систему и попробуйте снова."
+        default:
+            return "Ошибка RealtimeDatabase. Попробуйте еще раз."
+        }
+    }
+
 }
 
 

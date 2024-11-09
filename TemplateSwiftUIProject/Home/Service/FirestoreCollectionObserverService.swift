@@ -20,12 +20,21 @@
 ///Ошибки сети и сервера: Если возникнут сетевые проблемы или проблемы на сервере Firestore, в блоке может появиться ошибка позже.
 ///Автоматическое переподключение: Firestore автоматически пытается переподключиться, но если не удается восстановить соединение, ошибка может быть передана в блок.
 
+//RealTimeDatabase ошибок в консоли нет, проблема в CloudFirestore
+
+///Возвращение Publisher:
+///Затем метод observeCollection завершает свое выполнение и возвращает Publisher.
+///Этот шаг является синхронным и гарантированно выполняется до любых асинхронных операций.
+
+///Синхронные операции (создание PassthroughSubject, возврат Publisher через eraseToAnyPublisher) всегда выполняются немедленно и завершаются до того, как любая асинхронная операция может начаться.
+///Асинхронные операции, такие как addSnapshotListener, происходят позже, после того, как функции завершили свои синхронные действия. Они не могут начать выполнение до завершения текущих синхронных операций.
+
 import Combine
 import FirebaseFirestore
+import FirebaseDatabase
 
 
 protocol FirestoreCollectionObserverProtocol {
-//    func observeCollection(at path: String) -> AnyPublisher<Result<[String], Error>, Never>
     func observeCollection(at path: String) -> AnyPublisher<Result<[Book], Error>, Never>
 }
 
@@ -47,23 +56,68 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
             return Just(.failure(PathFirestoreError.invalidCollectionPath)).eraseToAnyPublisher()
         }
         let subject = PassthroughSubject<Result<[Book], Error>, Never>()
-        listener?.remove()
         
+        listener?.remove()
         listener = db.collection(path)
             .addSnapshotListener { (querySnapshot, error) in
-                print("db.collection(path).addSnapshotListener - \(String(describing: error))")
                 if let error = error {
                     subject.send(.failure(error))
                 } else {
-//                    let data = querySnapshot?.documents.compactMap { $0.get("value") as? String } ?? []
-                    ///
                     let data = querySnapshot?.documents.compactMap({ queryDocumentSnapshot in
                         try? queryDocumentSnapshot.data(as: Book.self)
                     })
                     subject.send(.success(data ?? []))
                 }
-            }
 
+            }
         return subject.eraseToAnyPublisher()
     }
 }
+
+
+class RealtimeCollectionObserverService : FirestoreCollectionObserverProtocol {
+    
+    
+    private var listenerHandle:DatabaseHandle?
+    private let db:DatabaseReference
+    
+    ///let mockFirestore = FirestoreMock() // Твой mock-объект Firestore
+    init(db: DatabaseReference = Database.database().reference()) {
+        self.db = db
+    }
+    
+    func observeCollection(at path: String) -> AnyPublisher<Result<[Book], any Error>, Never> {
+        guard PathValidator.validateCollectionPath(path) else {
+            return Just(.failure(PathFirestoreError.invalidCollectionPath)).eraseToAnyPublisher()
+        }
+        
+        let subject = PassthroughSubject<Result<[Book], Error>, Never>()
+    
+        if let handler = listenerHandle {
+            db.child(path).removeObserver(withHandle: handler)
+        }
+        
+        listenerHandle = db.child(path).observe(.value, with: { snapshot in
+            var books:[Book] = []
+            for child in snapshot.children {
+                if let snapshot = child as? DataSnapshot, let book = try? snapshot.data(as: Book.self) {
+                    books.append(book)
+                    
+                }
+            }
+            print("books  \(books)")
+            subject.send(.success(books))
+        }) { error in
+            print("error  \(error)")
+            subject.send(.failure(error))
+        }
+        return subject.eraseToAnyPublisher()
+    }
+    
+    
+    
+    
+}
+
+
+
