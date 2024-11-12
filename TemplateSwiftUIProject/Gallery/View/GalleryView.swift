@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct GalleryView: View {
+    init() {
+        print("GalleryView init")
+    }
     var body: some View {
         ZStack {
             Color.pink
@@ -15,10 +18,9 @@ struct GalleryView: View {
             Text("I'm Gallery")
                 .font(.system(.largeTitle, design: .default, weight: .regular))
         }
-//        .onAppear(perform: {
-//            let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
-//            authenticationService.signOutUser()
-//        })
+        .onAppear(perform: {
+            print("GalleryView onAppear")
+        })
         
     }
 }

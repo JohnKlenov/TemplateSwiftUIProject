@@ -36,4 +36,8 @@ class BookViewModel:ObservableObject {
             self.modified = !book.title.isEmpty && !book.author.isEmpty && !book.description.isEmpty && !book.pathImage.isEmpty && (book.title != originalBook.title || book.author != originalBook.author || book.description != originalBook.description || book.pathImage != originalBook.pathImage)
         }
     }
+    
+    deinit {
+        print("deinit BookViewModel")
+    }
 }

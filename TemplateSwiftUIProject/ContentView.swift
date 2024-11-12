@@ -5,11 +5,9 @@
 //  Created by Evgenyi on 8.10.24.
 //
 
+
+
 import SwiftUI
-
-
-//            let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
-//            GalleryView()
 
 struct ContentView: View {
     
@@ -61,4 +59,5 @@ struct LazyView<Content: View>: View {
 
 
 
-//            let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver) as (any HomeViewModelProtocol)
+//            let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
+//            GalleryView()
