@@ -109,7 +109,7 @@ struct HomeView: View {
         .ignoresSafeArea(edges: [.horizontal])
     }
     
-    private func contentView(data:[Book]) -> some View {
+    private func contentView(data:[BookRealtime]) -> some View {
         VStack {
             Spacer()
             List(data) { item in

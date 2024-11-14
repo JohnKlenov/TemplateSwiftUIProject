@@ -8,9 +8,11 @@
 import Foundation
 
 
-enum PathFirestoreError: Error, LocalizedError {
+enum DatabaseEnternalAppError: Error, LocalizedError {
     case invalidCollectionPath
     case failedDeployOptionalError
+    case failedDeployOptionalID
+    case jsonConversionFailed
     
     var errorDescription: String {
         switch self {
@@ -18,6 +20,10 @@ enum PathFirestoreError: Error, LocalizedError {
             return "The provided path is invalid. It must be a path to a collection, not a document."
         case .failedDeployOptionalError:
             return "Failed to deploy optional error"
+        case .failedDeployOptionalID:
+            return "Failed to deploy optional ID"
+        case .jsonConversionFailed:
+            return "Json conversion failed"
         }
     }
 }

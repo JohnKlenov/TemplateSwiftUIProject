@@ -40,7 +40,7 @@ class SharedErrorHandler: ErrorHandlerProtocol {
             }
         }
         
-        if let customError = error as? PathFirestoreError {
+        if let customError = error as? DatabaseEnternalAppError {
             return customError.errorDescription
         }
         // Обработка неопознанных ошибок

@@ -15,6 +15,13 @@ import SwiftUI
 //  case cancel
 //}
 
+
+///SwiftUI: Асинхронная обработка событий
+///UIKit: Синхронная обработка событий гарантирует последовательность и предсказуемость действий
+
+///Если захотим отколонить фокус с текст филдов може использовать жест на форму по двойному тапу.
+
+
 enum Mode {
     case new
     case edit
@@ -71,10 +78,6 @@ struct BookEditView: View {
             }
             .navigationTitle(mode == .new ? "New book" : viewModel.book.title)
             .navigationBarTitleDisplayMode(mode == .new ? .inline : .large)
-            .onTapGesture {
-                print(".onTapGesture")
-                focus = nil
-            }
             .toolbar{
                 ToolbarItem(placement: .topBarTrailing) {
                     saveButton
@@ -95,22 +98,36 @@ struct BookEditView: View {
     }
     
     private func customTextField(_ title: String, text: Binding<String>, field: FocusedField) -> some View {
-        TextField(title, text: text) .keyboardType(.default)
-            .autocapitalization(.none)
-            .disableAutocorrection(true)
-            .focused($focus, equals: field)
-            .onSubmit {
-                switch field {
-                case .title: 
-                    focus = .description
-                case .description: 
-                    focus = .pathImage
-                case .pathImage: 
-                    focus = .author
-                case .author: 
-                    focus = nil
+        ZStack(alignment: .leading) {
+            TextField(title, text: text) .keyboardType(.default)
+                .keyboardType(.default)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+                .focused($focus, equals: field)
+                .padding([.leading, .trailing], 30)
+                .tint(.pink)
+                .foregroundStyle(.secondary)
+                .onSubmit {
+                    switch field {
+                    case .title:
+                        focus = .description
+                    case .description:
+                        focus = .pathImage
+                    case .pathImage:
+                        focus = .author
+                    case .author:
+                        focus = nil
+                    }
                 }
-            }
+            Button(action: {
+                print("Did tap Image")
+            }, label: {
+                Image(systemName: "swift")
+                    .foregroundStyle(.pink)
+                    .frame(width: 30, height: 30)
+                    .padding(.leading, -10)
+            })
+        }
     }
     
     private func handleCancelTapped() {
@@ -128,9 +145,13 @@ struct BookEditView: View {
     
 }
 
-//#Preview {
-//    BookEditView()
-//}
+
+
+#Preview {
+    BookEditView(viewModel:  BookViewModel())
+}
+
+
 
 
 
@@ -177,3 +198,13 @@ struct BookEditView: View {
 //                }
 //            }
 //    }
+
+
+
+//            ZStack {
+//                Color.clear // Скрытое представление для перехвата нажатий
+//                    .contentShape(Rectangle())
+//                    .onTapGesture {
+//                        print(".onTapGesture")
+//                        focus = nil
+//                    }}

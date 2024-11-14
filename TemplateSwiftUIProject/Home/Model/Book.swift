@@ -13,10 +13,25 @@ import FirebaseFirestore
 ///Если вы задаёте собственный идентификатор для документа при его сохранении, то при последующем получении документа из базы данных, поле @DocumentID var id будет содержать этот идентификатор.
 
 
-struct Book: Identifiable, Codable {
-    @DocumentID var id: String?
+struct BookRealtime: Identifiable, Codable {
+    var id: String?
     var title: String
     var author: String
     var description: String
     var pathImage: String
+    
+//    enum CodingKeys: String, CodingKey {
+//        case id
+//        case title
+//        case author
+//        case numberOfPages = "pages"
+//      }
 }
+
+//struct BookCloud: Identifiable, Codable {
+//    @DocumentID var id: String?
+//    var title: String
+//    var author: String
+//    var description: String
+//    var pathImage: String
+//}

@@ -10,13 +10,13 @@ import Combine
 
 class BookViewModel:ObservableObject {
     
-    @Published var book: Book
+    @Published var book: BookRealtime
     @Published var modified = false
     
-    private var originalBook: Book
+    private var originalBook: BookRealtime
     private var cancellables = Set<AnyCancellable>()
     
-    init(book:Book = Book(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new) {
+    init(book:BookRealtime = BookRealtime(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new) {
         self.book = book
         self.originalBook = book
         
