@@ -8,11 +8,12 @@
 import Foundation
 
 
-enum DatabaseEnternalAppError: Error, LocalizedError {
+enum FirebaseEnternalAppError: Error, LocalizedError {
     case invalidCollectionPath
     case failedDeployOptionalError
     case failedDeployOptionalID
     case jsonConversionFailed
+    case notSignedIn
     
     var errorDescription: String {
         switch self {
@@ -24,6 +25,8 @@ enum DatabaseEnternalAppError: Error, LocalizedError {
             return "Failed to deploy optional ID"
         case .jsonConversionFailed:
             return "Json conversion failed"
+        case .notSignedIn:
+            return "No user is currently signed in."
         }
     }
 }

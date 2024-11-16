@@ -5,8 +5,6 @@
 //  Created by Evgenyi on 4.11.24.
 //
 
-import SwiftUI
-
 /// вот это нам нужно что бы общаться с DetailView для его удаления из стека navView при удалении Book из BookEditView?
 /// В struct BookEditView - > var completionHandler: ((Result<Action, Error>) -> Void)?
 //enum Action {
@@ -21,6 +19,9 @@ import SwiftUI
 
 ///Если захотим отколонить фокус с текст филдов може использовать жест на форму по двойному тапу.
 
+
+
+import SwiftUI
 
 enum Mode {
     case new
@@ -38,6 +39,10 @@ struct BookEditView: View {
     @StateObject var viewModel: BookViewModel
     @FocusState var focus:FocusedField?
     
+    @State private var showAlert = false
+    @State private var isLoading = false
+    @State private var alertMessage:String?
+    
     var mode: Mode = .new
     @State var presentActionSheet = false
     
@@ -47,6 +52,7 @@ struct BookEditView: View {
         }
     }
     
+    /// многократное нажатие до ответа от сервера?
     var saveButton: some View {
         Button(mode == .new ? "Done" : "Save") {
             self.handleDoneTapped()
@@ -86,12 +92,35 @@ struct BookEditView: View {
                     cancelButton
                 }
             }
+            .alert("Error", isPresented: $showAlert, actions: {
+                Button("Ok") {
+                    print("Did tap Ok button")
+                }
+            }, message: {
+                Text(alertMessage ?? "")
+            })
             .confirmationDialog("Are you sure?", isPresented: $presentActionSheet) {
                 Button("Delete book", role: .destructive) {
                     self.handleDeleteTapped()
                 }
                 Button("Cancel", role: .cancel) {
                     self.handleCancelTapped()
+                }
+            }
+            .onReceive(viewModel.$operationState) { state in
+                switch state {
+                    
+                case .idle:
+                    isLoading = false
+                case .loading:
+                    isLoading = true
+                case .success:
+                    isLoading = false
+                    dismiss()
+                case .failure(let textError):
+                    isLoading = false
+                    alertMessage = textError
+                    showAlert = true
                 }
             }
         }
@@ -131,25 +160,24 @@ struct BookEditView: View {
     }
     
     private func handleCancelTapped() {
-        print("did tap Cancel")
         dismiss()
     }
     
     private func handleDoneTapped() {
-        print("did tap Done")
+        viewModel.updateOrAddBook()
     }
     
     private func handleDeleteTapped() {
-        print("did tap Delete")
+        viewModel.removeBook()
     }
     
 }
 
 
 
-#Preview {
-    BookEditView(viewModel:  BookViewModel())
-}
+//#Preview {
+//    BookEditView(viewModel:  BookViewModel())
+//}
 
 
 

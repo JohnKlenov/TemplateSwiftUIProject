@@ -84,7 +84,10 @@ struct HomeView: View {
                 Text(viewModel.viewState.errorMessage ?? "Try again later")
             }
             .sheet(isPresented: $presentAddBookSheet) {
-                let viewModel = BookViewModel()
+                let databaseService = RealtimeDatabaseCRUDService()
+                let authService = AuthService()
+                let errorService = SharedErrorHandler()
+                let viewModel = BookViewModel(databaseService: databaseService, authService: authService, errorHandler: errorService)
                 BookEditView(viewModel: viewModel)
             }
         }
@@ -122,21 +125,6 @@ struct HomeView: View {
     }
 }
     
-extension ViewState {
-    var isError:Bool {
-        if case .error = self {
-            return true
-        }
-        return false
-    }
-    
-    var errorMessage: String? {
-        if case let .error(message) = self {
-            return message
-        }
-        return nil
-    }
-}
 
 
     

@@ -12,7 +12,7 @@ import FirebaseDatabase
 
 
 protocol ErrorHandlerProtocol {
-    func handle(error:Error) -> String
+    func handle(error:Error?) -> String
 }
 
 /// Как мы будем работать с log to Crashlytics.
@@ -21,9 +21,15 @@ protocol ErrorHandlerProtocol {
 
 class SharedErrorHandler: ErrorHandlerProtocol {
     
-    private let RealtimeDatabaseErrorDomain = "com.firebase.database"
     
-    func handle(error: any Error) -> String {
+    private let RealtimeDatabaseErrorDomain = "com.firebase.database"
+
+    //    any Error
+    func handle(error: (any Error)?) -> String {
+        
+        guard let error = error else {
+            return "Unknown error"
+        }
         // Преобразуем ошибку в NSError для работы с кодами ошибок
         if let nsError = error as NSError? {
             if let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
@@ -40,7 +46,7 @@ class SharedErrorHandler: ErrorHandlerProtocol {
             }
         }
         
-        if let customError = error as? DatabaseEnternalAppError {
+        if let customError = error as? FirebaseEnternalAppError {
             return customError.errorDescription
         }
         // Обработка неопознанных ошибок

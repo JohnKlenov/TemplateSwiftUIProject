@@ -24,6 +24,24 @@ enum ViewState {
     case content([BookRealtime])
 }
 
+extension ViewState {
+    var isError:Bool {
+        if case .error = self {
+            return true
+        }
+        return false
+    }
+    
+    var errorMessage: String? {
+        if case let .error(message) = self {
+            return message
+        }
+        return nil
+    }
+}
+
+
+
 protocol HomeViewModelProtocol: ObservableObject {
     var viewState: ViewState { get }
     func retry()

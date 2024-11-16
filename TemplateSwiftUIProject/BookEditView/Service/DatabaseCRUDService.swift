@@ -28,7 +28,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
     private let db:DatabaseReference
     
     ///let mockFirestore = FirestoreMock() // Твой mock-объект Firestore
-    init(db: DatabaseReference) {
+    init(db: DatabaseReference = Database.database().reference()) {
         self.db = db
     }
     
@@ -40,7 +40,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
             bookWithID.id = bookID
             
             guard let childId = bookWithID.id else {
-                let error = DatabaseEnternalAppError.failedDeployOptionalID
+                let error = FirebaseEnternalAppError.failedDeployOptionalID
                 promise(.success(.failure(error)))
                 return
             }
@@ -50,7 +50,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
                 let bookDict = try JSONSerialization.jsonObject(with: bookData) as? [String:Any]
                 
                 guard let bookDict = bookDict else {
-                    promise(.success(.failure(DatabaseEnternalAppError.jsonConversionFailed)))
+                    promise(.success(.failure(FirebaseEnternalAppError.jsonConversionFailed)))
                     return
                 }
                 self.db.child(path).child(childId).setValue(bookDict) { error, _ in
@@ -70,7 +70,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
     func updateBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { promise in
             guard let childId = book.id else {
-                let error = DatabaseEnternalAppError.failedDeployOptionalID
+                let error = FirebaseEnternalAppError.failedDeployOptionalID
                 promise(.success(.failure(error)))
                 return
             }
@@ -79,7 +79,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
                 let bookData = try JSONEncoder().encode(book)
                 let bookDict = try JSONSerialization.jsonObject(with: bookData) as? [String:Any]
                 guard let bookDict = bookDict else {
-                    promise(.success(.failure(DatabaseEnternalAppError.jsonConversionFailed)))
+                    promise(.success(.failure(FirebaseEnternalAppError.jsonConversionFailed)))
                     return
                 }
                 self.db.child(path).child(childId).updateChildValues(bookDict) { error, _ in
@@ -100,7 +100,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
     func removeBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { promise in
             guard let childId = book.id else {
-                promise(.success(.failure(DatabaseEnternalAppError.failedDeployOptionalID)))
+                promise(.success(.failure(FirebaseEnternalAppError.failedDeployOptionalID)))
                 return
             }
             
