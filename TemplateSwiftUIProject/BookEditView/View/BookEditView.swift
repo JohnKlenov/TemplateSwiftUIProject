@@ -19,6 +19,7 @@
 
 ///Если захотим отколонить фокус с текст филдов може использовать жест на форму по двойному тапу.
 
+///alertMessage принимает все ошибки даже те что можно было не отображать(нет сети или что то что невелирвует кэш)
 
 
 import SwiftUI
@@ -42,20 +43,20 @@ struct BookEditView: View {
     @State private var showAlert = false
     @State private var isLoading = false
     @State private var alertMessage:String?
+    @State var presentActionSheet = false
     
     var mode: Mode = .new
-    @State var presentActionSheet = false
     
     var cancelButton: some View {
         Button("Cancel") {
-            self.handleCancelTapped()
+            handleCancelTapped()
         }
     }
     
     /// многократное нажатие до ответа от сервера?
     var saveButton: some View {
         Button(mode == .new ? "Done" : "Save") {
-            self.handleDoneTapped()
+            handleDoneTapped()
         }
         .disabled(!viewModel.modified)
     }
@@ -66,86 +67,94 @@ struct BookEditView: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section(header: Text("Book")) {
-                    customTextField("Title", text: $viewModel.book.title, field: .title)
-                    customTextField("Description", text: $viewModel.book.description, field: .description)
-                    customTextField("PathImage", text: $viewModel.book.pathImage, field: .pathImage)
-                }
-                Section(header: Text("Author")) {
-                    customTextField("Author", text: $viewModel.book.author, field: .author)
-                }
-                
-                if mode == .edit {
-                    Button("Delete book", role: .destructive) {
-                        self.presentActionSheet.toggle()
+            ZStack {
+                Form {
+                    Section(header: Text("Book")) {
+                        customTextField("Title", text: $viewModel.book.title, field: .title, focus: $focus)
+                        customTextField("Description", text: $viewModel.book.description, field: .description, focus: $focus)
+                        customTextField("PathImage", text: $viewModel.book.pathImage, field: .pathImage, focus: $focus)
+                    }
+                    Section(header: Text("Author")) {
+                        customTextField("Author", text: $viewModel.book.author, field: .author, focus: $focus)
+                    }
+                    
+                    if mode == .edit {
+                        Button("Delete book", role: .destructive) {
+                            self.presentActionSheet.toggle()
+                        }
                     }
                 }
-            }
-            .navigationTitle(mode == .new ? "New book" : viewModel.book.title)
-            .navigationBarTitleDisplayMode(mode == .new ? .inline : .large)
-            .toolbar{
-                ToolbarItem(placement: .topBarTrailing) {
-                    saveButton
+                .navigationTitle(mode == .new ? "New book" : viewModel.book.title)
+                .navigationBarTitleDisplayMode(mode == .new ? .inline : .large)
+                .toolbar{
+                    ToolbarItem(placement: .topBarTrailing) {
+                        saveButton
+                    }
+                    ToolbarItem(placement: .topBarLeading) {
+                        cancelButton
+                    }
                 }
-                ToolbarItem(placement: .topBarLeading) {
-                    cancelButton
+                .alert("Error", isPresented: $showAlert, actions: {
+                    Button("Ok") {
+                        print("Did tap Ok button")
+                    }
+                }, message: {
+                    Text(alertMessage ?? "")
+                })
+                .confirmationDialog("Are you sure?", isPresented: $presentActionSheet) {
+                    Button("Delete book", role: .destructive) {
+                        self.handleDeleteTapped()
+                    }
+                    Button("Cancel", role: .cancel) {
+                        self.handleCancelTapped()
+                    }
                 }
-            }
-            .alert("Error", isPresented: $showAlert, actions: {
-                Button("Ok") {
-                    print("Did tap Ok button")
+                .onReceive(viewModel.$operationState) { state in
+                    switch state {
+                        
+                    case .idle:
+                        isLoading = true
+                    case .loading:
+                        isLoading = true
+                    case .success:
+                        isLoading = false
+                        dismiss()
+                    case .failure(let textError):
+                        isLoading = false
+                        alertMessage = textError
+                        showAlert = true
+                    }
                 }
-            }, message: {
-                Text(alertMessage ?? "")
-            })
-            .confirmationDialog("Are you sure?", isPresented: $presentActionSheet) {
-                Button("Delete book", role: .destructive) {
-                    self.handleDeleteTapped()
-                }
-                Button("Cancel", role: .cancel) {
-                    self.handleCancelTapped()
-                }
-            }
-            .onReceive(viewModel.$operationState) { state in
-                switch state {
-                    
-                case .idle:
-                    isLoading = false
-                case .loading:
-                    isLoading = true
-                case .success:
-                    isLoading = false
-                    dismiss()
-                case .failure(let textError):
-                    isLoading = false
-                    alertMessage = textError
-                    showAlert = true
+                
+                if isLoading {
+                    ProgressView("Loading...")
                 }
             }
         }
     }
     
-    private func customTextField(_ title: String, text: Binding<String>, field: FocusedField) -> some View {
+    private func customTextField(_ title: String, text: Binding<String>, field: FocusedField, focus: FocusState<FocusedField?>.Binding) -> some View {
         ZStack(alignment: .leading) {
-            TextField(title, text: text) .keyboardType(.default)
+            TextField(title, text: text)
                 .keyboardType(.default)
                 .autocapitalization(.none)
                 .disableAutocorrection(true)
-                .focused($focus, equals: field)
+                .focused(focus, equals: field)
                 .padding([.leading, .trailing], 30)
                 .tint(.pink)
                 .foregroundStyle(.secondary)
                 .onSubmit {
-                    switch field {
-                    case .title:
-                        focus = .description
-                    case .description:
-                        focus = .pathImage
-                    case .pathImage:
-                        focus = .author
-                    case .author:
-                        focus = nil
+                    withAnimation {
+                        switch field {
+                        case .title:
+                            focus.wrappedValue = .description
+                        case .description:
+                            focus.wrappedValue = .pathImage
+                        case .pathImage:
+                            focus.wrappedValue = .author
+                        case .author:
+                            focus.wrappedValue = nil
+                        }
                     }
                 }
             Button(action: {
@@ -160,10 +169,12 @@ struct BookEditView: View {
     }
     
     private func handleCancelTapped() {
+        print("handleCancelTapped")
         dismiss()
     }
     
     private func handleDoneTapped() {
+        print("handleDoneTapped")
         viewModel.updateOrAddBook()
     }
     

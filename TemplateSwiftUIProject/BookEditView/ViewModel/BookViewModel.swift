@@ -20,6 +20,7 @@ enum OperationState {
     case failure(String)
 }
 
+
 class BookViewModel:ObservableObject {
     
     @Published var book: BookRealtime
@@ -45,7 +46,9 @@ class BookViewModel:ObservableObject {
             .sink { [weak self] _ in
                 self?.validateFields(for: mode)
             }
-            .store(in: &self.cancellables)
+            .store(in: &cancellables)
+        
+        print("init BookViewModel")
     }
     
     private func validateFields(for mode:Mode) {
@@ -80,7 +83,7 @@ class BookViewModel:ObservableObject {
                     self.operationState = .failure(textError)
                 }
             }
-            .store(in: &self.cancellables)
+            .store(in: &cancellables)
     }
     
     // Удаление книги

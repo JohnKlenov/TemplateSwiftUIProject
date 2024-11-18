@@ -84,12 +84,14 @@ struct HomeView: View {
                 Text(viewModel.viewState.errorMessage ?? "Try again later")
             }
             .sheet(isPresented: $presentAddBookSheet) {
+
                 let databaseService = RealtimeDatabaseCRUDService()
                 let authService = AuthService()
                 let errorService = SharedErrorHandler()
                 let viewModel = BookViewModel(databaseService: databaseService, authService: authService, errorHandler: errorService)
                 BookEditView(viewModel: viewModel)
             }
+            
         }
     }
     

@@ -25,4 +25,8 @@ class AuthService:AuthServiceProtocol {
         }
         .eraseToAnyPublisher()
     }
+    
+    deinit {
+        print("AuthService deinit")
+    }
 }
