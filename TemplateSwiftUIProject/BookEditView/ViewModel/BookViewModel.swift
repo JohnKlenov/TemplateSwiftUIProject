@@ -13,6 +13,7 @@ import Foundation
 import Combine
 
 
+
 enum OperationState {
     case idle
     case loading
@@ -31,6 +32,7 @@ class BookViewModel:ObservableObject {
     private var authService:AuthServiceProtocol
     private let errorHandler: ErrorHandlerProtocol
     private var originalBook: BookRealtime
+    private(set) var mode:Mode
     private var cancellables = Set<AnyCancellable>()
     
     init(book:BookRealtime = BookRealtime(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, databaseService: DatabaseCRUDServiceProtocol, authService:AuthServiceProtocol, errorHandler: ErrorHandlerProtocol) {
@@ -41,6 +43,7 @@ class BookViewModel:ObservableObject {
         
         self.book = book
         self.originalBook = book
+        self.mode = mode
         
         $book
             .sink { [weak self] _ in
@@ -76,11 +79,9 @@ class BookViewModel:ObservableObject {
                         self?.addBook(with: path)
                     }
                 case .failure(let error):
-                    guard let self = self else {
-                        return
+                    if let textError = self?.errorHandler.handle(error: error) {
+                        self?.operationState = .failure(textError)
                     }
-                    let textError = self.errorHandler.handle(error: error)
-                    self.operationState = .failure(textError)
                 }
             }
             .store(in: &cancellables)
@@ -96,11 +97,9 @@ class BookViewModel:ObservableObject {
                     let path = "users/\(userID)/data"
                     self?.remove(with: path)
                 case .failure(let error):
-                    guard let self = self else {
-                        return
+                    if let textError = self?.errorHandler.handle(error: error) {
+                        self?.operationState = .failure(textError)
                     }
-                    let textError = self.errorHandler.handle(error: error)
-                    self.operationState = .failure(textError)
                 }
             }
             .store(in: &cancellables)
@@ -145,3 +144,124 @@ class BookViewModel:ObservableObject {
         print("deinit BookViewModel")
     }
 }
+
+
+
+
+
+// MARK: - code with error handler
+
+
+
+
+
+//class BookViewModel:ObservableObject {
+//    
+//    @Published var book: BookRealtime
+//    @Published var modified = false
+//    
+//    private var databaseService:DatabaseCRUDServiceProtocol
+//    private var authService:AuthServiceProtocol
+//    private let errorHandler: ErrorHandlerProtocol
+//    private var originalBook: BookRealtime
+//    private(set) var mode:Mode
+////    private(set) var userID:String?
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//    init(book:BookRealtime = BookRealtime(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, databaseService: DatabaseCRUDServiceProtocol, authService:AuthServiceProtocol, errorHandler: ErrorHandlerProtocol) {
+//        
+//        self.databaseService = databaseService
+//        self.authService = authService
+//        self.errorHandler = errorHandler
+//        
+//        self.book = book
+//        self.originalBook = book
+//        self.mode = mode
+//        
+//        $book
+//            .sink { [weak self] _ in
+//                self?.validateFields(for: mode)
+//            }
+//            .store(in: &cancellables)
+//        
+//        print("init BookViewModel")
+//    }
+//    
+//    private func validateFields(for mode:Mode) {
+//        switch mode {
+//            
+//        case .new:
+//            self.modified = !book.title.isEmpty && !book.author.isEmpty && !book.description.isEmpty && !book.pathImage.isEmpty
+//        case .edit:
+//            self.modified = !book.title.isEmpty && !book.author.isEmpty && !book.description.isEmpty && !book.pathImage.isEmpty && (book.title != originalBook.title || book.author != originalBook.author || book.description != originalBook.description || book.pathImage != originalBook.pathImage)
+//        }
+//    }
+//    
+//    func getCurrentUserID() -> String? {
+//        return authService.getCurrentUserID()
+//    }
+//
+//    // Обновление или добавление книги
+//    func updateOrAddBook() {
+//        guard let userID = authService.getCurrentUserID() else {
+//            return
+//        }
+//        
+//        let path = "users/\(userID)/data"
+//        if let _ = book.id {
+//            updateBook(with: path)
+//        } else {
+//            addBook(with: path)
+//        }
+//    }
+//    
+//    // Удаление книги
+//    func removeBook() {
+//        guard let userID = authService.getCurrentUserID() else {
+//            return
+//        }
+//        
+//        let path = "users/\(userID)/data"
+//        remove(with: path)
+//    }
+//    
+//    private func updateBook(with path:String) {
+//        databaseService.updateBook(path: path, book)
+//            .sink { [weak self] result in
+//                self?.handleDatabaseResult(result)
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func addBook(with path:String) {
+//        databaseService.addBook(path: path, book)
+//            .sink { [weak self] result in
+//                self?.handleDatabaseResult(result)
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func remove(with path:String) {
+//        databaseService.removeBook(path: path, book)
+//            .sink { [weak self] result in
+//                self?.handleDatabaseResult(result)
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+////    private func handleDatabaseResult(_ result:Result<Void,Error>) {
+////        print("handleDatabaseResult")
+////        switch result {
+////
+////        case .success():
+////            operationState = .success
+////        case .failure(let error):
+////            let textError = errorHandler.handle(error: error)
+////            operationState = .failure(textError)
+////        }
+////    }
+//    
+//    deinit {
+//        print("deinit BookViewModel")
+//    }
+//}

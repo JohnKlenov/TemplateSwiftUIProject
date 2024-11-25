@@ -27,6 +27,7 @@ class SharedErrorHandler: ErrorHandlerProtocol {
     //    any Error
     func handle(error: (any Error)?) -> String {
         
+        print("error - \(String(describing: error?.localizedDescription))")
         guard let error = error else {
             return "Unknown error"
         }

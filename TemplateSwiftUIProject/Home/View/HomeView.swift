@@ -43,7 +43,19 @@ struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
     @State var presentAddBookSheet:Bool = false
-    
+
+    private var binding: Binding<Bool> {
+        Binding<Bool>(
+            get: {
+                return !viewModel.isSheetActive ? presentAddBookSheet : false
+            },
+            set: { newValue in
+                viewModel.isSheetActive = newValue
+                presentAddBookSheet = newValue
+            }
+        )
+    }
+            
     init(viewModel:HomeViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -66,12 +78,26 @@ struct HomeView: View {
             .toolbar{
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add") {
-                        self.presentAddBookSheet.toggle()
+                        presentAddBookSheet = true
                     }
                     .foregroundStyle(AppColors.activeColor)
                     .padding()
                     .disabled(viewModel.viewState.isError)
                 }
+            }
+            
+            .sheet(isPresented: binding) {
+    //
+                    let databaseService = RealtimeDatabaseCRUDService()
+    //                let databaseService = FirestoreDatabaseCRUDService()
+                    let authService = AuthService()
+                    let errorService = SharedErrorHandler()
+                    let bookViewModel = BookViewModel(databaseService: databaseService, authService: authService, errorHandler: errorService)
+                    BookEditView(viewModel: bookViewModel)
+                    .onAppear {
+                        viewModel.isSheetActive = true
+                    }
+                
             }
             .alert("Error", isPresented: .constant(viewModel.viewState.isError) ) {
                 Button("Retry") {
@@ -83,16 +109,8 @@ struct HomeView: View {
             } message: {
                 Text(viewModel.viewState.errorMessage ?? "Try again later")
             }
-            .sheet(isPresented: $presentAddBookSheet) {
-
-                let databaseService = RealtimeDatabaseCRUDService()
-                let authService = AuthService()
-                let errorService = SharedErrorHandler()
-                let viewModel = BookViewModel(databaseService: databaseService, authService: authService, errorHandler: errorService)
-                BookEditView(viewModel: viewModel)
-            }
-            
         }
+     
     }
     
     private func errorView(error:String) -> some View {
@@ -113,7 +131,7 @@ struct HomeView: View {
         }
         .ignoresSafeArea(edges: [.horizontal])
     }
-    
+
     private func contentView(data:[BookRealtime]) -> some View {
         VStack {
             Spacer()

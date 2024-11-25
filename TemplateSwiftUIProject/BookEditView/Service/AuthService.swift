@@ -26,7 +26,32 @@ class AuthService:AuthServiceProtocol {
         .eraseToAnyPublisher()
     }
     
+    
     deinit {
         print("AuthService deinit")
     }
 }
+
+
+
+// MARK: - code with error handler
+
+    
+
+    
+
+
+//protocol AuthServiceProtocol {
+//    func getCurrentUserID() -> String?
+//}
+//
+//class AuthService:AuthServiceProtocol {
+//    
+//    func getCurrentUserID() -> String? {
+//        return Auth.auth().currentUser?.uid
+//    }
+//    
+//    deinit {
+//        print("AuthService deinit")
+//    }
+//}

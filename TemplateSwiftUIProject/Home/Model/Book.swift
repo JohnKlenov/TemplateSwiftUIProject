@@ -28,10 +28,10 @@ struct BookRealtime: Identifiable, Codable {
 //      }
 }
 
-//struct BookCloud: Identifiable, Codable {
-//    @DocumentID var id: String?
-//    var title: String
-//    var author: String
-//    var description: String
-//    var pathImage: String
-//}
+struct BookCloud: Identifiable, Codable {
+    @DocumentID var id: String?
+    var title: String
+    var author: String
+    var description: String
+    var pathImage: String
+}

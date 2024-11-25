@@ -24,6 +24,7 @@ enum ViewState {
     case content([BookRealtime])
 }
 
+
 extension ViewState {
     var isError:Bool {
         if case .error = self {
@@ -50,7 +51,7 @@ protocol HomeViewModelProtocol: ObservableObject {
 
 class HomeViewModel: HomeViewModelProtocol {
     @Published var viewState: ViewState = .loading
-    
+    var isSheetActive = false
     private var cancellables = Set<AnyCancellable>()
     private var authenticationService: AuthenticationServiceProtocol
     private var firestorColletionObserverService: FirestoreCollectionObserverProtocol

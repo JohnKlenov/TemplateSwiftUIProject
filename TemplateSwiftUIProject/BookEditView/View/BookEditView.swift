@@ -45,7 +45,7 @@ struct BookEditView: View {
     @State private var alertMessage:String?
     @State var presentActionSheet = false
     
-    var mode: Mode = .new
+//    var mode: Mode = .new
     
     var cancelButton: some View {
         Button("Cancel") {
@@ -55,8 +55,8 @@ struct BookEditView: View {
     
     /// многократное нажатие до ответа от сервера?
     var saveButton: some View {
-        Button(mode == .new ? "Done" : "Save") {
-            handleDoneTapped()
+        Button(viewModel.mode == .new ? "Done" : "Save") {
+            isLoading ?  {}() : handleDoneTapped()
         }
         .disabled(!viewModel.modified)
     }
@@ -78,14 +78,14 @@ struct BookEditView: View {
                         customTextField("Author", text: $viewModel.book.author, field: .author, focus: $focus)
                     }
                     
-                    if mode == .edit {
+                    if viewModel.mode == .edit {
                         Button("Delete book", role: .destructive) {
                             self.presentActionSheet.toggle()
                         }
                     }
                 }
-                .navigationTitle(mode == .new ? "New book" : viewModel.book.title)
-                .navigationBarTitleDisplayMode(mode == .new ? .inline : .large)
+                .navigationTitle(viewModel.mode == .new ? "New book" : viewModel.book.title)
+                .navigationBarTitleDisplayMode(viewModel.mode == .new ? .inline : .large)
                 .toolbar{
                     ToolbarItem(placement: .topBarTrailing) {
                         saveButton
@@ -95,25 +95,21 @@ struct BookEditView: View {
                     }
                 }
                 .alert("Error", isPresented: $showAlert, actions: {
-                    Button("Ok") {
-                        print("Did tap Ok button")
-                    }
+                    Button("Ok") {}
                 }, message: {
                     Text(alertMessage ?? "")
                 })
                 .confirmationDialog("Are you sure?", isPresented: $presentActionSheet) {
                     Button("Delete book", role: .destructive) {
-                        self.handleDeleteTapped()
+                        isLoading ? {}() : handleDeleteTapped()
                     }
-                    Button("Cancel", role: .cancel) {
-                        self.handleCancelTapped()
-                    }
+                    Button("Cancel", role: .cancel) {}
                 }
                 .onReceive(viewModel.$operationState) { state in
                     switch state {
                         
                     case .idle:
-                        isLoading = true
+                        isLoading = false
                     case .loading:
                         isLoading = true
                     case .success:
@@ -169,17 +165,15 @@ struct BookEditView: View {
     }
     
     private func handleCancelTapped() {
-        print("handleCancelTapped")
         dismiss()
     }
     
     private func handleDoneTapped() {
-        print("handleDoneTapped")
         viewModel.updateOrAddBook()
     }
     
     private func handleDeleteTapped() {
-        viewModel.removeBook()
+//        viewModel.removeBook()
     }
     
 }
@@ -247,3 +241,180 @@ struct BookEditView: View {
 //                        print(".onTapGesture")
 //                        focus = nil
 //                    }}
+
+
+
+
+
+// MARK: - code with error handler
+
+
+
+
+
+//import SwiftUI
+//
+//enum Mode {
+//    case new
+//    case edit
+//}
+//
+//enum FocusedField:Hashable {
+//    case title, description, pathImage, author
+//}
+//
+//
+//struct BookEditView: View {
+//
+//    @Environment(\.dismiss) private var dismiss
+//    @StateObject var viewModel: BookViewModel
+//    @FocusState var focus:FocusedField?
+//
+//    @State private var showAlert = false
+//    @State private var isLoading = false
+////    @State private var alertMessage:String?
+//    @State var presentActionSheet = false
+//
+////    var mode: Mode = .new
+//
+//    var cancelButton: some View {
+//        Button("Cancel") {
+//            handleCancelTapped()
+//        }
+//    }
+//
+//    /// многократное нажатие до ответа от сервера?
+//    var saveButton: some View {
+//        Button(viewModel.mode == .new ? "Done" : "Save") {
+//            isLoading ?  {}() : handleDoneTapped()
+////            handleDoneTapped()
+//        }
+//        .disabled(!viewModel.modified)
+//    }
+//
+//    init(viewModel:BookViewModel) {
+//        _viewModel = StateObject(wrappedValue: viewModel)
+//    }
+//
+//    var body: some View {
+//        NavigationStack {
+//            ZStack {
+//                Form {
+//                    Section(header: Text("Book")) {
+//                        customTextField("Title", text: $viewModel.book.title, field: .title, focus: $focus)
+//                        customTextField("Description", text: $viewModel.book.description, field: .description, focus: $focus)
+//                        customTextField("PathImage", text: $viewModel.book.pathImage, field: .pathImage, focus: $focus)
+//                    }
+//                    Section(header: Text("Author")) {
+//                        customTextField("Author", text: $viewModel.book.author, field: .author, focus: $focus)
+//                    }
+//
+//                    if viewModel.mode == .edit {
+//                        Button("Delete book", role: .destructive) {
+//                            self.presentActionSheet.toggle()
+//                        }
+//                    }
+//                }
+//                .navigationTitle(viewModel.mode == .new ? "New book" : viewModel.book.title)
+//                .navigationBarTitleDisplayMode(viewModel.mode == .new ? .inline : .large)
+//                .toolbar{
+//                    ToolbarItem(placement: .topBarTrailing) {
+//                        saveButton
+//                    }
+//                    ToolbarItem(placement: .topBarLeading) {
+//                        cancelButton
+//                    }
+//                }
+//                .alert("Error", isPresented: $showAlert, actions: {
+//                    Button("Ok") {
+//                        dismiss()
+//                    }
+//                }, message: {
+//                    Text(FirebaseEnternalAppError.notSignedIn.errorDescription)
+//                })
+//                .confirmationDialog("Are you sure?", isPresented: $presentActionSheet) {
+//                    Button("Delete book", role: .destructive) {
+//                        isLoading ? {}() : handleDeleteTapped()
+//                    }
+//                    Button("Cancel", role: .cancel) {}
+//                }
+//                .onAppear {
+//                    guard let _ = viewModel.getCurrentUserID() else {
+//                        print(".onAppear CurrentUserID not null")
+//                        return
+//                    }
+//                    showAlert = true
+//                }
+////                .onReceive(viewModel.$operationState) { state in
+////                    switch state {
+////
+////                    case .idle:
+////                        isLoading = false
+////                    case .loading:
+////                        isLoading = true
+////                    case .success:
+////                        isLoading = false
+//////                        dismiss()
+////                    case .failure(let textError):
+////                        isLoading = false
+////                        alertMessage = textError
+////                        showAlert = true
+////                    }
+////                }
+//
+////                if isLoading {
+////                    ProgressView("Loading...")
+////                }
+//            }
+//        }
+//    }
+//
+//    private func customTextField(_ title: String, text: Binding<String>, field: FocusedField, focus: FocusState<FocusedField?>.Binding) -> some View {
+//        ZStack(alignment: .leading) {
+//            TextField(title, text: text)
+//                .keyboardType(.default)
+//                .autocapitalization(.none)
+//                .disableAutocorrection(true)
+//                .focused(focus, equals: field)
+//                .padding([.leading, .trailing], 30)
+//                .tint(.pink)
+//                .foregroundStyle(.secondary)
+//                .onSubmit {
+//                    withAnimation {
+//                        switch field {
+//                        case .title:
+//                            focus.wrappedValue = .description
+//                        case .description:
+//                            focus.wrappedValue = .pathImage
+//                        case .pathImage:
+//                            focus.wrappedValue = .author
+//                        case .author:
+//                            focus.wrappedValue = nil
+//                        }
+//                    }
+//                }
+//            Button(action: {
+//                print("Did tap Image")
+//            }, label: {
+//                Image(systemName: "swift")
+//                    .foregroundStyle(.pink)
+//                    .frame(width: 30, height: 30)
+//                    .padding(.leading, -10)
+//            })
+//        }
+//    }
+//
+//    private func handleCancelTapped() {
+//        dismiss()
+//    }
+//
+//    private func handleDoneTapped() {
+//        viewModel.updateOrAddBook()
+////        dismiss()
+//    }
+//
+//    private func handleDeleteTapped() {
+////        viewModel.removeBook()
+//    }
+//
+//}
