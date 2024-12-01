@@ -37,7 +37,7 @@ import FirebaseDatabase
 
 
 protocol FirestoreCollectionObserverProtocol {
-    func observeCollection(at path: String) -> AnyPublisher<Result<[BookRealtime], Error>, Never>
+    func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], Error>, Never>
 }
 
 
@@ -51,11 +51,11 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
         self.db = db
     }
 
-    func observeCollection(at path: String) -> AnyPublisher<Result<[BookRealtime], Error>, Never> {
+    func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], Error>, Never> {
         guard PathValidator.validateCollectionPath(path) else {
             return Just(.failure(FirebaseEnternalAppError.invalidCollectionPath)).eraseToAnyPublisher()
         }
-        let subject = PassthroughSubject<Result<[BookRealtime], Error>, Never>()
+        let subject = PassthroughSubject<Result<[BookCloud], Error>, Never>()
         
         listener?.remove()
         listener = db.collection(path)
@@ -64,8 +64,9 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
                     subject.send(.failure(error))
                 } else {
                     let data = querySnapshot?.documents.compactMap({ queryDocumentSnapshot in
-                        try? queryDocumentSnapshot.data(as: BookRealtime.self)
+                        try? queryDocumentSnapshot.data(as: BookCloud.self)
                     })
+                    print("books  \(String(describing: data))")
                     subject.send(.success(data ?? []))
                 }
 
@@ -86,21 +87,21 @@ class RealtimeCollectionObserverService : FirestoreCollectionObserverProtocol {
         self.db = db
     }
     
-    func observeCollection(at path: String) -> AnyPublisher<Result<[BookRealtime], any Error>, Never> {
+    func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], any Error>, Never> {
         guard PathValidator.validateCollectionPath(path) else {
             return Just(.failure(FirebaseEnternalAppError.invalidCollectionPath)).eraseToAnyPublisher()
         }
         
-        let subject = PassthroughSubject<Result<[BookRealtime], Error>, Never>()
+        let subject = PassthroughSubject<Result<[BookCloud], Error>, Never>()
     
         if let handler = listenerHandle {
             db.child(path).removeObserver(withHandle: handler)
         }
         
         listenerHandle = db.child(path).observe(.value, with: { snapshot in
-            var books:[BookRealtime] = []
+            var books:[BookCloud] = []
             for child in snapshot.children {
-                if let snapshot = child as? DataSnapshot, let book = try? snapshot.data(as: BookRealtime.self) {
+                if let snapshot = child as? DataSnapshot, let book = try? snapshot.data(as: BookCloud.self) {
                     books.append(book)
                 }
             }

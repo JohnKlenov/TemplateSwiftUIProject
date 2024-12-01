@@ -34,6 +34,9 @@
 ///.sheet - В SwiftUI, если BookViewModel деинициализирован, то можно быть уверенным, что и связанный с ним BookEditView также был удален из памяти, при условии, что на него не было других сильных ссылок.
 ///SwiftUI автоматически управляет жизненным циклом представлений и связанных объектов, таких как ViewModels. Это означает, что когда представление больше не нужно (например, после закрытия модального окна), связанные объекты также удаляются из памяти, если нет других сильных ссылок на них.
 
+///Эти индексы генерируются на основе позиций элементов в List, когда пользователь делает свайп для удаления.
+///IndexSet может содержать один или несколько индексов, в зависимости от того, сколько элементов было выбрано для удаления.
+///setIndex.lazy.map { data[$0] } lazy - вычисления выполняются только тогда, когда мы действительно обращаемся к элементам последовательности.
 
 import SwiftUI
 import Combine
@@ -43,6 +46,7 @@ struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
     @State var presentAddBookSheet:Bool = false
+    @State var isActive: Bool = true // Флаг активности представления
 
     private var binding: Binding<Bool> {
         Binding<Bool>(
@@ -66,10 +70,10 @@ struct HomeView: View {
                 switch viewModel.viewState {
                 case .loading:
                     ProgressView("Loading...")
-                case .error(let error):
-                    errorView(error: error)
                 case .content(let data):
                     contentView(data: data)
+                case .errorChangeAuth(let error):
+                    errorView(error: error)
                 }
             }
             .background(AppColors.background)
@@ -87,9 +91,8 @@ struct HomeView: View {
             }
             
             .sheet(isPresented: binding) {
-    //
-                    let databaseService = RealtimeDatabaseCRUDService()
-    //                let databaseService = FirestoreDatabaseCRUDService()
+//                    let databaseService = RealtimeDatabaseCRUDService()
+                    let databaseService = FirestoreDatabaseCRUDService()
                     let authService = AuthService()
                     let errorService = SharedErrorHandler()
                     let bookViewModel = BookViewModel(databaseService: databaseService, authService: authService, errorHandler: errorService)
@@ -103,11 +106,29 @@ struct HomeView: View {
                 Button("Retry") {
                     viewModel.retry()
                 }
-                Button("Cancel", role: .cancel) {
-                    print("DidTapAlertCancel")
-                }
+                Button("Cancel", role: .cancel) {}
             } message: {
                 Text(viewModel.viewState.errorMessage ?? "Try again later")
+            }
+            .alert("Delete error", isPresented: Binding<Bool>(
+                get: { viewModel.showAlert && isActive },
+                set: { newValue in
+                    viewModel.showAlert = newValue
+                }
+            )) {
+                Button("Cancel", role: .cancel) {
+                    viewModel.resetErrorProperty()
+                }
+            } message: {
+                Text(viewModel.alertMessage ?? "Try again later")
+            }
+            .onAppear {
+                print("onAppear HomeView")
+                isActive = true
+            }
+            .onDisappear {
+                print("onDisappear HomeView")
+                isActive = false
             }
         }
      
@@ -132,129 +153,75 @@ struct HomeView: View {
         .ignoresSafeArea(edges: [.horizontal])
     }
 
-    private func contentView(data:[BookRealtime]) -> some View {
-        VStack {
-            Spacer()
-            List(data) { item in
-                Text(item.title)
+    private func contentView(data:[BookCloud]) -> some View {
+        List {
+            ForEach(data) { book in
+                bookRowView(book)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            viewModel.removeBook(book: book)
+                        } label: {
+                            Label("delete", systemImage: "trash.fill")
+                        }
+                        
+                    }
             }
-            .background(AppColors.activeColor)
-            Spacer()
         }
-        .ignoresSafeArea(edges: [.horizontal])
+    }
+    
+    private func bookRowView(_ book: BookCloud) -> some View {
+        NavigationLink {
+            BookDetailsView(book: book)
+        } label: {
+            VStack {
+                HStack(spacing: 10) {
+                    Image(systemName: "swift")
+                        .foregroundStyle(.pink)
+                        .frame(width: 30, height: 30)
+                    
+                    VStack(alignment: .leading) {
+                        Text(book.title)
+                            .font(.headline)
+                        Text(book.description)
+                            .font(.subheadline)
+                        Text(book.author)
+                            .font(.subheadline)
+                    }
+                    Spacer()
+                }
+            }
+        }
     }
 }
     
 
 
+
+//extension View { func errorAlert(isPresented: Binding<Bool>, message: String?, retryAction: @escaping () -> Void) -> some View { self.alert("Error", isPresented: isPresented) { Button("Retry", action: retryAction) Button("Cancel", role: .cancel) {} } message: { Text(message ?? "Try again later") } } }
+
     
 
-//        .navigationTitle("Home")
-//        .toolbar{
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button("Add") {
-//                    print("Add item for List")
-//                }
-//                .foregroundStyle(AppColors.activeColor)
-//                .padding()
-//
-//            }
-//        }
-//        .background(AppColors.background)
-//        .alert("Error", isPresented: .constant(viewModel.viewState.isError) ) {
-//            Button("Retry") {
-//                viewModel.retry()
-//            }
-//            Button("Cancel", role: .cancel) {
-//                print("DidTapAlertCancel")
-//            }
-//        } message: {
-//            Text(viewModel.viewState.errorMessage ?? "Try again later")
-//        }
+
     
 // MARK: - Trush
 
-//struct HomeView: View {
-//    @StateObject private var viewModel: HomeViewModel
-//    @State private var showPlaceholder = false
-//    
-//    init(viewModel: HomeViewModel) {
-//        _viewModel = StateObject(wrappedValue: viewModel)
-//        _showPlaceholder = State(initialValue: viewModel.errorMessage != nil)
-//    }
-//    
-//    var body: some View {
-//        NavigationView {
-//            
-//            ZStack {
-//                if viewModel.isLoading {
-//                    ProgressView("Loading...")
-//                } else if showPlaceholder {
-//                    VStack{
-//                        Spacer() // Отступ сверху, который растягивается до начала Safe Area
-//                        ContentUnavailableView {
-//                            Label("Connection issue", systemImage: "wifi.slash")
-//                        } description: {
-//                            Text("Check your internet connection")
-//                        } actions: {
-//                            Button("Refresh") {
-//                                print("Did Tap Refresh ContentUnavailableView")
-//                                viewModel.retry()
-//                            }
-//                        }
-//                        .background(Color.red.opacity(0.5))
-//                        .frame(maxWidth: .infinity)
-//                        Spacer() // Отступ снизу, который растягивается до конца Safe Area
-//                    }
-//                    .edgesIgnoringSafeArea([.horizontal]) 
-//                } else {
-//                    content
-//                }
+//                        .clipShape(.circle)
+//                        .shadow(radius: 3)
+//                        .overlay(content: {
+//                            Circle().stroke(.black, lineWidth: 2)
+//                        })
+
+//        VStack {
+//            Spacer()
+//            List(data) { item in
+//                Text(item.title)
 //            }
-//            .navigationTitle("Home")
-//            .alert("Error", isPresented: isAlertPresented()) {
-//                Button("Retry") {
-//                    viewModel.retry()
-//                }
-//                Button("Cancel", role: .cancel) {
-//                    print("DidTapAlertCancel")
-//                }
-//            } message: {
-//                Text(viewModel.errorMessage ?? "Try again later")
-//            }
-//            .onChange(of: viewModel.errorMessage) { oldValue, newValue in
-//                if newValue == nil {
-//                    showPlaceholder = false
-//                    print("showPlaceholder = false")
-//                } else {
-//                    showPlaceholder = true
-//                    print("showPlaceholder = true")
-//                }
-//            }
+//            .background(AppColors.activeColor)
+//            Spacer()
 //        }
-//    }
-//    
-//    private var content: some View {
-//        
-//        List(viewModel.data, id: \.self) { item in
-//            Text(item)
+//        .ignoresSafeArea(edges: [.horizontal])
+
+//        List(data) { book in
+//            bookRowView(book)
 //        }
-//        .background(Color.green)
-//    }
-//    
-//    private func isAlertPresented() -> Binding<Bool> {
-//        Binding {
-//            viewModel.errorMessage != nil
-//        } set: { _ in }
-//    }
-//}
-
-
-
-
-
-
-
-
-
-
+//        .listStyle(.plain)

@@ -11,15 +11,28 @@
 ///childByAutoId() предпочтителен, если вам важен хронологический порядок и упрощенный доступ к данным на основе времени их создания.
 ///UUID().uuidString идеален для систем, требующих глобальной уникальности идентификаторов без привязки к времени создания.
 
+///тестируем рабуту кэша при удалении document по path за которым идет наблюдение addSnapshotListener
+///Set rules - запрет на запись всем пользователям.
+///Отключаем инет, удаляем документ - отрабатывает addSnapshotListener без удаленным элементом, блок для delete не отработал не разу.
+///Подключаем инет, срабатывает блок для delete и возвращает ошибку + отрабатывает addSnapshotListener с удаленным элементом - локальная кэшированная операция откатывается (rollback).
+///
+///если удалить без интернета и прав доступа не дождаться подключения кансельнуть приложения из памяти затем снова его загрузить но уже с инетом
+///сначало addSnapshotListener отработает без  удаленного элемента(видимо всегда сначало работает с локальным кэшом) затем эта отложенная операция перешла в реализации и была отклонена из за отсутствия прав на запись что привело к повторному вызову addSnapshotListener
+///
+///Теперь удаляем с правами на запись для всех users с отключеным инет - отрабатывает addSnapshotListener без удаленного документа
+///включаем инет - отрабатывает только блок delete с success. addSnapshotListener не отрабатывает больше.
+
+
+
 
 import Combine
 import FirebaseDatabase
 import FirebaseFirestore
 
 protocol DatabaseCRUDServiceProtocol {
-    func addBook(path:String, _ book: BookRealtime) -> AnyPublisher<Result<Void,Error>, Never>
-    func updateBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void,Error>, Never>
-    func removeBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void,Error>, Never>
+    func addBook(path:String, _ book: BookCloud) -> AnyPublisher<Result<Void,Error>, Never>
+    func updateBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void,Error>, Never>
+    func removeBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void,Error>, Never>
 }
 
 
@@ -32,7 +45,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         self.db = db
     }
     
-    func addBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void, any Error>, Never> {
+    func addBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             ///UUID().uuidString
             let bookID = self?.db.child(path).childByAutoId().key
@@ -68,7 +81,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         .eraseToAnyPublisher()
     }
     
-    func updateBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void, any Error>, Never> {
+    func updateBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             guard let childId = book.id else {
                 let error = FirebaseEnternalAppError.failedDeployOptionalID
@@ -98,7 +111,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         .eraseToAnyPublisher()
     }
     
-    func removeBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void, any Error>, Never> {
+    func removeBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             guard let childId = book.id else {
                 promise(.success(.failure(FirebaseEnternalAppError.failedDeployOptionalID)))
@@ -126,7 +139,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         self.db = db
     }
     
-    func addBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void, any Error>, Never> {
+    func addBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future {  promise in
             
             do {
@@ -145,7 +158,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         .eraseToAnyPublisher()
     }
     
-    func updateBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void, any Error>, Never> {
+    func updateBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             guard let bookID = book.id else {
                 promise(.success(.failure(FirebaseEnternalAppError.failedDeployOptionalID)))
@@ -159,7 +172,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
                     promise(.success(.failure(FirebaseEnternalAppError.jsonConversionFailed)))
                     return
                 }
-                
+    
                 self?.db.collection(path).document(bookID).updateData(bookDict) { error in
                     if let error = error {
                         promise(.success(.failure(error)))
@@ -174,7 +187,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         .eraseToAnyPublisher()
     }
     
-    func removeBook(path: String, _ book: BookRealtime) -> AnyPublisher<Result<Void, any Error>, Never> {
+    func removeBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             guard let bookID = book.id else {
                 promise(.success(.failure(FirebaseEnternalAppError.failedDeployOptionalID)))

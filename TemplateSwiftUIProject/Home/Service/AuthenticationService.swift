@@ -23,6 +23,7 @@ import FirebaseAuth
 
 protocol AuthenticationServiceProtocol {
     func authenticate() -> AnyPublisher<Result<String, Error>, Never>
+    func getCurrentUserID() -> AnyPublisher<Result<String,Error>, Never>
     func reset()
     func signOutUser()
 }
@@ -80,6 +81,17 @@ class AuthenticationService: AuthenticationServiceProtocol {
     func reset() {
         authenticationPublisher = PassthroughSubject<Result<String, Error>, Never>()
         addListeners()
+    }
+    
+    func getCurrentUserID() -> AnyPublisher<Result<String, any Error>, Never> {
+        Future { promise in
+            if let user = Auth.auth().currentUser {
+                promise(.success(.success(user.uid)))
+            } else {
+                promise(.success(.failure(FirebaseEnternalAppError.notSignedIn)))
+            }
+        }
+        .eraseToAnyPublisher()
     }
     
     func signOutUser() {

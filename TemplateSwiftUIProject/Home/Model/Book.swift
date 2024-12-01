@@ -34,4 +34,9 @@ struct BookCloud: Identifiable, Codable {
     var author: String
     var description: String
     var pathImage: String
+    
+    // Реализация метода для соответствия протоколу Equatable
+//    static func == (lhs: BookCloud, rhs: BookCloud) -> Bool {
+//        return lhs.id == rhs.id
+//    }
 }

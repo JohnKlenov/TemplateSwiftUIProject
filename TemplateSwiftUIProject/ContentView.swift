@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 8.10.24.
 //
 
+//            let firestoreCollectionObserver = RealtimeCollectionObserverService() as FirestoreCollectionObserverProtocol
 
 
 import SwiftUI
@@ -17,11 +18,10 @@ struct ContentView: View {
         TabView(selection: $selection) {
 
             let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
-//            let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
-            let firestoreCollectionObserver = RealtimeCollectionObserverService() as FirestoreCollectionObserverProtocol
-            
+            let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+            let databaseService = FirestoreDatabaseCRUDService() as DatabaseCRUDServiceProtocol
             let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
-            let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, errorHandler: errorHandler)
+            let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, databaseService: databaseService, errorHandler: errorHandler)
             HomeView(viewModel: viewModel)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
