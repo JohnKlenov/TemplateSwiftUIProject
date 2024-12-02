@@ -37,6 +37,8 @@
 ///Эти индексы генерируются на основе позиций элементов в List, когда пользователь делает свайп для удаления.
 ///IndexSet может содержать один или несколько индексов, в зависимости от того, сколько элементов было выбрано для удаления.
 ///setIndex.lazy.map { data[$0] } lazy - вычисления выполняются только тогда, когда мы действительно обращаемся к элементам последовательности.
+///
+///get: { viewModel.showAlert && isVisibleView } - до тех пор пока вырожение false alert не отработает.
 
 import SwiftUI
 import Combine
@@ -45,10 +47,12 @@ import Combine
 struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
+    private var alertManager = AlertManager.shared
+    
     @State var presentAddBookSheet:Bool = false
-    @State var isActive: Bool = true // Флаг активности представления
+    @State var isVisibleView: Bool = true // Флаг активности представления
 
-    private var binding: Binding<Bool> {
+    private var bindingSheet: Binding<Bool> {
         Binding<Bool>(
             get: {
                 return !viewModel.isSheetActive ? presentAddBookSheet : false
@@ -59,7 +63,17 @@ struct HomeView: View {
             }
         )
     }
-            
+    private var bindingError: Binding<Bool> {
+        Binding<Bool>(
+            get: { isVisibleView && (alertManager.localAlerts["HomeView"] != nil) },
+            set: { newValue in
+                if !newValue {
+                    alertManager.resetLocalAlert(forView: "HomeView")
+                }
+            }
+        )
+    }
+    
     init(viewModel:HomeViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -90,7 +104,7 @@ struct HomeView: View {
                 }
             }
             
-            .sheet(isPresented: binding) {
+            .sheet(isPresented: bindingSheet) {
 //                    let databaseService = RealtimeDatabaseCRUDService()
                     let databaseService = FirestoreDatabaseCRUDService()
                     let authService = AuthService()
@@ -106,29 +120,26 @@ struct HomeView: View {
                 Button("Retry") {
                     viewModel.retry()
                 }
-                Button("Cancel", role: .cancel) {}
+                Button("Ok") {}
             } message: {
-                Text(viewModel.viewState.errorMessage ?? "Try again later")
+                Text(viewModel.viewState.errorMessage ?? "Something went wrong. Please try again later.")
             }
-            .alert("Delete error", isPresented: Binding<Bool>(
-                get: { viewModel.showAlert && isActive },
-                set: { newValue in
-                    viewModel.showAlert = newValue
-                }
-            )) {
-                Button("Cancel", role: .cancel) {
-                    viewModel.resetErrorProperty()
-                }
+            .alert("Local error", isPresented: bindingError) {
+                Button("Ok") {}
             } message: {
-                Text(viewModel.alertMessage ?? "Try again later")
+                Text(alertManager.localAlerts["HomeView"]?.message ?? "Something went wrong. Please try again later.")
+//                VStack {
+//                    Text("Failed to delete book")
+//                    Text(alertManager.localAlerts["HomeView"]?.message ?? "Something went wrong. Please try again later.")
+//                }
             }
             .onAppear {
                 print("onAppear HomeView")
-                isActive = true
+                isVisibleView = true
             }
             .onDisappear {
                 print("onDisappear HomeView")
-                isActive = false
+                isVisibleView = false
             }
         }
      
@@ -193,8 +204,26 @@ struct HomeView: View {
         }
     }
 }
-    
+ 
 
+
+
+//            .alert("Error", isPresented: Binding<Bool>(
+//                get: { viewModel.showAlert && isVisibleView },
+//                set: { newValue in
+//                    print("set Delete error")
+//                    viewModel.showAlert = newValue
+//                }
+//            )) {
+//                Button("Ok") {
+//                    viewModel.resetErrorProperty()
+//                }
+//            } message: {
+//                VStack {
+//                    Text("Failed to delete book")
+//                    Text(viewModel.alertMessage ?? "Something went wrong. Please try again later.")
+//                }
+//            }
 
 
 //extension View { func errorAlert(isPresented: Binding<Bool>, message: String?, retryAction: @escaping () -> Void) -> some View { self.alert("Error", isPresented: isPresented) { Button("Retry", action: retryAction) Button("Cancel", role: .cancel) {} } message: { Text(message ?? "Try again later") } } }

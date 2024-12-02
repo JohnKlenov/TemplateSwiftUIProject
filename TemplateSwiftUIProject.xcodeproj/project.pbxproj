@@ -23,6 +23,7 @@
 		5EA4FE242CE61ED8001CA401 /* DatabaseCRUDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FE232CE61ED8001CA401 /* DatabaseCRUDService.swift */; };
 		5EA4FE262CE756EE001CA401 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FE252CE756EE001CA401 /* AuthService.swift */; };
 		5EA4FE292CF5B558001CA401 /* BookDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FE282CF5B557001CA401 /* BookDetailsView.swift */; };
+		5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FE2B2CFDAECE001CA401 /* AlertManager.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -55,6 +56,7 @@
 		5EA4FE232CE61ED8001CA401 /* DatabaseCRUDService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseCRUDService.swift; sourceTree = "<group>"; };
 		5EA4FE252CE756EE001CA401 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		5EA4FE282CF5B557001CA401 /* BookDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailsView.swift; sourceTree = "<group>"; };
+		5EA4FE2B2CFDAECE001CA401 /* AlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertManager.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -153,6 +155,14 @@
 				5EA4FE282CF5B557001CA401 /* BookDetailsView.swift */,
 			);
 			path = BookDetailsView;
+			sourceTree = "<group>";
+		};
+		5EA4FE2A2CFDAEB3001CA401 /* AlertManager */ = {
+			isa = PBXGroup;
+			children = (
+				5EA4FE2B2CFDAECE001CA401 /* AlertManager.swift */,
+			);
+			path = AlertManager;
 			sourceTree = "<group>";
 		};
 		5EC949C32CB526E5003736A9 = {
@@ -325,6 +335,7 @@
 		5EC94A0A2CC3C9BF003736A9 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				5EA4FE2A2CFDAEB3001CA401 /* AlertManager */,
 				5EC94A0E2CC3CBBB003736A9 /* Extension */,
 				5EC94A0B2CC3CA2F003736A9 /* Errors */,
 				5EC94A072CC3C729003736A9 /* Helper */,
@@ -439,6 +450,7 @@
 				5EC94A122CC59585003736A9 /* HomeViewModel.swift in Sources */,
 				5EA4FDC92CD8E91A001CA401 /* BookViewModel.swift in Sources */,
 				5EA4FE262CE756EE001CA401 /* AuthService.swift in Sources */,
+				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,
 				5EA4FE292CF5B558001CA401 /* BookDetailsView.swift in Sources */,
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
 				5EA4FDC72CD8E780001CA401 /* BookEditView.swift in Sources */,

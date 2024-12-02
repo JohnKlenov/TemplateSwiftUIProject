@@ -12,8 +12,19 @@ import SwiftUI
 
 struct ContentView: View {
     
+    private var alertManager = AlertManager.shared
     @State var selection = 0
-    
+    private var bindingError: Binding<Bool> {
+        Binding<Bool>(
+            get: { alertManager.globalAlert != nil },
+            set: { newValue in
+                if !newValue {
+                    alertManager.resetGlobalAlert()
+                }
+            }
+        )
+    }
+   
     var body: some View {
         TabView(selection: $selection) {
 
@@ -37,6 +48,11 @@ struct ContentView: View {
                     Label("Profile", systemImage: "person.crop.circle.fill")
                         .tag(2)
                 }
+        }
+        .alert("Global error", isPresented: bindingError) {
+            Button("Ok") {}
+        } message: {
+            Text(alertManager.globalAlert?.message ?? "Something went wrong. Please try again later.")
         }
     }
 }

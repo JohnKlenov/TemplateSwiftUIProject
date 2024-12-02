@@ -46,21 +46,22 @@ extension ViewState {
 protocol HomeViewModelProtocol: ObservableObject {
     var viewState: ViewState { get }
     var isSheetActive:Bool { get set }
-    var showAlert:Bool { get set }
-    var alertMessage:String? { get set }
+//    var showAlert:Bool { get set }
+//    var alertMessage:String? { get set }
     func removeBook(book: BookCloud)
     func retry()
-    func resetErrorProperty()
+//    func resetErrorProperty()
 }
 
 
 class HomeViewModel: HomeViewModelProtocol {
     
+    private var alertManager = AlertManager.shared
     @Published var viewState: ViewState = .loading
     var isSheetActive = false 
     
-    @Published var showAlert = false
-    @Published var alertMessage:String?
+//    @Published var showAlert = false
+//    @Published var alertMessage:String?
     
     private var cancellables = Set<AnyCancellable>()
     private var authenticationService: AuthenticationServiceProtocol
@@ -118,8 +119,6 @@ class HomeViewModel: HomeViewModelProtocol {
                     self?.removeBook(book: book, with: path)
                 case .failure(let error):
                     self?.handleError(error)
-//                    let errorMessage = self?.errorHandler.handle(error: error)
-//                    print("getCurrentUserID errorMessage - \(String(describing: errorMessage))")
                 }
             }
             .store(in: &cancellables)
@@ -150,15 +149,16 @@ class HomeViewModel: HomeViewModelProtocol {
     
     private func handleError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
-        alertMessage = errorMessage
-        showAlert = true
+        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView")
+//        alertMessage = errorMessage
+//        showAlert = true
     }
     
-    func resetErrorProperty() {
-        print("resetErrorProperty()")
-        alertMessage = nil
-        showAlert = false
-    }
+//    func resetErrorProperty() {
+//        print("resetErrorProperty()")
+//        alertMessage = nil
+//        showAlert = false
+//    }
 }
 
 

@@ -97,7 +97,7 @@ struct BookEditView: View {
                 .alert("Error", isPresented: $showAlert, actions: {
                     Button("Ok") {}
                 }, message: {
-                    Text(alertMessage ?? "")
+                    Text(alertMessage ?? "Something went wrong. Please try again later.")
                 })
                 .confirmationDialog("Are you sure?", isPresented: $presentActionSheet) {
                     Button("Delete book", role: .destructive) {
