@@ -25,7 +25,13 @@ struct TemplateSwiftUIProjectApp: App {
         WindowGroup {
             
             if tiedOnboarding {
-                ContentView()
+                let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
+                let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+                let databaseService = FirestoreDatabaseCRUDService() as DatabaseCRUDServiceProtocol
+                let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
+                let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, databaseService: databaseService, errorHandler: errorHandler)
+                let homeView = HomeView(viewModel: viewModel)
+                ContentView(homeView: homeView, galleryView: GalleryView(), profileView: ProfileView())
                 
             } else {
                 let onboardingService = OnboardingService()

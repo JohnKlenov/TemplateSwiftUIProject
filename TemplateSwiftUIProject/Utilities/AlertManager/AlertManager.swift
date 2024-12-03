@@ -12,7 +12,7 @@
 import Foundation
 import Combine
 
-protocol AlertManagerProtocol {
+protocol AlertManagerProtocol:ObservableObject {
     var globalAlert:AlertData? { get set }
     var localAlerts: [String:AlertData] { get set }
     func showGlobalAlert(message:String)
@@ -31,8 +31,8 @@ class AlertManager: AlertManagerProtocol {
     
     private init() {}
     
-    var globalAlert: AlertData?
-    var localAlerts: [String : AlertData] = [:]
+    @Published var globalAlert: AlertData?
+    @Published var localAlerts: [String : AlertData] = [:]
     
     func showGlobalAlert(message: String) {
         globalAlert = AlertData(message: message)

@@ -20,48 +20,40 @@ import SwiftUI
 
 enum ViewState {
     case loading
-    case errorChangeAuth(String)
+    case error(String)
     case content([BookCloud])
 }
 
-
 extension ViewState {
     var isError:Bool {
-        if case .errorChangeAuth = self {
+        if case .error = self {
             return true
         }
         return false
     }
-    
-    var errorMessage: String? {
-        if case let .errorChangeAuth(message) = self {
-            return message
-        }
-        return nil
-    }
+}
+
+enum StateError {
+    case localError
+    case globalError
 }
 
 
-
 protocol HomeViewModelProtocol: ObservableObject {
-    var viewState: ViewState { get }
+    var viewState: ViewState { get set }
     var isSheetActive:Bool { get set }
-//    var showAlert:Bool { get set }
-//    var alertMessage:String? { get set }
+    var alertManager:AlertManager { get set }
     func removeBook(book: BookCloud)
     func retry()
-//    func resetErrorProperty()
 }
 
 
 class HomeViewModel: HomeViewModelProtocol {
     
-    private var alertManager = AlertManager.shared
+    @ObservedObject var alertManager:AlertManager
     @Published var viewState: ViewState = .loading
-    var isSheetActive = false 
-    
-//    @Published var showAlert = false
-//    @Published var alertMessage:String?
+    var isSheetActive = false
+    private var stateError:StateError = .localError
     
     private var cancellables = Set<AnyCancellable>()
     private var authenticationService: AuthenticationServiceProtocol
@@ -69,7 +61,8 @@ class HomeViewModel: HomeViewModelProtocol {
     private var databaseService:DatabaseCRUDServiceProtocol
     private let errorHandler: ErrorHandlerProtocol
     
-    init(authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, databaseService:DatabaseCRUDServiceProtocol, errorHandler: ErrorHandlerProtocol) {
+    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, databaseService:DatabaseCRUDServiceProtocol, errorHandler: ErrorHandlerProtocol) {
+        self.alertManager = alertManager
         self.authenticationService = authenticationService
         self.firestorColletionObserverService = firestorColletionObserverService
         self.errorHandler = errorHandler
@@ -89,6 +82,7 @@ class HomeViewModel: HomeViewModelProtocol {
                 case .success(let userId):
                     return firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
                 case .failure(let error):
+                    stateError = .globalError
                     return Just(.failure(error)).eraseToAnyPublisher()
                 }
             }
@@ -98,7 +92,7 @@ class HomeViewModel: HomeViewModelProtocol {
                 case .success(let data):
                     self?.viewState = .content(data)
                 case .failure(let error):
-                    self?.handleErrorChangeAuth(error)
+                    self?.handleError(error)
                 }
             }
             .store(in: &cancellables)
@@ -107,6 +101,16 @@ class HomeViewModel: HomeViewModelProtocol {
     func retry() {
         authenticationService.reset()
         bind()
+    }
+    
+    private func handleError(_ error: Error) {
+        switch stateError {
+        case .localError: 
+            handleFirestoreError(error)
+        case .globalError:
+            handleAuthenticationError(error)
+        }
+        stateError = .localError
     }
     
     func removeBook(book: BookCloud) {
@@ -118,7 +122,7 @@ class HomeViewModel: HomeViewModelProtocol {
                     let path = "users/\(userID)/data"
                     self?.removeBook(book: book, with: path)
                 case .failure(let error):
-                    self?.handleError(error)
+                    self?.handleDeleteError(error)
                 }
             }
             .store(in: &cancellables)
@@ -134,33 +138,57 @@ class HomeViewModel: HomeViewModelProtocol {
                     break
                 case .failure(let error):
                     print("removeBook  error - \(error)")
-                    self?.handleError(error)
+                    self?.handleDeleteError(error)
                 }
             }
             .store(in: &cancellables)
     }
     
-    
-    private func handleErrorChangeAuth(_ error: Error) {
-//        print("HomeViewModel.handleError - \(error.localizedDescription)")
+    private func handleAuthenticationError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
-        viewState = .errorChangeAuth(errorMessage)
+        alertManager.showGlobalAlert(message: errorMessage)
+        viewState = .error(errorMessage)
     }
     
-    private func handleError(_ error: Error) {
+    private func handleFirestoreError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView")
-//        alertMessage = errorMessage
-//        showAlert = true
+        viewState = .error(errorMessage)
     }
     
-//    func resetErrorProperty() {
-//        print("resetErrorProperty()")
-//        alertMessage = nil
-//        showAlert = false
-//    }
+    private func handleDeleteError(_ error: Error) {
+        let errorMessage = errorHandler.handle(error: error)
+        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView")
+    }
 }
 
+
+
+
+//        alertManager.showGlobalAlert(message: errorMessage)
+
+//extension ViewState {
+//    var isError:Bool {
+//        if case .error = self {
+//            return true
+//        }
+//        return false
+//    }
+//
+//    var errorMessage: String? {
+//        if case let .error(message) = self {
+//            return message
+//        }
+//        return nil
+//    }
+//}
+
+
+//                    self?.handleErrorChangeAuth(error)
+//    private func handleErrorChangeAuth(_ error: Error) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        viewState = .errorChangeAuth(errorMessage)
+//    }
 
 
 //protocol HomeViewModelProtocol: ObservableObject {

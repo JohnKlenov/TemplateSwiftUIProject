@@ -47,8 +47,6 @@ import Combine
 struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
-    private var alertManager = AlertManager.shared
-    
     @State var presentAddBookSheet:Bool = false
     @State var isVisibleView: Bool = true // Флаг активности представления
 
@@ -63,12 +61,17 @@ struct HomeView: View {
             }
         )
     }
+
     private var bindingError: Binding<Bool> {
         Binding<Bool>(
-            get: { isVisibleView && (alertManager.localAlerts["HomeView"] != nil) },
+            get: {
+                print("HomeView get bindingError")
+                return isVisibleView && (viewModel.alertManager.localAlerts["HomeView"] != nil)
+            },
             set: { newValue in
+                print("HomeView set bindingError - \(newValue)")
                 if !newValue {
-                    alertManager.resetLocalAlert(forView: "HomeView")
+                    viewModel.alertManager.resetLocalAlert(forView: "HomeView")
                 }
             }
         )
@@ -86,7 +89,7 @@ struct HomeView: View {
                     ProgressView("Loading...")
                 case .content(let data):
                     contentView(data: data)
-                case .errorChangeAuth(let error):
+                case .error(let error):
                     errorView(error: error)
                 }
             }
@@ -116,22 +119,10 @@ struct HomeView: View {
                     }
                 
             }
-            .alert("Error", isPresented: .constant(viewModel.viewState.isError) ) {
-                Button("Retry") {
-                    viewModel.retry()
-                }
-                Button("Ok") {}
-            } message: {
-                Text(viewModel.viewState.errorMessage ?? "Something went wrong. Please try again later.")
-            }
             .alert("Local error", isPresented: bindingError) {
                 Button("Ok") {}
             } message: {
-                Text(alertManager.localAlerts["HomeView"]?.message ?? "Something went wrong. Please try again later.")
-//                VStack {
-//                    Text("Failed to delete book")
-//                    Text(alertManager.localAlerts["HomeView"]?.message ?? "Something went wrong. Please try again later.")
-//                }
+                Text(viewModel.alertManager.localAlerts["HomeView"]?.message ?? "Something went wrong. Please try again later.")
             }
             .onAppear {
                 print("onAppear HomeView")
@@ -142,7 +133,6 @@ struct HomeView: View {
                 isVisibleView = false
             }
         }
-     
     }
     
     private func errorView(error:String) -> some View {
@@ -206,6 +196,15 @@ struct HomeView: View {
 }
  
 
+
+//            .alert("Error", isPresented: .constant(viewModel.viewState.isError) ) {
+//                Button("Retry") {
+//                    viewModel.retry()
+//                }
+//                Button("Ok") {}
+//            } message: {
+//                Text(viewModel.viewState.errorMessage ?? "Something went wrong. Please try again later.")
+//            }
 
 
 //            .alert("Error", isPresented: Binding<Bool>(
