@@ -41,7 +41,7 @@ enum StateError {
 
 protocol HomeViewModelProtocol: ObservableObject {
     var viewState: ViewState { get set }
-    var isSheetActive:Bool { get set }
+//    var isSheetActive:Bool { get set }
     var alertManager:AlertManager { get set }
     func removeBook(book: BookCloud)
     func retry()
@@ -52,7 +52,7 @@ class HomeViewModel: HomeViewModelProtocol {
     
     @ObservedObject var alertManager:AlertManager
     @Published var viewState: ViewState = .loading
-    var isSheetActive = false
+//    var isSheetActive = false
     private var stateError:StateError = .localError
     
     private var cancellables = Set<AnyCancellable>()
@@ -80,6 +80,7 @@ class HomeViewModel: HomeViewModelProtocol {
                 }
                 switch result {
                 case .success(let userId):
+                    
                     return firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
                 case .failure(let error):
                     stateError = .globalError
@@ -134,10 +135,8 @@ class HomeViewModel: HomeViewModelProtocol {
                 switch result {
                     
                 case .success():
-                    print("removeBook success")
                     break
                 case .failure(let error):
-                    print("removeBook  error - \(error)")
                     self?.handleDeleteError(error)
                 }
             }

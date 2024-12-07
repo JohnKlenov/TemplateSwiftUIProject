@@ -113,12 +113,14 @@ struct BookEditView: View {
                     case .loading:
                         isLoading = true
                     case .success:
+                        print("BookEditView success")
                         isLoading = false
                         dismiss()
                     case .failure(let textError):
+                        print("BookEditView failure")
                         isLoading = false
-                        alertMessage = textError
-                        showAlert = true
+//                        alertMessage = textError
+//                        showAlert = true
                     }
                 }
                 

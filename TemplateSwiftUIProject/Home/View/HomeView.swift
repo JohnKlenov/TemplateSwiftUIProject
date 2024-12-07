@@ -40,27 +40,47 @@
 ///
 ///get: { viewModel.showAlert && isVisibleView } - до тех пор пока вырожение false alert не отработает.
 
+///
+/// на HomeView при открытом alert мы перерисовывали HomeView удаляя документ с сервера
+/// срабатывал get у bindingError но не блок set , alert оставался живым
+/// почему мы обеспокоиным этим поведением , потому что когда мы использовали Binding для .sheet то при перерисовки view на котором у нас открывался модальный экран срабатывал binding и его блок set со значением false что саоуничтожало модальный экран - помог SheetManager
+/// Различия в поведении могут объясняться тем, как SwiftUI обрабатывает состояния для различных видов представлений. Для sheet, важно постоянное обновление состояния, чтобы избежать дублирования (поэтому когда у нас обновлялся bindingSheet в set создать новый он не мог так как генерировался false - !viewModel.isSheetActive && presentAddBookSheet ноj set вызывался что бы избежать дублирования автоматически - ответ чата). Для alert, достаточно установить состояние в true, чтобы отобразить алерт, и управлять его закрытием через пользовательские действия.
+
 import SwiftUI
 import Combine
+
+///@StateObject используется для инициализации и хранения объекта, который будет использоваться для управления состоянием представления. Сохраняться на протяжении всего жизненного цикла представления и не теряеьт свои данные при перерисовках.
+///@StateObject гарантирует, что объект будет жить столько, сколько живет представление, и будет удален, когда представление больше не нужно. Это помогает избежать утечек памяти.
+
+///когда к примеру в .sheet(isPresented: $sheetManager.isPresented) блок set в binding возвращает false то значение isPresented автоматически изменится на false
+
+///Binding<Bool>( get: { .. }, set: { .. } )
+class SheetManager: ObservableObject {
+    @Published var isPresented: Bool = false {
+        didSet {
+            print("@Published var isPresented - \(isPresented)")
+        }
+    }
+    
+    func showSheet() {
+        isPresented = true
+    }
+    
+    func hideSheet() {
+        isPresented = false
+    }
+}
 
 
 struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
-    @State var presentAddBookSheet:Bool = false
+    @StateObject private var sheetManager = SheetManager()
+    
     @State var isVisibleView: Bool = true // Флаг активности представления
+   
+    
 
-    private var bindingSheet: Binding<Bool> {
-        Binding<Bool>(
-            get: {
-                return !viewModel.isSheetActive ? presentAddBookSheet : false
-            },
-            set: { newValue in
-                viewModel.isSheetActive = newValue
-                presentAddBookSheet = newValue
-            }
-        )
-    }
 
     private var bindingError: Binding<Bool> {
         Binding<Bool>(
@@ -99,7 +119,7 @@ struct HomeView: View {
             .toolbar{
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add") {
-                        presentAddBookSheet = true
+                        sheetManager.showSheet()
                     }
                     .foregroundStyle(AppColors.activeColor)
                     .padding()
@@ -107,17 +127,13 @@ struct HomeView: View {
                 }
             }
             
-            .sheet(isPresented: bindingSheet) {
-//                    let databaseService = RealtimeDatabaseCRUDService()
-                    let databaseService = FirestoreDatabaseCRUDService()
-                    let authService = AuthService()
-                    let errorService = SharedErrorHandler()
-                    let bookViewModel = BookViewModel(databaseService: databaseService, authService: authService, errorHandler: errorService)
-                    BookEditView(viewModel: bookViewModel)
-                    .onAppear {
-                        viewModel.isSheetActive = true
-                    }
-                
+            .sheet(isPresented: $sheetManager.isPresented) {
+                //                    let databaseService = RealtimeDatabaseCRUDService()
+                let databaseService = FirestoreDatabaseCRUDService()
+                let authService = AuthService()
+                let errorService = SharedErrorHandler()
+                let bookViewModel = BookViewModel(databaseService: databaseService, authService: authService, errorHandler: errorService)
+                BookEditView(viewModel: bookViewModel)
             }
             .alert("Local error", isPresented: bindingError) {
                 Button("Ok") {}
@@ -195,6 +211,37 @@ struct HomeView: View {
     }
 }
  
+
+
+
+// sheet logic
+
+
+
+//    @State var presentAddBookSheet:Bool = false
+//presentAddBookSheet = true
+//    private var bindingSheet: Binding<Bool> {
+//        Binding<Bool>(
+//            get: {
+//                print("get bindingSheet - isSheetActive - \(viewModel.isSheetActive)")
+//                print("get bindingSheet - presentAddBookSheet - \(presentAddBookSheet)")
+////                !viewModel.isSheetActive ? presentAddBookSheet : false
+//                return !viewModel.isSheetActive && presentAddBookSheet
+//            },
+//            set: { newValue in
+//                print("set bindingSheet - \(newValue)")
+//                viewModel.isSheetActive = newValue
+//                presentAddBookSheet = newValue
+//            }
+//        )
+//    }
+
+
+//                    BookEditView(viewModel: bookViewModel)
+//                    .onAppear {
+//                        viewModel.isSheetActive = true
+//                    }
+
 
 
 //            .alert("Error", isPresented: .constant(viewModel.viewState.isError) ) {
