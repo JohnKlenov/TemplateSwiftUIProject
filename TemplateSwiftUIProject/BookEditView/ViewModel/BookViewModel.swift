@@ -28,14 +28,14 @@ class BookViewModel:ObservableObject {
     @Published var modified = false
     @Published var operationState: OperationState = .idle
     
-    private var databaseService:DatabaseCRUDServiceProtocol
+    private var databaseService:any DatabaseCRUDServiceProtocol
     private var authService:AuthServiceProtocol
     private let errorHandler: ErrorHandlerProtocol
     private var originalBook: BookCloud
     private(set) var mode:Mode
     private var cancellables = Set<AnyCancellable>()
     
-    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, databaseService: DatabaseCRUDServiceProtocol, authService:AuthServiceProtocol, errorHandler: ErrorHandlerProtocol) {
+    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, databaseService: any DatabaseCRUDServiceProtocol, authService:AuthServiceProtocol, errorHandler: ErrorHandlerProtocol) {
         
         self.databaseService = databaseService
         self.authService = authService

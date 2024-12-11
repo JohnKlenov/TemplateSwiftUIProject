@@ -9,6 +9,9 @@
 ///Глобальные алерты: Используются для критических ошибок, которые могут затронуть весь функционал приложения. Эти алерты управляются на уровне корневого представления.
 ///Локальные алерты: Используются для ошибок, специфичных для текущего представления или действия. Эти алерты управляются непосредственно в представлении, где происходит ошибка.
 
+///На iOS система не позволяет одновременно отображать два алерта. Если второй алерт будет вызван, пока первый алерт уже отображается, второй алерт не появится до тех пор, пока первый не будет закрыт.
+
+
 import Foundation
 import Combine
 
@@ -28,7 +31,7 @@ struct AlertData {
 class AlertManager: AlertManagerProtocol {
     
     static let shared = AlertManager()
-    
+//    var isFlag:Bool = true
     private init() {}
     
     @Published var globalAlert: AlertData?
@@ -40,6 +43,7 @@ class AlertManager: AlertManagerProtocol {
     
     func showLocalalAlert(message: String, forView view: String) {
         localAlerts[view] = AlertData(message: message)
+//        imitationOfRepeatCall()
     }
     
     func resetGlobalAlert() {
@@ -50,5 +54,17 @@ class AlertManager: AlertManagerProtocol {
     func resetLocalAlert(forView view: String) {
         localAlerts[view] = nil
     }
+    
+//    func imitationOfRepeatCall() {
+//        if isFlag {
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
+//                print("imitationOfRepeatCall")
+//                self?.isFlag.toggle()
+//                self?.showLocalalAlert(message: "imitationOfRepeatCall", forView: "Home")
+//                
+//            }
+//        }
+//      
+//    }
     
 }

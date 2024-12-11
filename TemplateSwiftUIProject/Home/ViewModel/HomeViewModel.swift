@@ -41,7 +41,6 @@ enum StateError {
 
 protocol HomeViewModelProtocol: ObservableObject {
     var viewState: ViewState { get set }
-//    var isSheetActive:Bool { get set }
     var alertManager:AlertManager { get set }
     func removeBook(book: BookCloud)
     func retry()
@@ -52,16 +51,16 @@ class HomeViewModel: HomeViewModelProtocol {
     
     @ObservedObject var alertManager:AlertManager
     @Published var viewState: ViewState = .loading
-//    var isSheetActive = false
-    private var stateError:StateError = .localError
     
+    private var stateError:StateError = .localError
     private var cancellables = Set<AnyCancellable>()
     private var authenticationService: AuthenticationServiceProtocol
     private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
-    private var databaseService:DatabaseCRUDServiceProtocol
+    private var databaseService: any DatabaseCRUDServiceProtocol
+//    private var databaseService: FirestoreDatabaseCRUDService
     private let errorHandler: ErrorHandlerProtocol
     
-    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, databaseService:DatabaseCRUDServiceProtocol, errorHandler: ErrorHandlerProtocol) {
+    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, databaseService: any DatabaseCRUDServiceProtocol, errorHandler: ErrorHandlerProtocol) {
         self.alertManager = alertManager
         self.authenticationService = authenticationService
         self.firestorColletionObserverService = firestorColletionObserverService
@@ -121,7 +120,7 @@ class HomeViewModel: HomeViewModelProtocol {
                     
                 case .success(let userID):
                     let path = "users/\(userID)/data"
-                    self?.removeBook(book: book, with: path)
+                    self?.removeBook(book: book, path: path)
                 case .failure(let error):
                     self?.handleDeleteError(error)
                 }
@@ -129,14 +128,16 @@ class HomeViewModel: HomeViewModelProtocol {
             .store(in: &cancellables)
     }
     
-    private func removeBook(book:BookCloud, with path:String) {
+    private func removeBook(book:BookCloud, path:String) {
         databaseService.removeBook(path: path, book)
             .sink { [weak self] result in
                 switch result {
                     
                 case .success():
+                    print("removeBook success")
                     break
                 case .failure(let error):
+                    print("removeBook failure")
                     self?.handleDeleteError(error)
                 }
             }

@@ -23,13 +23,26 @@ import Combine
 
 struct ContentView: View {
     
-    @ObservedObject var alertManager:AlertManager
+    @ObservedObject var alertManager:AlertManager = AlertManager.shared
+    @EnvironmentObject var databaseService: FirestoreDatabaseCRUDService
     
-    private let homeView:HomeView
-    private let galleryView:GalleryView
-    private let profileView:ProfileView
+    private var homeView:LazyView<HomeView> {
+        let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
+        let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+        let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
+        let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, databaseService: databaseService, errorHandler: errorHandler)
+        return LazyView { HomeView(viewModel: viewModel) }
+    }
     
-    @State private var selection:Int
+    private var galleryView:LazyView<GalleryView> {
+        return LazyView { GalleryView() }
+    }
+    
+    private var profileView:LazyView<ProfileView> {
+        return LazyView { ProfileView() }
+    }
+    
+    @State private var selection:Int = 0
     
     private var bindingError: Binding<Bool> {
         Binding<Bool>(
@@ -46,32 +59,24 @@ struct ContentView: View {
         )
     }
     
-    init(alertManager: AlertManager = AlertManager.shared, homeView: HomeView, galleryView: GalleryView, profileView: ProfileView, selection: Int = 0) {
-        self.alertManager = alertManager
-        self.homeView = homeView
-        self.galleryView = galleryView
-        self.profileView = profileView
-        self.selection = selection
-    }
-    
     var body: some View {
         TabView(selection: $selection) {
             
             homeView
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
-                        .tag(0)
                 }
+                .tag(0)
             galleryView
                 .tabItem {
                     Label("Gallery", systemImage: "photo.on.rectangle.fill")
-                        .tag(1)
                 }
+                .tag(1)
             profileView
                 .tabItem {
                     Label("Profile", systemImage: "person.crop.circle.fill")
-                        .tag(2)
                 }
+                .tag(2)
         }
         .alert("Global error", isPresented: bindingError) {
             Button("Ok") {}
@@ -80,6 +85,89 @@ struct ContentView: View {
         }
     }
 }
+
+
+///в TabBarViewController инициализация вкладок происходит по умолчанию при их выборе.
+///LazyView - это удобный и простой способ. Он позволяет отложить инициализацию до момента, когда представление действительно потребуется, что может улучшить производительность приложения.
+struct LazyView<Content: View>: View {
+    let build: () -> Content
+    init(_ build: @escaping () -> Content) {
+        self.build = build
+    }
+    var body: Content {
+        build()
+    }
+}
+
+
+// MARK: - before environment
+
+//import SwiftUI
+//import Combine
+//
+//
+//struct ContentView: View {
+//    
+//    @ObservedObject var alertManager:AlertManager
+//    
+//    private let homeView:HomeView
+//    private let galleryView:GalleryView
+//    private let profileView:ProfileView
+//    
+//    @State private var selection:Int
+//    
+//    private var bindingError: Binding<Bool> {
+//        Binding<Bool>(
+//            get: {
+//                print("ContentView get bindingError")
+//                return alertManager.globalAlert != nil
+//            },
+//            set: { newValue in
+//                print("ContentView set bindingError - \(newValue)")
+//                if !newValue {
+//                    alertManager.resetGlobalAlert()
+//                }
+//            }
+//        )
+//    }
+//    
+//    init(alertManager: AlertManager = AlertManager.shared, homeView: HomeView, galleryView: GalleryView, profileView: ProfileView, selection: Int = 0) {
+//        self.alertManager = alertManager
+//        self.homeView = homeView
+//        self.galleryView = galleryView
+//        self.profileView = profileView
+//        self.selection = selection
+//    }
+//    
+//    var body: some View {
+//        TabView(selection: $selection) {
+//            
+//            homeView
+//                .tabItem {
+//                    Label("Home", systemImage: "house.fill")
+//                        .tag(0)
+//                }
+//            galleryView
+//                .tabItem {
+//                    Label("Gallery", systemImage: "photo.on.rectangle.fill")
+//                        .tag(1)
+//                }
+//            profileView
+//                .tabItem {
+//                    Label("Profile", systemImage: "person.crop.circle.fill")
+//                        .tag(2)
+//                }
+//        }
+//        .alert("Global error", isPresented: bindingError) {
+//            Button("Ok") {}
+//        } message: {
+//            Text(alertManager.globalAlert?.message ?? "Something went wrong. Please try again later.")
+//        }
+//    }
+//}
+//
+
+
 
 
 //struct ContentView: View {
@@ -150,17 +238,6 @@ struct ContentView: View {
 //    ContentView()
 //}
 
-///в TabBarViewController инициализация вкладок происходит по умолчанию при их выборе.
-///LazyView - это удобный и простой способ. Он позволяет отложить инициализацию до момента, когда представление действительно потребуется, что может улучшить производительность приложения.
-struct LazyView<Content: View>: View {
-    let build: () -> Content
-    init(_ build: @escaping () -> Content) {
-        self.build = build
-    }
-    var body: Content {
-        build()
-    }
-}
 
 
 

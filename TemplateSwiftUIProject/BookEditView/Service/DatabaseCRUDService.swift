@@ -29,7 +29,7 @@ import Combine
 import FirebaseDatabase
 import FirebaseFirestore
 
-protocol DatabaseCRUDServiceProtocol {
+protocol DatabaseCRUDServiceProtocol:ObservableObject {
     func addBook(path:String, _ book: BookCloud) -> AnyPublisher<Result<Void,Error>, Never>
     func updateBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void,Error>, Never>
     func removeBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void,Error>, Never>
@@ -128,6 +128,10 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         }
         .eraseToAnyPublisher()
     }
+    
+    deinit {
+        print("deinit RealtimeDatabaseCRUDService")
+    }
 }
 
 
@@ -143,7 +147,9 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         Future {  promise in
             
             do {
+                print("func addBook(path")
                 let _ = try self.db.collection(path).addDocument(from: book) { error in
+                    print("addDocument - \(String(describing: error))")
                     if let error = error {
                         promise(.success(.failure(error)))
                     } else {
@@ -203,6 +209,10 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
             }
         }
         .eraseToAnyPublisher()
+    }
+    
+    deinit {
+        print("deinit FirestoreDatabaseCRUDService")
     }
 }
 

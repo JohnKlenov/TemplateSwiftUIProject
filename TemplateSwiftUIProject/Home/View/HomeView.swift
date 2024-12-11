@@ -49,39 +49,14 @@
 import SwiftUI
 import Combine
 
-///@StateObject используется для инициализации и хранения объекта, который будет использоваться для управления состоянием представления. Сохраняться на протяжении всего жизненного цикла представления и не теряеьт свои данные при перерисовках.
-///@StateObject гарантирует, что объект будет жить столько, сколько живет представление, и будет удален, когда представление больше не нужно. Это помогает избежать утечек памяти.
-
-///когда к примеру в .sheet(isPresented: $sheetManager.isPresented) блок set в binding возвращает false то значение isPresented автоматически изменится на false
-
-///Binding<Bool>( get: { .. }, set: { .. } )
-class SheetManager: ObservableObject {
-    @Published var isPresented: Bool = false {
-        didSet {
-            print("@Published var isPresented - \(isPresented)")
-        }
-    }
-    
-    func showSheet() {
-        isPresented = true
-    }
-    
-    func hideSheet() {
-        isPresented = false
-    }
-}
-
 
 struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
-    @StateObject private var sheetManager = SheetManager()
+    @StateObject private var sheetManager:SheetManager
     
     @State var isVisibleView: Bool = true // Флаг активности представления
    
-    
-
-
     private var bindingError: Binding<Bool> {
         Binding<Bool>(
             get: {
@@ -97,8 +72,9 @@ struct HomeView: View {
         )
     }
     
-    init(viewModel:HomeViewModel) {
+    init(viewModel:HomeViewModel, sheetManager: SheetManager = SheetManager()) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        _sheetManager = StateObject(wrappedValue: sheetManager)
     }
     
     var body: some View {

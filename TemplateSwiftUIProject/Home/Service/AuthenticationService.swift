@@ -83,6 +83,7 @@ class AuthenticationService: AuthenticationServiceProtocol {
         addListeners()
     }
     
+    /// в нем нет необходимости для HomeView так как вся логика CRUDS  в  CRUDSManager
     func getCurrentUserID() -> AnyPublisher<Result<String, any Error>, Never> {
         Future { promise in
             if let user = Auth.auth().currentUser {
