@@ -5,6 +5,9 @@
 //  Created by Evgenyi on 8.10.24.
 //
 
+
+/// Когда ты передаешь объект managerCRUDS в ContentView с помощью .environmentObject(managerCRUDS), этот объект становится доступным для всех дочерних представлений, которые используют @EnvironmentObject.
+/// в struct нам не нужно передавать зависимость через конструктор просто используем @EnvironmentObject var managerCRUDS: CRUDSManager а в классах нужно передавать через конструктор - HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
 import SwiftUI
 
 @main
@@ -24,9 +27,12 @@ struct TemplateSwiftUIProjectApp: App {
         
         WindowGroup {
             if tiedOnboarding {
-                var databaseService:FirestoreDatabaseCRUDService = FirestoreDatabaseCRUDService()
+                let authService:AuthServiceProtocol = AuthService()
+                let errorHandler: ErrorHandlerProtocol = SharedErrorHandler()
+                let databaseService:any DatabaseCRUDServiceProtocol = FirestoreDatabaseCRUDService()
+                let managerCRUDS = CRUDSManager(authService: authService, errorHandler: errorHandler, databaseService: databaseService)
                 ContentView()
-                    .environmentObject(databaseService)
+                    .environmentObject(managerCRUDS)
             } else {
                 let onboardingService = OnboardingService()
                 let viewModel = OnboardingViewModel(onboardingService: onboardingService)

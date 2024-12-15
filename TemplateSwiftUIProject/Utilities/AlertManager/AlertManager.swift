@@ -35,7 +35,11 @@ class AlertManager: AlertManagerProtocol {
     private init() {}
     
     @Published var globalAlert: AlertData?
-    @Published var localAlerts: [String : AlertData] = [:]
+    @Published var localAlerts: [String : AlertData] = [:] {
+        didSet {
+            print("didSet localAlerts")
+        }
+    }
     
     func showGlobalAlert(message: String) {
         globalAlert = AlertData(message: message)

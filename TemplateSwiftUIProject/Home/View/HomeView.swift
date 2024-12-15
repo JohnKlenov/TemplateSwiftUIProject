@@ -55,6 +55,8 @@ struct HomeView: View {
     @StateObject private var viewModel:HomeViewModel
     @StateObject private var sheetManager:SheetManager
     
+    @EnvironmentObject var managerCRUDS: CRUDSManager
+    
     @State var isVisibleView: Bool = true // Флаг активности представления
    
     private var bindingError: Binding<Bool> {
@@ -75,6 +77,7 @@ struct HomeView: View {
     init(viewModel:HomeViewModel, sheetManager: SheetManager = SheetManager()) {
         _viewModel = StateObject(wrappedValue: viewModel)
         _sheetManager = StateObject(wrappedValue: sheetManager)
+        print("init HomeView")
     }
     
     var body: some View {
@@ -104,11 +107,7 @@ struct HomeView: View {
             }
             
             .sheet(isPresented: $sheetManager.isPresented) {
-                //                    let databaseService = RealtimeDatabaseCRUDService()
-                let databaseService = FirestoreDatabaseCRUDService()
-                let authService = AuthService()
-                let errorService = SharedErrorHandler()
-                let bookViewModel = BookViewModel(databaseService: databaseService, authService: authService, errorHandler: errorService)
+                let bookViewModel = BookViewModel(managerCRUDS: managerCRUDS)
                 BookEditView(viewModel: bookViewModel)
             }
             .alert("Local error", isPresented: bindingError) {

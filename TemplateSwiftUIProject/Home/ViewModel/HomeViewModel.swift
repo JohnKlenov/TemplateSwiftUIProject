@@ -56,17 +56,17 @@ class HomeViewModel: HomeViewModelProtocol {
     private var cancellables = Set<AnyCancellable>()
     private var authenticationService: AuthenticationServiceProtocol
     private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
-    private var databaseService: any DatabaseCRUDServiceProtocol
-//    private var databaseService: FirestoreDatabaseCRUDService
+    private var managerCRUDS: any CRUDSManagerProtocol
     private let errorHandler: ErrorHandlerProtocol
     
-    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, databaseService: any DatabaseCRUDServiceProtocol, errorHandler: ErrorHandlerProtocol) {
+    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: any CRUDSManagerProtocol, errorHandler: ErrorHandlerProtocol) {
         self.alertManager = alertManager
         self.authenticationService = authenticationService
         self.firestorColletionObserverService = firestorColletionObserverService
         self.errorHandler = errorHandler
-        self.databaseService = databaseService
+        self.managerCRUDS = managerCRUDS
         bind()
+        print("init HomeViewModel")
     }
     
     private func bind() {
@@ -114,34 +114,7 @@ class HomeViewModel: HomeViewModelProtocol {
     }
     
     func removeBook(book: BookCloud) {
-        authenticationService.getCurrentUserID()
-            .sink { [weak self] result in
-                switch result {
-                    
-                case .success(let userID):
-                    let path = "users/\(userID)/data"
-                    self?.removeBook(book: book, path: path)
-                case .failure(let error):
-                    self?.handleDeleteError(error)
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func removeBook(book:BookCloud, path:String) {
-        databaseService.removeBook(path: path, book)
-            .sink { [weak self] result in
-                switch result {
-                    
-                case .success():
-                    print("removeBook success")
-                    break
-                case .failure(let error):
-                    print("removeBook failure")
-                    self?.handleDeleteError(error)
-                }
-            }
-            .store(in: &cancellables)
+        managerCRUDS.removeBook(book: book)
     }
     
     private func handleAuthenticationError(_ error: Error) {
@@ -155,14 +128,54 @@ class HomeViewModel: HomeViewModelProtocol {
         alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView")
         viewState = .error(errorMessage)
     }
-    
-    private func handleDeleteError(_ error: Error) {
-        let errorMessage = errorHandler.handle(error: error)
-        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView")
-    }
 }
 
 
+
+
+
+
+
+
+
+//    private var databaseService: any DatabaseCRUDServiceProtocol
+//    private var databaseService: FirestoreDatabaseCRUDService
+
+//    func removeBook(book: BookCloud) {
+//        authenticationService.getCurrentUserID()
+//            .sink { [weak self] result in
+//                switch result {
+//
+//                case .success(let userID):
+//                    let path = "users/\(userID)/data"
+//                    self?.removeBook(book: book, path: path)
+//                case .failure(let error):
+//                    self?.handleDeleteError(error)
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+    
+//    private func removeBook(book:BookCloud, path:String) {
+//        databaseService.removeBook(path: path, book)
+//            .sink { [weak self] result in
+//                switch result {
+//
+//                case .success():
+//                    print("removeBook success")
+//                    break
+//                case .failure(let error):
+//                    print("removeBook failure")
+//                    self?.handleDeleteError(error)
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+
+//    private func handleDeleteError(_ error: Error) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView")
+//    }
 
 
 //        alertManager.showGlobalAlert(message: errorMessage)

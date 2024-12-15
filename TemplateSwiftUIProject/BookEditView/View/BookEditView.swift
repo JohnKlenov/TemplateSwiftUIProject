@@ -43,10 +43,6 @@ struct BookEditView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: BookViewModel
     @FocusState var focus:FocusedField?
-    
-    @State private var showAlert = false
-    @State private var isLoading = false
-    @State private var alertMessage:String?
     @State var presentActionSheet = false
     
 //    var mode: Mode = .new
@@ -57,10 +53,9 @@ struct BookEditView: View {
         }
     }
     
-    /// многократное нажатие до ответа от сервера?
     var saveButton: some View {
         Button(viewModel.mode == .new ? "Done" : "Save") {
-            isLoading ?  {}() : handleDoneTapped()
+            handleDoneTapped()
         }
         .disabled(!viewModel.modified)
     }
@@ -98,38 +93,11 @@ struct BookEditView: View {
                         cancelButton
                     }
                 }
-                .alert("Error", isPresented: $showAlert, actions: {
-                    Button("Ok") {}
-                }, message: {
-                    Text(alertMessage ?? "Something went wrong. Please try again later.")
-                })
                 .confirmationDialog("Are you sure?", isPresented: $presentActionSheet) {
                     Button("Delete book", role: .destructive) {
-                        isLoading ? {}() : handleDeleteTapped()
+                        handleDeleteTapped()
                     }
                     Button("Cancel", role: .cancel) {}
-                }
-                .onReceive(viewModel.$operationState) { state in
-                    switch state {
-                        
-                    case .idle:
-                        isLoading = false
-                    case .loading:
-                        isLoading = true
-                    case .success:
-                        print("BookEditView success")
-                        isLoading = false
-                        dismiss()
-                    case .failure(let textError):
-                        print("BookEditView failure")
-                        isLoading = false
-//                        alertMessage = textError
-//                        showAlert = true
-                    }
-                }
-                
-                if isLoading {
-                    ProgressView("Loading...")
                 }
             }
         }
@@ -180,7 +148,8 @@ struct BookEditView: View {
     }
     
     private func handleDeleteTapped() {
-//        viewModel.removeBook()
+        viewModel.removeBook()
+        dismiss()
     }
     
 }

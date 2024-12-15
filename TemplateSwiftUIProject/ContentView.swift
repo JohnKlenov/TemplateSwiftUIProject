@@ -23,14 +23,15 @@ import Combine
 
 struct ContentView: View {
     
+    /// можем пользоваться alertManager из managerCRUDS?
     @ObservedObject var alertManager:AlertManager = AlertManager.shared
-    @EnvironmentObject var databaseService: FirestoreDatabaseCRUDService
+    @EnvironmentObject var managerCRUDS: CRUDSManager
     
     private var homeView:LazyView<HomeView> {
         let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
         let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
         let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
-        let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, databaseService: databaseService, errorHandler: errorHandler)
+        let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
         return LazyView { HomeView(viewModel: viewModel) }
     }
     

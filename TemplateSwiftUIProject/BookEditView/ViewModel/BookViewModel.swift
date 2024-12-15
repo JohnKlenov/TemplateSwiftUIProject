@@ -26,21 +26,15 @@ class BookViewModel:ObservableObject {
     
     @Published var book: BookCloud
     @Published var modified = false
-    @Published var operationState: OperationState = .idle
-    
-    private var databaseService:any DatabaseCRUDServiceProtocol
-    private var authService:AuthServiceProtocol
-    private let errorHandler: ErrorHandlerProtocol
+
+    private let managerCRUDS: any CRUDSManagerProtocol
     private var originalBook: BookCloud
     private(set) var mode:Mode
     private var cancellables = Set<AnyCancellable>()
     
-    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, databaseService: any DatabaseCRUDServiceProtocol, authService:AuthServiceProtocol, errorHandler: ErrorHandlerProtocol) {
+    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, managerCRUDS: any CRUDSManagerProtocol) {
         
-        self.databaseService = databaseService
-        self.authService = authService
-        self.errorHandler = errorHandler
-        
+        self.managerCRUDS = managerCRUDS
         self.book = book
         self.originalBook = book
         self.mode = mode
@@ -66,78 +60,12 @@ class BookViewModel:ObservableObject {
 
     // Обновление или добавление книги
     func updateOrAddBook() {
-        operationState = .loading
-        authService.getCurrentUserID()
-            .sink { [weak self] result in
-                switch result {
-                    
-                case .success(let userID):
-                    let path = "users/\(userID)/data"
-                    if let _ = self?.book.id {
-                        self?.updateBook(with: path)
-                    } else {
-                        self?.addBook(with: path)
-                    }
-                case .failure(let error):
-                    if let textError = self?.errorHandler.handle(error: error) {
-                        self?.operationState = .failure(textError)
-                    }
-                }
-            }
-            .store(in: &cancellables)
+        managerCRUDS.updateOrAddBook(book: book)
     }
-    
+
     // Удаление книги
     func removeBook() {
-        operationState = .loading
-        authService.getCurrentUserID()
-            .sink { [weak self] result in
-                switch result {
-                case .success(let userID):
-                    let path = "users/\(userID)/data"
-                    self?.remove(with: path)
-                case .failure(let error):
-                    if let textError = self?.errorHandler.handle(error: error) {
-                        self?.operationState = .failure(textError)
-                    }
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func updateBook(with path:String) {
-        databaseService.updateBook(path: path, book)
-            .sink { [weak self] result in
-                self?.handleDatabaseResult(result)
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func addBook(with path:String) {
-        databaseService.addBook(path: path, book)
-            .sink { [weak self] result in
-                self?.handleDatabaseResult(result)
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func remove(with path:String) {
-        databaseService.removeBook(path: path, book)
-            .sink { [weak self] result in
-                self?.handleDatabaseResult(result)
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func handleDatabaseResult(_ result:Result<Void,Error>) {
-        switch result {
-            
-        case .success():
-            operationState = .success
-        case .failure(let error):
-            let textError = errorHandler.handle(error: error)
-            operationState = .failure(textError)
-        }
+        managerCRUDS.removeBook(book: book)
     }
     
     deinit {
@@ -146,6 +74,81 @@ class BookViewModel:ObservableObject {
 }
 
 
+
+
+//    func updateOrAddBook() {
+//        operationState = .loading
+//        authService.getCurrentUserID()
+//            .sink { [weak self] result in
+//                switch result {
+//
+//                case .success(let userID):
+//                    let path = "users/\(userID)/data"
+//                    if let _ = self?.book.id {
+//                        self?.updateBook(with: path)
+//                    } else {
+//                        self?.addBook(with: path)
+//                    }
+//                case .failure(let error):
+//                    if let textError = self?.errorHandler.handle(error: error) {
+//                        self?.operationState = .failure(textError)
+//                    }
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+
+//    func removeBook() {
+//        operationState = .loading
+//        authService.getCurrentUserID()
+//            .sink { [weak self] result in
+//                switch result {
+//                case .success(let userID):
+//                    let path = "users/\(userID)/data"
+//                    self?.remove(with: path)
+//                case .failure(let error):
+//                    if let textError = self?.errorHandler.handle(error: error) {
+//                        self?.operationState = .failure(textError)
+//                    }
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+    
+//    private func updateBook(with path:String) {
+//        databaseService.updateBook(path: path, book)
+//            .sink { [weak self] result in
+//                self?.handleDatabaseResult(result)
+//            }
+//            .store(in: &cancellables)
+//    }
+    
+//    private func addBook(with path:String) {
+//        databaseService.addBook(path: path, book)
+//            .sink { [weak self] result in
+//                self?.handleDatabaseResult(result)
+//            }
+//            .store(in: &cancellables)
+//    }
+
+//    private func remove(with path:String) {
+//        databaseService.removeBook(path: path, book)
+//            .sink { [weak self] result in
+//                self?.handleDatabaseResult(result)
+//            }
+//            .store(in: &cancellables)
+//    }
+    
+//    private func handleDatabaseResult(_ result:Result<Void,Error>) {
+//        switch result {
+//
+//        case .success():
+//            operationState = .success
+//        case .failure(let error):
+//            let textError = errorHandler.handle(error: error)
+//            operationState = .failure(textError)
+//        }
+//    }
 
 
 
