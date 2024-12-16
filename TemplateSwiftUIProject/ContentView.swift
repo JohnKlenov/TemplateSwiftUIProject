@@ -17,17 +17,45 @@
 /// почему мы обеспокоиным этим поведением , потому что когда мы использовали Binding для .sheet то при перерисовки view на котором у нас открывался модальный экран срабатывал binding и его блок set со значением false(это происходило автоматически) что самоуничтожало модальный экран - помог SheetManager.
 /// Различия в поведении могут объясняться тем, как SwiftUI обрабатывает состояния для различных видов представлений. Для sheet, важно постоянное обновление состояния, чтобы избежать дублирования (поэтому когда у нас обновлялся bindingSheet в set создать новый он не мог так как генерировался false - !viewModel.isSheetActive && presentAddBookSheet ноj set вызывался что бы избежать дублирования автоматически - ответ чата). Для alert, достаточно установить состояние в true, чтобы отобразить алерт, и управлять его закрытием через пользовательские действия.
 
+
+
+///почему в данном случае при вызове .onReceive(NotificationCenter.default.publisher(for: .globalAlert)) у нас не происходит не перерисовки ContentView и не происходит повторной инит GlobalAlertView ?
+///В SwiftUI перерисовка происходит только для тех областей, где изменилось состояние. Когда вы используете @State и Binding, SwiftUI отслеживает изменения и перерисовывает только те части представления, которые зависят от этих состояний.
+///изменение состояния @State переменных showAlert и alertMessage вызывает обновление только тех представлений, которые зависят от этих состояний, а не всего ContentView.
+///Представление GlobalAlertView используется в качестве фона (background) для основного представления. Это помогает отделить управление алертами от основного контента, минимизируя перерисовку. Когда состояние алерта изменяется, SwiftUI обновляет только GlobalAlertView, а не все представление.
+///GlobalAlertView инициализируется один раз и затем обновляется при изменении состояния. Если бы весь ContentView перерисовывался, вы бы видели повторную инициализацию, но поскольку SwiftUI отслеживает зависимости и минимизирует перерисовку, это не происходит.
+///Представление GlobalAlertView добавляется в фоновый слой для TabView. В SwiftUI, .background добавляет указанное представление за основным контентом, не поверх него.
+///GlobalAlertView будет добавлен позади всех вкладок внутри TabView, но на одном уровне с TabView в иерархии представлений VStack.
+///Таким образом, GlobalAlertView не располагается поверх VStack, а является фоновым элементом для TabView, что позволяет ему управлять состоянием алертов без влияния на видимость основного контента.
+
 import SwiftUI
 import Combine
 
+// Обособленное представление для алертов
+struct GlobalAlertView: View {
+    @Binding var showAlert: Bool
+    @Binding var alertMessage: String
+    
+    init(showAlert: Binding<Bool>, alertMessage: Binding<String>) {
+        self._showAlert = showAlert
+        self._alertMessage = alertMessage
+        print("GlobalAlertView initialized")
+    }
+    
+    var body: some View {
+        EmptyView()
+            .alert("Global error", isPresented: $showAlert) {
+                Button("Ok") {}
+            } message: {
+                Text(alertMessage)
+            }
+    }
+}
 
 struct ContentView: View {
-    
-    /// можем пользоваться alertManager из managerCRUDS?
-    @ObservedObject var alertManager:AlertManager = AlertManager.shared
     @EnvironmentObject var managerCRUDS: CRUDSManager
     
-    private var homeView:LazyView<HomeView> {
+    private var homeView: LazyView<HomeView> {
         let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
         let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
         let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
@@ -35,57 +63,113 @@ struct ContentView: View {
         return LazyView { HomeView(viewModel: viewModel) }
     }
     
-    private var galleryView:LazyView<GalleryView> {
+    private var galleryView: LazyView<GalleryView> {
         return LazyView { GalleryView() }
     }
     
-    private var profileView:LazyView<ProfileView> {
+    private var profileView: LazyView<ProfileView> {
         return LazyView { ProfileView() }
     }
     
-    @State private var selection:Int = 0
-    
-    private var bindingError: Binding<Bool> {
-        Binding<Bool>(
-            get: {
-                print("ContentView get bindingError")
-                return alertManager.globalAlert != nil
-            },
-            set: { newValue in
-                print("ContentView set bindingError - \(newValue)")
-                if !newValue {
-                    alertManager.resetGlobalAlert()
-                }
-            }
-        )
-    }
+    @State private var selection: Int = 0
+    @State private var showAlert: Bool = false
+    @State private var alertMessage: String = ""
     
     var body: some View {
-        TabView(selection: $selection) {
-            
-            homeView
-                .tabItem {
-                    Label("Home", systemImage: "house.fill")
+        VStack {
+            TabView(selection: $selection) {
+                homeView
+                    .tabItem {
+                        Label("Home", systemImage: "house.fill")
+                    }
+                    .tag(0)
+                galleryView
+                    .tabItem {
+                        Label("Gallery", systemImage: "photo.on.rectangle.fill")
+                    }
+                    .tag(1)
+                profileView
+                    .tabItem {
+                        Label("Profile", systemImage: "person.crop.circle.fill")
+                    }
+                    .tag(2)
+            }
+            .background(
+                GlobalAlertView(showAlert: $showAlert, alertMessage: $alertMessage)
+            )
+            .onReceive(NotificationCenter.default.publisher(for: .globalAlert)) { notification in
+                if let alertItem = notification.object as? AlertData {
+                    self.alertMessage = alertItem.message
+                    self.showAlert = true
                 }
-                .tag(0)
-            galleryView
-                .tabItem {
-                    Label("Gallery", systemImage: "photo.on.rectangle.fill")
-                }
-                .tag(1)
-            profileView
-                .tabItem {
-                    Label("Profile", systemImage: "person.crop.circle.fill")
-                }
-                .tag(2)
-        }
-        .alert("Global error", isPresented: bindingError) {
-            Button("Ok") {}
-        } message: {
-            Text(alertManager.globalAlert?.message ?? "Something went wrong. Please try again later.")
+            }
         }
     }
 }
+
+
+
+//import SwiftUI
+//import Combine
+//
+//
+//struct ContentView: View {
+//    @EnvironmentObject var managerCRUDS: CRUDSManager
+//    
+//    private var homeView: LazyView<HomeView> {
+//        let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
+//        let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+//        let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
+//        let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
+//        return LazyView { HomeView(viewModel: viewModel) }
+//    }
+//    
+//    private var galleryView: LazyView<GalleryView> {
+//        return LazyView { GalleryView() }
+//    }
+//    
+//    private var profileView: LazyView<ProfileView> {
+//        return LazyView { ProfileView() }
+//    }
+//    
+//    @State private var selection: Int = 0
+//    @State private var showAlert: Bool = false
+//    @State private var alertMessage: String = ""
+//    
+//    var body: some View {
+//        VStack {
+//            TabView(selection: $selection) {
+//                homeView
+//                    .tabItem {
+//                        Label("Home", systemImage: "house.fill")
+//                    }
+//                    .tag(0)
+//                galleryView
+//                    .tabItem {
+//                        Label("Gallery", systemImage: "photo.on.rectangle.fill")
+//                    }
+//                    .tag(1)
+//                profileView
+//                    .tabItem {
+//                        Label("Profile", systemImage: "person.crop.circle.fill")
+//                    }
+//                    .tag(2)
+//            }
+//            .alert("Global error", isPresented: $showAlert) {
+//                Button("Ok") {}
+//            } message: {
+//                Text(alertMessage)
+//            }
+//            .onReceive(NotificationCenter.default.publisher(for: .globalAlert)) { notification in
+//                if let alertItem = notification.object as? AlertData {
+//                    self.alertMessage = alertItem.message
+//                    self.showAlert = true
+//                }
+//            }
+//        }
+//    }
+//}
+
 
 
 ///в TabBarViewController инициализация вкладок происходит по умолчанию при их выборе.
@@ -99,6 +183,173 @@ struct LazyView<Content: View>: View {
         build()
     }
 }
+
+
+
+
+// MARK: - Environment +  @State -
+
+/// теперь при срабатывании @ObservedObject var alertManager повторного инит не происходило но выглядит сложновато
+
+//struct ContentView: View {
+//    @ObservedObject var alertManager: AlertManager = AlertManager.shared
+//    @EnvironmentObject var managerCRUDS: CRUDSManager
+//
+//    @State private var homeView: LazyView<AnyView>?
+//    @State private var galleryView: LazyView<AnyView>?
+//    @State private var profileView: LazyView<AnyView>?
+//
+//    @State private var selection: Int = 0
+//
+//    private var bindingError: Binding<Bool> {
+//        Binding<Bool>(
+//            get: {
+//                print("ContentView get bindingError")
+//                return alertManager.globalAlert != nil
+//            },
+//            set: { newValue in
+//                print("ContentView set bindingError - \(newValue)")
+//                if !newValue {
+//                    alertManager.resetGlobalAlert()
+//                }
+//            }
+//        )
+//    }
+//
+//    var body: some View {
+//        TabView(selection: $selection) {
+//            if let homeView = homeView {
+//                homeView
+//                    .tabItem {
+//                        Label("Home", systemImage: "house.fill")
+//                    }
+//                    .tag(0)
+//            } else {
+//                Text("") // Используем Text("") для заполнения пространства
+//                    .tabItem {
+//                        Label("Home", systemImage: "house.fill")
+//                    }
+//                    .tag(0)
+//                    .onAppear {
+//                        let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
+//                        let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+//                        let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
+//                        let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
+//                        self.homeView = LazyView { AnyView(HomeView(viewModel: viewModel)) }
+//                    }
+//            }
+//
+//            if let galleryView = galleryView {
+//                galleryView
+//                    .tabItem {
+//                        Label("Gallery", systemImage: "photo.on.rectangle.fill")
+//                    }
+//                    .tag(1)
+//            } else {
+//                Text("") // Используем Text("") для заполнения пространства
+//                    .tabItem {
+//                        Label("Gallery", systemImage: "photo.on.rectangle.fill")
+//                    }
+//                    .tag(1)
+//                    .onAppear {
+//                        self.galleryView = LazyView { AnyView(GalleryView()) }
+//                    }
+//            }
+//
+//            if let profileView = profileView {
+//                profileView
+//                    .tabItem {
+//                        Label("Profile", systemImage: "person.crop.circle.fill")
+//                    }
+//                    .tag(2)
+//            } else {
+//                Text("") // Используем Text("") для заполнения пространства
+//                    .tabItem {
+//                        Label("Profile", systemImage: "person.crop.circle.fill")
+//                    }
+//                    .tag(2)
+//                    .onAppear {
+//                        self.profileView = LazyView { AnyView(ProfileView()) }
+//                    }
+//            }
+//        }
+//        .alert("Global error", isPresented: bindingError) {
+//            Button("Ok") {}
+//        } message: {
+//            Text(alertManager.globalAlert?.message ?? "Something went wrong. Please try again later.")
+//        }
+//    }
+//}
+
+// MARK: - after environment -
+
+/// все работало корректно до тех пор пока не срабатывал @ObservedObject var alertManager и происходила перерисовка ContentView с повторной инит homeView
+
+//struct ContentView: View {
+//
+//    /// можем пользоваться alertManager из managerCRUDS?
+//    @ObservedObject var alertManager:AlertManager = AlertManager.shared
+//    @EnvironmentObject var managerCRUDS: CRUDSManager
+//
+//   private var homeView:LazyView<HomeView> {
+//        let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
+//        let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+//        let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
+//        let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
+//        return LazyView { HomeView(viewModel: viewModel) }
+//    }
+//
+//    private var galleryView:LazyView<GalleryView> {
+//        return LazyView { GalleryView() }
+//    }
+//
+//    private var profileView:LazyView<ProfileView> {
+//        return LazyView { ProfileView() }
+//    }
+//
+//    @State private var selection:Int = 0
+//
+//    private var bindingError: Binding<Bool> {
+//        Binding<Bool>(
+//            get: {
+//                print("ContentView get bindingError")
+//                return alertManager.globalAlert != nil
+//            },
+//            set: { newValue in
+//                print("ContentView set bindingError - \(newValue)")
+//                if !newValue {
+//                    alertManager.resetGlobalAlert()
+//                }
+//            }
+//        )
+//    }
+//
+//    var body: some View {
+//        TabView(selection: $selection) {
+//
+//            homeView
+//                .tabItem {
+//                    Label("Home", systemImage: "house.fill")
+//                }
+//                .tag(0)
+//            galleryView
+//                .tabItem {
+//                    Label("Gallery", systemImage: "photo.on.rectangle.fill")
+//                }
+//                .tag(1)
+//            profileView
+//                .tabItem {
+//                    Label("Profile", systemImage: "person.crop.circle.fill")
+//                }
+//                .tag(2)
+//        }
+//        .alert("Global error", isPresented: bindingError) {
+//            Button("Ok") {}
+//        } message: {
+//            Text(alertManager.globalAlert?.message ?? "Something went wrong. Please try again later.")
+//        }
+//    }
+//}
 
 
 // MARK: - before environment

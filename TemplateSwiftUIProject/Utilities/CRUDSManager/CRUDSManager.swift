@@ -27,6 +27,7 @@ class CRUDSManager:CRUDSManagerProtocol {
         self.errorHandler = errorHandler
         self.databaseService = databaseService
         self.alertManager = alertManager
+        print("init CRUDSManager")
     }
     
     func updateOrAddBook(book: BookCloud) {
@@ -116,4 +117,7 @@ class CRUDSManager:CRUDSManagerProtocol {
         alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView")
     }
     
+    deinit {
+        print("deinit CRUDSManager")
+    }
 }
