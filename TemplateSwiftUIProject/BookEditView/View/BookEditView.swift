@@ -143,12 +143,12 @@ struct BookEditView: View {
     }
     
     private func handleDoneTapped() {
-        viewModel.updateOrAddBook()
+        viewModel.updateOrAddBook(forView: "HomeView", operationDescription: "Error adding or change book")
         dismiss()
     }
     
     private func handleDeleteTapped() {
-        viewModel.removeBook()
+        viewModel.removeBook(forView: "HomeView", operationDescription: "Error deleting book")
         dismiss()
     }
     

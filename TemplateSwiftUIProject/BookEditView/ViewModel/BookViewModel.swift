@@ -59,13 +59,13 @@ class BookViewModel:ObservableObject {
     }
 
     // Обновление или добавление книги
-    func updateOrAddBook() {
-        managerCRUDS.updateOrAddBook(book: book)
+    func updateOrAddBook(forView:String, operationDescription: String) {
+        managerCRUDS.updateOrAddBook(book: book, forView: forView, operationDescription: operationDescription)
     }
 
     // Удаление книги
-    func removeBook() {
-        managerCRUDS.removeBook(book: book)
+    func removeBook(forView:String, operationDescription: String) {
+        managerCRUDS.removeBook(book: book, forView: forView, operationDescription: operationDescription)
     }
     
     deinit {

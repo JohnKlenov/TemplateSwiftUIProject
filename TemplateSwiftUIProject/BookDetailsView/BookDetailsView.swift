@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BookDetailsView: View {
-    @State var book: BookCloud
+    var book: BookCloud
     
     init(book: BookCloud) {
         self.book = book
@@ -25,9 +25,12 @@ struct BookDetailsView: View {
         .onAppear {
             print("BookDetailsView onAppear")
         }
-        
+        .onDisappear {
+            print("BookDetailsView onDisappear")
+        }
     }
 }
+
 
 //#Preview {
 //    BookDetailsView()

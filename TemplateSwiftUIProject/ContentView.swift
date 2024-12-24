@@ -28,6 +28,12 @@
 ///GlobalAlertView будет добавлен позади всех вкладок внутри TabView, но на одном уровне с TabView в иерархии представлений VStack.
 ///Таким образом, GlobalAlertView не располагается поверх VStack, а является фоновым элементом для TabView, что позволяет ему управлять состоянием алертов без влияния на видимость основного контента.
 
+/// При отображении global alert будет происходить dissmiss ModalView(если открыть alert из ModalView то он отобразится поверх модального view) и только после его исчезновения отобразится сам global alert. - Когда отображается алерт, SwiftUI может обрабатывать его как новое модальное представление, что приводит к закрытию предыдущего.
+/// VStack { Button("Show Sheet")  { isPresentingSheet = true } } .alert("Alert", isPresented: $isPresentingAlert) {} .sheet(isPresented: $isPresentingSheet) { Button("Show Alert") {  isPresentingAlert = true } }
+///   .sheet(isPresented: $isPresentingSheet) {ModalView(isPresentingAlert: $isPresentingAlert).alert(isPresented: $isPresentingAlert) {Alert(title: Text("Alert"), message: nil, dismissButton: .default(Text("OK"))) }} - вот так ок
+///можно решить эту проблему добавив флаг в AlertManager, чтобы отслеживать, когда модальное окно открыто, и при необходимости перенаправлять глобальные алерты в модальное окно.
+
+
 import SwiftUI
 import Combine
 
@@ -52,15 +58,20 @@ struct GlobalAlertView: View {
     }
 }
 
+
 struct ContentView: View {
     @EnvironmentObject var managerCRUDS: CRUDSManager
     
     private var homeView: LazyView<HomeView> {
         let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
         let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+        ///errorHandler @EnvironmentObject?
         let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
         let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
-        return LazyView { HomeView(viewModel: viewModel) }
+        let homeContentView = HomeContentView(viewModel: viewModel)
+//        LazyView { HomeView(contentView: homeContentView) }
+//        LazyView { HomeView(viewModel: viewModel) }
+        return LazyView { HomeView(contentView: homeContentView) }
     }
     
     private var galleryView: LazyView<GalleryView> {
@@ -108,6 +119,24 @@ struct ContentView: View {
 }
 
 
+///в TabBarViewController инициализация вкладок происходит по умолчанию при их выборе.
+///LazyView - это удобный и простой способ. Он позволяет отложить инициализацию до момента, когда представление действительно потребуется, что может улучшить производительность приложения.
+struct LazyView<Content: View>: View {
+    let build: () -> Content
+    init(_ build: @escaping () -> Content) {
+        self.build = build
+    }
+    var body: Content {
+        build()
+    }
+}
+
+
+
+
+
+
+
 
 //import SwiftUI
 //import Combine
@@ -115,7 +144,7 @@ struct ContentView: View {
 //
 //struct ContentView: View {
 //    @EnvironmentObject var managerCRUDS: CRUDSManager
-//    
+//
 //    private var homeView: LazyView<HomeView> {
 //        let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
 //        let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
@@ -123,19 +152,19 @@ struct ContentView: View {
 //        let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
 //        return LazyView { HomeView(viewModel: viewModel) }
 //    }
-//    
+//
 //    private var galleryView: LazyView<GalleryView> {
 //        return LazyView { GalleryView() }
 //    }
-//    
+//
 //    private var profileView: LazyView<ProfileView> {
 //        return LazyView { ProfileView() }
 //    }
-//    
+//
 //    @State private var selection: Int = 0
 //    @State private var showAlert: Bool = false
 //    @State private var alertMessage: String = ""
-//    
+//
 //    var body: some View {
 //        VStack {
 //            TabView(selection: $selection) {
@@ -169,24 +198,6 @@ struct ContentView: View {
 //        }
 //    }
 //}
-
-
-
-///в TabBarViewController инициализация вкладок происходит по умолчанию при их выборе.
-///LazyView - это удобный и простой способ. Он позволяет отложить инициализацию до момента, когда представление действительно потребуется, что может улучшить производительность приложения.
-struct LazyView<Content: View>: View {
-    let build: () -> Content
-    init(_ build: @escaping () -> Content) {
-        self.build = build
-    }
-    var body: Content {
-        build()
-    }
-}
-
-
-
-
 // MARK: - Environment +  @State -
 
 /// теперь при срабатывании @ObservedObject var alertManager повторного инит не происходило но выглядит сложновато

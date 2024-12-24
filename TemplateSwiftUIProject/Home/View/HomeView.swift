@@ -49,39 +49,109 @@
 import SwiftUI
 import Combine
 
+//struct LocalAlertView: View {
+//    @Binding var showAlert: Bool
+//    @Binding var alertMessage: String
+//    
+//    init(showAlert: Binding<Bool>, alertMessage: Binding<String>) {
+//        self._showAlert = showAlert
+//        self._alertMessage = alertMessage
+//        print("GlobalAlertView initialized")
+//    }
+//    
+//    var body: some View {
+//        EmptyView()
+//            .alert("Global error", isPresented: $showAlert) {
+//                Button("Ok") {}
+//            } message: {
+//                Text(alertMessage)
+//            }
+//    }
+//}
 
-struct HomeView: View {
+
+
+
+
+
+
+
+
+// MARK: - bottom -
+struct LocalAlertView: View {
+    @State var showAlert: Bool
+    @State var alertMessage: String
+    var nameView: String
+    @ObservedObject var alertManager: AlertManager
+    @State private var cancellables = Set<AnyCancellable>()
     
-    @StateObject private var viewModel:HomeViewModel
-    @StateObject private var sheetManager:SheetManager
-    
-    @EnvironmentObject var managerCRUDS: CRUDSManager
-    
-    @State var isVisibleView: Bool = true // Флаг активности представления
-   
-    private var bindingError: Binding<Bool> {
-        Binding<Bool>(
-            get: {
-                print("HomeView get bindingError")
-                return isVisibleView && (viewModel.alertManager.localAlerts["HomeView"] != nil)
-            },
-            set: { newValue in
-                print("HomeView set bindingError - \(newValue)")
-                if !newValue {
-                    viewModel.alertManager.resetLocalAlert(forView: "HomeView")
-                }
-            }
-        )
-    }
-    
-    init(viewModel:HomeViewModel, sheetManager: SheetManager = SheetManager()) {
-        _viewModel = StateObject(wrappedValue: viewModel)
-        _sheetManager = StateObject(wrappedValue: sheetManager)
-        print("init HomeView")
+    init(showAlert: Bool = false, alertMessage: String = "", nameView: String, alertManager: AlertManager = AlertManager.shared) {
+        self.showAlert = showAlert
+        self.alertMessage = alertMessage
+        self.nameView = nameView
+        self.alertManager = alertManager
+        print("init LocalAlertView")
     }
     
     var body: some View {
-        NavigationView {
+        EmptyView()
+            .alert("Local error", isPresented: $showAlert) {
+                Button("Ok") {
+                    showAlert = false
+                }
+            } message: {
+                Text(alertMessage)
+            }
+            .onAppear {
+                // Подписка на изменения в localAlerts
+                alertManager.$localAlerts
+                    .map { $0[nameView]?.isEmpty == false }
+                    .sink {
+                        if  $0 {
+                            self.alertMessage = self.alertManager.localAlerts[self.nameView]?.first?.message ?? ""
+                            self.showAlert = true
+                        }
+                    }
+                    .store(in: &cancellables)
+            }
+            .onDisappear {
+                cancellables.forEach { $0.cancel() }
+                cancellables.removeAll()
+            }
+    }
+}
+
+
+struct SheetHomeView:View {
+    
+    @EnvironmentObject var managerCRUDS: CRUDSManager
+    @EnvironmentObject var sheetManager: SheetManager
+    
+    init() {
+        print("init SheetHomeView")
+    }
+    var body: some View {
+        EmptyView()
+            .sheet(isPresented: $sheetManager.isPresented) {
+                let bookViewModel = BookViewModel(managerCRUDS: managerCRUDS)
+                BookEditView(viewModel: bookViewModel)
+            }
+    }
+}
+
+struct HomeContentView:View {
+    
+    @StateObject private var viewModel:HomeViewModel
+    @EnvironmentObject var sheetManager: SheetManager
+    
+    init(viewModel:HomeViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+        print("init HomeContentView")
+    }
+    
+    var body: some View {
+        /// NavigationView вызывал жёлтую ошибку в консоли
+        NavigationStack {
             ZStack {
                 switch viewModel.viewState {
                 case .loading:
@@ -94,7 +164,6 @@ struct HomeView: View {
             }
             .background(AppColors.background)
             .navigationTitle("Home")
-//            .navigationBarTitleDisplayMode(.inline)
             .toolbar{
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add") {
@@ -104,24 +173,6 @@ struct HomeView: View {
                     .padding()
                     .disabled(viewModel.viewState.isError)
                 }
-            }
-            
-            .sheet(isPresented: $sheetManager.isPresented) {
-                let bookViewModel = BookViewModel(managerCRUDS: managerCRUDS)
-                BookEditView(viewModel: bookViewModel)
-            }
-            .alert("Local error", isPresented: bindingError) {
-                Button("Ok") {}
-            } message: {
-                Text(viewModel.alertManager.localAlerts["HomeView"]?.message ?? "Something went wrong. Please try again later.")
-            }
-            .onAppear {
-                print("onAppear HomeView")
-                isVisibleView = true
-            }
-            .onDisappear {
-                print("onDisappear HomeView")
-                isVisibleView = false
             }
         }
     }
@@ -151,11 +202,10 @@ struct HomeView: View {
                 bookRowView(book)
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
-                            viewModel.removeBook(book: book)
+                            viewModel.removeBook(book: book, forView: "HomeView", operationDescription: "Error deleting book")
                         } label: {
                             Label("delete", systemImage: "trash.fill")
                         }
-                        
                     }
             }
         }
@@ -185,9 +235,302 @@ struct HomeView: View {
         }
     }
 }
+
+struct HomeView: View {
+    
+    var contentView:HomeContentView
+    private var sheetManager:SheetManager
+    
+    init(contentView:HomeContentView, sheetManager:SheetManager = SheetManager()) {
+        self.contentView = contentView
+        self.sheetManager = sheetManager
+        print("init HomeView")
+    }
+    
+    var body: some View {
+        Group {
+            contentView
+                .background {
+                    SheetHomeView()
+                }
+                .background {
+                    LocalAlertView(nameView: "HomeView")
+                }
+        }
+        .environmentObject(sheetManager)
+    }
+}
+
+
+
+//    @ViewBuilder
+//    private func localAlertView() -> some View {
+//        LocalAlertView(nameView: "HomeView")
+//    }
+
+
+
+//import SwiftUI
+//import Combine
+//
+//class LocalAlertViewModel: ObservableObject {
+//    @Published var showAlert: Bool = false
+//    @Published var alertMessage: String = ""
+//
+//    private var cancellables = Set<AnyCancellable>()
+//    private var alertManager: AlertManager
+//    private var nameView: String
+//
+//    init(nameView: String, alertManager: AlertManager = AlertManager.shared) {
+//        self.nameView = nameView
+//        self.alertManager = alertManager
+//
+//        // Подписка на изменения в localAlerts
+//        alertManager.$localAlerts
+//            .map { $0[nameView]?.isEmpty == false }
+//            .sink { [weak self] in
+//                if let self = self, $0 {
+//                    self.alertMessage = self.alertManager.localAlerts[self.nameView]?.first?.message ?? ""
+//                    self.showAlert = true
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//
+//    deinit {
+//        cancellables.forEach { $0.cancel() }
+//    }
+//}
+//
+//struct LocalAlertView: View {
+//    @StateObject private var viewModel: LocalAlertViewModel
+//
+//    init(nameView: String) {
+//        _viewModel = StateObject(wrappedValue: LocalAlertViewModel(nameView: nameView))
+//        print("init LocalAlertView")
+//    }
+//
+//    var body: some View {
+//        EmptyView()
+//            .alert("Local error", isPresented: $viewModel.showAlert) {
+//                Button("Ok") {
+//                    viewModel.showAlert = false
+//                }
+//            } message: {
+//                Text(viewModel.alertMessage)
+//            }
+//    }
+//}
+
+//    private var bindingError: Binding<Bool> {
+//        Binding<Bool>(
+//            get: {
+//                print("HomeView get bindingError")
+//                return isVisibleView && (viewModel.alertManager.localAlerts["HomeView"] != nil)
+//            },
+//            set: { newValue in
+//                print("HomeView set bindingError - \(newValue)")
+//                if !newValue {
+//                    viewModel.alertManager.resetFirstLocalAlert(forView: "HomeView")
+//                }
+//            }
+//        )
+//    }
+
  
+//            .alert("Local error", isPresented: bindingError) {
+//                Button("Ok") {}
+//            } message: {
+//                Text(viewModel.alertManager.localAlerts["HomeView"]?.first?.message ?? "Something went wrong. Please try again later.")
+//            }
 
 
+// MARK: - a old understanding of how bindingError works -
+
+//import SwiftUI
+//import Combine
+//
+//
+//struct HomeView: View {
+//    
+//    @StateObject private var viewModel:HomeViewModel
+//    @StateObject private var sheetManager:SheetManager
+//    
+//    @EnvironmentObject var managerCRUDS: CRUDSManager
+//    
+//    @State var isVisibleView: Bool = true // Флаг активности представления
+//    @State private var cancellables = Set<AnyCancellable>()
+//    
+//    private var bindingError: Binding<Bool> {
+//        Binding<Bool>(
+//            get: {
+//                print("HomeView get bindingError")
+//                return isVisibleView && (viewModel.alertManager.localAlerts["HomeView"] != nil)
+//            },
+//            set: { newValue in
+//                print("HomeView set bindingError - \(newValue)")
+//                if !newValue {
+//                    viewModel.alertManager.resetFirstLocalAlert(forView: "HomeView")
+//                }
+//            }
+//        )
+//    }
+//    
+//    init(viewModel:HomeViewModel, sheetManager: SheetManager = SheetManager()) {
+//        _viewModel = StateObject(wrappedValue: viewModel)
+//        _sheetManager = StateObject(wrappedValue: sheetManager)
+//        print("init HomeView")
+//    }
+//    
+//    var body: some View {
+//        NavigationView {
+//            ZStack {
+//                switch viewModel.viewState {
+//                case .loading:
+//                    ProgressView("Loading...")
+//                case .content(let data):
+//                    contentView(data: data)
+//                case .error(let error):
+//                    errorView(error: error)
+//                }
+//            }
+//            .background(AppColors.background)
+//            .navigationTitle("Home")
+////            .navigationBarTitleDisplayMode(.inline)
+//            .toolbar{
+//                ToolbarItem(placement: .topBarTrailing) {
+//                    Button("Add") {
+//                        sheetManager.showSheet()
+//                    }
+//                    .foregroundStyle(AppColors.activeColor)
+//                    .padding()
+//                    .disabled(viewModel.viewState.isError)
+//                }
+//            }
+//            
+//            .sheet(isPresented: $sheetManager.isPresented) {
+//                let bookViewModel = BookViewModel(managerCRUDS: managerCRUDS)
+//                BookEditView(viewModel: bookViewModel)
+//            }
+//            .alert("Local error", isPresented: bindingError) {
+//                Button("Ok") {}
+//            } message: {
+//                Text(viewModel.alertManager.localAlerts["HomeView"]?.first?.message ?? "Something went wrong. Please try again later.")
+//            }
+//            .onAppear {
+//                print("onAppear HomeView")
+//                isVisibleView = true
+//            }
+//            .onDisappear {
+//                print("onDisappear HomeView")
+//                isVisibleView = false
+//            }
+//        }
+//    }
+//    
+//    private func errorView(error:String) -> some View {
+//        VStack {
+//            Spacer()
+//            ContentUnavailableView(label: {
+//                Label("Connection issue", systemImage: "wifi.slash")
+//            }, description: {
+//                Text("Check your internet connection")
+//            }, actions: {
+//                Button("Refresh") {
+//                    viewModel.retry()
+//                }
+//            })
+//            .background(AppColors.secondaryBackground)
+//            .frame(maxWidth: .infinity)
+//            Spacer()
+//        }
+//        .ignoresSafeArea(edges: [.horizontal])
+//    }
+//
+//    private func contentView(data:[BookCloud]) -> some View {
+//        List {
+//            ForEach(data) { book in
+//                bookRowView(book)
+//                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+//                        Button(role: .destructive) {
+//                            viewModel.removeBook(book: book, forView: "HomeView", operationDescription: "Error deleting book")
+//                        } label: {
+//                            Label("delete", systemImage: "trash.fill")
+//                        }
+//                    }
+//            }
+//        }
+//    }
+//    
+//    private func bookRowView(_ book: BookCloud) -> some View {
+//        NavigationLink {
+//            BookDetailsView(book: book)
+//        } label: {
+//            VStack {
+//                HStack(spacing: 10) {
+//                    Image(systemName: "swift")
+//                        .foregroundStyle(.pink)
+//                        .frame(width: 30, height: 30)
+//                    
+//                    VStack(alignment: .leading) {
+//                        Text(book.title)
+//                            .font(.headline)
+//                        Text(book.description)
+//                            .font(.subheadline)
+//                        Text(book.author)
+//                            .font(.subheadline)
+//                    }
+//                    Spacer()
+//                }
+//            }
+//        }
+//    }
+//}
+//
+
+
+
+
+
+//            .onChange(of: viewModel.alertManager.showLocalAlert, { oldValue, newValue in
+//                print(".onChange showLocalAlert")
+//                bindingError.wrappedValue = true
+//            })
+//            .onChange(of: viewModel.alertManager.localAlerts["HomeView"]) { newValue in if isVisibleView && (newValue?.isEmpty == false) { bindingError.wrappedValue = true } }
+
+
+//                viewModel.alertManager.$showLocalAlert
+//                    .sink { isShowAlert in
+//                        print(".sink { isShowAlert")
+//                        if isShowAlert == true {
+//                            bindingError.wrappedValue = true
+//                        }
+//                    }
+//                    .store(in: &cancellables)
+//                viewModel.alertManager.$localAlerts .map { $0["HomeView"] }
+//                    .sink { newValue in
+//                    if isVisibleView && (newValue?.isEmpty == false) {
+//                        bindingError.wrappedValue = true
+//                    }
+//                }
+//                .store(in: &cancellables)
+
+
+/// before func resetFirstLocalAlert
+//private var bindingError: Binding<Bool> {
+//    Binding<Bool>(
+//        get: {
+//            print("HomeView get bindingError")
+//            return isVisibleView && (viewModel.alertManager.localAlerts["HomeView"] != nil)
+//        },
+//        set: { newValue in
+//            print("HomeView set bindingError - \(newValue)")
+//            if !newValue {
+//                viewModel.alertManager.resetLocalAlert(forView: "HomeView")
+//            }
+//        }
+//    )
+//}
 
 // sheet logic
 
