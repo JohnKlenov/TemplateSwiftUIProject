@@ -77,13 +77,12 @@ import Combine
 
 
 
-// MARK: - bottom -
 struct LocalAlertView: View {
     @State var showAlert: Bool
     @State var alertMessage: String
-    var nameView: String
     @ObservedObject var alertManager: AlertManager
     @State private var cancellables = Set<AnyCancellable>()
+    private var nameView: String
     
     init(showAlert: Bool = false, alertMessage: String = "", nameView: String, alertManager: AlertManager = AlertManager.shared) {
         self.showAlert = showAlert
@@ -98,6 +97,10 @@ struct LocalAlertView: View {
             .alert("Local error", isPresented: $showAlert) {
                 Button("Ok") {
                     showAlert = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        alertManager.resetFirstLocalAlert(forView: nameView)
+                    }
+                    
                 }
             } message: {
                 Text(alertMessage)
@@ -105,37 +108,56 @@ struct LocalAlertView: View {
             .onAppear {
                 // Подписка на изменения в localAlerts
                 alertManager.$localAlerts
-                    .map { $0[nameView]?.isEmpty == false }
-                    .sink {
-                        if  $0 {
-                            self.alertMessage = self.alertManager.localAlerts[self.nameView]?.first?.message ?? ""
-                            self.showAlert = true
+                    .sink { localAlert in
+                        if let alert = localAlert[nameView], !localAlert.isEmpty {
+                            print(".sink showAlert = true")
+                            alertMessage = alert.first?.message ?? ""
+                            showAlert = true
                         }
                     }
                     .store(in: &cancellables)
-            }
-            .onDisappear {
-                cancellables.forEach { $0.cancel() }
-                cancellables.removeAll()
             }
     }
 }
 
 
-struct SheetHomeView:View {
+//                    .map { $0[nameView]?.isEmpty == false }
+//                    .sink {
+//                        if  $0 {
+//                            self.alertMessage = self.alertManager.localAlerts[self.nameView]?.first?.message ?? ""
+//                            self.showAlert = true
+//                        }
+
+//            .onDisappear {
+//                cancellables.forEach { $0.cancel() }
+//                cancellables.removeAll()
+//            }
+
+//print("alertMessage - \(String(describing: alertManager.localAlerts[self.nameView]))")
+
+
+struct HomeView: View {
     
-    @EnvironmentObject var managerCRUDS: CRUDSManager
-    @EnvironmentObject var sheetManager: SheetManager
+    var contentView:HomeContentView
+    private var sheetManager:SheetManager
     
-    init() {
-        print("init SheetHomeView")
+    init(contentView:HomeContentView, sheetManager:SheetManager = SheetManager()) {
+        self.contentView = contentView
+        self.sheetManager = sheetManager
+        print("init HomeView")
     }
+    
     var body: some View {
-        EmptyView()
-            .sheet(isPresented: $sheetManager.isPresented) {
-                let bookViewModel = BookViewModel(managerCRUDS: managerCRUDS)
-                BookEditView(viewModel: bookViewModel)
-            }
+        Group {
+            contentView
+                .background {
+                    SheetHomeView()
+                }
+                .background {
+                    LocalAlertView(nameView: "HomeView")
+                }
+        }
+        .environmentObject(sheetManager)
     }
 }
 
@@ -236,30 +258,23 @@ struct HomeContentView:View {
     }
 }
 
-struct HomeView: View {
+struct SheetHomeView:View {
     
-    var contentView:HomeContentView
-    private var sheetManager:SheetManager
+    @EnvironmentObject var managerCRUDS: CRUDSManager
+    @EnvironmentObject var sheetManager: SheetManager
     
-    init(contentView:HomeContentView, sheetManager:SheetManager = SheetManager()) {
-        self.contentView = contentView
-        self.sheetManager = sheetManager
-        print("init HomeView")
+    init() {
+        print("init SheetHomeView")
     }
-    
     var body: some View {
-        Group {
-            contentView
-                .background {
-                    SheetHomeView()
-                }
-                .background {
-                    LocalAlertView(nameView: "HomeView")
-                }
-        }
-        .environmentObject(sheetManager)
+        EmptyView()
+            .sheet(isPresented: $sheetManager.isPresented) {
+                let bookViewModel = BookViewModel(managerCRUDS: managerCRUDS)
+                BookEditView(viewModel: bookViewModel)
+            }
     }
 }
+
 
 
 
