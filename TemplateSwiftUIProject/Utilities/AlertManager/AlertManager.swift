@@ -19,6 +19,7 @@ import Combine
 protocol AlertManagerProtocol: ObservableObject {
     var globalAlert: AlertData? { get set }
     var localAlerts: [String: [AlertData]] { get set }
+    var isHomeViewVisible: Bool { get set }
     func showGlobalAlert(message: String, operationDescription: String)
     func showLocalalAlert(message: String, forView view: String, operationDescription: String)
     func resetGlobalAlert()
@@ -55,6 +56,12 @@ class AlertManager: AlertManagerProtocol {
     @Published var localAlerts: [String: [AlertData]] = [:] {
         didSet {
             print("didSet localAlerts")
+        }
+    }
+    
+    @Published var isHomeViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости HomeView
+        didSet {
+            print("didSet isHomeViewVisible")
         }
     }
     

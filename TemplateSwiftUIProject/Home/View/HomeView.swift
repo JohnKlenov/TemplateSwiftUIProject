@@ -82,6 +82,9 @@ struct LocalAlertView: View {
     @State var alertMessage: String
     @ObservedObject var alertManager: AlertManager
     @State private var cancellables = Set<AnyCancellable>()
+    @State private var isSubscribed = false
+//    @State var isVisibleView: Bool = false  Флаг активности представления
+    
     private var nameView: String
     
     init(showAlert: Bool = false, alertMessage: String = "", nameView: String, alertManager: AlertManager = AlertManager.shared) {
@@ -106,34 +109,38 @@ struct LocalAlertView: View {
                 Text(alertMessage)
             }
             .onAppear {
+                print("onAppear LocalAlertView")
                 // Подписка на изменения в localAlerts
+                guard !isSubscribed else { return }
+                isSubscribed = true
+                
+                print("guard !isSubscribed")
                 alertManager.$localAlerts
-                    .sink { localAlert in
-                        if let alert = localAlert[nameView], !localAlert.isEmpty {
+                    .combineLatest(alertManager.$isHomeViewVisible)
+                    .sink { (localAlert, isHomeViewVisible) in
+                        if isHomeViewVisible, let alert = localAlert[nameView], !localAlert.isEmpty {
                             print(".sink showAlert = true")
                             alertMessage = alert.first?.message ?? ""
                             showAlert = true
                         }
                     }
                     .store(in: &cancellables)
+//                alertManager.$localAlerts
+//                    .sink { localAlert in
+//                        
+//                        if alertManager.isHomeViewVisible, let alert = localAlert[nameView], !localAlert.isEmpty {
+//                            print(".sink showAlert = true")
+//                            alertMessage = alert.first?.message ?? ""
+//                            showAlert = true
+//                        }
+//                    }
+//                    .store(in: &cancellables)
+            }
+            .onDisappear {
+                print("onDisappear ")
             }
     }
 }
-
-
-//                    .map { $0[nameView]?.isEmpty == false }
-//                    .sink {
-//                        if  $0 {
-//                            self.alertMessage = self.alertManager.localAlerts[self.nameView]?.first?.message ?? ""
-//                            self.showAlert = true
-//                        }
-
-//            .onDisappear {
-//                cancellables.forEach { $0.cancel() }
-//                cancellables.removeAll()
-//            }
-
-//print("alertMessage - \(String(describing: alertManager.localAlerts[self.nameView]))")
 
 
 struct HomeView: View {
@@ -195,6 +202,14 @@ struct HomeContentView:View {
                     .padding()
                     .disabled(viewModel.viewState.isError)
                 }
+            }
+            .onAppear {
+                print("onAppear HomeView")
+                viewModel.alertManager.isHomeViewVisible = true
+            }
+            .onDisappear {
+                print("onDisappear HomeView")
+                viewModel.alertManager.isHomeViewVisible = false
             }
         }
     }
@@ -271,6 +286,12 @@ struct SheetHomeView:View {
             .sheet(isPresented: $sheetManager.isPresented) {
                 let bookViewModel = BookViewModel(managerCRUDS: managerCRUDS)
                 BookEditView(viewModel: bookViewModel)
+            }
+            .onAppear {
+                print("onAppear SheetHomeView")
+            }
+            .onDisappear {
+                print("onDisappear SheetHomeView")
             }
     }
 }
