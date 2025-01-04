@@ -45,7 +45,7 @@ struct GlobalAlertView: View {
     init(showAlert: Binding<Bool>, alertMessage: Binding<String>) {
         self._showAlert = showAlert
         self._alertMessage = alertMessage
-        print("GlobalAlertView initialized")
+        print("init GlobalAlertView")
     }
     
     var body: some View {
@@ -60,18 +60,9 @@ struct GlobalAlertView: View {
 
 
 struct ContentView: View {
-    @EnvironmentObject var managerCRUDS: CRUDSManager
     
     private var homeView: LazyView<HomeView> {
-        let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
-        let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
-        ///errorHandler @EnvironmentObject?
-        let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
-        let viewModel = HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
-        let homeContentView = HomeContentView(viewModel: viewModel)
-//        LazyView { HomeView(contentView: homeContentView) }
-//        LazyView { HomeView(viewModel: viewModel) }
-        return LazyView { HomeView(contentView: homeContentView) }
+        return LazyView { HomeView() }
     }
     
     private var galleryView: LazyView<GalleryView> {
@@ -85,6 +76,10 @@ struct ContentView: View {
     @State private var selection: Int = 0
     @State private var showAlert: Bool = false
     @State private var alertMessage: String = ""
+    
+    init() {
+        print("init ContentView")
+    }
     
     var body: some View {
         VStack {
@@ -132,6 +127,107 @@ struct LazyView<Content: View>: View {
 }
 
 
+
+
+// MARK: - before correct initialization of the state -
+
+
+//import SwiftUI
+//import Combine
+//
+//// Обособленное представление для алертов
+//struct GlobalAlertView: View {
+//    @Binding var showAlert: Bool
+//    @Binding var alertMessage: String
+//    
+//    init(showAlert: Binding<Bool>, alertMessage: Binding<String>) {
+//        self._showAlert = showAlert
+//        self._alertMessage = alertMessage
+//        print("GlobalAlertView initialized")
+//    }
+//    
+//    var body: some View {
+//        EmptyView()
+//            .alert("Global error", isPresented: $showAlert) {
+//                Button("Ok") {}
+//            } message: {
+//                Text(alertMessage)
+//            }
+//    }
+//}
+//
+//
+//struct ContentView: View {
+//    @EnvironmentObject var managerCRUDS: CRUDSManager
+//    
+//    private var homeView: LazyView<HomeView> {
+//        let authenticationService = AuthenticationService() as AuthenticationServiceProtocol
+//        let firestoreCollectionObserver = FirestoreCollectionObserverService() as FirestoreCollectionObserverProtocol
+//        ///errorHandler @EnvironmentObject?
+//        let errorHandler = SharedErrorHandler() as ErrorHandlerProtocol
+//        let viewModel = HomeContentViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
+//        let homeContentView = HomeContentView(viewModel: viewModel)
+//        return LazyView { HomeView(contentView: homeContentView) }
+//    }
+//    
+//    private var galleryView: LazyView<GalleryView> {
+//        return LazyView { GalleryView() }
+//    }
+//    
+//    private var profileView: LazyView<ProfileView> {
+//        return LazyView { ProfileView() }
+//    }
+//    
+//    @State private var selection: Int = 0
+//    @State private var showAlert: Bool = false
+//    @State private var alertMessage: String = ""
+//    
+//    var body: some View {
+//        VStack {
+//            TabView(selection: $selection) {
+//                homeView
+//                    .tabItem {
+//                        Label("Home", systemImage: "house.fill")
+//                    }
+//                    .tag(0)
+//                galleryView
+//                    .tabItem {
+//                        Label("Gallery", systemImage: "photo.on.rectangle.fill")
+//                    }
+//                    .tag(1)
+//                profileView
+//                    .tabItem {
+//                        Label("Profile", systemImage: "person.crop.circle.fill")
+//                    }
+//                    .tag(2)
+//            }
+//            .background(
+//                GlobalAlertView(showAlert: $showAlert, alertMessage: $alertMessage)
+//            )
+//            .onReceive(NotificationCenter.default.publisher(for: .globalAlert)) { notification in
+//                if let alertItem = notification.object as? AlertData {
+//                    self.alertMessage = alertItem.message
+//                    self.showAlert = true
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//
+/////в TabBarViewController инициализация вкладок происходит по умолчанию при их выборе.
+/////LazyView - это удобный и простой способ. Он позволяет отложить инициализацию до момента, когда представление действительно потребуется, что может улучшить производительность приложения.
+//struct LazyView<Content: View>: View {
+//    let build: () -> Content
+//    init(_ build: @escaping () -> Content) {
+//        self.build = build
+//    }
+//    var body: Content {
+//        build()
+//    }
+//}
+//
+//
 
 
 

@@ -15,6 +15,10 @@ import Combine
 
 ///Binding<Bool>( get: { .. }, set: { .. } )
 
+
+
+
+
 protocol SheetManagerProtocol: ObservableObject {
     var isPresented:Bool { get set }
     func showSheet()
@@ -25,6 +29,8 @@ protocol SheetManagerProtocol: ObservableObject {
 class SheetManager: SheetManagerProtocol {
     @Published var isPresented: Bool = false
     
+    static let shared = SheetManager()
+    
     func showSheet() {
         isPresented = true
     }
@@ -33,3 +39,25 @@ class SheetManager: SheetManagerProtocol {
         isPresented = false
     }
 }
+
+// MARK: - before correct initialization of the state -
+
+
+//protocol SheetManagerProtocol: ObservableObject {
+//    var isPresented:Bool { get set }
+//    func showSheet()
+//    func hideSheet()
+//}
+//
+//
+//class SheetManager: SheetManagerProtocol {
+//    @Published var isPresented: Bool = false
+//    
+//    func showSheet() {
+//        isPresented = true
+//    }
+//    
+//    func hideSheet() {
+//        isPresented = false
+//    }
+//}

@@ -11,6 +11,7 @@ struct BookDetailsView: View {
     var book: BookCloud
     
     init(book: BookCloud) {
+        print("init BookDetailsView")
         self.book = book
     }
     

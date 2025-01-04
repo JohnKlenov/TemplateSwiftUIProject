@@ -47,7 +47,7 @@ protocol HomeViewModelProtocol: ObservableObject {
 }
 
 
-class HomeViewModel: HomeViewModelProtocol {
+class HomeContentViewModel: HomeViewModelProtocol {
     
     @ObservedObject var alertManager:AlertManager
     @Published var viewState: ViewState = .loading
@@ -66,7 +66,7 @@ class HomeViewModel: HomeViewModelProtocol {
         self.errorHandler = errorHandler
         self.managerCRUDS = managerCRUDS
         bind()
-        print("init HomeViewModel")
+        print("init HomeContentViewModel")
     }
     
     private func bind() {

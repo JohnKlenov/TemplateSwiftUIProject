@@ -49,41 +49,12 @@
 import SwiftUI
 import Combine
 
-//struct LocalAlertView: View {
-//    @Binding var showAlert: Bool
-//    @Binding var alertMessage: String
-//    
-//    init(showAlert: Binding<Bool>, alertMessage: Binding<String>) {
-//        self._showAlert = showAlert
-//        self._alertMessage = alertMessage
-//        print("GlobalAlertView initialized")
-//    }
-//    
-//    var body: some View {
-//        EmptyView()
-//            .alert("Global error", isPresented: $showAlert) {
-//                Button("Ok") {}
-//            } message: {
-//                Text(alertMessage)
-//            }
-//    }
-//}
-
-
-
-
-
-
-
-
-
 struct LocalAlertView: View {
     @State var showAlert: Bool
     @State var alertMessage: String
     @ObservedObject var alertManager: AlertManager
     @State private var cancellables = Set<AnyCancellable>()
     @State private var isSubscribed = false
-//    @State var isVisibleView: Bool = false  Флаг активности представления
     
     private var nameView: String
     
@@ -110,24 +81,203 @@ struct LocalAlertView: View {
             }
             .onAppear {
                 print("onAppear LocalAlertView")
-                // Подписка на изменения в localAlerts
                 guard !isSubscribed else { return }
-                isSubscribed = true
-                
-                print("guard !isSubscribed")
-                alertManager.$localAlerts
-                    .combineLatest(alertManager.$isHomeViewVisible)
-                    .sink { (localAlert, isHomeViewVisible) in
-                        if isHomeViewVisible, let alert = localAlert[nameView], !localAlert.isEmpty {
-                            print(".sink showAlert = true")
-                            alertMessage = alert.first?.message ?? ""
-                            showAlert = true
-                        }
-                    }
-                    .store(in: &cancellables)
+                subscribeToLocalAlerts()
+            }
+            .onDisappear {
+                print("onDisappear LocalAlertView")
+//                unsubscribeFromLocalAlerts()
+            }
+    }
+    
+    private func subscribeToLocalAlerts() {
+        isSubscribed = true
+        alertManager.$localAlerts
+            .combineLatest(alertManager.$isHomeViewVisible)
+            .sink { (localAlert, isHomeViewVisible) in
+                print(".sink { (localAlert, isHomeViewVisible)")
+                if isHomeViewVisible, let alert = localAlert[nameView], !localAlert.isEmpty {
+                    print(".sink showAlert = true")
+                    alertMessage = alert.first?.message ?? ""
+                    showAlert = true
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    func unsubscribeFromLocalAlerts() {
+        cancellables.removeAll()
+    }
+}
+///Если мы какое-то поле поменяем в EnvironmentObject то и вся view тоже перерисует!
+///При чем не важно используем ли мы это поле на view.
+//    /@StateObject
+
+struct HomeView: View {
+    
+//     let sheetManager:SheetManager = SheetManager()
+    
+    init() {
+        print("init HomeView")
+    }
+    
+    var body: some View {
+        Group {
+            let _ = Self._printChanges()
+            HomeContentView(authenticationService: AuthenticationService() , firestoreCollectionObserverService: FirestoreCollectionObserverService(), managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService()), errorHandler: SharedErrorHandler())
+                .background {
+                    SheetHomeView()
+                }
+                .background {
+                    LocalAlertView(nameView: "HomeView")
+                }
+                .onAppear {
+                    print("onAppear HomeView")
+                }
+                .onDisappear {
+                    print("onDisappear HomeView")
+                }
+        }
+//        .environmentObject(sheetManager)
+    }
+}
+
+
+
+
+
+
+// MARK: - before correct initialization of the state -
+
+
+//import SwiftUI
+//import Combine
+//
+//struct LocalAlertView: View {
+//    @State var showAlert: Bool
+//    @State var alertMessage: String
+//    @ObservedObject var alertManager: AlertManager
+//    @State private var cancellables = Set<AnyCancellable>()
+//    @State private var isSubscribed = false
+//    
+//    private var nameView: String
+//    
+//    init(showAlert: Bool = false, alertMessage: String = "", nameView: String, alertManager: AlertManager = AlertManager.shared) {
+//        self.showAlert = showAlert
+//        self.alertMessage = alertMessage
+//        self.nameView = nameView
+//        self.alertManager = alertManager
+//        print("init LocalAlertView")
+//    }
+//    
+//    var body: some View {
+//        EmptyView()
+//            .alert("Local error", isPresented: $showAlert) {
+//                Button("Ok") {
+//                    showAlert = false
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                        alertManager.resetFirstLocalAlert(forView: nameView)
+//                    }
+//                    
+//                }
+//            } message: {
+//                Text(alertMessage)
+//            }
+//            .onAppear {
+//                print("onAppear LocalAlertView")
+//                guard !isSubscribed else { return }
+//                subscribeToLocalAlerts()
+//            }
+//            .onDisappear {
+//                print("onDisappear LocalAlertView")
+////                unsubscribeFromLocalAlerts()
+//            }
+//    }
+//    
+//    private func subscribeToLocalAlerts() {
+//        isSubscribed = true
+//        alertManager.$localAlerts
+//            .combineLatest(alertManager.$isHomeViewVisible)
+//            .sink { (localAlert, isHomeViewVisible) in
+//                print(".sink { (localAlert, isHomeViewVisible)")
+//                if isHomeViewVisible, let alert = localAlert[nameView], !localAlert.isEmpty {
+//                    print(".sink showAlert = true")
+//                    alertMessage = alert.first?.message ?? ""
+//                    showAlert = true
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func unsubscribeFromLocalAlerts() {
+//        cancellables.removeAll()
+//    }
+//}
+//
+//
+//struct HomeView: View {
+//    
+//    var contentView:HomeContentView
+//    private var sheetManager:SheetManager
+//    
+//    init(contentView:HomeContentView, sheetManager:SheetManager = SheetManager()) {
+//        self.contentView = contentView
+//        self.sheetManager = sheetManager
+//        print("init HomeView")
+//    }
+//    
+//    var body: some View {
+//        Group {
+//                contentView
+//                .background {
+//                    SheetHomeView()
+//                }
+//                .background {
+//                    LocalAlertView(nameView: "HomeView")
+//                }
+//                .onAppear {
+//                    print("onAppear HomeView")
+//                }
+//                .onDisappear {
+//                    print("onDisappear HomeView")
+//                }
+//        }
+//        .environmentObject(sheetManager)
+//    }
+//}
+
+
+
+
+
+
+
+
+//struct LocalAlertView: View {
+//    @Binding var showAlert: Bool
+//    @Binding var alertMessage: String
+//
+//    init(showAlert: Binding<Bool>, alertMessage: Binding<String>) {
+//        self._showAlert = showAlert
+//        self._alertMessage = alertMessage
+//        print("GlobalAlertView initialized")
+//    }
+//
+//    var body: some View {
+//        EmptyView()
+//            .alert("Global error", isPresented: $showAlert) {
+//                Button("Ok") {}
+//            } message: {
+//                Text(alertMessage)
+//            }
+//    }
+//}
+
+
+
 //                alertManager.$localAlerts
 //                    .sink { localAlert in
-//                        
+//
 //                        if alertManager.isHomeViewVisible, let alert = localAlert[nameView], !localAlert.isEmpty {
 //                            print(".sink showAlert = true")
 //                            alertMessage = alert.first?.message ?? ""
@@ -135,166 +285,6 @@ struct LocalAlertView: View {
 //                        }
 //                    }
 //                    .store(in: &cancellables)
-            }
-            .onDisappear {
-                print("onDisappear ")
-            }
-    }
-}
-
-
-struct HomeView: View {
-    
-    var contentView:HomeContentView
-    private var sheetManager:SheetManager
-    
-    init(contentView:HomeContentView, sheetManager:SheetManager = SheetManager()) {
-        self.contentView = contentView
-        self.sheetManager = sheetManager
-        print("init HomeView")
-    }
-    
-    var body: some View {
-        Group {
-            contentView
-                .background {
-                    SheetHomeView()
-                }
-                .background {
-                    LocalAlertView(nameView: "HomeView")
-                }
-        }
-        .environmentObject(sheetManager)
-    }
-}
-
-struct HomeContentView:View {
-    
-    @StateObject private var viewModel:HomeViewModel
-    @EnvironmentObject var sheetManager: SheetManager
-    
-    init(viewModel:HomeViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
-        print("init HomeContentView")
-    }
-    
-    var body: some View {
-        /// NavigationView вызывал жёлтую ошибку в консоли
-        NavigationStack {
-            ZStack {
-                switch viewModel.viewState {
-                case .loading:
-                    ProgressView("Loading...")
-                case .content(let data):
-                    contentView(data: data)
-                case .error(let error):
-                    errorView(error: error)
-                }
-            }
-            .background(AppColors.background)
-            .navigationTitle("Home")
-            .toolbar{
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Add") {
-                        sheetManager.showSheet()
-                    }
-                    .foregroundStyle(AppColors.activeColor)
-                    .padding()
-                    .disabled(viewModel.viewState.isError)
-                }
-            }
-            .onAppear {
-                print("onAppear HomeView")
-                viewModel.alertManager.isHomeViewVisible = true
-            }
-            .onDisappear {
-                print("onDisappear HomeView")
-                viewModel.alertManager.isHomeViewVisible = false
-            }
-        }
-    }
-    
-    private func errorView(error:String) -> some View {
-        VStack {
-            Spacer()
-            ContentUnavailableView(label: {
-                Label("Connection issue", systemImage: "wifi.slash")
-            }, description: {
-                Text("Check your internet connection")
-            }, actions: {
-                Button("Refresh") {
-                    viewModel.retry()
-                }
-            })
-            .background(AppColors.secondaryBackground)
-            .frame(maxWidth: .infinity)
-            Spacer()
-        }
-        .ignoresSafeArea(edges: [.horizontal])
-    }
-
-    private func contentView(data:[BookCloud]) -> some View {
-        List {
-            ForEach(data) { book in
-                bookRowView(book)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            viewModel.removeBook(book: book, forView: "HomeView", operationDescription: "Error deleting book")
-                        } label: {
-                            Label("delete", systemImage: "trash.fill")
-                        }
-                    }
-            }
-        }
-    }
-    
-    private func bookRowView(_ book: BookCloud) -> some View {
-        NavigationLink {
-            BookDetailsView(book: book)
-        } label: {
-            VStack {
-                HStack(spacing: 10) {
-                    Image(systemName: "swift")
-                        .foregroundStyle(.pink)
-                        .frame(width: 30, height: 30)
-                    
-                    VStack(alignment: .leading) {
-                        Text(book.title)
-                            .font(.headline)
-                        Text(book.description)
-                            .font(.subheadline)
-                        Text(book.author)
-                            .font(.subheadline)
-                    }
-                    Spacer()
-                }
-            }
-        }
-    }
-}
-
-struct SheetHomeView:View {
-    
-    @EnvironmentObject var managerCRUDS: CRUDSManager
-    @EnvironmentObject var sheetManager: SheetManager
-    
-    init() {
-        print("init SheetHomeView")
-    }
-    var body: some View {
-        EmptyView()
-            .sheet(isPresented: $sheetManager.isPresented) {
-                let bookViewModel = BookViewModel(managerCRUDS: managerCRUDS)
-                BookEditView(viewModel: bookViewModel)
-            }
-            .onAppear {
-                print("onAppear SheetHomeView")
-            }
-            .onDisappear {
-                print("onDisappear SheetHomeView")
-            }
-    }
-}
 
 
 

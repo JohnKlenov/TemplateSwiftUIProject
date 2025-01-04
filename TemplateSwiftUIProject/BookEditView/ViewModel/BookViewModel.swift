@@ -75,6 +75,79 @@ class BookViewModel:ObservableObject {
 
 
 
+// MARK: - before correct initialization of the state -
+
+
+
+//import Foundation
+//import Combine
+//
+//
+//
+//enum OperationState {
+//    case idle
+//    case loading
+//    case success
+//    case failure(String)
+//}
+//
+//
+//class BookViewModel:ObservableObject {
+//    
+//    @Published var book: BookCloud
+//    @Published var modified = false
+//
+//    private let managerCRUDS: any CRUDSManagerProtocol
+//    private var originalBook: BookCloud
+//    private(set) var mode:Mode
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, managerCRUDS: any CRUDSManagerProtocol) {
+//        
+//        self.managerCRUDS = managerCRUDS
+//        self.book = book
+//        self.originalBook = book
+//        self.mode = mode
+//        
+//        $book
+//            .sink { [weak self] _ in
+//                self?.validateFields(for: mode)
+//            }
+//            .store(in: &cancellables)
+//        
+//        print("init BookViewModel")
+//    }
+//    
+//    private func validateFields(for mode:Mode) {
+//        switch mode {
+//            
+//        case .new:
+//            self.modified = !book.title.isEmpty && !book.author.isEmpty && !book.description.isEmpty && !book.pathImage.isEmpty
+//        case .edit:
+//            self.modified = !book.title.isEmpty && !book.author.isEmpty && !book.description.isEmpty && !book.pathImage.isEmpty && (book.title != originalBook.title || book.author != originalBook.author || book.description != originalBook.description || book.pathImage != originalBook.pathImage)
+//        }
+//    }
+//
+//    // Обновление или добавление книги
+//    func updateOrAddBook(forView:String, operationDescription: String) {
+//        managerCRUDS.updateOrAddBook(book: book, forView: forView, operationDescription: operationDescription)
+//    }
+//
+//    // Удаление книги
+//    func removeBook(forView:String, operationDescription: String) {
+//        managerCRUDS.removeBook(book: book, forView: forView, operationDescription: operationDescription)
+//    }
+//    
+//    deinit {
+//        print("deinit BookViewModel")
+//    }
+//}
+
+
+
+
+
+
 
 //    func updateOrAddBook() {
 //        operationState = .loading

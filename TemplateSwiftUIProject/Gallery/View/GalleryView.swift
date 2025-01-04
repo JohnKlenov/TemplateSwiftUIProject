@@ -26,9 +26,13 @@ struct GalleryView: View {
     
     var body: some View {
         VStack {
+            let _ = Self._printChanges()
             Button("Show Sheet") {
                 isPresentingSheet = true
             }
+        }
+        .onAppear {
+            print("onAppear GalleryView")
         }
         .sheet(isPresented: $isPresentingSheet) {
             ModalView(isPresentingAlert: $isPresentingAlert)
@@ -44,10 +48,12 @@ struct ModalView: View {
     
     var body: some View {
         VStack {
+            
             Button("Show Alert") {
                 isPresentingAlert = true
             }
         }
+        
     }
 }
 
