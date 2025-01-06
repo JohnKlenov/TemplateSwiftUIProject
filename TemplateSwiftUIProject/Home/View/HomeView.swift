@@ -111,34 +111,96 @@ struct LocalAlertView: View {
 }
 ///Если мы какое-то поле поменяем в EnvironmentObject то и вся view тоже перерисует!
 ///При чем не важно используем ли мы это поле на view.
-//    /@StateObject
+
+
+
+class HomeViewModel:ObservableObject {
+    var sheetManager: SheetManager
+    var alertManager:AlertManager
+    
+    init(sheetManager: SheetManager, alertManager:AlertManager) {
+        self.sheetManager = sheetManager
+        self.alertManager = alertManager
+    }
+    
+}
 
 struct HomeView: View {
     
-//     let sheetManager:SheetManager = SheetManager()
+    @StateObject private var viewModel:HomeViewModel
     
-    init() {
-        print("init HomeView")
+    @State private var isSubscribed = false {
+        didSet {
+            print("isSubscribed - \(isSubscribed)")
+        }
     }
+    @State private var isShowSheet:Bool = false
+    @State private var isShowAlert: Bool = false
+    @State private var alertMessage: String = ""
+    @State private var cancellables = Set<AnyCancellable>()
     
+    
+    init(sheetManager:SheetManager = SheetManager.shared, alertManager:AlertManager = AlertManager.shared) {
+        
+        _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: sheetManager, alertManager: alertManager))
+    }
     var body: some View {
-        Group {
+        
+        VStack {
             let _ = Self._printChanges()
             HomeContentView(authenticationService: AuthenticationService() , firestoreCollectionObserverService: FirestoreCollectionObserverService(), managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService()), errorHandler: SharedErrorHandler())
-                .background {
-                    SheetHomeView()
-                }
-                .background {
-                    LocalAlertView(nameView: "HomeView")
-                }
-                .onAppear {
-                    print("onAppear HomeView")
-                }
-                .onDisappear {
-                    print("onDisappear HomeView")
-                }
         }
-//        .environmentObject(sheetManager)
+        /// что если сработает isShowAlert когда $isShowSheet = true ???
+        /// создается заново но без StateObject но с зависимостями как и в HomeContentView - нужно изучать потом все уничтожается может можно оставитть?
+        .sheet(isPresented: $isShowSheet) {
+            
+            BookEditView(managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService()))
+        }
+        /// либо оставить пересоздание HomeContentView без инит его зависимостей или попробывать $viewModel.alertManager.isShowAlert
+        .alert("Local error", isPresented: $isShowAlert) {
+            Button("Ok") {
+                isShowAlert = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    viewModel.alertManager.resetFirstLocalAlert(forView: "HomeView")
+                }
+                
+            }
+        } message: {
+            Text(alertMessage)
+        }
+        .onAppear {
+            print("onAppear HomeView")
+            guard !isSubscribed else { return }
+            isSubscribed = true
+            subscribeToActionSheet()
+            subscribeToLocalAlerts()
+        }
+        .onDisappear {
+            print("onDisappear HomeView")
+        }
+    }
+    
+    private func subscribeToActionSheet() {
+        viewModel.sheetManager.$isPresented
+            .sink { isPresented in
+                print(".sink { isPresented - \(isPresented)")
+                isShowSheet = isPresented
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func subscribeToLocalAlerts() {
+        viewModel.alertManager.$localAlerts
+            .combineLatest(viewModel.alertManager.$isHomeViewVisible)
+            .sink { (localAlert, isHomeViewVisible) in
+                print(".sink { (localAlert, isHomeViewVisible)")
+                if isHomeViewVisible, let alert = localAlert["HomeView"], !localAlert.isEmpty {
+                    print(".sink showAlert = true")
+                    alertMessage = alert.first?.message ?? ""
+                    isShowAlert = true
+                }
+            }
+            .store(in: &cancellables)
     }
 }
 
@@ -146,6 +208,23 @@ struct HomeView: View {
 
 
 
+
+//        Group {
+//            let _ = Self._printChanges()
+//            HomeContentView(authenticationService: AuthenticationService() , firestoreCollectionObserverService: FirestoreCollectionObserverService(), managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService()), errorHandler: SharedErrorHandler())
+//                .background {
+//                    SheetHomeView()
+//                }
+//                .background {
+//                    LocalAlertView(nameView: "HomeView")
+//                }
+//                .onAppear {
+//                    print("onAppear HomeView")
+//                }
+//                .onDisappear {
+//                    print("onDisappear HomeView")
+//                }
+//        }
 
 // MARK: - before correct initialization of the state -
 

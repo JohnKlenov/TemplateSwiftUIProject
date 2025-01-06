@@ -37,6 +37,7 @@ class AuthenticationService: AuthenticationServiceProtocol {
     
     init() {
 //                signOutUser()
+        print("init AuthenticationService")
         addListeners()
     }
     

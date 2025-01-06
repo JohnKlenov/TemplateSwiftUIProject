@@ -27,7 +27,11 @@ protocol SheetManagerProtocol: ObservableObject {
 
 
 class SheetManager: SheetManagerProtocol {
-    @Published var isPresented: Bool = false
+    @Published var isPresented: Bool = false {
+        didSet {
+            print("didSet isPresented")
+        }
+    }
     
     static let shared = SheetManager()
     

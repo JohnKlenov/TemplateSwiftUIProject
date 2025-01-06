@@ -49,6 +49,7 @@ protocol HomeViewModelProtocol: ObservableObject {
 
 class HomeContentViewModel: HomeViewModelProtocol {
     
+    /// может просто var alertManager:AlertManager ???
     @ObservedObject var alertManager:AlertManager
     @Published var viewState: ViewState = .loading
     

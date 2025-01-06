@@ -15,7 +15,11 @@ struct SheetHomeView:View {
     private var sheetManager = SheetManager.shared
     @State private var isSubscribed = false
     @State private var cancellables = Set<AnyCancellable>()
-    @State private var isShow:Bool = false
+    @State private var isShow:Bool = false {
+        didSet {
+            print("isShow - \(isShow)")
+        }
+    }
     
     init() {
         print("init SheetHomeView")
@@ -34,12 +38,14 @@ struct SheetHomeView:View {
                 isSubscribed = true
                 sheetManager.$isPresented
                     .sink { isPresented in
+                        print(".sink { isPresented - \(isPresented)")
                         isShow = isPresented
                     }
                     .store(in: &cancellables)
             }
             .onDisappear {
                 print("onDisappear SheetHomeView")
+                
             }
     }
 }
