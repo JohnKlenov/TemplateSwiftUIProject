@@ -25,8 +25,11 @@
 		5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FE2B2CFDAECE001CA401 /* AlertManager.swift */; };
 		5EA4FE2F2D05B89B001CA401 /* SheetManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FE2E2D05B89B001CA401 /* SheetManager.swift */; };
 		5EA4FE322D09CF87001CA401 /* CRUDSManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FE312D09CF87001CA401 /* CRUDSManager.swift */; };
-		5EA4FE342D21C871001CA401 /* SheetHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FE332D21C871001CA401 /* SheetHomeView.swift */; };
 		5EA4FE362D21C8D7001CA401 /* HomeContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FE352D21C8D7001CA401 /* HomeContentView.swift */; };
+		5EAF5B032D2D552900D96FD6 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B022D2D552900D96FD6 /* HomeViewModel.swift */; };
+		5EAF5B082D2D563D00D96FD6 /* AlertViewGlobal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B072D2D563D00D96FD6 /* AlertViewGlobal.swift */; };
+		5EAF5B0A2D2D567700D96FD6 /* AlertViewLocal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B092D2D567700D96FD6 /* AlertViewLocal.swift */; };
+		5EAF5B0C2D2D56D400D96FD6 /* AlertLocalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B0B2D2D56D400D96FD6 /* AlertLocalViewModel.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -46,7 +49,6 @@
 		5EC94A0D2CC3CA4E003736A9 /* CustomErrorsFB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A0C2CC3CA4E003736A9 /* CustomErrorsFB.swift */; };
 		5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */; };
 		5EC94A122CC59585003736A9 /* HomeContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A112CC59585003736A9 /* HomeContentViewModel.swift */; };
-		5EC94A152CC66DCF003736A9 /* HomeViewModelWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A142CC66DCE003736A9 /* HomeViewModelWrapper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,8 +63,11 @@
 		5EA4FE2B2CFDAECE001CA401 /* AlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertManager.swift; sourceTree = "<group>"; };
 		5EA4FE2E2D05B89B001CA401 /* SheetManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetManager.swift; sourceTree = "<group>"; };
 		5EA4FE312D09CF87001CA401 /* CRUDSManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRUDSManager.swift; sourceTree = "<group>"; };
-		5EA4FE332D21C871001CA401 /* SheetHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetHomeView.swift; sourceTree = "<group>"; };
 		5EA4FE352D21C8D7001CA401 /* HomeContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContentView.swift; sourceTree = "<group>"; };
+		5EAF5B022D2D552900D96FD6 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		5EAF5B072D2D563D00D96FD6 /* AlertViewGlobal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertViewGlobal.swift; sourceTree = "<group>"; };
+		5EAF5B092D2D567700D96FD6 /* AlertViewLocal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertViewLocal.swift; sourceTree = "<group>"; };
+		5EAF5B0B2D2D56D400D96FD6 /* AlertLocalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertLocalViewModel.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -83,7 +88,6 @@
 		5EC94A0C2CC3CA4E003736A9 /* CustomErrorsFB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomErrorsFB.swift; sourceTree = "<group>"; };
 		5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreCollectionObserverService.swift; sourceTree = "<group>"; };
 		5EC94A112CC59585003736A9 /* HomeContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContentViewModel.swift; sourceTree = "<group>"; };
-		5EC94A142CC66DCE003736A9 /* HomeViewModelWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModelWrapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -187,6 +191,32 @@
 			path = CRUDSManager;
 			sourceTree = "<group>";
 		};
+		5EAF5B042D2D55AA00D96FD6 /* Alert */ = {
+			isa = PBXGroup;
+			children = (
+				5EAF5B062D2D55DD00D96FD6 /* ViewModel */,
+				5EAF5B052D2D55B800D96FD6 /* View */,
+			);
+			path = Alert;
+			sourceTree = "<group>";
+		};
+		5EAF5B052D2D55B800D96FD6 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5EAF5B072D2D563D00D96FD6 /* AlertViewGlobal.swift */,
+				5EAF5B092D2D567700D96FD6 /* AlertViewLocal.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EAF5B062D2D55DD00D96FD6 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5EAF5B0B2D2D56D400D96FD6 /* AlertLocalViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		5EC949C32CB526E5003736A9 = {
 			isa = PBXGroup;
 			children = (
@@ -206,6 +236,7 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5EAF5B042D2D55AA00D96FD6 /* Alert */,
 				5EA4FE272CF5B535001CA401 /* BookDetailsView */,
 				5EA4FDBC2CD64971001CA401 /* BookEditView */,
 				5EA4FDB92CD51013001CA401 /* Resources */,
@@ -315,7 +346,6 @@
 			isa = PBXGroup;
 			children = (
 				5EC94A032CC29607003736A9 /* HomeView.swift */,
-				5EA4FE332D21C871001CA401 /* SheetHomeView.swift */,
 				5EA4FE352D21C8D7001CA401 /* HomeContentView.swift */,
 			);
 			path = View;
@@ -342,7 +372,7 @@
 			isa = PBXGroup;
 			children = (
 				5EC94A112CC59585003736A9 /* HomeContentViewModel.swift */,
-				5EC94A142CC66DCE003736A9 /* HomeViewModelWrapper.swift */,
+				5EAF5B022D2D552900D96FD6 /* HomeViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -470,10 +500,10 @@
 				5EA4FE242CE61ED8001CA401 /* DatabaseCRUDService.swift in Sources */,
 				5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */,
 				5EC94A002CC291DB003736A9 /* ProfileView.swift in Sources */,
+				5EAF5B0C2D2D56D400D96FD6 /* AlertLocalViewModel.swift in Sources */,
 				5EA4FE362D21C8D7001CA401 /* HomeContentView.swift in Sources */,
 				5EA4FE322D09CF87001CA401 /* CRUDSManager.swift in Sources */,
 				5EC94A0D2CC3CA4E003736A9 /* CustomErrorsFB.swift in Sources */,
-				5EC94A152CC66DCF003736A9 /* HomeViewModelWrapper.swift in Sources */,
 				5EC94A122CC59585003736A9 /* HomeContentViewModel.swift in Sources */,
 				5EA4FDC92CD8E91A001CA401 /* BookViewModel.swift in Sources */,
 				5EA4FE262CE756EE001CA401 /* AuthService.swift in Sources */,
@@ -483,11 +513,13 @@
 				5EA4FDC72CD8E780001CA401 /* BookEditView.swift in Sources */,
 				5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */,
 				5EA4FE2F2D05B89B001CA401 /* SheetManager.swift in Sources */,
+				5EAF5B032D2D552900D96FD6 /* HomeViewModel.swift in Sources */,
+				5EAF5B082D2D563D00D96FD6 /* AlertViewGlobal.swift in Sources */,
 				5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */,
-				5EA4FE342D21C871001CA401 /* SheetHomeView.swift in Sources */,
 				5EC949E52CBA8FC5003736A9 /* OnboardingViewModel.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
 				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
+				5EAF5B0A2D2D567700D96FD6 /* AlertViewLocal.swift in Sources */,
 				5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */,
 				5EA4FDC52CD79747001CA401 /* Book.swift in Sources */,
 				5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */,

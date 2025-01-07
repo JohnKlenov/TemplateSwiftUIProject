@@ -5,21 +5,20 @@
 //  Created by Evgenyi on 29.12.24.
 //
 
+
 import SwiftUI
 
 struct HomeContentView:View {
     
     @StateObject private var viewModel: HomeContentViewModel
-//    @EnvironmentObject private var sheetManager: SheetManager
     private var sheetManager = SheetManager.shared
     
-    init(authenticationService: AuthenticationServiceProtocol, firestoreCollectionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: any CRUDSManagerProtocol, errorHandler: ErrorHandlerProtocol) {
-        
+    init() {
         _viewModel = StateObject(wrappedValue: HomeContentViewModel(
-            authenticationService: authenticationService,
-            firestorColletionObserverService: firestoreCollectionObserverService,
-            managerCRUDS: managerCRUDS,
-            errorHandler: errorHandler))
+            authenticationService: AuthenticationService(),
+            firestorColletionObserverService: FirestoreCollectionObserverService(),
+            managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService()),
+            errorHandler: SharedErrorHandler()))
         print("init HomeContentView")
     }
     

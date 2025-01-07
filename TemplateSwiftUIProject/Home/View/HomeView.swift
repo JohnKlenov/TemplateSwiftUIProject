@@ -49,124 +49,36 @@
 import SwiftUI
 import Combine
 
-struct LocalAlertView: View {
-    @State var showAlert: Bool
-    @State var alertMessage: String
-    @ObservedObject var alertManager: AlertManager
-    @State private var cancellables = Set<AnyCancellable>()
-    @State private var isSubscribed = false
-    
-    private var nameView: String
-    
-    init(showAlert: Bool = false, alertMessage: String = "", nameView: String, alertManager: AlertManager = AlertManager.shared) {
-        self.showAlert = showAlert
-        self.alertMessage = alertMessage
-        self.nameView = nameView
-        self.alertManager = alertManager
-        print("init LocalAlertView")
-    }
-    
-    var body: some View {
-        EmptyView()
-            .alert("Local error", isPresented: $showAlert) {
-                Button("Ok") {
-                    showAlert = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        alertManager.resetFirstLocalAlert(forView: nameView)
-                    }
-                    
-                }
-            } message: {
-                Text(alertMessage)
-            }
-            .onAppear {
-                print("onAppear LocalAlertView")
-                guard !isSubscribed else { return }
-                subscribeToLocalAlerts()
-            }
-            .onDisappear {
-                print("onDisappear LocalAlertView")
-//                unsubscribeFromLocalAlerts()
-            }
-    }
-    
-    private func subscribeToLocalAlerts() {
-        isSubscribed = true
-        alertManager.$localAlerts
-            .combineLatest(alertManager.$isHomeViewVisible)
-            .sink { (localAlert, isHomeViewVisible) in
-                print(".sink { (localAlert, isHomeViewVisible)")
-                if isHomeViewVisible, let alert = localAlert[nameView], !localAlert.isEmpty {
-                    print(".sink showAlert = true")
-                    alertMessage = alert.first?.message ?? ""
-                    showAlert = true
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    func unsubscribeFromLocalAlerts() {
-        cancellables.removeAll()
-    }
-}
-///Если мы какое-то поле поменяем в EnvironmentObject то и вся view тоже перерисует!
-///При чем не важно используем ли мы это поле на view.
-
-
-
-class HomeViewModel:ObservableObject {
-    var sheetManager: SheetManager
-    var alertManager:AlertManager
-    
-    init(sheetManager: SheetManager, alertManager:AlertManager) {
-        self.sheetManager = sheetManager
-        self.alertManager = alertManager
-    }
-    
-}
 
 struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
     
-    @State private var isSubscribed = false {
-        didSet {
-            print("isSubscribed - \(isSubscribed)")
-        }
-    }
+    @State private var isSubscribed = false
+    
+    //sheet
     @State private var isShowSheet:Bool = false
+    
+    //alert
     @State private var isShowAlert: Bool = false
     @State private var alertMessage: String = ""
     @State private var cancellables = Set<AnyCancellable>()
     
     
-    init(sheetManager:SheetManager = SheetManager.shared, alertManager:AlertManager = AlertManager.shared) {
-        
-        _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: sheetManager, alertManager: alertManager))
+    init() {
+        _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: SheetManager.shared, alertManager: AlertManager.shared))
     }
+    
     var body: some View {
         
         VStack {
             let _ = Self._printChanges()
-            HomeContentView(authenticationService: AuthenticationService() , firestoreCollectionObserverService: FirestoreCollectionObserverService(), managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService()), errorHandler: SharedErrorHandler())
+            HomeContentView()
+//            Text("\(isShowSheet)")
         }
-        /// что если сработает isShowAlert когда $isShowSheet = true ???
-        /// создается заново но без StateObject но с зависимостями как и в HomeContentView - нужно изучать потом все уничтожается может можно оставитть?
         .sheet(isPresented: $isShowSheet) {
             
             BookEditView(managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService()))
-        }
-        /// либо оставить пересоздание HomeContentView без инит его зависимостей или попробывать $viewModel.alertManager.isShowAlert
-        .alert("Local error", isPresented: $isShowAlert) {
-            Button("Ok") {
-                isShowAlert = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    viewModel.alertManager.resetFirstLocalAlert(forView: "HomeView")
-                }
-                
-            }
-        } message: {
-            Text(alertMessage)
         }
         .onAppear {
             print("onAppear HomeView")
@@ -177,6 +89,9 @@ struct HomeView: View {
         }
         .onDisappear {
             print("onDisappear HomeView")
+        }
+        .background {
+            AlertViewLocal(isShowAlert: $isShowAlert, alertMessage: $alertMessage, nameView: "HomeView")
         }
     }
     
@@ -207,6 +122,81 @@ struct HomeView: View {
 
 
 
+/// либо оставить пересоздание HomeContentView без инит его зависимостей или попробывать $viewModel.alertManager.isShowAlert
+//        .alert("Local error", isPresented: $isShowAlert) {
+//            Button("Ok") {
+//                isShowAlert = false
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                    viewModel.alertManager.resetFirstLocalAlert(forView: "HomeView")
+//                }
+//
+//            }
+//        } message: {
+//            Text(alertMessage)
+//        }
+
+//struct LocalAlertView: View {
+//    @State var showAlert: Bool
+//    @State var alertMessage: String
+//    @ObservedObject var alertManager: AlertManager
+//    @State private var cancellables = Set<AnyCancellable>()
+//    @State private var isSubscribed = false
+//
+//    private var nameView: String
+//
+//    init(showAlert: Bool = false, alertMessage: String = "", nameView: String, alertManager: AlertManager = AlertManager.shared) {
+//        self.showAlert = showAlert
+//        self.alertMessage = alertMessage
+//        self.nameView = nameView
+//        self.alertManager = alertManager
+//        print("init LocalAlertView")
+//    }
+//
+//    var body: some View {
+//        EmptyView()
+//            .alert("Local error", isPresented: $showAlert) {
+//                Button("Ok") {
+//                    showAlert = false
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                        alertManager.resetFirstLocalAlert(forView: nameView)
+//                    }
+//
+//                }
+//            } message: {
+//                Text(alertMessage)
+//            }
+//            .onAppear {
+//                print("onAppear LocalAlertView")
+//                guard !isSubscribed else { return }
+//                subscribeToLocalAlerts()
+//            }
+//            .onDisappear {
+//                print("onDisappear LocalAlertView")
+////                unsubscribeFromLocalAlerts()
+//            }
+//    }
+//
+//    private func subscribeToLocalAlerts() {
+//        isSubscribed = true
+//        alertManager.$localAlerts
+//            .combineLatest(alertManager.$isHomeViewVisible)
+//            .sink { (localAlert, isHomeViewVisible) in
+//                print(".sink { (localAlert, isHomeViewVisible)")
+//                if isHomeViewVisible, let alert = localAlert[nameView], !localAlert.isEmpty {
+//                    print(".sink showAlert = true")
+//                    alertMessage = alert.first?.message ?? ""
+//                    showAlert = true
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//
+//    func unsubscribeFromLocalAlerts() {
+//        cancellables.removeAll()
+//    }
+//}
+///Если мы какое-то поле поменяем в EnvironmentObject то и вся view тоже перерисует!
+///При чем не важно используем ли мы это поле на view.
 
 
 //        Group {
@@ -227,6 +217,80 @@ struct HomeView: View {
 //        }
 
 // MARK: - before correct initialization of the state -
+
+//import SwiftUI
+//import Combine
+//
+//struct SheetHomeView:View {
+//
+////    @EnvironmentObject private var sheetManager:SheetManager
+//    //$sheetManager.isPresented
+//    private var sheetManager = SheetManager.shared
+//    @State private var isSubscribed = false
+//    @State private var cancellables = Set<AnyCancellable>()
+//    @State private var isShow:Bool = false {
+//        didSet {
+//            print("isShow - \(isShow)")
+//        }
+//    }
+//
+//    init() {
+//        print("init SheetHomeView")
+//    }
+//
+//    var body: some View {
+//        EmptyView()
+//            .sheet(isPresented: $isShow) {
+//
+//                BookEditView(managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService()))
+//            }
+//            .onAppear {
+//
+//                print("onAppear SheetHomeView")
+//                guard !isSubscribed else { return }
+//                isSubscribed = true
+//                sheetManager.$isPresented
+//                    .sink { isPresented in
+//                        print(".sink { isPresented - \(isPresented)")
+//                        isShow = isPresented
+//                    }
+//                    .store(in: &cancellables)
+//            }
+//            .onDisappear {
+//                print("onDisappear SheetHomeView")
+//
+//            }
+//    }
+//}
+
+
+// MARK: - before correct initialization of the state -
+
+//import SwiftUI
+//
+//struct SheetHomeView:View {
+//
+//    @EnvironmentObject var managerCRUDS: CRUDSManager
+//    @EnvironmentObject var sheetManager: SheetManager
+//
+//    init() {
+//        print("init SheetHomeView")
+//    }
+//
+//    var body: some View {
+//        EmptyView()
+//            .sheet(isPresented: $sheetManager.isPresented) {
+//                let bookViewModel = BookViewModel(managerCRUDS: managerCRUDS)
+//                BookEditView(viewModel: bookViewModel)
+//            }
+//            .onAppear {
+//                print("onAppear SheetHomeView")
+//            }
+//            .onDisappear {
+//                print("onDisappear SheetHomeView")
+//            }
+//    }
+//}
 
 
 //import SwiftUI

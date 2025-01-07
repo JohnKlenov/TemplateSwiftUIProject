@@ -37,27 +37,6 @@
 import SwiftUI
 import Combine
 
-// Обособленное представление для алертов
-struct GlobalAlertView: View {
-    @Binding var showAlert: Bool
-    @Binding var alertMessage: String
-    
-    init(showAlert: Binding<Bool>, alertMessage: Binding<String>) {
-        self._showAlert = showAlert
-        self._alertMessage = alertMessage
-        print("init GlobalAlertView")
-    }
-    
-    var body: some View {
-        EmptyView()
-            .alert("Global error", isPresented: $showAlert) {
-                Button("Ok") {}
-            } message: {
-                Text(alertMessage)
-            }
-    }
-}
-
 
 struct ContentView: View {
     
@@ -101,7 +80,7 @@ struct ContentView: View {
                     .tag(2)
             }
             .background(
-                GlobalAlertView(showAlert: $showAlert, alertMessage: $alertMessage)
+                AlertViewGlobal(showAlert: $showAlert, alertMessage: $alertMessage)
             )
             .onReceive(NotificationCenter.default.publisher(for: .globalAlert)) { notification in
                 if let alertItem = notification.object as? AlertData {
