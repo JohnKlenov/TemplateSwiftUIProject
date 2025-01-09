@@ -61,9 +61,9 @@ struct BookEditView: View {
         .disabled(!viewModel.modified)
     }
     
-    init(managerCRUDS: any CRUDSManagerProtocol) {
+    init() {
         print("init BookEditView")
-        _viewModel = StateObject(wrappedValue: BookViewModel(managerCRUDS: managerCRUDS))
+        _viewModel = StateObject(wrappedValue: BookViewModel(managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService())))
     }
     
     var body: some View {

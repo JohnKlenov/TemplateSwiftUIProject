@@ -11,7 +11,6 @@ import SwiftUI
 struct HomeContentView:View {
     
     @StateObject private var viewModel: HomeContentViewModel
-    private var sheetManager = SheetManager.shared
     
     init() {
         _viewModel = StateObject(wrappedValue: HomeContentViewModel(
@@ -41,7 +40,7 @@ struct HomeContentView:View {
             .toolbar{
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add") {
-                        sheetManager.showSheet()
+                        viewModel.sheetManager.showSheet()
                     }
                     .foregroundStyle(AppColors.activeColor)
                     .padding()

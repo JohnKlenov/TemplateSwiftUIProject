@@ -54,14 +54,17 @@ struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
     
-    @State private var isSubscribed = false
-    
     //sheet
     @State private var isShowSheet:Bool = false
-    
+
     //alert
     @State private var isShowAlert: Bool = false
-    @State private var alertMessage: String = ""
+    @State private var alertMessage: String = "Error"
+    @State private var alertTitle: String = "Something went wrong try again!" {
+        didSet {
+            print("alertTitle - \(alertTitle)")
+        }
+    }
     @State private var cancellables = Set<AnyCancellable>()
     
     
@@ -74,24 +77,28 @@ struct HomeView: View {
         VStack {
             let _ = Self._printChanges()
             HomeContentView()
-//            Text("\(isShowSheet)")
+            Button {
+                print("alertTitle - \(alertTitle)")
+            } label: {
+                Text("BtnTogle")
+            }
         }
         .sheet(isPresented: $isShowSheet) {
-            
-            BookEditView(managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService()))
+            BookEditView()
+        }
+        .onFirstAppear {
+            print("onFirstAppear")
+            subscribeToActionSheet()
+            subscribeToLocalAlerts()
         }
         .onAppear {
             print("onAppear HomeView")
-            guard !isSubscribed else { return }
-            isSubscribed = true
-            subscribeToActionSheet()
-            subscribeToLocalAlerts()
         }
         .onDisappear {
             print("onDisappear HomeView")
         }
         .background {
-            AlertViewLocal(isShowAlert: $isShowAlert, alertMessage: $alertMessage, nameView: "HomeView")
+            AlertViewLocal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage, nameView: "HomeView")
         }
     }
     
@@ -111,7 +118,8 @@ struct HomeView: View {
                 print(".sink { (localAlert, isHomeViewVisible)")
                 if isHomeViewVisible, let alert = localAlert["HomeView"], !localAlert.isEmpty {
                     print(".sink showAlert = true")
-                    alertMessage = alert.first?.message ?? ""
+                    alertMessage = alert.first?.message ?? "Something went wrong try again!"
+                    alertTitle = alert.first?.operationDescription ?? "Error"
                     isShowAlert = true
                 }
             }
@@ -121,6 +129,14 @@ struct HomeView: View {
 
 
 
+//    @State private var isSubscribed = false
+//            Button {
+//                isTestToggle.toggle()
+//            } label: {
+//                Text("BtnTogle")
+//            }
+//
+//            Text("\(isTestToggle)")
 
 /// либо оставить пересоздание HomeContentView без инит его зависимостей или попробывать $viewModel.alertManager.isShowAlert
 //        .alert("Local error", isPresented: $isShowAlert) {

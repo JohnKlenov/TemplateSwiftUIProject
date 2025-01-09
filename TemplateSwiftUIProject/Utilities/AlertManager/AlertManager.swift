@@ -72,8 +72,8 @@ class AlertManager: AlertManagerProtocol {
     }
     
     func showLocalalAlert(message: String, forView view: String, operationDescription: String) {
-        let sharedMessage = operationDescription + message
-        let alert = AlertData(message: sharedMessage, operationDescription: operationDescription)
+//        let sharedMessage = operationDescription + message
+        let alert = AlertData(message: message, operationDescription: operationDescription)
         if localAlerts[view] != nil {
             localAlerts[view]?.append(alert)
         } else {
@@ -106,6 +106,11 @@ class AlertManager: AlertManagerProtocol {
 extension Notification.Name {
     static let globalAlert = Notification.Name("globalAlert")
 }
+
+
+
+
+
 
 //func isErrorForView(forView:String) -> Bool {
 //    return self.localAlerts[forView] != nil

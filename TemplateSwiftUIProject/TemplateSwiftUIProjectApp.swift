@@ -34,9 +34,7 @@ struct TemplateSwiftUIProjectApp: App {
             if tiedOnboarding {
                 ContentView()
             } else {
-                let onboardingService = OnboardingService()
-                let viewModel = OnboardingViewModel(onboardingService: onboardingService)
-                OnboardingView(viewModel: viewModel)
+                OnboardingView()
             }
         }
     }

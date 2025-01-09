@@ -10,12 +10,15 @@ import SwiftUI
 struct AlertViewLocal: View {
     @Binding var isShowAlert: Bool
     @Binding var alertMessage: String
+    @Binding var alertTitle:String
+    
     @StateObject private var viewModel:AlertLocalViewModel
     private let nameView: String
     
-    init(isShowAlert: Binding<Bool>, alertMessage: Binding<String>, nameView:String) {
+    init(isShowAlert: Binding<Bool>, alertTitle: Binding<String>, alertMessage: Binding<String>, nameView:String) {
         self._isShowAlert = isShowAlert
         self._alertMessage = alertMessage
+        self._alertTitle = alertTitle
         self.nameView = nameView
         _viewModel = StateObject(wrappedValue: AlertLocalViewModel(alertManager: AlertManager.shared))
         print("init AlertView")
@@ -23,8 +26,10 @@ struct AlertViewLocal: View {
     
     var body: some View {
         EmptyView() // Основное содержимое можно оставить пустым, так как alert показывается независимо
-            .alert("Local error", isPresented: $isShowAlert) {
+            .alert(alertTitle, isPresented: $isShowAlert) {
                 Button("Ok") {
+                    alertMessage = "Something went wrong try again!"
+                    alertTitle = "Error"
                     isShowAlert = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         // Логика сброса сообщения алерта

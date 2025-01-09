@@ -25,11 +25,11 @@ protocol SheetManagerProtocol: ObservableObject {
     func hideSheet()
 }
 
-
+/// так как modalView перекрывает все View а так же TabBar то можго оставить SheetManager один на все modalView
 class SheetManager: SheetManagerProtocol {
     @Published var isPresented: Bool = false {
         didSet {
-            print("didSet isPresented")
+            print("didSet isPresented - \(isPresented)")
         }
     }
     
