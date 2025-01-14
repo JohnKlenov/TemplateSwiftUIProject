@@ -17,14 +17,16 @@ import SwiftUI
 import Combine
 
 protocol AlertManagerProtocol: ObservableObject {
-    var globalAlert: AlertData? { get set }
+//    var globalAlert: AlertData? { get set }
+    var globalAlert: [String: [AlertData]] { get set }
     var localAlerts: [String: [AlertData]] { get set }
     var isHomeViewVisible: Bool { get set }
     func showGlobalAlert(message: String, operationDescription: String)
     func showLocalalAlert(message: String, forView view: String, operationDescription: String)
-    func resetGlobalAlert()
-    func resetLocalAlert(forView view: String)
+//    func resetGlobalAlert()
+//    func resetLocalAlert(forView view: String)
     func resetFirstLocalAlert(forView view: String)
+    func resetFirstGlobalAlert()
 }
 
 //struct AlertData: Identifiable {
@@ -45,9 +47,16 @@ struct AlertData: Identifiable, Equatable {
 
 
 class AlertManager: AlertManagerProtocol {
+    
     static let shared = AlertManager()
     
-    var globalAlert: AlertData? {
+    //    var globalAlert: AlertData? {
+    //        didSet {
+    //            print("didSet globalAlert")
+    //        }
+    //    }
+    
+    @Published var globalAlert: [String: [AlertData]] = [:] {
         didSet {
             print("didSet globalAlert")
         }
@@ -64,31 +73,27 @@ class AlertManager: AlertManagerProtocol {
             print("didSet isHomeViewVisible")
         }
     }
-    
     func showGlobalAlert(message: String, operationDescription: String) {
         let alert = AlertData(message: message, operationDescription: operationDescription)
-        globalAlert = alert
-        NotificationCenter.default.post(name: .globalAlert, object: alert)
-    }
-    
-    func showLocalalAlert(message: String, forView view: String, operationDescription: String) {
-//        let sharedMessage = operationDescription + message
-        let alert = AlertData(message: message, operationDescription: operationDescription)
-        if localAlerts[view] != nil {
-            localAlerts[view]?.append(alert)
+        
+        if globalAlert["globalError"] == nil {
+            globalAlert["globalError"] = [alert]
         } else {
-            localAlerts[view] = [alert]
+            globalAlert["globalError"]?.append(alert)
         }
     }
     
-    func resetGlobalAlert() {
-        globalAlert = nil
+    func showLocalalAlert(message: String, forView view: String, operationDescription: String) {
+        
+        let alert = AlertData(message: message, operationDescription: operationDescription)
+        
+        if localAlerts[view] == nil {
+            localAlerts[view] = [alert]
+        } else if !localAlerts[view]!.contains(where: { $0.operationDescription == operationDescription }) {
+            localAlerts[view]?.append(alert)
+        }
     }
     
-    func resetLocalAlert(forView view: String) {
-        localAlerts[view] = nil
-    }
-
     func resetFirstLocalAlert(forView view: String) {
         if var alerts = localAlerts[view], !alerts.isEmpty {
             alerts.removeFirst()
@@ -101,6 +106,19 @@ class AlertManager: AlertManagerProtocol {
             }
         }
     }
+    
+    func resetFirstGlobalAlert() {
+        if var alerts = globalAlert["globalError"], !alerts.isEmpty {
+            alerts.removeFirst()
+            if alerts.isEmpty {
+                print("globalAlert[globalError] = nil")
+                globalAlert["globalError"] = nil
+            } else {
+                print("globalAlert[globalError] = alerts")
+                globalAlert["globalError"] = alerts
+            }
+        }
+    }
 }
 
 extension Notification.Name {
@@ -110,7 +128,11 @@ extension Notification.Name {
 
 
 
-
+//    func showGlobalAlert(message: String, operationDescription: String) {
+//        let alert = AlertData(message: message, operationDescription: operationDescription)
+//        globalAlert = alert
+//        NotificationCenter.default.post(name: .globalAlert, object: alert)
+//    }
 
 //func isErrorForView(forView:String) -> Bool {
 //    return self.localAlerts[forView] != nil

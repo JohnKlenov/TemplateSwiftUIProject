@@ -1,13 +1,13 @@
 //
-//  AlertLocalViewModel.swift
+//  ContentViewModel.swift
 //  TemplateSwiftUIProject
 //
-//  Created by Evgenyi on 7.01.25.
+//  Created by Evgenyi on 14.01.25.
 //
 
 import SwiftUI
 
-class AlertViewModel:ObservableObject {
+class ContentViewModel:ObservableObject {
     var alertManager:AlertManager
     
     init(alertManager:AlertManager) {

@@ -27,7 +27,6 @@ struct TemplateSwiftUIProjectApp: App {
 #endif
     }
     
-    
     var body: some Scene {
         
         WindowGroup {

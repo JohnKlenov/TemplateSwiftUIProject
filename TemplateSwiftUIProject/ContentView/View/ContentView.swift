@@ -51,13 +51,18 @@ struct ContentView: View {
     private var profileView: LazyView<ProfileView> {
         return LazyView { ProfileView() }
     }
+    @StateObject private var viewModel:ContentViewModel
     
     @State private var selection: Int = 0
-    @State private var showAlert: Bool = false
-    @State private var alertMessage: String = ""
+    @State private var isShowAlert: Bool = false
+    @State private var alertMessage: String = "Error"
+    @State private var alertTitle: String = "Something went wrong try again!" 
+    @State private var cancellables = Set<AnyCancellable>()
     
     init() {
         print("init ContentView")
+        _viewModel = StateObject(wrappedValue: ContentViewModel(alertManager: AlertManager.shared))
+
     }
     
     var body: some View {
@@ -80,15 +85,27 @@ struct ContentView: View {
                     .tag(2)
             }
             .background(
-                AlertViewGlobal(showAlert: $showAlert, alertMessage: $alertMessage)
+                AlertViewGlobal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage)
             )
-            .onReceive(NotificationCenter.default.publisher(for: .globalAlert)) { notification in
-                if let alertItem = notification.object as? AlertData {
-                    self.alertMessage = alertItem.message
-                    self.showAlert = true
-                }
+            .onFirstAppear {
+                print("onFirstAppear ContentView")
+                subscribeToGlobalAlerts()
             }
         }
+    }
+    
+    private func subscribeToGlobalAlerts() {
+        viewModel.alertManager.$globalAlert
+            .sink { globalAlert in
+                print(".sink { globalAlert in")
+                if let alert = globalAlert["globalError"] {
+                    print(".sink showAlert = true")
+                    alertMessage = alert.first?.message ?? "Something went wrong try again!"
+                    alertTitle = alert.first?.operationDescription ?? "Error"
+                    isShowAlert = true
+                }
+            }
+            .store(in: &cancellables)
     }
 }
 
@@ -107,6 +124,16 @@ struct LazyView<Content: View>: View {
 
 
 
+
+
+
+//            .onReceive(NotificationCenter.default.publisher(for: .globalAlert)) { notification in
+//                if let alertItem = notification.object as? AlertData {
+//                    self.alertMessage = alertItem.message
+////                    alertItem.operationDescription
+//                    self.showAlert = true
+//                }
+//            }
 
 // MARK: - before correct initialization of the state -
 

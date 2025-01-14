@@ -60,11 +60,7 @@ struct HomeView: View {
     //alert
     @State private var isShowAlert: Bool = false
     @State private var alertMessage: String = "Error"
-    @State private var alertTitle: String = "Something went wrong try again!" {
-        didSet {
-            print("alertTitle - \(alertTitle)")
-        }
-    }
+    @State private var alertTitle: String = "Something went wrong try again!" 
     @State private var cancellables = Set<AnyCancellable>()
     
     
@@ -77,11 +73,6 @@ struct HomeView: View {
         VStack {
             let _ = Self._printChanges()
             HomeContentView()
-            Button {
-                print("alertTitle - \(alertTitle)")
-            } label: {
-                Text("BtnTogle")
-            }
         }
         .sheet(isPresented: $isShowSheet) {
             BookEditView()
@@ -116,7 +107,7 @@ struct HomeView: View {
             .combineLatest(viewModel.alertManager.$isHomeViewVisible)
             .sink { (localAlert, isHomeViewVisible) in
                 print(".sink { (localAlert, isHomeViewVisible)")
-                if isHomeViewVisible, let alert = localAlert["HomeView"], !localAlert.isEmpty {
+                if isHomeViewVisible, let alert = localAlert["HomeView"] {
                     print(".sink showAlert = true")
                     alertMessage = alert.first?.message ?? "Something went wrong try again!"
                     alertTitle = alert.first?.operationDescription ?? "Error"
@@ -128,6 +119,14 @@ struct HomeView: View {
 }
 
 
+
+
+
+//Button {
+//    print("alertTitle - \(alertTitle)")
+//} label: {
+//    Text("BtnTogle")
+//}
 
 //    @State private var isSubscribed = false
 //            Button {

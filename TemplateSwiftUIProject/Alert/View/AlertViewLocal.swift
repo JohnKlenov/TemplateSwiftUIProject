@@ -12,7 +12,7 @@ struct AlertViewLocal: View {
     @Binding var alertMessage: String
     @Binding var alertTitle:String
     
-    @StateObject private var viewModel:AlertLocalViewModel
+    @StateObject private var viewModel:AlertViewModel
     private let nameView: String
     
     init(isShowAlert: Binding<Bool>, alertTitle: Binding<String>, alertMessage: Binding<String>, nameView:String) {
@@ -20,7 +20,7 @@ struct AlertViewLocal: View {
         self._alertMessage = alertMessage
         self._alertTitle = alertTitle
         self.nameView = nameView
-        _viewModel = StateObject(wrappedValue: AlertLocalViewModel(alertManager: AlertManager.shared))
+        _viewModel = StateObject(wrappedValue: AlertViewModel(alertManager: AlertManager.shared))
         print("init AlertView")
     }
     

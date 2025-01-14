@@ -31,6 +31,7 @@
 		5EAF5B0A2D2D567700D96FD6 /* AlertViewLocal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B092D2D567700D96FD6 /* AlertViewLocal.swift */; };
 		5EAF5B0C2D2D56D400D96FD6 /* AlertLocalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B0B2D2D56D400D96FD6 /* AlertLocalViewModel.swift */; };
 		5EAF5B0E2D2FF96000D96FD6 /* FirstAppear.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B0D2D2FF96000D96FD6 /* FirstAppear.swift */; };
+		5EAF5B132D367E7E00D96FD6 /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B122D367E7E00D96FD6 /* ContentViewModel.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -70,6 +71,7 @@
 		5EAF5B092D2D567700D96FD6 /* AlertViewLocal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertViewLocal.swift; sourceTree = "<group>"; };
 		5EAF5B0B2D2D56D400D96FD6 /* AlertLocalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertLocalViewModel.swift; sourceTree = "<group>"; };
 		5EAF5B0D2D2FF96000D96FD6 /* FirstAppear.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstAppear.swift; sourceTree = "<group>"; };
+		5EAF5B122D367E7E00D96FD6 /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -219,6 +221,31 @@
 			path = ViewModel;
 			sourceTree = "<group>";
 		};
+		5EAF5B0F2D367DD500D96FD6 /* ContentView */ = {
+			isa = PBXGroup;
+			children = (
+				5EAF5B112D367E5E00D96FD6 /* ViewModel */,
+				5EAF5B102D367E5200D96FD6 /* View */,
+			);
+			path = ContentView;
+			sourceTree = "<group>";
+		};
+		5EAF5B102D367E5200D96FD6 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5EC949D12CB526E5003736A9 /* ContentView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EAF5B112D367E5E00D96FD6 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5EAF5B122D367E7E00D96FD6 /* ContentViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		5EC949C32CB526E5003736A9 = {
 			isa = PBXGroup;
 			children = (
@@ -238,6 +265,7 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5EAF5B0F2D367DD500D96FD6 /* ContentView */,
 				5EAF5B042D2D55AA00D96FD6 /* Alert */,
 				5EA4FE272CF5B535001CA401 /* BookDetailsView */,
 				5EA4FDBC2CD64971001CA401 /* BookEditView */,
@@ -248,7 +276,6 @@
 				5EC949F62CC29109003736A9 /* Home */,
 				5EC949DD2CB5271A003736A9 /* Onboarding */,
 				5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */,
-				5EC949D12CB526E5003736A9 /* ContentView.swift */,
 				5EC949EB2CBBE280003736A9 /* GoogleService-Info.plist */,
 				5EC949D32CB526E9003736A9 /* Assets.xcassets */,
 				5EC949D52CB526E9003736A9 /* Preview Content */,
@@ -520,6 +547,7 @@
 				5EAF5B082D2D563D00D96FD6 /* AlertViewGlobal.swift in Sources */,
 				5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */,
 				5EC949E52CBA8FC5003736A9 /* OnboardingViewModel.swift in Sources */,
+				5EAF5B132D367E7E00D96FD6 /* ContentViewModel.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
 				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
 				5EAF5B0A2D2D567700D96FD6 /* AlertViewLocal.swift in Sources */,

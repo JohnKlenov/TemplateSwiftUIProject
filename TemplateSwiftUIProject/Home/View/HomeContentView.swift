@@ -6,6 +6,9 @@
 //
 
 
+/// так как observer firebase при отсутствии интернета не изменит свое состояние а при его появлении не отобразит минувшие изменения
+/// то нам нужно предусмотреть refresh вызывав viewModel.retry() потянув за list сверху вниз.
+
 import SwiftUI
 
 struct HomeContentView:View {
@@ -62,13 +65,17 @@ struct HomeContentView:View {
         }
     }
     
+    /// так как errorView заполняет пространство при первом старте или неожиданно возникшей ошибкой уже после успеха 
+    /// но дублируется локальным или гобальным алертам
+    /// мы должны сделать его контент подходящим для любой ситуации
     private func errorView(error:String) -> some View {
         VStack {
             Spacer()
             ContentUnavailableView(label: {
-                Label("Connection issue", systemImage: "wifi.slash")
+                
+                Label("Ups :(", systemImage: "exclamationmark.triangle")
             }, description: {
-                Text("Check your internet connection")
+                Text("Try again! Something went wrong!")
             }, actions: {
                 Button("Refresh") {
                     viewModel.retry()
