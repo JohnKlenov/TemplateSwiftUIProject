@@ -28,6 +28,12 @@
 
 import SwiftUI
 
+enum Action {
+    case done
+    case delete
+    case cancel
+}
+
 enum Mode {
     case new
     case edit
@@ -45,6 +51,7 @@ struct BookEditView: View {
     @FocusState var focus:FocusedField?
     @State var presentActionSheet = false
     
+    var completionHandler: ((Result<Action, Error>) -> Void)?
 //    var mode: Mode = .new
     
     var cancelButton: some View {
@@ -61,9 +68,9 @@ struct BookEditView: View {
         .disabled(!viewModel.modified)
     }
     
-    init() {
+    init(managerCRUDS: CRUDSManager) {
         print("init BookEditView")
-        _viewModel = StateObject(wrappedValue: BookViewModel(managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService())))
+        _viewModel = StateObject(wrappedValue: BookViewModel(managerCRUDS: managerCRUDS))
     }
     
     var body: some View {
@@ -141,19 +148,21 @@ struct BookEditView: View {
     }
     
     private func handleCancelTapped() {
+        self.completionHandler?(.success(.cancel))
         dismiss()
     }
     
     private func handleDoneTapped() {
         viewModel.updateOrAddBook(forView: "HomeView", operationDescription: "Error adding or change book")
+        self.completionHandler?(.success(.done))
         dismiss()
     }
     
     private func handleDeleteTapped() {
         viewModel.removeBook(forView: "HomeView", operationDescription: "Error deleting book")
+        self.completionHandler?(.success(.delete))
         dismiss()
     }
-    
 }
 
 
@@ -162,6 +171,146 @@ struct BookEditView: View {
 //    BookEditView(viewModel:  BookViewModel())
 //}
 
+// MARK: - .environmentObject(crudManager)  -
+
+//import SwiftUI
+//
+//enum Action {
+//    case done
+//    case delete
+//    case cancel
+//}
+//
+//enum Mode {
+//    case new
+//    case edit
+//}
+//
+//enum FocusedField:Hashable {
+//    case title, description, pathImage, author
+//}
+//
+//
+//struct BookEditView: View {
+//    
+//    @Environment(\.dismiss) private var dismiss
+//    @StateObject var viewModel: BookViewModel
+//    @FocusState var focus:FocusedField?
+//    @State var presentActionSheet = false
+//    
+//    var completionHandler: ((Result<Action, Error>) -> Void)?
+////    var mode: Mode = .new
+//    
+//    var cancelButton: some View {
+//        Button("Cancel") {
+//            handleCancelTapped()
+//        }
+//    }
+//    
+//    
+//    var saveButton: some View {
+//        Button(viewModel.mode == .new ? "Done" : "Save") {
+//            handleDoneTapped()
+//        }
+//        .disabled(!viewModel.modified)
+//    }
+//    
+//    init() {
+//        print("init BookEditView")
+//        _viewModel = StateObject(wrappedValue: BookViewModel(managerCRUDS: CRUDSManager(authService: AuthService(), errorHandler: SharedErrorHandler(), databaseService: FirestoreDatabaseCRUDService())))
+//    }
+//    
+//    var body: some View {
+//        NavigationStack {
+//            ZStack {
+//                Form {
+//                    Section(header: Text("Book")) {
+//                        customTextField("Title", text: $viewModel.book.title, field: .title, focus: $focus)
+//                        customTextField("Description", text: $viewModel.book.description, field: .description, focus: $focus)
+//                        customTextField("PathImage", text: $viewModel.book.pathImage, field: .pathImage, focus: $focus)
+//                    }
+//                    Section(header: Text("Author")) {
+//                        customTextField("Author", text: $viewModel.book.author, field: .author, focus: $focus)
+//                    }
+//                    
+//                    if viewModel.mode == .edit {
+//                        Button("Delete book", role: .destructive) {
+//                            self.presentActionSheet.toggle()
+//                        }
+//                    }
+//                }
+//                .navigationTitle(viewModel.mode == .new ? "New book" : viewModel.book.title)
+//                .navigationBarTitleDisplayMode(viewModel.mode == .new ? .inline : .large)
+//                .toolbar{
+//                    ToolbarItem(placement: .topBarTrailing) {
+//                        saveButton
+//                    }
+//                    ToolbarItem(placement: .topBarLeading) {
+//                        cancelButton
+//                    }
+//                }
+//                .confirmationDialog("Are you sure?", isPresented: $presentActionSheet) {
+//                    Button("Delete book", role: .destructive) {
+//                        handleDeleteTapped()
+//                    }
+//                    Button("Cancel", role: .cancel) {}
+//                }
+//            }
+//        }
+//    }
+//    
+//    private func customTextField(_ title: String, text: Binding<String>, field: FocusedField, focus: FocusState<FocusedField?>.Binding) -> some View {
+//        ZStack(alignment: .leading) {
+//            TextField(title, text: text)
+//                .keyboardType(.default)
+//                .autocapitalization(.none)
+//                .disableAutocorrection(true)
+//                .focused(focus, equals: field)
+//                .padding([.leading, .trailing], 30)
+//                .tint(.pink)
+//                .foregroundStyle(.secondary)
+//                .onSubmit {
+//                    withAnimation {
+//                        switch field {
+//                        case .title:
+//                            focus.wrappedValue = .description
+//                        case .description:
+//                            focus.wrappedValue = .pathImage
+//                        case .pathImage:
+//                            focus.wrappedValue = .author
+//                        case .author:
+//                            focus.wrappedValue = nil
+//                        }
+//                    }
+//                }
+//            Button(action: {
+//                print("Did tap Image")
+//            }, label: {
+//                Image(systemName: "swift")
+//                    .foregroundStyle(.pink)
+//                    .frame(width: 30, height: 30)
+//                    .padding(.leading, -10)
+//            })
+//        }
+//    }
+//    
+//    private func handleCancelTapped() {
+//        self.completionHandler?(.success(.cancel))
+//        dismiss()
+//    }
+//    
+//    private func handleDoneTapped() {
+//        viewModel.updateOrAddBook(forView: "HomeView", operationDescription: "Error adding or change book")
+//        self.completionHandler?(.success(.done))
+//        dismiss()
+//    }
+//    
+//    private func handleDeleteTapped() {
+//        viewModel.removeBook(forView: "HomeView", operationDescription: "Error deleting book")
+//        self.completionHandler?(.success(.delete))
+//        dismiss()
+//    }
+//}
 
 
 // MARK: - before correct initialization of the state -

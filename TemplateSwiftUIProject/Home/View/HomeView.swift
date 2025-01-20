@@ -63,6 +63,7 @@ struct HomeView: View {
     @State private var alertTitle: String = "Something went wrong try again!" 
     @State private var cancellables = Set<AnyCancellable>()
     
+    @EnvironmentObject private var crudManager: CRUDSManager
     
     init() {
         _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: SheetManager.shared, alertManager: AlertManager.shared))
@@ -72,10 +73,10 @@ struct HomeView: View {
         
         VStack {
             let _ = Self._printChanges()
-            HomeContentView()
+            HomeContentView(managerCRUDS: crudManager)
         }
         .sheet(isPresented: $isShowSheet) {
-            BookEditView()
+            BookEditView(managerCRUDS: crudManager)
         }
         .onFirstAppear {
             print("onFirstAppear")
@@ -119,6 +120,79 @@ struct HomeView: View {
 }
 
 
+// MARK: - .environmentObject(crudManager)  -
+
+//import SwiftUI
+//import Combine
+//
+//
+//struct HomeView: View {
+//    
+//    @StateObject private var viewModel:HomeViewModel
+//    
+//    //sheet
+//    @State private var isShowSheet:Bool = false
+//
+//    //alert
+//    @State private var isShowAlert: Bool = false
+//    @State private var alertMessage: String = "Error"
+//    @State private var alertTitle: String = "Something went wrong try again!"
+//    @State private var cancellables = Set<AnyCancellable>()
+//    
+//    
+//    init() {
+//        _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: SheetManager.shared, alertManager: AlertManager.shared))
+//    }
+//    
+//    var body: some View {
+//        
+//        VStack {
+//            let _ = Self._printChanges()
+//            HomeContentView()
+//        }
+//        .sheet(isPresented: $isShowSheet) {
+//            BookEditView()
+//        }
+//        .onFirstAppear {
+//            print("onFirstAppear")
+//            subscribeToActionSheet()
+//            subscribeToLocalAlerts()
+//        }
+//        .onAppear {
+//            print("onAppear HomeView")
+//        }
+//        .onDisappear {
+//            print("onDisappear HomeView")
+//        }
+//        .background {
+//            AlertViewLocal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage, nameView: "HomeView")
+//        }
+//    }
+//    
+//    private func subscribeToActionSheet() {
+//        viewModel.sheetManager.$isPresented
+//            .sink { isPresented in
+//                print(".sink { isPresented - \(isPresented)")
+//                isShowSheet = isPresented
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func subscribeToLocalAlerts() {
+//        viewModel.alertManager.$localAlerts
+//            .combineLatest(viewModel.alertManager.$isHomeViewVisible)
+//            .sink { (localAlert, isHomeViewVisible) in
+//                print(".sink { (localAlert, isHomeViewVisible)")
+//                if isHomeViewVisible, let alert = localAlert["HomeView"] {
+//                    print(".sink showAlert = true")
+//                    alertMessage = alert.first?.message ?? "Something went wrong try again!"
+//                    alertTitle = alert.first?.operationDescription ?? "Error"
+//                    isShowAlert = true
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//}
 
 
 

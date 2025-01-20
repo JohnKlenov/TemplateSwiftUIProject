@@ -21,6 +21,13 @@ struct TemplateSwiftUIProjectApp: App {
     ///использование @AppStorage позволяет привязать переменную(tiedOnboarding) к UserDefaults, а SwiftUI автоматически отслеживает и реагирует на изменения этой переменной, что приводит к обновлению пользовательского интерфейса без необходимости явных вызовов для переключения представлений.
     @AppStorage("hasSeenOnboarding") var tiedOnboarding:Bool = false
     
+    // Создаем глобальный экземпляр CRUDSManager
+       @StateObject private var crudManager = CRUDSManager(
+           authService: AuthService(),
+           errorHandler: SharedErrorHandler(),
+           databaseService: FirestoreDatabaseCRUDService()
+       )
+    
     init() {
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
@@ -32,12 +39,48 @@ struct TemplateSwiftUIProjectApp: App {
         WindowGroup {
             if tiedOnboarding {
                 ContentView()
+                    .environmentObject(crudManager) // Передаем экземпляр во всю иерархию
             } else {
                 OnboardingView()
             }
         }
     }
 }
+
+
+
+
+
+// MARK: - .environmentObject(crudManager)  -
+
+
+//import SwiftUI
+//import Combine
+//
+//@main
+//struct TemplateSwiftUIProjectApp: App {
+//    
+//    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+//    ///использование @AppStorage позволяет привязать переменную(tiedOnboarding) к UserDefaults, а SwiftUI автоматически отслеживает и реагирует на изменения этой переменной, что приводит к обновлению пользовательского интерфейса без необходимости явных вызовов для переключения представлений.
+//    @AppStorage("hasSeenOnboarding") var tiedOnboarding:Bool = false
+//    
+//    init() {
+//#if DEBUG
+//        UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
+//#endif
+//    }
+//    
+//    var body: some Scene {
+//        
+//        WindowGroup {
+//            if tiedOnboarding {
+//                ContentView()
+//            } else {
+//                OnboardingView()
+//            }
+//        }
+//    }
+//}
 
 
 

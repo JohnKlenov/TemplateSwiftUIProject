@@ -36,9 +36,9 @@ class AuthenticationService: AuthenticationServiceProtocol {
     private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
     
     init() {
-//                signOutUser()
+//        signOutUser()
         print("init AuthenticationService")
-        addListeners()
+                addListeners()
     }
     
     private func addListeners() {

@@ -166,6 +166,8 @@
 		5EA4FE272CF5B535001CA401 /* BookDetailsView */ = {
 			isa = PBXGroup;
 			children = (
+				5EAF5B152D3BCDF400D96FD6 /* ViewModel */,
+				5EAF5B142D3BCDED00D96FD6 /* View */,
 				5EA4FE282CF5B557001CA401 /* BookDetailsView.swift */,
 			);
 			path = BookDetailsView;
@@ -242,6 +244,20 @@
 			isa = PBXGroup;
 			children = (
 				5EAF5B122D367E7E00D96FD6 /* ContentViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		5EAF5B142D3BCDED00D96FD6 /* View */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EAF5B152D3BCDF400D96FD6 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
