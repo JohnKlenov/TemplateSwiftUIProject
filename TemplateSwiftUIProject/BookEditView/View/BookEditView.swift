@@ -51,8 +51,7 @@ struct BookEditView: View {
     @FocusState var focus:FocusedField?
     @State var presentActionSheet = false
     
-    var completionHandler: ((Result<Action, Error>) -> Void)?
-//    var mode: Mode = .new
+    var completionHandler: ((Result<(Action, BookCloud?), Error>) -> Void)?
     
     var cancelButton: some View {
         Button("Cancel") {
@@ -68,9 +67,10 @@ struct BookEditView: View {
         .disabled(!viewModel.modified)
     }
     
-    init(managerCRUDS: CRUDSManager) {
+    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, managerCRUDS: CRUDSManager, completionHandler: ((Result<(Action, BookCloud?), Error>) -> Void)? = nil) {
         print("init BookEditView")
-        _viewModel = StateObject(wrappedValue: BookViewModel(managerCRUDS: managerCRUDS))
+        _viewModel = StateObject(wrappedValue: BookViewModel(book: book, mode: mode, managerCRUDS: managerCRUDS))
+        self.completionHandler = completionHandler
     }
     
     var body: some View {
@@ -110,6 +110,9 @@ struct BookEditView: View {
                 }
             }
         }
+        .onAppear {
+            print("onAppear BookEditView")
+        }
     }
     
     private func customTextField(_ title: String, text: Binding<String>, field: FocusedField, focus: FocusState<FocusedField?>.Binding) -> some View {
@@ -148,19 +151,19 @@ struct BookEditView: View {
     }
     
     private func handleCancelTapped() {
-        self.completionHandler?(.success(.cancel))
+        self.completionHandler?(.success((.cancel, nil)))
         dismiss()
     }
     
     private func handleDoneTapped() {
         viewModel.updateOrAddBook(forView: "HomeView", operationDescription: "Error adding or change book")
-        self.completionHandler?(.success(.done))
+        self.completionHandler?(.success((.done, viewModel.book)))
         dismiss()
     }
     
     private func handleDeleteTapped() {
         viewModel.removeBook(forView: "HomeView", operationDescription: "Error deleting book")
-        self.completionHandler?(.success(.delete))
+        self.completionHandler?(.success((.delete, nil)))
         dismiss()
     }
 }

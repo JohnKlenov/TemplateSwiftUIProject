@@ -29,11 +29,11 @@ class BookViewModel:ObservableObject {
 
     private let managerCRUDS: any CRUDSManagerProtocol
     var sheetManager:SheetManager
-    private var originalBook: BookCloud
+    var originalBook: BookCloud
     private(set) var mode:Mode
     private var cancellables = Set<AnyCancellable>()
     
-    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, managerCRUDS: any CRUDSManagerProtocol, sheetManager: SheetManager = SheetManager.shared) {
+    init(book:BookCloud, mode:Mode, managerCRUDS: any CRUDSManagerProtocol, sheetManager: SheetManager = SheetManager.shared) {
         
         self.managerCRUDS = managerCRUDS
         self.sheetManager = sheetManager

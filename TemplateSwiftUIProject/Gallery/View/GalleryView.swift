@@ -21,15 +21,24 @@ import SwiftUI
 
 
 struct GalleryView: View {
+    
     @State private var isPresentingAlert = false
     @State private var isPresentingSheet = false
+    @StateObject var viewModel = GalleryViewModel()
+    @EnvironmentObject private var crudManager: CRUDSManager
     
     var body: some View {
         VStack {
             let _ = Self._printChanges()
             Button("Show Sheet") {
-                isPresentingSheet = true
+//                isPresentingSheet = true
+                viewModel.managerCRUDS?.removeBook(book: BookCloud(title: "", author: "", description: "", pathImage: ""), forView: "TestView", operationDescription: "TestOperation")
             }
+        }
+        .onFirstAppear {
+            print("onFirstAppear GalleryView")
+            /// ID
+            viewModel.setDataModel(crudManager)
         }
         .onAppear {
             print("onAppear GalleryView")
@@ -41,6 +50,20 @@ struct GalleryView: View {
                 }
         }
     }
+}
+
+class GalleryViewModel:ObservableObject {
+    
+    var managerCRUDS:CRUDSManager?
+    
+    init() {
+        print("init GalleryViewModel")
+    }
+    
+    func setDataModel(_ model:CRUDSManager) {
+        self.managerCRUDS = model
+    }
+    
 }
 
 struct ModalView: View {

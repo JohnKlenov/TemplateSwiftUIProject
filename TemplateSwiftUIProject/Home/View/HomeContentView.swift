@@ -57,7 +57,7 @@ struct HomeContentView:View {
             .onDisappear {
                 print("onDisappear HomeContentView")
                 viewModel.alertManager.isHomeViewVisible = false
-
+                
             }
             .task {
                 print("task HomeContentView")
@@ -65,7 +65,7 @@ struct HomeContentView:View {
         }
     }
     
-    /// так как errorView заполняет пространство при первом старте или неожиданно возникшей ошибкой уже после успеха 
+    /// так как errorView заполняет пространство при первом старте или неожиданно возникшей ошибкой уже после успеха
     /// но дублируется локальным или гобальным алертам
     /// мы должны сделать его контент подходящим для любой ситуации
     private func errorView(error:String) -> some View {
@@ -81,34 +81,28 @@ struct HomeContentView:View {
                     viewModel.retry()
                 }
             })
-//            .background(AppColors.secondaryBackground)
+            //            .background(AppColors.secondaryBackground)
             .frame(maxWidth: .infinity)
             Spacer()
         }
         .ignoresSafeArea(edges: [.horizontal])
     }
-
+    
     private func contentView(data:[BookCloud]) -> some View {
-        List {
-            ForEach(data) { book in
-                bookRowView(book)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            viewModel.removeBook(book: book, forView: "HomeView", operationDescription: "Error deleting book")
-                        } label: {
-                            Label("delete", systemImage: "trash.fill")
-                        }
+        List(data) { book in
+            bookRowView(book)
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        viewModel.removeBook(book: book, forView: "HomeView", operationDescription: "Error deleting book")
+                    } label: {
+                        Label("delete", systemImage: "trash.fill")
                     }
-            }
+                }
         }
     }
     
     private func bookRowView(_ book: BookCloud) -> some View {
-        NavigationLink {
-            /// можем передать viewModel через @ObservedObject ?
-            /// происходит многократный вызов  init BookDetailsView но onAppear только при переходе на него
-            BookDetailsView(book: book)
-        } label: {
+        NavigationLink(destination: BookDetailsView(book: book)) {
             VStack {
                 HStack(spacing: 10) {
                     Image(systemName: "swift")
@@ -129,6 +123,186 @@ struct HomeContentView:View {
         }
     }
 }
+
+//    private func contentView(data: [BookCloud]) -> some View {
+//        List(data) { book in
+//            NavigationLink(destination: BookDetailsView(book: book)) {
+//                HStack {
+//                    VStack(alignment: .leading) {
+//                        Text(book.title)
+//                            .font(.headline)
+//                        Text(book.author)
+//                            .font(.subheadline)
+//                            .foregroundColor(.secondary)
+//                    }
+//                }
+//                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+//                    Button(role: .destructive) {
+//                        viewModel.removeBook(book: book, forView: "HomeView", operationDescription: "Error deleting book")
+//                    } label: {
+//                        Label("delete", systemImage: "trash.fill")
+//                    }
+//                }
+//                .padding(.vertical, 8)
+//            }
+//        }
+//        .listStyle(PlainListStyle())
+//    }
+
+//private func contentView(data:[BookCloud]) -> some View {
+//    List {
+//        ForEach(data) { book in
+//            bookRowView(book)
+//                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+//                    Button(role: .destructive) {
+//                        viewModel.removeBook(book: book, forView: "HomeView", operationDescription: "Error deleting book")
+//                    } label: {
+//                        Label("delete", systemImage: "trash.fill")
+//                    }
+//                }
+//        }
+//    }
+//}
+
+
+//    private func bookRowView(_ book: BookCloud) -> some View {
+//        NavigationLink {
+//            /// можем передать viewModel через @ObservedObject ?
+//            /// происходит многократный вызов  init BookDetailsView но onAppear только при переходе на него
+//            BookDetailsView(book: book)
+//        } label: {
+//            VStack {
+//                HStack(spacing: 10) {
+//                    Image(systemName: "swift")
+//                        .foregroundStyle(.pink)
+//                        .frame(width: 30, height: 30)
+//                    
+//                    VStack(alignment: .leading) {
+//                        Text(book.title)
+//                            .font(.headline)
+//                        Text(book.description)
+//                            .font(.subheadline)
+//                        Text(book.author)
+//                            .font(.subheadline)
+//                    }
+//                    Spacer()
+//                }
+//            }
+//        }
+//    }
+
+//struct HomeContentView: View {
+//    
+//    @StateObject private var viewModel: HomeContentViewModel
+//    
+//    init(managerCRUDS: CRUDSManager) {
+//        _viewModel = StateObject(wrappedValue: HomeContentViewModel(
+//            authenticationService: AuthenticationService(),
+//            firestorColletionObserverService: FirestoreCollectionObserverService(),
+//            managerCRUDS: managerCRUDS,
+//            errorHandler: SharedErrorHandler()))
+//        print("init HomeContentView")
+//    }
+//    
+//    var body: some View {
+//        NavigationStack {
+//            let _ = Self._printChanges()
+//            ZStack {
+//                switch viewModel.viewState {
+//                case .loading:
+//                    ProgressView("Loading...")
+//                case .content(let data):
+//                    contentView(data: data)
+//                case .error(let error):
+//                    errorView(error: error)
+//                }
+//            }
+//            .background(AppColors.background)
+//            .navigationTitle("Home")
+//        }
+//    }
+//    
+//    private func contentView(data: [BookCloud]) -> some View {
+//        List(data) { book in
+//            NavigationLink(destination: BookDetailView(book: book)) {
+//                HStack {
+//                    // Асинхронная загрузка изображения
+//                    AsyncImage(url: URL(string: book.pathImage)) { image in
+//                        image
+//                            .resizable()
+//                            .scaledToFill()
+//                            .frame(width: 50, height: 50)
+//                            .clipped()
+//                            .cornerRadius(8)
+//                    } placeholder: {
+//                        ProgressView()
+//                            .frame(width: 50, height: 50)
+//                    }
+//                    
+//                    VStack(alignment: .leading) {
+//                        Text(book.title)
+//                            .font(.headline)
+//                        Text(book.author)
+//                            .font(.subheadline)
+//                            .foregroundColor(.secondary)
+//                    }
+//                }
+//                .padding(.vertical, 8)
+//            }
+//        }
+//        .listStyle(PlainListStyle())
+//    }
+//    
+//    private func errorView(error: String) -> some View {
+//        VStack {
+//            Text("An error occurred:")
+//                .font(.headline)
+//            Text(error)
+//                .font(.body)
+//                .foregroundColor(.red)
+//            Button("Retry") {
+//                viewModel.loadContent() // Попытка повторной загрузки
+//            }
+//        }
+//        .padding()
+//    }
+//}
+//
+//// Детальный View для отображения информации о книге
+//struct BookDetailView: View {
+//    let book: BookCloud
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 16) {
+//            AsyncImage(url: URL(string: book.pathImage)) { image in
+//                image
+//                    .resizable()
+//                    .scaledToFit()
+//                    .cornerRadius(12)
+//            } placeholder: {
+//                ProgressView()
+//            }
+//            .frame(height: 200)
+//            .padding(.bottom, 16)
+//            
+//            Text(book.title)
+//                .font(.largeTitle)
+//                .fontWeight(.bold)
+//            Text("Author: \(book.author)")
+//                .font(.title3)
+//                .foregroundColor(.secondary)
+//            Text(book.description)
+//                .font(.body)
+//                .padding(.top, 8)
+//            
+//            Spacer()
+//        }
+//        .padding()
+//        .navigationTitle("Book Details")
+//        .navigationBarTitleDisplayMode(.inline)
+//    }
+//}
+
 
 
 

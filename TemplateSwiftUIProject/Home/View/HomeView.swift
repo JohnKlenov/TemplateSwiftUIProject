@@ -85,6 +85,11 @@ struct HomeView: View {
         }
         .onAppear {
             print("onAppear HomeView")
+            /// принудительный rerendering view 
+//            Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+//                print("isTestProperty")
+//                   viewModel.isTestProperty.toggle() // Или любое изменение состояния
+//               }
         }
         .onDisappear {
             print("onDisappear HomeView")
