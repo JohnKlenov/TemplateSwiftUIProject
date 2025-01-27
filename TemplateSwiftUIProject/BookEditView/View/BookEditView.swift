@@ -51,7 +51,7 @@ struct BookEditView: View {
     @FocusState var focus:FocusedField?
     @State var presentActionSheet = false
     
-    var completionHandler: ((Result<(Action, BookCloud?), Error>) -> Void)?
+    var completionHandler: ((Result<(Action, BookCloud), Error>) -> Void)?
     
     var cancelButton: some View {
         Button("Cancel") {
@@ -67,7 +67,7 @@ struct BookEditView: View {
         .disabled(!viewModel.modified)
     }
     
-    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, managerCRUDS: CRUDSManager, completionHandler: ((Result<(Action, BookCloud?), Error>) -> Void)? = nil) {
+    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, managerCRUDS: CRUDSManager, completionHandler: ((Result<(Action, BookCloud), Error>) -> Void)? = nil) {
         print("init BookEditView")
         _viewModel = StateObject(wrappedValue: BookViewModel(book: book, mode: mode, managerCRUDS: managerCRUDS))
         self.completionHandler = completionHandler
@@ -151,7 +151,7 @@ struct BookEditView: View {
     }
     
     private func handleCancelTapped() {
-        self.completionHandler?(.success((.cancel, nil)))
+        self.completionHandler?(.success((.cancel, viewModel.book)))
         dismiss()
     }
     
@@ -163,7 +163,7 @@ struct BookEditView: View {
     
     private func handleDeleteTapped() {
         viewModel.removeBook(forView: "HomeView", operationDescription: "Error deleting book")
-        self.completionHandler?(.success((.delete, nil)))
+        self.completionHandler?(.success((.delete, viewModel.book)))
         dismiss()
     }
 }

@@ -171,14 +171,15 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
                 return
             }
             do {
-                let bookData = try JSONEncoder().encode(book)
-                let bookDict = try JSONSerialization.jsonObject(with: bookData) as? [String:Any]
+                let encodableBook = EncodableBook(from: book)
+                let bookData = try JSONEncoder().encode(encodableBook)
+                let bookDict = try JSONSerialization.jsonObject(with: bookData) as? [String: Any]
                 
                 guard let bookDict = bookDict else {
                     promise(.success(.failure(FirebaseEnternalAppError.jsonConversionFailed)))
                     return
                 }
-    
+
                 self?.db.collection(path).document(bookID).updateData(bookDict) { error in
                     if let error = error {
                         promise(.success(.failure(error)))

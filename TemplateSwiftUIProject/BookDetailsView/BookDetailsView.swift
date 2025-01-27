@@ -76,17 +76,11 @@ struct BookDetailsView: View {
         }
     }
     
-    private func handleEditCompletion(action: Action, book: BookCloud?) {
+    private func handleEditCompletion(action: Action, book: BookCloud) {
         switch action {
         case .done:
-            // Обработка сохранения книги
-            if let book = book {
-                self.book = book
-            }
-            print("Book edited or added: \(String(describing: book))")
+            self.book = book
         case .delete:
-            // Логика при удалении книги
-            print("Book deleted: \(String(describing: book))")
             dismiss()
         case .cancel:
             // Логика при отмене действия

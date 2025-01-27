@@ -40,3 +40,18 @@ struct BookCloud: Identifiable, Codable {
 //    static func == (lhs: BookCloud, rhs: BookCloud) -> Bool {
 //        return lhs.id == rhs.id
 //    }
+
+// Промежуточная модель для кодирования
+struct EncodableBook: Codable {
+    var title: String
+    var author: String
+    var description: String
+    var pathImage: String
+
+    init(from book: BookCloud) {
+        self.title = book.title
+        self.author = book.author
+        self.description = book.description
+        self.pathImage = book.pathImage
+    }
+}
