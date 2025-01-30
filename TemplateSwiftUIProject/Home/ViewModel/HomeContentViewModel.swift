@@ -136,6 +136,129 @@ class HomeContentViewModel: HomeViewModelProtocol {
 
 
 
+// MARK: - before pattern Coordinator
+
+//import Combine
+//import SwiftUI
+//
+//
+//enum ViewState {
+//    case loading
+//    case error(String)
+//    case content([BookCloud])
+//}
+//
+//extension ViewState {
+//    var isError:Bool {
+//        if case .error = self {
+//            return true
+//        }
+//        return false
+//    }
+//}
+//
+//enum StateError {
+//    case localError
+//    case globalError
+//}
+//
+//
+//protocol HomeViewModelProtocol: ObservableObject {
+//    var viewState: ViewState { get set }
+//    var alertManager:AlertManager { get set }
+//    func removeBook(book: BookCloud, forView:String, operationDescription: String)
+//    func retry()
+//}
+//
+//
+//class HomeContentViewModel: HomeViewModelProtocol {
+//    
+//    /// может просто var alertManager:AlertManager ???@ObservedObject
+//    var alertManager:AlertManager
+//    var sheetManager:SheetManager
+//    @Published var viewState: ViewState = .loading
+//    
+//    private var stateError:StateError = .localError
+//    private var cancellables = Set<AnyCancellable>()
+//    private var authenticationService: AuthenticationServiceProtocol
+//    private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
+//    private var managerCRUDS: any CRUDSManagerProtocol
+//    private let errorHandler: ErrorHandlerProtocol
+//    
+//    init(alertManager: AlertManager = AlertManager.shared, sheetManager: SheetManager = SheetManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: any CRUDSManagerProtocol, errorHandler: ErrorHandlerProtocol) {
+//        self.alertManager = alertManager
+//        self.authenticationService = authenticationService
+//        self.firestorColletionObserverService = firestorColletionObserverService
+//        self.errorHandler = errorHandler
+//        self.managerCRUDS = managerCRUDS
+//        self.sheetManager = sheetManager
+//        bind()
+//        print("init HomeContentViewModel")
+//    }
+//    
+//    private func bind() {
+//        
+//        viewState = .loading
+//        authenticationService.authenticate()
+//            .flatMap { [weak self] result -> AnyPublisher<Result<[BookCloud], Error>, Never> in
+//                guard let self = self else {
+//                    return Just(.success([])).eraseToAnyPublisher()
+//                }
+//                switch result {
+//                case .success(let userId):
+//                    
+//                    return firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
+//                case .failure(let error):
+//                    stateError = .globalError
+//                    return Just(.failure(error)).eraseToAnyPublisher()
+//                }
+//            }
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] result in
+//                switch result {
+//                case .success(let data):
+//                    self?.viewState = .content(data)
+//                case .failure(let error):
+//                    self?.handleError(error)
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func retry() {
+//        authenticationService.reset()
+//        bind()
+//    }
+//    
+//    private func handleError(_ error: Error) {
+//        switch stateError {
+//        case .localError:
+//            handleFirestoreError(error)
+//        case .globalError:
+//            handleAuthenticationError(error)
+//        }
+//        stateError = .localError
+//    }
+//    
+//    func removeBook(book: BookCloud, forView:String, operationDescription: String) {
+//        managerCRUDS.removeBook(book: book, forView: forView, operationDescription: operationDescription)
+//    }
+//    
+//    private func handleAuthenticationError(_ error: Error) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showGlobalAlert(message: errorMessage, operationDescription: "Error authentication")
+//        viewState = .error(errorMessage)
+//    }
+//    
+//    private func handleFirestoreError(_ error: Error) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: "Error Database")
+//        viewState = .error(errorMessage)
+//    }
+//}
+
+
+
 
 
 // MARK: - a old understanding of how bindingError works -

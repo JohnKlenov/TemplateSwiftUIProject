@@ -124,6 +124,131 @@ struct HomeContentView:View {
     }
 }
 
+
+// MARK: - before pattern Coordinator
+
+
+//import SwiftUI
+//
+//struct HomeContentView:View {
+//    
+//    @StateObject private var viewModel: HomeContentViewModel
+//    
+//    init(managerCRUDS: CRUDSManager) {
+//        _viewModel = StateObject(wrappedValue: HomeContentViewModel(
+//            authenticationService: AuthenticationService(),
+//            firestorColletionObserverService: FirestoreCollectionObserverService(),
+//            managerCRUDS: managerCRUDS,
+//            errorHandler: SharedErrorHandler()))
+//        print("init HomeContentView")
+//    }
+//    
+//    var body: some View {
+//        /// NavigationView вызывал жёлтую ошибку в консоли
+//        NavigationStack {
+//            let _ = Self._printChanges()
+//            ZStack {
+//                switch viewModel.viewState {
+//                case .loading:
+//                    ProgressView("Loading...")
+//                case .content(let data):
+//                    contentView(data: data)
+//                case .error(let error):
+//                    errorView(error: error)
+//                }
+//            }
+//            .background(AppColors.background)
+//            .navigationTitle("Home")
+//            .toolbar{
+//                ToolbarItem(placement: .topBarTrailing) {
+//                    Button("Add") {
+//                        viewModel.sheetManager.showSheet()
+//                    }
+//                    .foregroundStyle(AppColors.activeColor)
+//                    .padding()
+//                    .disabled(viewModel.viewState.isError)
+//                }
+//            }
+//            .onAppear {
+//                print("onAppear HomeContentView")
+//                viewModel.alertManager.isHomeViewVisible = true
+//            }
+//            .onDisappear {
+//                print("onDisappear HomeContentView")
+//                viewModel.alertManager.isHomeViewVisible = false
+//                
+//            }
+//            .task {
+//                print("task HomeContentView")
+//            }
+//        }
+//    }
+//    
+//    /// так как errorView заполняет пространство при первом старте или неожиданно возникшей ошибкой уже после успеха
+//    /// но дублируется локальным или гобальным алертам
+//    /// мы должны сделать его контент подходящим для любой ситуации
+//    private func errorView(error:String) -> some View {
+//        VStack {
+//            Spacer()
+//            ContentUnavailableView(label: {
+//                
+//                Label("Ups :(", systemImage: "exclamationmark.triangle")
+//            }, description: {
+//                Text("Try again! Something went wrong!")
+//            }, actions: {
+//                Button("Refresh") {
+//                    viewModel.retry()
+//                }
+//            })
+//            //            .background(AppColors.secondaryBackground)
+//            .frame(maxWidth: .infinity)
+//            Spacer()
+//        }
+//        .ignoresSafeArea(edges: [.horizontal])
+//    }
+//    
+//    private func contentView(data:[BookCloud]) -> some View {
+//        List(data) { book in
+//            bookRowView(book)
+//                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+//                    Button(role: .destructive) {
+//                        viewModel.removeBook(book: book, forView: "HomeView", operationDescription: "Error deleting book")
+//                    } label: {
+//                        Label("delete", systemImage: "trash.fill")
+//                    }
+//                }
+//        }
+//    }
+//    
+//    private func bookRowView(_ book: BookCloud) -> some View {
+//        NavigationLink(destination: BookDetailsView(book: book)) {
+//            VStack {
+//                HStack(spacing: 10) {
+//                    Image(systemName: "swift")
+//                        .foregroundStyle(.pink)
+//                        .frame(width: 30, height: 30)
+//                    
+//                    VStack(alignment: .leading) {
+//                        Text(book.title)
+//                            .font(.headline)
+//                        Text(book.description)
+//                            .font(.subheadline)
+//                        Text(book.author)
+//                            .font(.subheadline)
+//                    }
+//                    Spacer()
+//                }
+//            }
+//        }
+//    }
+//}
+
+
+
+
+
+
+
 //    private func contentView(data: [BookCloud]) -> some View {
 //        List(data) { book in
 //            NavigationLink(destination: BookDetailsView(book: book)) {

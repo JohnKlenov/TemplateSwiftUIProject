@@ -64,7 +64,7 @@ struct HomeView: View {
     @State private var cancellables = Set<AnyCancellable>()
     
     @EnvironmentObject private var crudManager: CRUDSManager
-    
+    @EnvironmentObject var mainCoordinator:MainCoordinator
     init() {
         _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: SheetManager.shared, alertManager: AlertManager.shared))
     }
@@ -74,9 +74,12 @@ struct HomeView: View {
         VStack {
             let _ = Self._printChanges()
             HomeContentView(managerCRUDS: crudManager)
+            Button("switchTabItem") {
+                mainCoordinator.tabViewSwitcher.tabSelection = 2
+            }
         }
         .sheet(isPresented: $isShowSheet) {
-            BookEditView(managerCRUDS: crudManager)
+            BookEditView(managerCRUDS: crudManager, presentEditView: "HomeView")
         }
         .onFirstAppear {
             print("onFirstAppear")
@@ -114,7 +117,7 @@ struct HomeView: View {
             .sink { (localAlert, isHomeViewVisible) in
                 print(".sink { (localAlert, isHomeViewVisible)")
                 if isHomeViewVisible, let alert = localAlert["HomeView"] {
-                    print(".sink showAlert = true")
+                    print("if isHomeViewVisible, let alert = localAlert")
                     alertMessage = alert.first?.message ?? "Something went wrong try again!"
                     alertTitle = alert.first?.operationDescription ?? "Error"
                     isShowAlert = true
@@ -123,6 +126,87 @@ struct HomeView: View {
             .store(in: &cancellables)
     }
 }
+
+// MARK: - before pattern Coordinator
+
+//import SwiftUI
+//import Combine
+//
+//
+//struct HomeView: View {
+//    
+//    @StateObject private var viewModel:HomeViewModel
+//    
+//    //sheet
+//    @State private var isShowSheet:Bool = false
+//
+//    //alert
+//    @State private var isShowAlert: Bool = false
+//    @State private var alertMessage: String = "Error"
+//    @State private var alertTitle: String = "Something went wrong try again!"
+//    @State private var cancellables = Set<AnyCancellable>()
+//    
+//    @EnvironmentObject private var crudManager: CRUDSManager
+//    
+//    init() {
+//        _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: SheetManager.shared, alertManager: AlertManager.shared))
+//    }
+//    
+//    var body: some View {
+//        
+//        VStack {
+//            let _ = Self._printChanges()
+//            HomeContentView(managerCRUDS: crudManager)
+//        }
+//        .sheet(isPresented: $isShowSheet) {
+//            BookEditView(managerCRUDS: crudManager, presentEditView: "HomeView")
+//        }
+//        .onFirstAppear {
+//            print("onFirstAppear")
+//            subscribeToActionSheet()
+//            subscribeToLocalAlerts()
+//        }
+//        .onAppear {
+//            print("onAppear HomeView")
+//            /// принудительный rerendering view
+////            Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+////                print("isTestProperty")
+////                   viewModel.isTestProperty.toggle() // Или любое изменение состояния
+////               }
+//        }
+//        .onDisappear {
+//            print("onDisappear HomeView")
+//        }
+//        .background {
+//            AlertViewLocal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage, nameView: "HomeView")
+//        }
+//    }
+//    
+//    private func subscribeToActionSheet() {
+//        viewModel.sheetManager.$isPresented
+//            .sink { isPresented in
+//                print(".sink { isPresented - \(isPresented)")
+//                isShowSheet = isPresented
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func subscribeToLocalAlerts() {
+//        viewModel.alertManager.$localAlerts
+//            .combineLatest(viewModel.alertManager.$isHomeViewVisible)
+//            .sink { (localAlert, isHomeViewVisible) in
+//                print(".sink { (localAlert, isHomeViewVisible)")
+//                if isHomeViewVisible, let alert = localAlert["HomeView"] {
+//                    print("if isHomeViewVisible, let alert = localAlert")
+//                    alertMessage = alert.first?.message ?? "Something went wrong try again!"
+//                    alertTitle = alert.first?.operationDescription ?? "Error"
+//                    isShowAlert = true
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//}
+
 
 
 // MARK: - .environmentObject(crudManager)  -

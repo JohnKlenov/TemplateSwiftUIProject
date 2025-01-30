@@ -11,6 +11,11 @@ class AlertViewModel:ObservableObject {
     var alertManager:AlertManager
     
     init(alertManager:AlertManager) {
+        print("init AlertViewModel")
         self.alertManager = alertManager
+    }
+    
+    deinit {
+        print("deinit AlertViewModel")
     }
 }

@@ -21,7 +21,7 @@ struct AlertViewLocal: View {
         self._alertTitle = alertTitle
         self.nameView = nameView
         _viewModel = StateObject(wrappedValue: AlertViewModel(alertManager: AlertManager.shared))
-        print("init AlertView")
+        print("init AlertView - \(nameView)")
     }
     
     var body: some View {

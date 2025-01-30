@@ -28,7 +28,7 @@ struct BookRealtime: Identifiable, Codable {
 //      }
 }
 
-struct BookCloud: Identifiable, Codable {
+struct BookCloud: Identifiable, Codable, Equatable, Hashable{
     @DocumentID var id: String?
     var title: String
     var author: String

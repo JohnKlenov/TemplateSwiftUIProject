@@ -58,16 +58,17 @@ struct ContentView: View {
     @State private var alertMessage: String = "Error"
     @State private var alertTitle: String = "Something went wrong try again!" 
     @State private var cancellables = Set<AnyCancellable>()
+    @EnvironmentObject var mainCoordinator:MainCoordinator
     
     init() {
         print("init ContentView")
         _viewModel = StateObject(wrappedValue: ContentViewModel(alertManager: AlertManager.shared))
 
     }
-    
+
     var body: some View {
         VStack {
-            TabView(selection: $selection) {
+            TabView(selection:$selection ) {
                 homeView
                     .tabItem {
                         Label("Home", systemImage: "house.fill")
@@ -90,6 +91,7 @@ struct ContentView: View {
             .onFirstAppear {
                 print("onFirstAppear ContentView")
                 subscribeToGlobalAlerts()
+                subscribeToSwitchTabViewItem()
             }
         }
     }
@@ -107,6 +109,14 @@ struct ContentView: View {
             }
             .store(in: &cancellables)
     }
+    
+    private func subscribeToSwitchTabViewItem() {
+        mainCoordinator.tabViewSwitcher.$tabSelection
+            .sink { selectionItem in
+                selection = selectionItem
+            }
+            .store(in: &cancellables)
+    }
 }
 
 
@@ -121,6 +131,99 @@ struct LazyView<Content: View>: View {
         build()
     }
 }
+
+
+
+// MARK: - before pattern Coordinator
+
+//import SwiftUI
+//import Combine
+//
+//
+//struct ContentView: View {
+//    
+//    private var homeView: LazyView<HomeView> {
+//        return LazyView { HomeView() }
+//    }
+//    
+//    private var galleryView: LazyView<GalleryView> {
+//        return LazyView { GalleryView() }
+//    }
+//    
+//    private var profileView: LazyView<ProfileView> {
+//        return LazyView { ProfileView() }
+//    }
+//    @StateObject private var viewModel:ContentViewModel
+//    
+//    @State private var selection: Int = 0
+//    @State private var isShowAlert: Bool = false
+//    @State private var alertMessage: String = "Error"
+//    @State private var alertTitle: String = "Something went wrong try again!"
+//    @State private var cancellables = Set<AnyCancellable>()
+//    
+//    init() {
+//        print("init ContentView")
+//        _viewModel = StateObject(wrappedValue: ContentViewModel(alertManager: AlertManager.shared))
+//
+//    }
+//    
+//    var body: some View {
+//        VStack {
+//            TabView(selection: $selection) {
+//                homeView
+//                    .tabItem {
+//                        Label("Home", systemImage: "house.fill")
+//                    }
+//                    .tag(0)
+//                galleryView
+//                    .tabItem {
+//                        Label("Gallery", systemImage: "photo.on.rectangle.fill")
+//                    }
+//                    .tag(1)
+//                profileView
+//                    .tabItem {
+//                        Label("Profile", systemImage: "person.crop.circle.fill")
+//                    }
+//                    .tag(2)
+//            }
+//            .background(
+//                AlertViewGlobal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage)
+//            )
+//            .onFirstAppear {
+//                print("onFirstAppear ContentView")
+//                subscribeToGlobalAlerts()
+//            }
+//        }
+//    }
+//    
+//    private func subscribeToGlobalAlerts() {
+//        viewModel.alertManager.$globalAlert
+//            .sink { globalAlert in
+//                print(".sink { globalAlert in")
+//                if let alert = globalAlert["globalError"] {
+//                    print(".sink showAlert = true")
+//                    alertMessage = alert.first?.message ?? "Something went wrong try again!"
+//                    alertTitle = alert.first?.operationDescription ?? "Error"
+//                    isShowAlert = true
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//}
+//
+//
+/////в TabBarViewController инициализация вкладок происходит по умолчанию при их выборе.
+/////LazyView - это удобный и простой способ. Он позволяет отложить инициализацию до момента, когда представление действительно потребуется, что может улучшить производительность приложения.
+//struct LazyView<Content: View>: View {
+//    let build: () -> Content
+//    init(_ build: @escaping () -> Content) {
+//        self.build = build
+//    }
+//    var body: Content {
+//        build()
+//    }
+//}
+
 
 
 // MARK: - .environmentObject(crudManager)  -

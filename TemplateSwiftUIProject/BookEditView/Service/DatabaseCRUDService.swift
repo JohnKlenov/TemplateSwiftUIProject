@@ -147,8 +147,6 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         Future {  promise in
             
             do {
-                print("func addBook(path")
-                print("func addBook(path 2")
                 let _ = try self.db.collection(path).addDocument(from: book) { error in
                     print("addDocument - \(String(describing: error))")
                     if let error = error {

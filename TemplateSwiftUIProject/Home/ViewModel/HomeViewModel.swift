@@ -17,3 +17,18 @@ class HomeViewModel:ObservableObject {
         self.alertManager = alertManager
     }
 }
+
+// MARK: - before pattern Coordinator
+
+//import SwiftUI
+//
+//class HomeViewModel:ObservableObject {
+//    var sheetManager: SheetManager
+//    var alertManager:AlertManager
+////    @Published var isTestProperty:Bool = false
+//    
+//    init(sheetManager: SheetManager, alertManager:AlertManager) {
+//        self.sheetManager = sheetManager
+//        self.alertManager = alertManager
+//    }
+//}

@@ -14,3 +14,17 @@ class ContentViewModel:ObservableObject {
         self.alertManager = alertManager
     }
 }
+
+
+// MARK: - before pattern Coordinator
+
+//import SwiftUI
+//
+//class ContentViewModel:ObservableObject {
+//    var alertManager:AlertManager
+//    
+//    init(alertManager:AlertManager) {
+//        self.alertManager = alertManager
+//    }
+//}
+
