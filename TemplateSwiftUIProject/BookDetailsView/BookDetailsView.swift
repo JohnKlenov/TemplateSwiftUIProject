@@ -12,13 +12,15 @@ import SwiftUI
 struct BookDetailsView: View {
     
     @State private var isShowSheet:Bool = false
-    @EnvironmentObject private var crudManager: CRUDSManager
+//    @EnvironmentObject private var crudManager: CRUDSManager
+    var crudManager: CRUDSManager
     @Environment(\.dismiss) var dismiss
     @State var book: BookCloud
     
-    init(book: BookCloud) {
+    init(managerCRUDS: CRUDSManager, book: BookCloud) {
         print("init BookDetailsView")
         self.book = book
+        self.crudManager = managerCRUDS
     }
     
     var body: some View {
@@ -42,15 +44,15 @@ struct BookDetailsView: View {
         .sheet(isPresented: $isShowSheet) {
             ///Для struct использование [weak self] не требуется, так как они не создают циклов удержания.
             ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
-            BookEditView(book: book, mode: .edit, managerCRUDS: crudManager, presentEditView: "HomeView") {  result in
-                switch result {
-                case .success(let (action, bookCloud)):
-                    handleEditCompletion(action: action, book: bookCloud)
-                case .failure(let error):
-                    print("Error: \(error)")
-                }
-                //                isShowSheet = false // Закрытие листа после завершения
-            }
+//            BookEditView(book: book, mode: .edit, managerCRUDS: crudManager, presentEditView: "HomeView") {  result in
+//                switch result {
+//                case .success(let (action, bookCloud)):
+//                    handleEditCompletion(action: action, book: bookCloud)
+//                case .failure(let error):
+//                    print("Error: \(error)")
+//                }
+//                //                isShowSheet = false // Закрытие листа после завершения
+//            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

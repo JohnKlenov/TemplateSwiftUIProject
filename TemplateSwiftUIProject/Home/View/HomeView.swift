@@ -49,50 +49,47 @@
 import SwiftUI
 import Combine
 
+//sheet
+//    @State private var isShowSheet:Bool = false
 
 struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
     
-    //sheet
-    @State private var isShowSheet:Bool = false
-
     //alert
     @State private var isShowAlert: Bool = false
     @State private var alertMessage: String = "Error"
     @State private var alertTitle: String = "Something went wrong try again!" 
     @State private var cancellables = Set<AnyCancellable>()
     
-    @EnvironmentObject private var crudManager: CRUDSManager
+//    @EnvironmentObject private var crudManager: CRUDSManager
     @EnvironmentObject var mainCoordinator:MainCoordinator
+    @EnvironmentObject var homeCoordinator:HomeCoordinator
     init() {
         _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: SheetManager.shared, alertManager: AlertManager.shared))
+        print("init HomeView")
     }
     
     var body: some View {
         
-        VStack {
-            let _ = Self._printChanges()
-            HomeContentView(managerCRUDS: crudManager)
-            Button("switchTabItem") {
-                mainCoordinator.tabViewSwitcher.tabSelection = 2
-            }
-        }
-        .sheet(isPresented: $isShowSheet) {
-            BookEditView(managerCRUDS: crudManager, presentEditView: "HomeView")
+        NavigationStack(path: $homeCoordinator.path) {
+            mainCoordinator.viewBuilder.homeViewBuild(page: .home)
+                .navigationDestination(for: HomeFlow.self) { page in
+                    mainCoordinator.viewBuilder.homeViewBuild(page: page)
+                }
+                .sheet(item: $homeCoordinator.sheet) { sheet in
+                    mainCoordinator.viewBuilder.buildSheet(sheet: sheet)
+                }
+                .fullScreenCover(item: $homeCoordinator.fullScreenItem) { cover in
+                    mainCoordinator.viewBuilder.buildCover(cover: cover)
+                }
         }
         .onFirstAppear {
             print("onFirstAppear")
-            subscribeToActionSheet()
             subscribeToLocalAlerts()
         }
         .onAppear {
             print("onAppear HomeView")
-            /// принудительный rerendering view 
-//            Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
-//                print("isTestProperty")
-//                   viewModel.isTestProperty.toggle() // Или любое изменение состояния
-//               }
         }
         .onDisappear {
             print("onDisappear HomeView")
@@ -100,15 +97,6 @@ struct HomeView: View {
         .background {
             AlertViewLocal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage, nameView: "HomeView")
         }
-    }
-    
-    private func subscribeToActionSheet() {
-        viewModel.sheetManager.$isPresented
-            .sink { isPresented in
-                print(".sink { isPresented - \(isPresented)")
-                isShowSheet = isPresented
-            }
-            .store(in: &cancellables)
     }
     
     private func subscribeToLocalAlerts() {
@@ -126,6 +114,14 @@ struct HomeView: View {
             .store(in: &cancellables)
     }
 }
+
+//        VStack {
+//            let _ = Self._printChanges()
+//            HomeContentView(managerCRUDS: crudManager)
+//            Button("switchTabItem") {
+//                mainCoordinator.tabViewSwitcher.tabSelection = 2
+//            }
+//        }
 
 // MARK: - before pattern Coordinator
 

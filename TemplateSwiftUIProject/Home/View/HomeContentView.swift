@@ -14,6 +14,8 @@ import SwiftUI
 struct HomeContentView:View {
     
     @StateObject private var viewModel: HomeContentViewModel
+    @EnvironmentObject var mainCoordinator:MainCoordinator
+    @EnvironmentObject var homeCoordinator:HomeCoordinator
     
     init(managerCRUDS: CRUDSManager) {
         _viewModel = StateObject(wrappedValue: HomeContentViewModel(
@@ -26,8 +28,8 @@ struct HomeContentView:View {
     
     var body: some View {
         /// NavigationView вызывал жёлтую ошибку в консоли
-        NavigationStack {
-            let _ = Self._printChanges()
+//        NavigationStack {
+//            let _ = Self._printChanges()
             ZStack {
                 switch viewModel.viewState {
                 case .loading:
@@ -43,7 +45,10 @@ struct HomeContentView:View {
             .toolbar{
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add") {
-                        viewModel.sheetManager.showSheet()
+//                        BookEditView(managerCRUDS: crudManager, presentEditView: "HomeView")
+//                        viewModel.sheetManager.showSheet()
+                        let sheetContent = AnyView(BookEditView(managerCRUDS: viewModel.managerCRUDS as! CRUDSManager, presentEditView: "HomeView"))
+                        homeCoordinator.presentSheet(SheetItem(content: sheetContent))
                     }
                     .foregroundStyle(AppColors.activeColor)
                     .padding()
@@ -62,7 +67,7 @@ struct HomeContentView:View {
             .task {
                 print("task HomeContentView")
             }
-        }
+//        }
     }
     
     /// так как errorView заполняет пространство при первом старте или неожиданно возникшей ошибкой уже после успеха
@@ -102,28 +107,48 @@ struct HomeContentView:View {
     }
     
     private func bookRowView(_ book: BookCloud) -> some View {
-        NavigationLink(destination: BookDetailsView(book: book)) {
-            VStack {
-                HStack(spacing: 10) {
-                    Image(systemName: "swift")
-                        .foregroundStyle(.pink)
-                        .frame(width: 30, height: 30)
-                    
-                    VStack(alignment: .leading) {
-                        Text(book.title)
-                            .font(.headline)
-                        Text(book.description)
-                            .font(.subheadline)
-                        Text(book.author)
-                            .font(.subheadline)
-                    }
-                    Spacer()
+        VStack {
+            HStack(spacing: 10) {
+                Image(systemName: "swift")
+                    .foregroundStyle(.pink)
+                    .frame(width: 30, height: 30)
+                
+                VStack(alignment: .leading) {
+                    Text(book.title)
+                        .font(.headline)
+                    Text(book.description)
+                        .font(.subheadline)
+                    Text(book.author)
+                        .font(.subheadline)
                 }
+                Spacer()
+            }
+            .onTapGesture {
+                homeCoordinator.navigateTo(page: .bookDetails(book))
             }
         }
     }
 }
 
+//        NavigationLink(destination: BookDetailsView(book: book)) {
+//            VStack {
+//                HStack(spacing: 10) {
+//                    Image(systemName: "swift")
+//                        .foregroundStyle(.pink)
+//                        .frame(width: 30, height: 30)
+//
+//                    VStack(alignment: .leading) {
+//                        Text(book.title)
+//                            .font(.headline)
+//                        Text(book.description)
+//                            .font(.subheadline)
+//                        Text(book.author)
+//                            .font(.subheadline)
+//                    }
+//                    Spacer()
+//                }
+//            }
+//        }
 
 // MARK: - before pattern Coordinator
 

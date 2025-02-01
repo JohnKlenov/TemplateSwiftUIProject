@@ -12,7 +12,8 @@ import Combine
 class MainCoordinator:ObservableObject {
     
     var tabViewSwitcher = TabViewSwitcher()
-    var mainCoordinator = HomeCoordinator()
+    var homeCoordinator = HomeCoordinator()
+    var viewBuilder = ViewBuilderService()
 }
 
 class TabViewSwitcher:ObservableObject {
@@ -20,7 +21,12 @@ class TabViewSwitcher:ObservableObject {
 }
 
 class HomeCoordinator:ObservableObject {
-    @Published var path: NavigationPath = NavigationPath()
+    
+    @Published var path: NavigationPath = NavigationPath() {
+        didSet {
+            print("NavigationPath updated: \(path.count)")
+        }
+    }
     @Published var sheet:SheetItem?
     @Published var fullScreenItem:FullScreenItem?
     
@@ -50,6 +56,37 @@ class HomeCoordinator:ObservableObject {
     
     func dismissCover() {
         self.fullScreenItem = nil
+    }
+}
+
+struct ViewBuilderService {
+    
+    private var crudManager = CRUDSManager(
+        authService: AuthService(),
+        errorHandler: SharedErrorHandler(),
+        databaseService: FirestoreDatabaseCRUDService()
+    )
+    
+    @ViewBuilder func homeViewBuild(page:HomeFlow) -> some View {
+        switch page {
+            
+        case .home:
+            HomeContentView(managerCRUDS: crudManager)
+        case .bookDetails(let book):
+            BookDetailsView(managerCRUDS: crudManager, book: book)
+        case .someHomeView:
+            EmptyView()
+        }
+    }
+    
+    @ViewBuilder
+    func buildSheet(sheet: SheetItem) -> some View {
+        sheet.content
+    }
+    
+    @ViewBuilder
+    func buildCover(cover: FullScreenItem) -> some View {
+        cover.content
     }
 }
 

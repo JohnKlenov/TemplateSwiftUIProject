@@ -21,12 +21,7 @@ struct TemplateSwiftUIProjectApp: App {
     ///использование @AppStorage позволяет привязать переменную(tiedOnboarding) к UserDefaults, а SwiftUI автоматически отслеживает и реагирует на изменения этой переменной, что приводит к обновлению пользовательского интерфейса без необходимости явных вызовов для переключения представлений.
     @AppStorage("hasSeenOnboarding") var tiedOnboarding:Bool = false
     
-    // Создаем глобальный экземпляр CRUDSManager
-       @StateObject private var crudManager = CRUDSManager(
-           authService: AuthService(),
-           errorHandler: SharedErrorHandler(),
-           databaseService: FirestoreDatabaseCRUDService()
-       )
+    
     
     @StateObject private var mainCoordinator = MainCoordinator()
     
@@ -41,7 +36,6 @@ struct TemplateSwiftUIProjectApp: App {
         WindowGroup {
             if tiedOnboarding {
                 ContentView()
-                    .environmentObject(crudManager) // Передаем экземпляр во всю иерархию
                     .environmentObject(mainCoordinator)
             } else {
                 OnboardingView()
@@ -50,8 +44,15 @@ struct TemplateSwiftUIProjectApp: App {
     }
 }
 
+//                    .environmentObject(crudManager) // Передаем экземпляр во всю иерархию
+//                    .environmentObject(mainCoordinator.tabViewSwitcher)
 
-
+// Создаем глобальный экземпляр CRUDSManager
+//       @StateObject private var crudManager = CRUDSManager(
+//           authService: AuthService(),
+//           errorHandler: SharedErrorHandler(),
+//           databaseService: FirestoreDatabaseCRUDService()
+//       )
 
 
 

@@ -58,7 +58,7 @@ class HomeContentViewModel: HomeViewModelProtocol {
     private var cancellables = Set<AnyCancellable>()
     private var authenticationService: AuthenticationServiceProtocol
     private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
-    private var managerCRUDS: any CRUDSManagerProtocol
+    var managerCRUDS: any CRUDSManagerProtocol
     private let errorHandler: ErrorHandlerProtocol
     
     init(alertManager: AlertManager = AlertManager.shared, sheetManager: SheetManager = SheetManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: any CRUDSManagerProtocol, errorHandler: ErrorHandlerProtocol) {

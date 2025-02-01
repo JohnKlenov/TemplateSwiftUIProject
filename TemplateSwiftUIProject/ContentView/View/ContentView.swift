@@ -68,12 +68,15 @@ struct ContentView: View {
 
     var body: some View {
         VStack {
-            TabView(selection:$selection ) {
+            
+//            $tabViewSwitcher.tabSelection
+            TabView(selection:$selection) {
                 homeView
                     .tabItem {
                         Label("Home", systemImage: "house.fill")
                     }
                     .tag(0)
+                    .environmentObject(mainCoordinator.homeCoordinator)
                 galleryView
                     .tabItem {
                         Label("Gallery", systemImage: "photo.on.rectangle.fill")
