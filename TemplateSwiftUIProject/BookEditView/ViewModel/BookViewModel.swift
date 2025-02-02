@@ -72,7 +72,7 @@ class BookViewModel:ObservableObject {
     
     deinit {
         print("deinit BookViewModel")
-        sheetManager.hideSheet()
+//        sheetManager.hideSheet()
     }
 }
 

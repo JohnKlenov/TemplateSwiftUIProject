@@ -25,7 +25,7 @@ struct GalleryView: View {
     @State private var isPresentingAlert = false
     @State private var isPresentingSheet = false
     @StateObject var viewModel = GalleryViewModel()
-    @EnvironmentObject private var crudManager: CRUDSManager
+//    @EnvironmentObject private var crudManager: CRUDSManager
     
     var body: some View {
         VStack {
@@ -38,7 +38,7 @@ struct GalleryView: View {
         .onFirstAppear {
             print("onFirstAppear GalleryView")
             /// ID
-            viewModel.setDataModel(crudManager)
+//            viewModel.setDataModel(crudManager)
         }
         .onAppear {
             print("onAppear GalleryView")

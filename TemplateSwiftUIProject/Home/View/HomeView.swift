@@ -59,30 +59,30 @@ struct HomeView: View {
     //alert
     @State private var isShowAlert: Bool = false
     @State private var alertMessage: String = "Error"
-    @State private var alertTitle: String = "Something went wrong try again!" 
+    @State private var alertTitle: String = "Something went wrong try again!"
     @State private var cancellables = Set<AnyCancellable>()
     
-//    @EnvironmentObject private var crudManager: CRUDSManager
     @EnvironmentObject var mainCoordinator:MainCoordinator
     @EnvironmentObject var homeCoordinator:HomeCoordinator
+    
     init() {
         _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: SheetManager.shared, alertManager: AlertManager.shared))
         print("init HomeView")
     }
     
     var body: some View {
-        
+        ///в момент rerendering в init View передаются те же параметры что и при первой инициализации 
         NavigationStack(path: $homeCoordinator.path) {
             mainCoordinator.viewBuilder.homeViewBuild(page: .home)
                 .navigationDestination(for: HomeFlow.self) { page in
                     mainCoordinator.viewBuilder.homeViewBuild(page: page)
                 }
-                .sheet(item: $homeCoordinator.sheet) { sheet in
-                    mainCoordinator.viewBuilder.buildSheet(sheet: sheet)
-                }
-                .fullScreenCover(item: $homeCoordinator.fullScreenItem) { cover in
-                    mainCoordinator.viewBuilder.buildCover(cover: cover)
-                }
+        }
+        .sheet(item: $homeCoordinator.sheet) { sheet in
+            mainCoordinator.viewBuilder.buildSheet(sheet: sheet)
+        }
+        .fullScreenCover(item: $homeCoordinator.fullScreenItem) { cover in
+            mainCoordinator.viewBuilder.buildCover(cover: cover)
         }
         .onFirstAppear {
             print("onFirstAppear")

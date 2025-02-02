@@ -27,7 +27,11 @@ class HomeCoordinator:ObservableObject {
             print("NavigationPath updated: \(path.count)")
         }
     }
-    @Published var sheet:SheetItem?
+    @Published var sheet:SheetItem? {
+        didSet {
+            print("sheet updated: \(String(describing: sheet))")
+        }
+    }
     @Published var fullScreenItem:FullScreenItem?
     
     func navigateTo(page:HomeFlow) {
@@ -75,7 +79,7 @@ struct ViewBuilderService {
         case .bookDetails(let book):
             BookDetailsView(managerCRUDS: crudManager, book: book)
         case .someHomeView:
-            EmptyView()
+            SomeView()
         }
     }
     
@@ -135,6 +139,42 @@ struct FullScreenItem: Identifiable {
     var content: AnyView
 }
 
+
+
+struct SomeView: View {
+    @EnvironmentObject var homeCoordinator:HomeCoordinator
+    @StateObject var viewModel = SomeViewModel()
+    
+    init() {
+        print("init SomeView")
+    }
+    var body:some View {
+        ZStack {
+            Color.green.ignoresSafeArea()
+            Button("BackToRoot") {
+                homeCoordinator.popToRoot()
+                print("did tap BackToRoot")
+            }
+        }
+        .onAppear {
+            print("onAppear SomeView")
+        }
+        .onDisappear {
+            print("onDisappear SomeView")
+        }
+    }
+}
+
+class SomeViewModel:ObservableObject {
+    
+    init() {
+        print("init SomeViewModel")
+    }
+    
+    deinit {
+        print("deinit SomeViewModel")
+    }
+}
 
 //enum Sheet: String, Identifiable {
 //    var id: String {

@@ -69,7 +69,6 @@ struct ContentView: View {
     var body: some View {
         VStack {
             
-//            $tabViewSwitcher.tabSelection
             TabView(selection:$selection) {
                 homeView
                     .tabItem {

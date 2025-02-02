@@ -7,20 +7,32 @@
 //
 import SwiftUI
 
-
+class BookDetailsViewModel:ObservableObject {
+    var crudManager: CRUDSManager
+    
+    init(managerCRUDS: CRUDSManager) {
+        print("init BookDetailsViewModel")
+        self.crudManager = managerCRUDS
+    }
+    
+    deinit {
+        print("deinit BookDetailsViewModel")
+    }
+}
 
 struct BookDetailsView: View {
     
     @State private var isShowSheet:Bool = false
 //    @EnvironmentObject private var crudManager: CRUDSManager
-    var crudManager: CRUDSManager
+    @EnvironmentObject var homeCoordinator:HomeCoordinator
+    @StateObject var viewModel:BookDetailsViewModel
     @Environment(\.dismiss) var dismiss
     @State var book: BookCloud
     
     init(managerCRUDS: CRUDSManager, book: BookCloud) {
-        print("init BookDetailsView")
+        _viewModel = StateObject(wrappedValue: BookDetailsViewModel(managerCRUDS: managerCRUDS))
         self.book = book
-        self.crudManager = managerCRUDS
+        print("init BookDetailsView - \(book.author)")
     }
     
     var body: some View {
@@ -38,26 +50,26 @@ struct BookDetailsView: View {
                 Text("title - \(book.author)")
                     .font(.system(.largeTitle, design: .rounded, weight: .regular))
                     .foregroundStyle(.brown)
+                Button("GoToSomeView") {
+                    homeCoordinator.navigateTo(page: .someHomeView)
+                }
             }
             
-        }
-        .sheet(isPresented: $isShowSheet) {
-            ///Для struct использование [weak self] не требуется, так как они не создают циклов удержания.
-            ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
-//            BookEditView(book: book, mode: .edit, managerCRUDS: crudManager, presentEditView: "HomeView") {  result in
-//                switch result {
-//                case .success(let (action, bookCloud)):
-//                    handleEditCompletion(action: action, book: bookCloud)
-//                case .failure(let error):
-//                    print("Error: \(error)")
-//                }
-//                //                isShowSheet = false // Закрытие листа после завершения
-//            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Edit") {
-                    isShowSheet = true
+                    ///Для struct использование [weak self] не требуется, так как они не создают циклов удержания.
+                    ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
+                    let sheetContent = AnyView(BookEditView(book: book, mode: .edit, managerCRUDS: viewModel.crudManager, presentEditView: "HomeView") {  result in
+                        switch result {
+                        case .success(let (action, bookCloud)):
+                            handleEditCompletion(action: action, book: bookCloud)
+                        case .failure(let error):
+                            print("Error: \(error)")
+                        }
+                    })
+                    homeCoordinator.presentSheet(SheetItem(content: sheetContent))
                 }
             }
         }
@@ -72,7 +84,8 @@ struct BookDetailsView: View {
     private func handleEditCompletion(action: Action, book: BookCloud) {
         switch action {
         case .done:
-            self.book = book
+            break
+//            self.book = book
         case .delete:
             dismiss()
         case .cancel:
@@ -82,6 +95,20 @@ struct BookDetailsView: View {
 }
 
 
+
+//        .sheet(isPresented: $isShowSheet) {
+//            ///Для struct использование [weak self] не требуется, так как они не создают циклов удержания.
+//            ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
+//            BookEditView(book: book, mode: .edit, managerCRUDS: viewModel.crudManager, presentEditView: "HomeView") {  result in
+//                switch result {
+//                case .success(let (action, bookCloud)):
+//                    handleEditCompletion(action: action, book: bookCloud)
+//                case .failure(let error):
+//                    print("Error: \(error)")
+//                }
+//                //                isShowSheet = false // Закрытие листа после завершения
+//            }
+//        }
 
 // MARK: - before pattern Coordinator
 

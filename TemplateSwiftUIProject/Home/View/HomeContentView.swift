@@ -27,8 +27,6 @@ struct HomeContentView:View {
     }
     
     var body: some View {
-        /// NavigationView вызывал жёлтую ошибку в консоли
-//        NavigationStack {
 //            let _ = Self._printChanges()
             ZStack {
                 switch viewModel.viewState {
