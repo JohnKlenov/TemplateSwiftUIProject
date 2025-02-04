@@ -22,22 +22,29 @@ class BookDetailsViewModel:ObservableObject {
 
 struct BookDetailsView: View {
     
-    @State private var isShowSheet:Bool = false
-//    @EnvironmentObject private var crudManager: CRUDSManager
     @EnvironmentObject var homeCoordinator:HomeCoordinator
+    @EnvironmentObject var homeBookDataStore:HomeBookDataStore
     @StateObject var viewModel:BookDetailsViewModel
     @Environment(\.dismiss) var dismiss
-    @State var book: BookCloud
+    @State var bookID: String
     
-    init(managerCRUDS: CRUDSManager, book: BookCloud) {
+    init(managerCRUDS: CRUDSManager, bookID: String) {
         _viewModel = StateObject(wrappedValue: BookDetailsViewModel(managerCRUDS: managerCRUDS))
-        self.book = book
-        print("init BookDetailsView - \(book.author)")
+        self.bookID = bookID
+        print("init BookDetailsView - \(bookID)")
     }
     
     var body: some View {
+        if let book = homeBookDataStore.books.first(where: { $0.id == bookID}) {
+            content(book: book)
+        } else {
+            Text("Book not found")
+        }
+    }
+    
+    private func content(book:BookCloud) -> some View {
         ZStack {
-//            let _ = Self._printChanges()
+            //            let _ = Self._printChanges()
             Color.clear
                 .ignoresSafeArea()
             VStack {
@@ -63,8 +70,8 @@ struct BookDetailsView: View {
                     ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
                     let sheetContent = AnyView(BookEditView(book: book, mode: .edit, managerCRUDS: viewModel.crudManager, presentEditView: "HomeView") {  result in
                         switch result {
-                        case .success(let (action, bookCloud)):
-                            handleEditCompletion(action: action, book: bookCloud)
+                        case .success(let action):
+                            handleEditCompletion(action: action)
                         case .failure(let error):
                             print("Error: \(error)")
                         }
@@ -81,11 +88,10 @@ struct BookDetailsView: View {
         }
     }
     
-    private func handleEditCompletion(action: Action, book: BookCloud) {
+    private func handleEditCompletion(action: Action) {
         switch action {
         case .done:
             break
-//            self.book = book
         case .delete:
             dismiss()
         case .cancel:
@@ -96,19 +102,98 @@ struct BookDetailsView: View {
 
 
 
-//        .sheet(isPresented: $isShowSheet) {
-//            ///Для struct использование [weak self] не требуется, так как они не создают циклов удержания.
-//            ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
-//            BookEditView(book: book, mode: .edit, managerCRUDS: viewModel.crudManager, presentEditView: "HomeView") {  result in
-//                switch result {
-//                case .success(let (action, bookCloud)):
-//                    handleEditCompletion(action: action, book: bookCloud)
-//                case .failure(let error):
-//                    print("Error: \(error)")
+
+// MARK: - before HomeBookDataStore
+
+//import SwiftUI
+//
+//class BookDetailsViewModel:ObservableObject {
+//    var crudManager: CRUDSManager
+//    
+//    init(managerCRUDS: CRUDSManager) {
+//        print("init BookDetailsViewModel")
+//        self.crudManager = managerCRUDS
+//    }
+//    
+//    deinit {
+//        print("deinit BookDetailsViewModel")
+//    }
+//}
+//
+//struct BookDetailsView: View {
+//    
+//    @State private var isShowSheet:Bool = false
+////    @EnvironmentObject private var crudManager: CRUDSManager
+//    @EnvironmentObject var homeCoordinator:HomeCoordinator
+//    @StateObject var viewModel:BookDetailsViewModel
+//    @Environment(\.dismiss) var dismiss
+//    @State var book: BookCloud
+//    
+//    init(managerCRUDS: CRUDSManager, book: BookCloud) {
+//        _viewModel = StateObject(wrappedValue: BookDetailsViewModel(managerCRUDS: managerCRUDS))
+//        self.book = book
+//        print("init BookDetailsView - \(book.author)")
+//    }
+//    
+//    var body: some View {
+//        ZStack {
+////            let _ = Self._printChanges()
+//            Color.clear
+//                .ignoresSafeArea()
+//            VStack {
+//                Text("title - \(book.title)")
+//                    .font(.system(.largeTitle, design: .rounded, weight: .regular))
+//                    .foregroundStyle(.brown)
+//                Text("title - \(book.description)")
+//                    .font(.system(.largeTitle, design: .rounded, weight: .regular))
+//                    .foregroundStyle(.brown)
+//                Text("title - \(book.author)")
+//                    .font(.system(.largeTitle, design: .rounded, weight: .regular))
+//                    .foregroundStyle(.brown)
+//                Button("GoToSomeView") {
+//                    homeCoordinator.navigateTo(page: .someHomeView)
 //                }
-//                //                isShowSheet = false // Закрытие листа после завершения
+//            }
+//            
+//        }
+//        .toolbar {
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button("Edit") {
+//                    ///Для struct использование [weak self] не требуется, так как они не создают циклов удержания.
+//                    ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
+//                    let sheetContent = AnyView(BookEditView(book: book, mode: .edit, managerCRUDS: viewModel.crudManager, presentEditView: "HomeView") {  result in
+//                        switch result {
+//                        case .success(let (action, bookCloud)):
+//                            handleEditCompletion(action: action, book: bookCloud)
+//                        case .failure(let error):
+//                            print("Error: \(error)")
+//                        }
+//                    })
+//                    homeCoordinator.presentSheet(SheetItem(content: sheetContent))
+//                }
 //            }
 //        }
+//        .onAppear {
+//            print("BookDetailsView onAppear")
+//        }
+//        .onDisappear {
+//            print("BookDetailsView onDisappear")
+//        }
+//    }
+//    
+//    private func handleEditCompletion(action: Action, book: BookCloud) {
+//        switch action {
+//        case .done:
+//            self.book = book
+//        case .delete:
+//            dismiss()
+//        case .cancel:
+//            break
+//        }
+//    }
+//}
+
+
 
 // MARK: - before pattern Coordinator
 

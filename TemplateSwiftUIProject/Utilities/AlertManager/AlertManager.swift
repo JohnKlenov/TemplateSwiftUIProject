@@ -20,7 +20,7 @@ protocol AlertManagerProtocol: ObservableObject {
 //    var globalAlert: AlertData? { get set }
     var globalAlert: [String: [AlertData]] { get set }
     var localAlerts: [String: [AlertData]] { get set }
-    var isHomeViewVisible: Bool { get set }
+//    var isHomeViewVisible: Bool { get set }
     func showGlobalAlert(message: String, operationDescription: String)
     func showLocalalAlert(message: String, forView view: String, operationDescription: String)
 //    func resetGlobalAlert()
@@ -68,11 +68,11 @@ class AlertManager: AlertManagerProtocol {
         }
     }
     
-    @Published var isHomeViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости HomeView
-        didSet {
-            print("didSet isHomeViewVisible")
-        }
-    }
+//    @Published var isHomeViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости HomeView
+//        didSet {
+//            print("didSet isHomeViewVisible")
+//        }
+//    }
     func showGlobalAlert(message: String, operationDescription: String) {
         let alert = AlertData(message: message, operationDescription: operationDescription)
         

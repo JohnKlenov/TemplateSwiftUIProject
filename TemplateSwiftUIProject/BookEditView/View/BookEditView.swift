@@ -51,7 +51,8 @@ struct BookEditView: View {
     @FocusState var focus:FocusedField?
     @State var presentActionSheet = false
     
-    var completionHandler: ((Result<(Action, BookCloud), Error>) -> Void)?
+    var completionHandler: ((Result<Action, Error>) -> Void)?
+//    var completionHandler: ((Result<(Action, BookCloud), Error>) -> Void)?
     var presentEditView = ""
     var cancelButton: some View {
         Button("Cancel") {
@@ -67,7 +68,7 @@ struct BookEditView: View {
         .disabled(!viewModel.modified)
     }
     
-    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, managerCRUDS: CRUDSManager, presentEditView:String, completionHandler: ((Result<(Action, BookCloud), Error>) -> Void)? = nil) {
+    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, managerCRUDS: CRUDSManager, presentEditView:String, completionHandler: ((Result<Action, Error>) -> Void)? = nil) {
         print("init BookEditView")
         _viewModel = StateObject(wrappedValue: BookViewModel(book: book, mode: mode, managerCRUDS: managerCRUDS))
         self.presentEditView = presentEditView
@@ -152,19 +153,19 @@ struct BookEditView: View {
     }
     
     private func handleCancelTapped() {
-        self.completionHandler?(.success((.cancel, viewModel.book)))
+        self.completionHandler?(.success((.cancel)))
         dismiss()
     }
     
     private func handleDoneTapped() {
         viewModel.updateOrAddBook(forView: presentEditView, operationDescription: "Error adding or change book")
-        self.completionHandler?(.success((.done, viewModel.book)))
+        self.completionHandler?(.success((.done)))
         dismiss()
     }
     
     private func handleDeleteTapped() {
         viewModel.removeBook(forView: presentEditView, operationDescription: "Error deleting book")
-        self.completionHandler?(.success((.delete, viewModel.book)))
+        self.completionHandler?(.success((.delete)))
         dismiss()
     }
 }

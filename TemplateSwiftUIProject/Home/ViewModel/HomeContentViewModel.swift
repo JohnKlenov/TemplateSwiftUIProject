@@ -60,6 +60,7 @@ class HomeContentViewModel: HomeViewModelProtocol {
     private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
     var managerCRUDS: any CRUDSManagerProtocol
     private let errorHandler: ErrorHandlerProtocol
+    private var homeBookDataStore:HomeBookDataStore?
     
     init(alertManager: AlertManager = AlertManager.shared, sheetManager: SheetManager = SheetManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: any CRUDSManagerProtocol, errorHandler: ErrorHandlerProtocol) {
         self.alertManager = alertManager
@@ -68,7 +69,7 @@ class HomeContentViewModel: HomeViewModelProtocol {
         self.errorHandler = errorHandler
         self.managerCRUDS = managerCRUDS
         self.sheetManager = sheetManager
-        bind()
+//        bind()
         print("init HomeContentViewModel")
     }
     
@@ -93,6 +94,7 @@ class HomeContentViewModel: HomeViewModelProtocol {
             .sink { [weak self] result in
                 switch result {
                 case .success(let data):
+                    self?.homeBookDataStore?.books = data
                     self?.viewState = .content(data)
                 case .failure(let error):
                     self?.handleError(error)
@@ -101,7 +103,13 @@ class HomeContentViewModel: HomeViewModelProtocol {
             .store(in: &cancellables)
     }
     
+    func setupViewModel(dataStore:HomeBookDataStore) {
+        homeBookDataStore = dataStore
+        bind()
+    }
+    
     func retry() {
+        homeBookDataStore?.books = []
         authenticationService.reset()
         bind()
     }

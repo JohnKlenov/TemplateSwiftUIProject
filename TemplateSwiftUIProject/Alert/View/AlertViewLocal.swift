@@ -31,10 +31,11 @@ struct AlertViewLocal: View {
                     alertMessage = "Something went wrong try again!"
                     alertTitle = "Error"
                     isShowAlert = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        // Логика сброса сообщения алерта
-                        viewModel.alertManager.resetFirstLocalAlert(forView: nameView)
-                    }
+                    viewModel.alertManager.resetFirstLocalAlert(forView: nameView)
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                        // Логика сброса сообщения алерта
+//                        viewModel.alertManager.resetFirstLocalAlert(forView: nameView)
+//                    }
                 }
             } message: {
                 Text(alertMessage)

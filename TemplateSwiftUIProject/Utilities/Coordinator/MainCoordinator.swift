@@ -13,7 +13,6 @@ class MainCoordinator:ObservableObject {
     
     var tabViewSwitcher = TabViewSwitcher()
     var homeCoordinator = HomeCoordinator()
-    var viewBuilder = ViewBuilderService()
 }
 
 class TabViewSwitcher:ObservableObject {
@@ -63,21 +62,23 @@ class HomeCoordinator:ObservableObject {
     }
 }
 
-struct ViewBuilderService {
+class ViewBuilderService: ObservableObject {
+    var crudManager: CRUDSManager
     
-    private var crudManager = CRUDSManager(
-        authService: AuthService(),
-        errorHandler: SharedErrorHandler(),
-        databaseService: FirestoreDatabaseCRUDService()
-    )
+    init() {
+        self.crudManager = CRUDSManager(
+            authService: AuthService(),
+            errorHandler: SharedErrorHandler(),
+            databaseService: FirestoreDatabaseCRUDService()
+        )
+    }
     
-    @ViewBuilder func homeViewBuild(page:HomeFlow) -> some View {
+    @ViewBuilder func homeViewBuild(page: HomeFlow) -> some View {
         switch page {
-            
         case .home:
             HomeContentView(managerCRUDS: crudManager)
-        case .bookDetails(let book):
-            BookDetailsView(managerCRUDS: crudManager, book: book)
+        case .bookDetails(let bookID):
+            BookDetailsView(managerCRUDS: crudManager, bookID: bookID)
         case .someHomeView:
             SomeView()
         }
@@ -94,6 +95,14 @@ struct ViewBuilderService {
     }
 }
 
+class DataStore:ObservableObject {
+    var homeBookDataStore = HomeBookDataStore()
+}
+
+
+class HomeBookDataStore: ObservableObject {
+    @Published var books:[BookCloud] = []
+}
 
 ///В твоем коде, HomeFlow используется в качестве значения в NavigationPath, что требует соответствия протоколам Hashable и Equatable.
 ///NavigationPath использует хэширование для хранения и отслеживания пути. Это означает, что типы значений, передаваемые в NavigationPath, должны быть Hashable и Equatable.
@@ -103,7 +112,7 @@ struct ViewBuilderService {
 
 enum HomeFlow: Hashable, Equatable {
     case home
-    case bookDetails(BookCloud)
+    case bookDetails(String) // Передаем ID книги
     case someHomeView
 
     static func == (lhs: HomeFlow, rhs: HomeFlow) -> Bool {
@@ -123,8 +132,8 @@ enum HomeFlow: Hashable, Equatable {
             hasher.combine("home")
         case .someHomeView:
             hasher.combine("someHomeView")
-        case .bookDetails(let book):
-            hasher.combine(book)
+        case .bookDetails(let bookID):
+            hasher.combine(bookID)
         }
     }
 }
@@ -139,6 +148,69 @@ struct FullScreenItem: Identifiable {
     var content: AnyView
 }
 
+
+
+//struct ViewBuilderService {
+//
+//    private var crudManager = CRUDSManager(
+//        authService: AuthService(),
+//        errorHandler: SharedErrorHandler(),
+//        databaseService: FirestoreDatabaseCRUDService()
+//    )
+//
+//    @ViewBuilder func homeViewBuild(page:HomeFlow) -> some View {
+//        switch page {
+//
+//        case .home:
+//            HomeContentView(managerCRUDS: crudManager)
+//        case .bookDetails(let bookID):
+//            BookDetailsView(managerCRUDS: crudManager, bookID: bookID)
+//        case .someHomeView:
+//            SomeView()
+//        }
+//    }
+//
+//    @ViewBuilder
+//    func buildSheet(sheet: SheetItem) -> some View {
+//        sheet.content
+//    }
+//
+//    @ViewBuilder
+//    func buildCover(cover: FullScreenItem) -> some View {
+//        cover.content
+//    }
+//}
+
+
+// MARK: - before HomeBookDataStore
+
+//enum HomeFlow: Hashable, Equatable {
+//    case home
+//    case bookDetails(BookCloud)
+//    case someHomeView
+//
+//    static func == (lhs: HomeFlow, rhs: HomeFlow) -> Bool {
+//        switch (lhs, rhs) {
+//        case (.home, .home), (.someHomeView, .someHomeView):
+//            return true
+//        case (.bookDetails(let lhsBook), .bookDetails(let rhsBook)):
+//            return lhsBook == rhsBook
+//        default:
+//            return false
+//        }
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        switch self {
+//        case .home:
+//            hasher.combine("home")
+//        case .someHomeView:
+//            hasher.combine("someHomeView")
+//        case .bookDetails(let book):
+//            hasher.combine(book)
+//        }
+//    }
+//}
 
 
 struct SomeView: View {
@@ -175,6 +247,13 @@ class SomeViewModel:ObservableObject {
         print("deinit SomeViewModel")
     }
 }
+
+
+
+
+
+
+
 
 //enum Sheet: String, Identifiable {
 //    var id: String {

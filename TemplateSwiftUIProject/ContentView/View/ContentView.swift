@@ -52,13 +52,16 @@ struct ContentView: View {
         return LazyView { ProfileView() }
     }
     @StateObject private var viewModel:ContentViewModel
+    @StateObject private var mainCoordinator = MainCoordinator()
+    @StateObject private var viewBuilderService = ViewBuilderService()
+    @StateObject private var dataStore = DataStore()
     
     @State private var selection: Int = 0
     @State private var isShowAlert: Bool = false
     @State private var alertMessage: String = "Error"
     @State private var alertTitle: String = "Something went wrong try again!" 
     @State private var cancellables = Set<AnyCancellable>()
-    @EnvironmentObject var mainCoordinator:MainCoordinator
+//    @EnvironmentObject var mainCoordinator:MainCoordinator
     
     init() {
         print("init ContentView")
@@ -75,7 +78,10 @@ struct ContentView: View {
                         Label("Home", systemImage: "house.fill")
                     }
                     .tag(0)
+                    .environmentObject(mainCoordinator)
                     .environmentObject(mainCoordinator.homeCoordinator)
+                    .environmentObject(dataStore.homeBookDataStore)
+                    .environmentObject(viewBuilderService)
                 galleryView
                     .tabItem {
                         Label("Gallery", systemImage: "photo.on.rectangle.fill")

@@ -14,7 +14,8 @@ import SwiftUI
 struct HomeContentView:View {
     
     @StateObject private var viewModel: HomeContentViewModel
-    @EnvironmentObject var mainCoordinator:MainCoordinator
+//    @EnvironmentObject var mainCoordinator:MainCoordinator
+    @EnvironmentObject var homeDataStore:HomeBookDataStore
     @EnvironmentObject var homeCoordinator:HomeCoordinator
     
     init(managerCRUDS: CRUDSManager) {
@@ -43,8 +44,6 @@ struct HomeContentView:View {
             .toolbar{
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add") {
-//                        BookEditView(managerCRUDS: crudManager, presentEditView: "HomeView")
-//                        viewModel.sheetManager.showSheet()
                         let sheetContent = AnyView(BookEditView(managerCRUDS: viewModel.managerCRUDS as! CRUDSManager, presentEditView: "HomeView"))
                         homeCoordinator.presentSheet(SheetItem(content: sheetContent))
                     }
@@ -53,13 +52,17 @@ struct HomeContentView:View {
                     .disabled(viewModel.viewState.isError)
                 }
             }
+            .onFirstAppear {
+                print("onFirstAppear HomeContentView")
+                viewModel.setupViewModel(dataStore: homeDataStore)
+            }
             .onAppear {
                 print("onAppear HomeContentView")
-                viewModel.alertManager.isHomeViewVisible = true
+//                viewModel.alertManager.isHomeViewVisible = true
             }
             .onDisappear {
                 print("onDisappear HomeContentView")
-                viewModel.alertManager.isHomeViewVisible = false
+//                viewModel.alertManager.isHomeViewVisible = false
                 
             }
             .task {
@@ -122,7 +125,9 @@ struct HomeContentView:View {
                 Spacer()
             }
             .onTapGesture {
-                homeCoordinator.navigateTo(page: .bookDetails(book))
+                if let id = book.id {
+                    homeCoordinator.navigateTo(page: .bookDetails(id))
+                }
             }
         }
     }
