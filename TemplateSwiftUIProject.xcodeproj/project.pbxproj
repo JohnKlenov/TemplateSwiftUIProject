@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5E8F9C672D537949004036F6 /* TabSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C662D537949004036F6 /* TabSwitcher.swift */; };
+		5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */; };
+		5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */; };
+		5E8F9C6E2D537A57004036F6 /* ViewBuilderModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C6D2D537A57004036F6 /* ViewBuilderModel.swift */; };
+		5E8F9C712D537AA1004036F6 /* SomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C702D537AA1004036F6 /* SomeView.swift */; };
+		5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C732D537B0E004036F6 /* DataStore.swift */; };
+		5E8F9C762D537CC5004036F6 /* BookDetailsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C752D537CC5004036F6 /* BookDetailsViewModel.swift */; };
 		5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */; };
 		5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDBA2CD51037001CA401 /* AppColors.swift */; };
 		5EA4FDC52CD79747001CA401 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDC42CD79747001CA401 /* Book.swift */; };
@@ -55,6 +62,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5E8F9C662D537949004036F6 /* TabSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSwitcher.swift; sourceTree = "<group>"; };
+		5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCoordinator.swift; sourceTree = "<group>"; };
+		5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewBuilderService.swift; sourceTree = "<group>"; };
+		5E8F9C6D2D537A57004036F6 /* ViewBuilderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewBuilderModel.swift; sourceTree = "<group>"; };
+		5E8F9C702D537AA1004036F6 /* SomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SomeView.swift; sourceTree = "<group>"; };
+		5E8F9C732D537B0E004036F6 /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
+		5E8F9C752D537CC5004036F6 /* BookDetailsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailsViewModel.swift; sourceTree = "<group>"; };
 		5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedErrorHandler.swift; sourceTree = "<group>"; };
 		5EA4FDBA2CD51037001CA401 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		5EA4FDC42CD79747001CA401 /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
@@ -114,6 +128,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5E8F9C6A2D5379E6004036F6 /* ViewBuilder */ = {
+			isa = PBXGroup;
+			children = (
+				5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */,
+				5E8F9C6D2D537A57004036F6 /* ViewBuilderModel.swift */,
+			);
+			path = ViewBuilder;
+			sourceTree = "<group>";
+		};
+		5E8F9C6F2D537A8B004036F6 /* SomeView */ = {
+			isa = PBXGroup;
+			children = (
+				5E8F9C702D537AA1004036F6 /* SomeView.swift */,
+			);
+			path = SomeView;
+			sourceTree = "<group>";
+		};
+		5E8F9C722D537AF6004036F6 /* DataStore */ = {
+			isa = PBXGroup;
+			children = (
+				5E8F9C732D537B0E004036F6 /* DataStore.swift */,
+			);
+			path = DataStore;
+			sourceTree = "<group>";
+		};
 		5EA4FDB92CD51013001CA401 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -170,7 +209,6 @@
 			children = (
 				5EAF5B152D3BCDF400D96FD6 /* ViewModel */,
 				5EAF5B142D3BCDED00D96FD6 /* View */,
-				5EA4FE282CF5B557001CA401 /* BookDetailsView.swift */,
 			);
 			path = BookDetailsView;
 			sourceTree = "<group>";
@@ -253,6 +291,7 @@
 		5EAF5B142D3BCDED00D96FD6 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				5EA4FE282CF5B557001CA401 /* BookDetailsView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -260,6 +299,7 @@
 		5EAF5B152D3BCDF400D96FD6 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				5E8F9C752D537CC5004036F6 /* BookDetailsViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -268,6 +308,8 @@
 			isa = PBXGroup;
 			children = (
 				5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */,
+				5E8F9C662D537949004036F6 /* TabSwitcher.swift */,
+				5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */,
 			);
 			path = Coordinator;
 			sourceTree = "<group>";
@@ -291,6 +333,7 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5E8F9C6F2D537A8B004036F6 /* SomeView */,
 				5EAF5B0F2D367DD500D96FD6 /* ContentView */,
 				5EAF5B042D2D55AA00D96FD6 /* Alert */,
 				5EA4FE272CF5B535001CA401 /* BookDetailsView */,
@@ -443,6 +486,8 @@
 		5EC94A0A2CC3C9BF003736A9 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				5E8F9C722D537AF6004036F6 /* DataStore */,
+				5E8F9C6A2D5379E6004036F6 /* ViewBuilder */,
 				5EAF5B162D4B85CF00D96FD6 /* Coordinator */,
 				5EA4FE302D09CF3E001CA401 /* CRUDSManager */,
 				5EA4FE2D2D05B87F001CA401 /* SheetManager */,
@@ -556,25 +601,30 @@
 			files = (
 				5EA4FE242CE61ED8001CA401 /* DatabaseCRUDService.swift in Sources */,
 				5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */,
+				5E8F9C6E2D537A57004036F6 /* ViewBuilderModel.swift in Sources */,
 				5EC94A002CC291DB003736A9 /* ProfileView.swift in Sources */,
 				5EAF5B0C2D2D56D400D96FD6 /* AlertLocalViewModel.swift in Sources */,
 				5EA4FE362D21C8D7001CA401 /* HomeContentView.swift in Sources */,
 				5EA4FE322D09CF87001CA401 /* CRUDSManager.swift in Sources */,
 				5EC94A0D2CC3CA4E003736A9 /* CustomErrorsFB.swift in Sources */,
 				5EC94A122CC59585003736A9 /* HomeContentViewModel.swift in Sources */,
+				5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */,
 				5EAF5B1B2D4B863B00D96FD6 /* MainCoordinator.swift in Sources */,
 				5EA4FDC92CD8E91A001CA401 /* BookViewModel.swift in Sources */,
 				5EA4FE262CE756EE001CA401 /* AuthService.swift in Sources */,
 				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,
 				5EA4FE292CF5B558001CA401 /* BookDetailsView.swift in Sources */,
+				5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */,
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
 				5EA4FDC72CD8E780001CA401 /* BookEditView.swift in Sources */,
 				5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */,
 				5EA4FE2F2D05B89B001CA401 /* SheetManager.swift in Sources */,
 				5EAF5B032D2D552900D96FD6 /* HomeViewModel.swift in Sources */,
 				5EAF5B082D2D563D00D96FD6 /* AlertViewGlobal.swift in Sources */,
+				5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */,
 				5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */,
 				5EC949E52CBA8FC5003736A9 /* OnboardingViewModel.swift in Sources */,
+				5E8F9C712D537AA1004036F6 /* SomeView.swift in Sources */,
 				5EAF5B132D367E7E00D96FD6 /* ContentViewModel.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
 				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
@@ -582,8 +632,10 @@
 				5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */,
 				5EA4FDC52CD79747001CA401 /* Book.swift in Sources */,
 				5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */,
+				5E8F9C672D537949004036F6 /* TabSwitcher.swift in Sources */,
 				5EC949E02CBA88F2003736A9 /* OnboardingPage.swift in Sources */,
 				5EC949E32CBA89FC003736A9 /* OnboardingService .swift in Sources */,
+				5E8F9C762D537CC5004036F6 /* BookDetailsViewModel.swift in Sources */,
 				5EC949EA2CBA954F003736A9 /* OnboardingView.swift in Sources */,
 				5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */,
 				5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */,

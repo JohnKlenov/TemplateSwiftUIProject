@@ -14,7 +14,6 @@ import SwiftUI
 struct HomeContentView:View {
     
     @StateObject private var viewModel: HomeContentViewModel
-//    @EnvironmentObject var mainCoordinator:MainCoordinator
     @EnvironmentObject var homeDataStore:HomeBookDataStore
     @EnvironmentObject var homeCoordinator:HomeCoordinator
     
@@ -58,11 +57,9 @@ struct HomeContentView:View {
             }
             .onAppear {
                 print("onAppear HomeContentView")
-//                viewModel.alertManager.isHomeViewVisible = true
             }
             .onDisappear {
                 print("onDisappear HomeContentView")
-//                viewModel.alertManager.isHomeViewVisible = false
                 
             }
             .task {

@@ -49,9 +49,6 @@
 import SwiftUI
 import Combine
 
-//sheet
-//    @State private var isShowSheet:Bool = false
-
 struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
@@ -66,12 +63,13 @@ struct HomeView: View {
     @EnvironmentObject var viewBuilderService:ViewBuilderService
     
     init() {
-        _viewModel = StateObject(wrappedValue: HomeViewModel(sheetManager: SheetManager.shared, alertManager: AlertManager.shared))
+        _viewModel = StateObject(wrappedValue: HomeViewModel(alertManager: AlertManager.shared))
         print("init HomeView")
     }
     
     var body: some View {
         ///в момент rerendering в init View передаются те же параметры что и при первой инициализации 
+        ///поэксперементировать с homeCoordinator - вынести его из состояния в HomeView
         NavigationStack(path: $homeCoordinator.path) {
             viewBuilderService.homeViewBuild(page: .home)
                 .navigationDestination(for: HomeFlow.self) { page in
@@ -89,9 +87,11 @@ struct HomeView: View {
             subscribeToLocalAlerts()
         }
         .onAppear {
+            viewModel.alertManager.isHomeViewVisible = true
             print("onAppear HomeView")
         }
         .onDisappear {
+            viewModel.alertManager.isHomeViewVisible = false
             print("onDisappear HomeView")
         }
         .background {
@@ -101,10 +101,11 @@ struct HomeView: View {
     
     private func subscribeToLocalAlerts() {
         viewModel.alertManager.$localAlerts
-            .sink { localAlert in
-                print(".sink { localAlert")
-                if let alert = localAlert["HomeView"] {
-                    print("if let alert = localAlert")
+            .combineLatest(viewModel.alertManager.$isHomeViewVisible)
+            .sink { (localAlert, isHomeViewVisible) in
+                print(".sink { (localAlert, isHomeViewVisible)")
+                if isHomeViewVisible, let alert = localAlert["HomeView"] {
+                    print("if isHomeViewVisible, let alert = localAlert")
                     alertMessage = alert.first?.message ?? "Something went wrong try again!"
                     alertTitle = alert.first?.operationDescription ?? "Error"
                     isShowAlert = true
@@ -116,22 +117,21 @@ struct HomeView: View {
 
 
 
-//private func subscribeToLocalAlerts() {
-//    viewModel.alertManager.$localAlerts
-//        .combineLatest(viewModel.alertManager.$isHomeViewVisible)
-//        .sink { (localAlert, isHomeViewVisible) in
-//            print(".sink { (localAlert, isHomeViewVisible)")
-//            if isHomeViewVisible, let alert = localAlert["HomeView"] {
-//                print("if isHomeViewVisible, let alert = localAlert")
-//                alertMessage = alert.first?.message ?? "Something went wrong try again!"
-//                alertTitle = alert.first?.operationDescription ?? "Error"
-//                isShowAlert = true
+
+
+//    private func subscribeToLocalAlerts() {
+//        viewModel.alertManager.$localAlerts
+//            .sink { localAlert in
+//                print(".sink { localAlert")
+//                if let alert = localAlert["HomeView"] {
+//                    print("if let alert = localAlert")
+//                    alertMessage = alert.first?.message ?? "Something went wrong try again!"
+//                    alertTitle = alert.first?.operationDescription ?? "Error"
+//                    isShowAlert = true
+//                }
 //            }
-//        }
-//        .store(in: &cancellables)
-//}
-
-
+//            .store(in: &cancellables)
+//    }
 
 
 //        VStack {

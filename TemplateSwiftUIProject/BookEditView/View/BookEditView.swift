@@ -52,7 +52,6 @@ struct BookEditView: View {
     @State var presentActionSheet = false
     
     var completionHandler: ((Result<Action, Error>) -> Void)?
-//    var completionHandler: ((Result<(Action, BookCloud), Error>) -> Void)?
     var presentEditView = ""
     var cancelButton: some View {
         Button("Cancel") {

@@ -7,19 +7,6 @@
 //
 import SwiftUI
 
-class BookDetailsViewModel:ObservableObject {
-    var crudManager: CRUDSManager
-    
-    init(managerCRUDS: CRUDSManager) {
-        print("init BookDetailsViewModel")
-        self.crudManager = managerCRUDS
-    }
-    
-    deinit {
-        print("deinit BookDetailsViewModel")
-    }
-}
-
 struct BookDetailsView: View {
     
     @EnvironmentObject var homeCoordinator:HomeCoordinator

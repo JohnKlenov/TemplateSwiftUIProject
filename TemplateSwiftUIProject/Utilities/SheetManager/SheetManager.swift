@@ -19,30 +19,30 @@ import Combine
 
 
 
-protocol SheetManagerProtocol: ObservableObject {
-    var isPresented:Bool { get set }
-    func showSheet()
-    func hideSheet()
-}
-
-/// так как modalView перекрывает все View а так же TabBar то можго оставить SheetManager один на все modalView
-class SheetManager: SheetManagerProtocol {
-    @Published var isPresented: Bool = false {
-        didSet {
-            print("didSet isPresented - \(isPresented)")
-        }
-    }
-    
-    static let shared = SheetManager()
-    
-    func showSheet() {
-        isPresented = true
-    }
-    
-    func hideSheet() {
-        isPresented = false
-    }
-}
+//protocol SheetManagerProtocol: ObservableObject {
+//    var isPresented:Bool { get set }
+//    func showSheet()
+//    func hideSheet()
+//}
+//
+///// так как modalView перекрывает все View а так же TabBar то можго оставить SheetManager один на все modalView
+//class SheetManager: SheetManagerProtocol {
+//    @Published var isPresented: Bool = false {
+//        didSet {
+//            print("didSet isPresented - \(isPresented)")
+//        }
+//    }
+//    
+//    static let shared = SheetManager()
+//    
+//    func showSheet() {
+//        isPresented = true
+//    }
+//    
+//    func hideSheet() {
+//        isPresented = false
+//    }
+//}
 
 // MARK: - before correct initialization of the state -
 

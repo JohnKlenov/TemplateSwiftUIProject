@@ -51,7 +51,6 @@ class HomeContentViewModel: HomeViewModelProtocol {
     
     /// может просто var alertManager:AlertManager ???@ObservedObject
     var alertManager:AlertManager
-    var sheetManager:SheetManager
     @Published var viewState: ViewState = .loading
     
     private var stateError:StateError = .localError
@@ -62,14 +61,12 @@ class HomeContentViewModel: HomeViewModelProtocol {
     private let errorHandler: ErrorHandlerProtocol
     private var homeBookDataStore:HomeBookDataStore?
     
-    init(alertManager: AlertManager = AlertManager.shared, sheetManager: SheetManager = SheetManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: any CRUDSManagerProtocol, errorHandler: ErrorHandlerProtocol) {
+    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: any CRUDSManagerProtocol, errorHandler: ErrorHandlerProtocol) {
         self.alertManager = alertManager
         self.authenticationService = authenticationService
         self.firestorColletionObserverService = firestorColletionObserverService
         self.errorHandler = errorHandler
         self.managerCRUDS = managerCRUDS
-        self.sheetManager = sheetManager
-//        bind()
         print("init HomeContentViewModel")
     }
     

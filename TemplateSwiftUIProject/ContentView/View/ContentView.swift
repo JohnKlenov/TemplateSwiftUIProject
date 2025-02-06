@@ -61,7 +61,6 @@ struct ContentView: View {
     @State private var alertMessage: String = "Error"
     @State private var alertTitle: String = "Something went wrong try again!" 
     @State private var cancellables = Set<AnyCancellable>()
-//    @EnvironmentObject var mainCoordinator:MainCoordinator
     
     init() {
         print("init ContentView")

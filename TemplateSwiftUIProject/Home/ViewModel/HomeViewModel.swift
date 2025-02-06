@@ -8,12 +8,9 @@
 import SwiftUI
 
 class HomeViewModel:ObservableObject {
-    var sheetManager: SheetManager
     var alertManager:AlertManager
-//    @Published var isTestProperty:Bool = false
     
-    init(sheetManager: SheetManager, alertManager:AlertManager) {
-        self.sheetManager = sheetManager
+    init(alertManager:AlertManager) {
         self.alertManager = alertManager
     }
 }
