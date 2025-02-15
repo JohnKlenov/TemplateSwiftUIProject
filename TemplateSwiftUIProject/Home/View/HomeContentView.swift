@@ -104,31 +104,51 @@ struct HomeContentView:View {
         }
     }
     
+    // адаптивная ячейка по высоте
     private func bookRowView(_ book: BookCloud) -> some View {
-        VStack {
-            HStack(spacing: 10) {
-                Image(systemName: "swift")
-                    .foregroundStyle(.pink)
-                    .frame(width: 30, height: 30)
-                
-                VStack(alignment: .leading) {
-                    Text(book.title)
-                        .font(.headline)
-                    Text(book.description)
-                        .font(.subheadline)
-                    Text(book.author)
-                        .font(.subheadline)
-                }
-                Spacer()
+        HStack(spacing: 10) {
+            WebImageView(url: URL(string: book.pathImage), placeholder: Image(systemName: "photo"), width: 50, height: 50)
+            VStack(alignment: .leading) {
+                Text(book.title)
+                ///Модификатор scaledFontForTextStyle: Этот модификатор указывает, что текст должен адаптироваться к изменениям размера текста, внесенным пользователем в настройках устройства.
+                //                    .font(.system(.headline, design: .default).scaledFontForTextStyle(.headline))
+                    .font(.headline)
+                    .lineLimit(1)
+                Text(book.description)
+                    .font(.subheadline)
+                    .lineLimit(2)
+                Text(book.author)
+                    .font(.caption)
+                    .lineLimit(1)
             }
-            .onTapGesture {
-                if let id = book.id {
-                    homeCoordinator.navigateTo(page: .bookDetails(id))
-                }
+            .fixedSize(horizontal: false, vertical: true) // Адаптивная высота
+            Spacer() // Добавление Spacer для заполнения оставшегося пространства
+        }
+        .frame(minHeight: 60) // Минимальная высота
+        .background(Color.clear) // Прозрачный фон для расширения области нажатия
+        .contentShape(Rectangle()) // Задает форму области для захвата событий жестов
+        .onTapGesture {
+            if let id = book.id {
+                homeCoordinator.navigateTo(page: .bookDetails(id))
             }
         }
     }
 }
+
+//#Preview {
+//    // Инициализация зависимостей
+//    let mockCRUDS = CRUDSManager(
+//        authService: AuthService(),
+//        errorHandler: SharedErrorHandler(),
+//        databaseService: FirestoreDatabaseCRUDService()
+//    ) // Замените на ваш реальный или моковый CRUDSManager
+//    let homeDataStore = HomeBookDataStore()
+//    let homeCoordinator = HomeCoordinator()
+//    
+//    return HomeContentView(managerCRUDS: mockCRUDS)
+//        .environmentObject(homeDataStore)
+//        .environmentObject(homeCoordinator)
+//}
 
 //        NavigationLink(destination: BookDetailsView(book: book)) {
 //            VStack {

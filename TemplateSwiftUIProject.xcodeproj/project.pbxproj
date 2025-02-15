@@ -14,6 +14,8 @@
 		5E8F9C712D537AA1004036F6 /* SomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C702D537AA1004036F6 /* SomeView.swift */; };
 		5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C732D537B0E004036F6 /* DataStore.swift */; };
 		5E8F9C762D537CC5004036F6 /* BookDetailsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C752D537CC5004036F6 /* BookDetailsViewModel.swift */; };
+		5E8F9C792D54EC92004036F6 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5E8F9C782D54EC92004036F6 /* SDWebImageSwiftUI */; };
+		5E8F9C8A2D5CC8D8004036F6 /* WebImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C892D5CC8D8004036F6 /* WebImageView.swift */; };
 		5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */; };
 		5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDBA2CD51037001CA401 /* AppColors.swift */; };
 		5EA4FDC52CD79747001CA401 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDC42CD79747001CA401 /* Book.swift */; };
@@ -69,6 +71,7 @@
 		5E8F9C702D537AA1004036F6 /* SomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SomeView.swift; sourceTree = "<group>"; };
 		5E8F9C732D537B0E004036F6 /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
 		5E8F9C752D537CC5004036F6 /* BookDetailsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailsViewModel.swift; sourceTree = "<group>"; };
+		5E8F9C892D5CC8D8004036F6 /* WebImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebImageView.swift; sourceTree = "<group>"; };
 		5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedErrorHandler.swift; sourceTree = "<group>"; };
 		5EA4FDBA2CD51037001CA401 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		5EA4FDC42CD79747001CA401 /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
@@ -119,6 +122,7 @@
 				5EA4FE102CDCE960001CA401 /* FirebaseStorageCombine-Community in Frameworks */,
 				5EA4FE0A2CDCE960001CA401 /* FirebaseFirestore in Frameworks */,
 				5EA4FE062CDCE960001CA401 /* FirebaseCore in Frameworks */,
+				5E8F9C792D54EC92004036F6 /* SDWebImageSwiftUI in Frameworks */,
 				5EA4FE0C2CDCE960001CA401 /* FirebaseFirestoreCombine-Community in Frameworks */,
 				5EA4FE042CDCE960001CA401 /* FirebaseAuth in Frameworks */,
 				5EA4FE0E2CDCE960001CA401 /* FirebaseStorage in Frameworks */,
@@ -445,6 +449,7 @@
 			children = (
 				5EC94A032CC29607003736A9 /* HomeView.swift */,
 				5EA4FE352D21C8D7001CA401 /* HomeContentView.swift */,
+				5E8F9C892D5CC8D8004036F6 /* WebImageView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -540,6 +545,7 @@
 				5EA4FE0B2CDCE960001CA401 /* FirebaseFirestoreCombine-Community */,
 				5EA4FE0D2CDCE960001CA401 /* FirebaseStorage */,
 				5EA4FE0F2CDCE960001CA401 /* FirebaseStorageCombine-Community */,
+				5E8F9C782D54EC92004036F6 /* SDWebImageSwiftUI */,
 			);
 			productName = TemplateSwiftUIProject;
 			productReference = 5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */;
@@ -571,6 +577,7 @@
 			mainGroup = 5EC949C32CB526E5003736A9;
 			packageReferences = (
 				5EA4FE022CDCE960001CA401 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				5E8F9C772D54EC92004036F6 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 			);
 			productRefGroup = 5EC949CD2CB526E5003736A9 /* Products */;
 			projectDirPath = "";
@@ -612,6 +619,7 @@
 				5EAF5B1B2D4B863B00D96FD6 /* MainCoordinator.swift in Sources */,
 				5EA4FDC92CD8E91A001CA401 /* BookViewModel.swift in Sources */,
 				5EA4FE262CE756EE001CA401 /* AuthService.swift in Sources */,
+				5E8F9C8A2D5CC8D8004036F6 /* WebImageView.swift in Sources */,
 				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,
 				5EA4FE292CF5B558001CA401 /* BookDetailsView.swift in Sources */,
 				5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */,
@@ -848,6 +856,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		5E8F9C772D54EC92004036F6 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.1.3;
+			};
+		};
 		5EA4FE022CDCE960001CA401 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -859,6 +875,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5E8F9C782D54EC92004036F6 /* SDWebImageSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5E8F9C772D54EC92004036F6 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
+		};
 		5EA4FE032CDCE960001CA401 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5EA4FE022CDCE960001CA401 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
