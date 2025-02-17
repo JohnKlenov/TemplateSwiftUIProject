@@ -32,7 +32,7 @@ struct GalleryView: View {
             let _ = Self._printChanges()
             Button("Show Sheet") {
 //                isPresentingSheet = true
-                viewModel.managerCRUDS?.removeBook(book: BookCloud(title: "", author: "", description: "", pathImage: ""), forView: "TestView", operationDescription: "TestOperation")
+                viewModel.managerCRUDS?.removeBook(book: BookCloud(title: "", author: "", description: "", urlImage: ""), forView: "TestView", operationDescription: "TestOperation")
             }
         }
         .onFirstAppear {

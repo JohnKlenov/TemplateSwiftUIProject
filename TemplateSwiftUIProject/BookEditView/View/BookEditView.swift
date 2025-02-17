@@ -67,7 +67,7 @@ struct BookEditView: View {
         .disabled(!viewModel.modified)
     }
     
-    init(book:BookCloud = BookCloud(title: "", author: "", description: "", pathImage: ""), mode:Mode = .new, managerCRUDS: CRUDSManager, presentEditView:String, completionHandler: ((Result<Action, Error>) -> Void)? = nil) {
+    init(book:BookCloud = BookCloud(title: "", author: "", description: "", urlImage: ""), mode:Mode = .new, managerCRUDS: CRUDSManager, presentEditView:String, completionHandler: ((Result<Action, Error>) -> Void)? = nil) {
         print("init BookEditView")
         _viewModel = StateObject(wrappedValue: BookViewModel(book: book, mode: mode, managerCRUDS: managerCRUDS))
         self.presentEditView = presentEditView
@@ -81,7 +81,7 @@ struct BookEditView: View {
                     Section(header: Text("Book")) {
                         customTextField("Title", text: $viewModel.book.title, field: .title, focus: $focus)
                         customTextField("Description", text: $viewModel.book.description, field: .description, focus: $focus)
-                        customTextField("PathImage", text: $viewModel.book.pathImage, field: .pathImage, focus: $focus)
+                        customTextField("PathImage", text: $viewModel.book.urlImage, field: .pathImage, focus: $focus)
                     }
                     Section(header: Text("Author")) {
                         customTextField("Author", text: $viewModel.book.author, field: .author, focus: $focus)

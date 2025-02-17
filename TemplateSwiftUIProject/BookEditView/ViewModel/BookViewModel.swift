@@ -27,12 +27,12 @@ class BookViewModel:ObservableObject {
     @Published var book: BookCloud
     @Published var modified = false
 
-    private let managerCRUDS: any CRUDSManagerProtocol
+    private let managerCRUDS: CRUDSManager
     var originalBook: BookCloud
     private(set) var mode:Mode
     private var cancellables = Set<AnyCancellable>()
     
-    init(book:BookCloud, mode:Mode, managerCRUDS: any CRUDSManagerProtocol) {
+    init(book:BookCloud, mode:Mode, managerCRUDS: CRUDSManager) {
         
         self.managerCRUDS = managerCRUDS
         self.book = book
@@ -52,9 +52,9 @@ class BookViewModel:ObservableObject {
         switch mode {
             
         case .new:
-            self.modified = !book.title.isEmpty && !book.author.isEmpty && !book.description.isEmpty && !book.pathImage.isEmpty
+            self.modified = !book.title.isEmpty && !book.author.isEmpty && !book.description.isEmpty && !book.urlImage.isEmpty
         case .edit:
-            self.modified = !book.title.isEmpty && !book.author.isEmpty && !book.description.isEmpty && !book.pathImage.isEmpty && (book.title != originalBook.title || book.author != originalBook.author || book.description != originalBook.description || book.pathImage != originalBook.pathImage)
+            self.modified = !book.title.isEmpty && !book.author.isEmpty && !book.description.isEmpty && !book.urlImage.isEmpty && (book.title != originalBook.title || book.author != originalBook.author || book.description != originalBook.description || book.urlImage != originalBook.urlImage)
         }
     }
 

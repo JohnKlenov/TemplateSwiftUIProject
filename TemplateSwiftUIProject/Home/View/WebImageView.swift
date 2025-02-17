@@ -5,6 +5,21 @@
 //  Created by Evgenyi on 12.02.25.
 //
 
+
+///SDWebImage кеширует изображения как в памяти, так и на диске.
+///Кешированные изображения повторно используются, что уменьшает количество сетевых запросов и повышает производительность.
+///Поскольку изображения кешируются, при прокрутке назад к тому же элементу запрос сети не будет повторяться.
+///При наличии 1000 изображений, если каждое изображение большое, использование памяти может увеличиться. Однако SDWebImage управляет памятью, автоматически очищая наименее использованные изображения при нехватке памяти.
+///Большие размеры изображений: Изображения высокого разрешения потребляют больше памяти. Рассмотрите возможность изменения размера изображений на сервере или перед их отображением.
+
+//Настройка кеша SDWebImage
+///SDImageCache.shared.config.maxMemoryCost = 100 * 1024 * 1024 // 100 МБ
+///SDImageCache.shared.config.maxDiskSize = 500 * 1024 * 1024 // 500 МБ
+///Вы можете тонко настроить время истечения кеша, интервалы очистки и т.д.
+///Если возможно, обслуживайте меньшие миниатюрные изображения для списков и загружайте полноразмерные изображения на деталях.
+///WebImage(url: url, options: [.scaleDownLargeImages]) // Опция для уменьшения больших изображений
+///Опция .scaleDownLargeImages: Эта опция уменьшает использование памяти, уменьшая большие изображения, превышающие целевой размер.
+
 import SwiftUI
 import SDWebImageSwiftUI
 
@@ -62,67 +77,8 @@ struct WebImageView: View {
 //Ошибка кеширования: Возникает при проблемах с сохранением или чтением изображений из кеша.
 
 
-//import SDWebImageSwiftUI
-//
-//struct SDWebImageLoader: ImageLoader {
-//    func loadImage(from url: URL, placeholder: Image, width: CGFloat, height: CGFloat) -> AnyView {
-//        return AnyView(
-//            WebImage(url: url) { image in
-//                image
-//                    .resizable()
-//                    .aspectRatio(contentMode: .fill)
-//                    .frame(width: width, height: height)
-//                    .clipped()
-//            } placeholder: {
-//                placeholder
-//                    .resizable()
-//                    .aspectRatio(contentMode: .fit)
-//                    .frame(width: width, height: height)
-//            }
-//            .onFailure { error in
-//                print("Ошибка загрузки изображения: \(error.localizedDescription)")
-//            }
-//            .indicator(.progress(style: .automatic))
-//            .transition(.fade(duration: 0.5))
-//            .scaledToFill()
-//            .frame(width: width, height: height)
-//            .clipped()
-//        )
-//    }
-//}
-
-
-//struct HomeContentView: View {
-//    let imageLoader: ImageLoader
-//    // ... остальной код
-//
-//    private func bookRowView(_ book: BookCloud) -> some View {
-//        VStack {
-//            HStack(spacing: 10) {
-//                if let url = URL(string: book.pathImage) {
-//                    imageLoader.loadImage(from: url, placeholder: Image(systemName: "photo"), width: 50, height: 50)
-//                } else {
-//                    Image(systemName: "photo")
-//                        .resizable()
-//                        .aspectRatio(contentMode: .fit)
-//                        .frame(width: 50, height: 50)
-//                }
-//
-//                VStack(alignment: .leading) {
-//                    Text(book.title)
-//                        .font(.headline)
-//                    Text(book.description)
-//                        .font(.subheadline)
-//                    Text(book.author)
-//                        .font(.subheadline)
-//                }
-//                Spacer()
-//            }
-//            .onTapGesture {
-//                if let id = book.id {
-//                    homeCoordinator.navigateTo(page: .bookDetails(id))
-//                }
-//            }
-//        }
-//    }
-//}
+///Вы правы, не все ошибки, возникающие при загрузке и кешировании изображений с помощью WebImage, необходимо логировать в Crashlytics. Crashlytics предназначен для отслеживания критических ошибок и сбоев, которые влияют на стабильность вашего приложения. Логирование всех ошибок может привести к избыточным данным и затруднить анализ действительно важных проблем.
+///Рекомендация: Стоит логировать в Crashlytics. Если ваше приложение генерирует недействительные URL, это может указывать на баг в коде или проблему с данными, получаемыми от сервера. Логирование этих ошибок поможет выявить и исправить проблемы.
+///Server Error Стоит логировать в Crashlytics, особенно если эти ошибки происходят часто. Это может указывать на проблемы с вашим сервером или API, и важно их отслеживать для быстрого реагирования.
+///Decoding Error Стоит логировать в Crashlytics. Такие ошибки могут указывать на поврежденные данные или проблемы с файлами изображений на сервере. Логирование поможет выявить источники проблемы.
+///Caching Error Стоит логировать в Crashlytics. Эти ошибки могут влиять на производительность и пользовательский опыт. Они могут указывать на проблемы с доступным дисковым пространством или доступом к файловой системе.

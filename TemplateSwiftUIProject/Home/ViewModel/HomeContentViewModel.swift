@@ -57,11 +57,11 @@ class HomeContentViewModel: HomeViewModelProtocol {
     private var cancellables = Set<AnyCancellable>()
     private var authenticationService: AuthenticationServiceProtocol
     private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
-    var managerCRUDS: any CRUDSManagerProtocol
+    var managerCRUDS: CRUDSManager
     private let errorHandler: ErrorHandlerProtocol
     private var homeBookDataStore:HomeBookDataStore?
     
-    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: any CRUDSManagerProtocol, errorHandler: ErrorHandlerProtocol) {
+    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: CRUDSManager, errorHandler: ErrorHandlerProtocol) {
         self.alertManager = alertManager
         self.authenticationService = authenticationService
         self.firestorColletionObserverService = firestorColletionObserverService

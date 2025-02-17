@@ -8,12 +8,14 @@
 import Foundation
 import Combine
 
-protocol CRUDSManagerProtocol:ObservableObject {
-    func updateOrAddBook(book: BookCloud, forView:String, operationDescription: String)
-    func removeBook(book: BookCloud, forView:String, operationDescription: String)
-}
+//protocol CRUDSManagerProtocol:ObservableObject {
+//    func updateOrAddBook(book: BookCloud, forView:String, operationDescription: String)
+//    func removeBook(book: BookCloud, forView:String, operationDescription: String)
+//}
 
-class CRUDSManager:CRUDSManagerProtocol {
+//:CRUDSManagerProtocol
+
+class CRUDSManager {
     
     private var authService:AuthServiceProtocol
     private let errorHandler: ErrorHandlerProtocol

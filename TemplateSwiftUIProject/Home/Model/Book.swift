@@ -33,7 +33,7 @@ struct BookCloud: Identifiable, Codable, Equatable, Hashable{
     var title: String
     var author: String
     var description: String
-    var pathImage: String
+    var urlImage: String
 }
 
 // Реализация метода для соответствия протоколу Equatable
@@ -46,12 +46,12 @@ struct EncodableBook: Codable {
     var title: String
     var author: String
     var description: String
-    var pathImage: String
+    var urlImage: String
 
     init(from book: BookCloud) {
         self.title = book.title
         self.author = book.author
         self.description = book.description
-        self.pathImage = book.pathImage
+        self.urlImage = book.urlImage
     }
 }
