@@ -23,9 +23,6 @@ struct TemplateSwiftUIProjectApp: App {
     @AppStorage("hasSeenOnboarding") var tiedOnboarding:Bool = false
     
     init() {
-//        let imageCache = SDImageCache.shared
-//        imageCache.config.maxDiskSize = 100 * 1024 * 1024 // 100 MB
-//        imageCache.config.maxDiskAge = 60 * 60 * 24 * 7 // 1 неделя
         
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")

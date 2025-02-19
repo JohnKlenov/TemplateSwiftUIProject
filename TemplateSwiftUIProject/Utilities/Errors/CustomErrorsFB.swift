@@ -7,27 +7,56 @@
 
 import Foundation
 
-
 enum FirebaseEnternalAppError: Error, LocalizedError {
     case invalidCollectionPath
     case failedDeployOptionalError
     case failedDeployOptionalID
     case jsonConversionFailed
     case notSignedIn
-    
-    var errorDescription: String {
+    case defaultError
+
+    var errorDescription: String? {
         switch self {
         case .invalidCollectionPath:
-            return "The provided path is invalid. It must be a path to a collection, not a document."
+            return Localized.FirebaseEnternalError.invalidCollectionPath
         case .failedDeployOptionalError:
-            return "Failed to deploy optional error"
+            return Localized.FirebaseEnternalError.failedDeployOptionalError
         case .failedDeployOptionalID:
-            return "Failed to deploy optional ID"
+            return Localized.FirebaseEnternalError.failedDeployOptionalID
         case .jsonConversionFailed:
-            return "Json conversion failed"
+            return Localized.FirebaseEnternalError.jsonConversionFailed
         case .notSignedIn:
-            return "No user is currently signed in."
+            return Localized.FirebaseEnternalError.notSignedIn
+        case .defaultError:
+            return Localized.FirebaseEnternalError.defaultError
         }
     }
 }
+
+
+//enum FirebaseEnternalAppError: Error, LocalizedError {
+//    case invalidCollectionPath
+//    case failedDeployOptionalError
+//    case failedDeployOptionalID
+//    case jsonConversionFailed
+//    case notSignedIn
+//    case defaultError
+//    
+//    var errorDescription: String {
+//        switch self {
+//        case .invalidCollectionPath:
+//            return "The provided path is invalid. It must be a path to a collection, not a document."
+//        case .failedDeployOptionalError:
+//            return "Failed to deploy optional error"
+//        case .failedDeployOptionalID:
+//            return "Failed to deploy optional ID"
+//        case .jsonConversionFailed:
+//            return "Json conversion failed"
+//        case .notSignedIn:
+//            return "No user is currently signed in."
+//        case .defaultError:
+//            return "Something went wrong. Please try again."
+//        }
+//    }
+//}
 

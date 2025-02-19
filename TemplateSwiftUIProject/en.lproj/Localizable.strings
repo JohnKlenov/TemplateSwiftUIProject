@@ -1,0 +1,131 @@
+/* 
+  Localizable.strings
+  TemplateSwiftUIProject
+
+  Created by Evgenyi on 19.02.25.
+  
+*/
+
+/* Tab Bar */
+"tab.home" = "Home";
+"tab.gallery" = "Gallery";
+"tab.profile" = "Profile";
+
+
+
+/* Home Navigation Stack */
+
+/* Home View */
+"home.title" = "Home";
+"home.add_button" = "Add";
+"home.loading" = "Loading...";
+"home.bookRowView.swipeActions_delete" = "delete";
+"home.contentErrorView.title" = "Ups :(";
+"home.contentErrorView.description" = "Try again! Something went wrong!";
+"home.contentErrorView.refresh_button" = "Refresh";
+
+
+
+
+/* Profile Navigation Stack */
+
+
+/* Gallery Navigation Stack */
+
+
+
+/* Alerts - Global */
+"alert.title" = "Error";
+"alert.default_message" = "Something went wrong. Please try again.";
+
+
+
+
+/* Firebase error */
+
+/* Custom Firebase Errors */
+"error.custom_firebase.default_error" = "Something went wrong. Please try again.";
+"error.custom_firebase.invalid_collection_path" = "The provided path is invalid. It must be a path to a collection, not a document.";
+"error.custom_firebase.failed_deploy_optional_error" = "Failed to deploy optional error.";
+"error.custom_firebase.failed_deploy_optional_id" = "Failed to deploy optional ID.";
+"error.custom_firebase.json_conversion_failed" = "JSON conversion failed.";
+"error.custom_firebase.not_signed_in" = "No user is currently signed in.";
+
+
+/* Auth Errors */
+"error.auth.provider_already_linked" = "The user is already linked to this provider. Please log in using this provider or link another.";
+"error.auth.credential_already_in_use" = "The credentials are already in use by another user. Please log in with these credentials or use different ones.";
+"error.auth.too_many_requests" = "Too many requests have been made to the server in a short time. Please try again later.";
+"error.auth.user_token_expired" = "The user token has expired. Please log in again.";
+"error.auth.invalid_user_token" = "The user token is no longer valid. Please log in again.";
+"error.auth.user_mismatch" = "The user ID does not match. Please log in again.";
+"error.auth.requires_recent_login" = "You need to log in again before this operation. This is required to confirm your identity and protect your account from unauthorized access. Please log out and log in again to continue.";
+"error.auth.email_already_in_use" = "The email is already in use by another user. Please log in with this email or use a different one.";
+"error.auth.invalid_email" = "The provided email address is invalid or does not match the format of a standard email address. Please ensure you are entering a valid email address.";
+"error.auth.weak_password" = "The password you entered is too weak. Please enter a stronger password and try again.";
+"error.auth.network_error" = "A network error occurred. Please check your internet connection and try again.";
+"error.auth.keychain_error" = "There was a problem accessing the credential storage on your device. Please try again or restart your device.";
+"error.auth.user_not_found" = "The email address is not associated with an existing account. Please ensure you are entering the email address used when creating the account.";
+"error.auth.wrong_password" = "The password you entered is incorrect. Please ensure you are entering the correct password for your account.";
+"error.auth.expired_action_code" = "The action code has expired. Please request a new code and try again.";
+"error.auth.invalid_credential" = "The provided credentials are invalid. Please check your credentials and try again. If the issue persists, you can reset your password or contact support.";
+"error.auth.invalid_recipient_email" = "The recipient email address is invalid. Please check the address and try again.";
+"error.auth.missing_email" = "The email address is missing. Please provide a valid email address and try again.";
+"error.auth.user_disabled" = "The user has been disabled. Please contact your system administrator or support.";
+"error.auth.invalid_sender" = "The sender specified in the request is invalid. Please check the sender details and try again.";
+"error.auth.account_exists_with_different_credential" = "The credentials are already in use with another account. Please use a different login method or use these credentials to log in to the existing account.";
+"error.auth.operation_not_allowed" = "Accounts with the selected identity provider are not enabled. Please contact your administrator for assistance.";
+"error.auth.generic" = "An authentication error occurred. Please try again.";
+
+/* Firestore Errors */
+"error.firestore.cancelled" = "The operation was canceled. Please try again.";
+"error.firestore.unavailable" = "The service is temporarily unavailable. Please try again later.";
+"error.firestore.invalid_argument" = "Invalid arguments were provided. Please check your data and try again.";
+"error.firestore.unknown" = "An unknown error occurred. Please try again.";
+"error.firestore.deadline_exceeded" = "The operation deadline was exceeded. Please try again.";
+"error.firestore.not_found" = "The data was not found. Please check your input and try again.";
+"error.firestore.already_exists" = "The data already exists. Please check your data and try again.";
+"error.firestore.permission_denied" = "Access is denied. Please check your permissions and try again.";
+"error.firestore.resource_exhausted" = "Resources have been exhausted. Please try again later.";
+"error.firestore.failed_precondition" = "A precondition was not met. Please check your data and try again.";
+"error.firestore.aborted" = "The operation was aborted. Please try again.";
+"error.firestore.out_of_range" = "The value is out of range. Please check your data and try again.";
+"error.firestore.unimplemented" = "The feature is not implemented. Please try again later.";
+"error.firestore.internal" = "An internal server error occurred. Please try again later.";
+"error.firestore.data_loss" = "Data loss occurred. Please try again.";
+"error.firestore.unauthenticated" = "The user is not authenticated. Please log in and try again.";
+"error.firestore.generic" = "An Firestore error occurred. Please try again.";
+
+/* Storage Errors */
+"error.storage.object_not_found" = "The file was not found. Please check the path and try again.";
+"error.storage.bucket_not_found" = "The specified bucket was not found. Please check your settings and try again.";
+"error.storage.project_not_found" = "The specified project was not found. Please check your project settings and try again.";
+"error.storage.quota_exceeded" = "The quota has been exceeded. Please try again later.";
+"error.storage.unauthenticated" = "You need to log in to perform this operation. Please authenticate and try again.";
+"error.storage.unauthorized" = "You do not have permission to access this resource.";
+"error.storage.retry_limit_exceeded" = "The retry limit has been exceeded. Please try again later.";
+"error.storage.non_matching_checksum" = "The checksum does not match. Please re-upload the file.";
+"error.storage.download_size_exceeded" = "The download size exceeds the set limit. Please try downloading a smaller file.";
+"error.storage.cancelled" = "The operation was canceled. Please try again.";
+"error.storage.invalid_argument" = "Invalid arguments were provided. Please check your data and try again.";
+"error.storage.unknown" = "An unknown error occurred. Please try again.";
+"error.storage.bucket_mismatch" = "The bucket is incorrect. Please check your settings and try again.";
+"error.storage.internal_error" = "An internal server error occurred. Please try again later.";
+"error.storage.path_error" = "There was an error with the path. Please check the path and try again.";
+"error.storage.generic" = "An Storage error occurred. Please try again.";
+
+/* Realtime Database Errors */
+"error.realtime_database.network_error" = "A network error occurred. Please check your connection and try again.";
+"error.realtime_database.timeout" = "The operation timed out. Please try again.";
+"error.realtime_database.operation_cancelled" = "The operation was canceled. Please try again.";
+"error.realtime_database.host_not_found" = "The host could not be found. Please check your network settings and try again.";
+"error.realtime_database.cannot_connect_to_host" = "Could not connect to the host. Please check your connection and try again.";
+"error.realtime_database.network_connection_lost" = "The network connection was lost. Please reconnect and try again.";
+"error.realtime_database.resource_unavailable" = "The resource is temporarily unavailable. Please try again later.";
+"error.realtime_database.authentication_cancelled" = "The user canceled the authentication. Please try again.";
+"error.realtime_database.authentication_required" = "User authentication is required. Please log in and try again.";
+"error.realtime_database.generic" = "An realtime database error occurred. Please try again.";
+
+
+
+/* System error */

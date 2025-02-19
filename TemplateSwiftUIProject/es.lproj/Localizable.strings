@@ -1,0 +1,122 @@
+/* 
+  Localizable.strings
+  TemplateSwiftUIProject
+
+  Created by Evgenyi on 19.02.25.
+  
+*/
+
+/* Tab Bar */
+"tab.home" = "Inicio";
+"tab.gallery" = "Galería";
+"tab.profile" = "Perfil";
+
+/* Home Navigation Stack */
+
+/* Home View */
+"home.title" = "Inicio";
+"home.add_button" = "Agregar";
+"home.loading" = "Cargando...";
+"home.bookRowView.swipeActions_delete" = "eliminar";
+"home.contentErrorView.title" = "Ups :(";
+"home.contentErrorView.description" = "¡Inténtalo de nuevo! ¡Algo salió mal!";
+"home.contentErrorView.refresh_button" = "Actualizar";
+
+
+/* Profile Navigation Stack */
+
+
+/* Gallery Navigation Stack */
+
+/* Alerts - Global */
+"alert.title" = "Error";
+"alert.default_message" = "Algo salió mal. Por favor, inténtelo de nuevo.";
+
+
+/* Firebase error */
+
+/* Custom Firebase Errors */
+"error.custom_firebase.default_error" = "Algo salió mal. Por favor, inténtelo de nuevo.";
+"error.custom_firebase.invalid_collection_path" = "La ruta proporcionada es inválida. Debe ser una ruta a una colección, no a un documento.";
+"error.custom_firebase.failed_deploy_optional_error" = "No se pudo desplegar el error opcional.";
+"error.custom_firebase.failed_deploy_optional_id" = "No se pudo desplegar el ID opcional.";
+"error.custom_firebase.json_conversion_failed" = "Falló la conversión de JSON.";
+"error.custom_firebase.not_signed_in" = "Ningún usuario ha iniciado sesión actualmente.";
+
+
+/* Auth Errors */
+"error.auth.provider_already_linked" = "El usuario ya está vinculado a este proveedor. Por favor, inicie sesión usando este proveedor o vincule otro.";
+"error.auth.credential_already_in_use" = "Las credenciales ya están en uso por otro usuario. Por favor, inicie sesión con estas credenciales o use otras diferentes.";
+"error.auth.too_many_requests" = "Se han realizado demasiadas solicitudes al servidor en poco tiempo. Por favor, inténtelo de nuevo más tarde.";
+"error.auth.user_token_expired" = "El token de usuario ha expirado. Por favor, inicie sesión nuevamente.";
+"error.auth.invalid_user_token" = "El token de usuario ya no es válido. Por favor, inicie sesión nuevamente.";
+"error.auth.user_mismatch" = "El ID de usuario no coincide. Por favor, inicie sesión nuevamente.";
+"error.auth.requires_recent_login" = "Debe iniciar sesión nuevamente antes de esta operación. Esto es necesario para confirmar su identidad y proteger su cuenta de accesos no autorizados. Por favor, cierre sesión e inicie sesión nuevamente para continuar.";
+"error.auth.email_already_in_use" = "El correo electrónico ya está en uso por otro usuario. Por favor, inicie sesión con este correo electrónico o use uno diferente.";
+"error.auth.invalid_email" = "La dirección de correo electrónico proporcionada no es válida o no coincide con el formato de una dirección de correo electrónico estándar. Asegúrese de ingresar una dirección de correo electrónico válida.";
+"error.auth.weak_password" = "La contraseña que ingresó es demasiado débil. Por favor, ingrese una contraseña más segura e inténtelo de nuevo.";
+"error.auth.network_error" = "Ocurrió un error de red. Por favor, verifique su conexión a internet e inténtelo de nuevo.";
+"error.auth.keychain_error" = "Hubo un problema al acceder al almacenamiento de credenciales en su dispositivo. Por favor, inténtelo de nuevo o reinicie su dispositivo.";
+"error.auth.user_not_found" = "La dirección de correo electrónico no está asociada con una cuenta existente. Asegúrese de ingresar la dirección de correo electrónico utilizada al crear la cuenta.";
+"error.auth.wrong_password" = "La contraseña que ingresó es incorrecta. Asegúrese de ingresar la contraseña correcta para su cuenta.";
+"error.auth.expired_action_code" = "El código de acción ha expirado. Por favor, solicite un nuevo código e inténtelo de nuevo.";
+"error.auth.invalid_credential" = "Las credenciales proporcionadas no son válidas. Por favor, verifique sus credenciales e inténtelo de nuevo. Si el problema persiste, puede restablecer su contraseña o contactar al soporte.";
+"error.auth.invalid_recipient_email" = "La dirección de correo electrónico del destinatario no es válida. Por favor, verifique la dirección e inténtelo de nuevo.";
+"error.auth.missing_email" = "Falta la dirección de correo electrónico. Por favor, proporcione una dirección de correo electrónico válida e inténtelo de nuevo.";
+"error.auth.user_disabled" = "El usuario ha sido deshabilitado. Por favor, contacte al administrador de su sistema o al soporte.";
+"error.auth.invalid_sender" = "El remitente especificado en la solicitud no es válido. Por favor, verifique los detalles del remitente e inténtelo de nuevo.";
+"error.auth.account_exists_with_different_credential" = "Las credenciales ya están en uso con otra cuenta. Por favor, use un método de inicio de sesión diferente o use estas credenciales para iniciar sesión en la cuenta existente.";
+"error.auth.operation_not_allowed" = "Las cuentas con el proveedor de identidad seleccionado no están habilitadas. Por favor, contacte a su administrador para obtener ayuda.";
+"error.auth.generic" = "Ocurrió un error de autenticación. Por favor, inténtelo de nuevo.";
+
+
+/* Firestore Errors */
+"error.firestore.cancelled" = "La operación fue cancelada. Por favor, inténtelo de nuevo.";
+"error.firestore.unavailable" = "El servicio no está disponible temporalmente. Por favor, inténtelo de nuevo más tarde.";
+"error.firestore.invalid_argument" = "Se proporcionaron argumentos no válidos. Por favor, verifique sus datos e inténtelo de nuevo.";
+"error.firestore.unknown" = "Ocurrió un error desconocido. Por favor, inténtelo de nuevo.";
+"error.firestore.deadline_exceeded" = "Se excedió el plazo de la operación. Por favor, inténtelo de nuevo.";
+"error.firestore.not_found" = "No se encontraron los datos. Por favor, verifique su entrada e inténtelo de nuevo.";
+"error.firestore.already_exists" = "Los datos ya existen. Por favor, verifique sus datos e inténtelo de nuevo.";
+"error.firestore.permission_denied" = "El acceso está denegado. Por favor, verifique sus permisos e inténtelo de nuevo.";
+"error.firestore.resource_exhausted" = "Los recursos se han agotado. Por favor, inténtelo de nuevo más tarde.";
+"error.firestore.failed_precondition" = "No se cumplió una precondición. Por favor, verifique sus datos e inténtelo de nuevo.";
+"error.firestore.aborted" = "La operación fue abortada. Por favor, inténtelo de nuevo.";
+"error.firestore.out_of_range" = "El valor está fuera de rango. Por favor, verifique sus datos e inténtelo de nuevo.";
+"error.firestore.unimplemented" = "La función no está implementada. Por favor, inténtelo de nuevo más tarde.";
+"error.firestore.internal" = "Ocurrió un error interno del servidor. Por favor, inténtelo de nuevo más tarde.";
+"error.firestore.data_loss" = "Se produjo una pérdida de datos. Por favor, inténtelo de nuevo.";
+"error.firestore.unauthenticated" = "El usuario no está autenticado. Por favor, inicie sesión e inténtelo de nuevo.";
+"error.firestore.generic" = "Ocurrió un error de Firestore. Por favor, inténtelo de nuevo.";
+
+
+/* Storage Errors */
+"error.storage.object_not_found" = "No se encontró el archivo. Por favor, verifique la ruta e inténtelo de nuevo.";
+"error.storage.bucket_not_found" = "No se encontró el bucket especificado. Por favor, verifique sus configuraciones e inténtelo de nuevo.";
+"error.storage.project_not_found" = "No se encontró el proyecto especificado. Por favor, verifique las configuraciones del proyecto e inténtelo de nuevo.";
+"error.storage.quota_exceeded" = "Se ha excedido la cuota. Por favor, inténtelo de nuevo más tarde.";
+"error.storage.unauthenticated" = "Debe iniciar sesión para realizar esta operación. Por favor, autentíquese e inténtelo de nuevo.";
+"error.storage.unauthorized" = "No tiene permiso para acceder a este recurso.";
+"error.storage.retry_limit_exceeded" = "Se ha excedido el límite de reintentos. Por favor, inténtelo de nuevo más tarde.";
+"error.storage.non_matching_checksum" = "La suma de verificación no coincide. Por favor, vuelva a cargar el archivo.";
+"error.storage.download_size_exceeded" = "El tamaño de la descarga excede el límite establecido. Por favor, intente descargar un archivo más pequeño.";
+"error.storage.cancelled" = "La operación fue cancelada. Por favor, inténtelo de nuevo.";
+"error.storage.invalid_argument" = "Se proporcionaron argumentos no válidos. Por favor, verifique sus datos e inténtelo de nuevo.";
+"error.storage.unknown" = "Ocurrió un error desconocido. Por favor, inténtelo de nuevo.";
+"error.storage.bucket_mismatch" = "El bucket es incorrecto. Por favor, verifique sus configuraciones e inténtelo de nuevo.";
+"error.storage.internal_error" = "Ocurrió un error interno del servidor. Por favor, inténtelo de nuevo más tarde.";
+"error.storage.path_error" = "Hubo un error con la ruta. Por favor, verifique la ruta e inténtelo de nuevo.";
+"error.storage.generic" = "Ocurrió un error de almacenamiento. Por favor, inténtelo de nuevo.";
+
+
+/* Realtime Database Errors */
+"error.realtime_database.network_error" = "Ocurrió un error de red. Por favor, verifique su conexión e inténtelo de nuevo.";
+"error.realtime_database.timeout" = "El tiempo de espera ha expirado. Por favor, inténtelo de nuevo.";
+"error.realtime_database.operation_cancelled" = "La operación fue cancelada. Por favor, inténtelo de nuevo.";
+"error.realtime_database.host_not_found" = "No se pudo encontrar el host. Por favor, verifique sus configuraciones de red e inténtelo de nuevo.";
+"error.realtime_database.cannot_connect_to_host" = "No se pudo conectar al host. Por favor, verifique su conexión e inténtelo de nuevo.";
+"error.realtime_database.network_connection_lost" = "Se perdió la conexión de red. Por favor, reconéctese e inténtelo de nuevo.";
+"error.realtime_database.resource_unavailable" = "El recurso no está disponible temporalmente. Por favor, inténtelo de nuevo más tarde.";
+"error.realtime_database.authentication_cancelled" = "El usuario canceló la autenticación. Por favor, inténtelo de nuevo.";
+"error.realtime_database.authentication_required" = "Se requiere autenticación del usuario. Por favor, inicie sesión e inténtelo de nuevo.";
+"error.realtime_database.generic" = "Ocurrió un error en la base de datos en tiempo real. Por favor, inténtelo de nuevo.";
