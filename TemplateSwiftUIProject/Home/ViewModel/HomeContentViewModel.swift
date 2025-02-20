@@ -127,13 +127,13 @@ class HomeContentViewModel: HomeViewModelProtocol {
     
     private func handleAuthenticationError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
-        alertManager.showGlobalAlert(message: errorMessage, operationDescription: "Error authentication")
+        alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.DescriptionOfOperationError.authentication)
         viewState = .error(errorMessage)
     }
     
     private func handleFirestoreError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
-        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: "Error Database")
+        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.database)
         viewState = .error(errorMessage)
     }
 }

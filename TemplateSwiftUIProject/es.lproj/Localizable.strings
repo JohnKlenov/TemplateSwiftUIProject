@@ -22,6 +22,30 @@
 "home.contentErrorView.description" = "¡Inténtalo de nuevo! ¡Algo salió mal!";
 "home.contentErrorView.refresh_button" = "Actualizar";
 
+/* BookDetailsView */
+"book_details.title" = "Título";
+"book_details.description" = "Descripción";
+"book_details.author" = "Autor";
+"book_details.go_to_some_view_button" = "Ir a alguna vista";
+"book_details.navigation_title" = "Detalles del libro";
+"book_details.edit_button" = "Editar";
+
+/* BookEditView */
+"book_edit.cancel" = "Cancelar";
+"book_edit.done" = "Hecho";
+"book_edit.save" = "Guardar";
+"book_edit.new_book" = "Nuevo libro";
+"book_edit.book_section" = "Libro";
+"book_edit.title" = "Título";
+"book_edit.description" = "Descripción";
+"book_edit.path_image" = "Ruta de la imagen";
+"book_edit.author_section" = "Autor";
+"book_edit.author" = "Autor";
+"book_edit.delete_book" = "Eliminar libro";
+"book_edit.confirmation_dialog" = "¿Estás seguro?";
+
+
+
 
 /* Profile Navigation Stack */
 
@@ -34,6 +58,13 @@
 
 
 /* Firebase error */
+
+/* Description Of Operation Error */
+"error.deleting_book" = "Error al eliminar el libro";
+"error.authentication" = "Error de autenticación";
+"error.database" = "Error de la base de datos";
+"error.adding_or_changing_book" = "Error al agregar o cambiar el libro";
+
 
 /* Custom Firebase Errors */
 "error.custom_firebase.default_error" = "Algo salió mal. Por favor, inténtelo de nuevo.";

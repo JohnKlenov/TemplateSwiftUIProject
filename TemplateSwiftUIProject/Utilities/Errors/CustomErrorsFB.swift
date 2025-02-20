@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum FirebaseEnternalAppError: Error, LocalizedError {
+enum FirebaseEnternalError: Error, LocalizedError {
     case invalidCollectionPath
     case failedDeployOptionalError
     case failedDeployOptionalID

@@ -31,28 +31,64 @@ struct BookDetailsView: View {
     
     private func content(book:BookCloud) -> some View {
         ZStack {
-            //            let _ = Self._printChanges()
-            Color.clear
+            Color(UIColor.systemGroupedBackground)
                 .ignoresSafeArea()
-            VStack {
-                Text("title - \(book.title)")
-                    .font(.system(.largeTitle, design: .rounded, weight: .regular))
-                    .foregroundStyle(.brown)
-                Text("title - \(book.description)")
-                    .font(.system(.largeTitle, design: .rounded, weight: .regular))
-                    .foregroundStyle(.brown)
-                Text("title - \(book.author)")
-                    .font(.system(.largeTitle, design: .rounded, weight: .regular))
-                    .foregroundStyle(.brown)
-                Button("GoToSomeView") {
-                    homeCoordinator.navigateTo(page: .someHomeView)
-                }
-            }
             
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Title Section
+                    Text(Localized.BookDetailsView.title)
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    Text(book.title)
+                        .font(.system(.title, design: .rounded, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    // Description Section
+                    Text(Localized.BookDetailsView.description)
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    Text(book.description)
+                        .font(.system(.body, design: .rounded, weight: .regular))
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
+                    
+                    // Author Section
+                    Text(Localized.BookDetailsView.author)
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    Text(book.author)
+                        .font(.system(.body, design: .rounded, weight: .regular))
+                        .foregroundColor(.primary)
+                    
+                    // Image Section
+                    WebImageView(url: URL(string: book.urlImage), placeholder: Image(systemName: "photo"), width: 300, height: 300)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .cornerRadius(10)
+                        .shadow(radius: 10)
+                        .padding(.vertical, 16)
+                    
+                    // Navigation Button
+                    Button(Localized.BookDetailsView.goToSomeViewButton) {
+                        homeCoordinator.navigateTo(page: .someHomeView)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 16)
+                }
+                .padding()
+                .background(Color.clear) // Удален белый фон карточки
+            }
         }
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(Localized.BookDetailsView.navigationTitle)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Edit") {
+                Button(Localized.BookDetailsView.editButton) {
                     ///Для struct использование [weak self] не требуется, так как они не создают циклов удержания.
                     ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
                     let sheetContent = AnyView(BookEditView(book: book, mode: .edit, managerCRUDS: viewModel.crudManager, presentEditView: "HomeView") {  result in

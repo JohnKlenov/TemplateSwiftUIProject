@@ -58,8 +58,8 @@ struct ContentView: View {
     
     @State private var selection: Int = 0
     @State private var isShowAlert: Bool = false
-    @State private var alertMessage: String = "Error"
-    @State private var alertTitle: String = "Something went wrong try again!" 
+    @State private var alertMessage: String = ""
+    @State private var alertTitle: String = ""
     @State private var cancellables = Set<AnyCancellable>()
     
     init() {
@@ -74,7 +74,7 @@ struct ContentView: View {
             TabView(selection:$selection) {
                 homeView
                     .tabItem {
-                        Label("Home", systemImage: "house.fill")
+                        Label(Localized.TabBar.home, systemImage: "house.fill")
                     }
                     .tag(0)
                     .environmentObject(mainCoordinator)
@@ -83,12 +83,12 @@ struct ContentView: View {
                     .environmentObject(viewBuilderService)
                 galleryView
                     .tabItem {
-                        Label("Gallery", systemImage: "photo.on.rectangle.fill")
+                        Label(Localized.TabBar.gallery, systemImage: "photo.on.rectangle.fill")
                     }
                     .tag(1)
                 profileView
                     .tabItem {
-                        Label("Profile", systemImage: "person.crop.circle.fill")
+                        Label(Localized.TabBar.profile, systemImage: "person.crop.circle.fill")
                     }
                     .tag(2)
             }
@@ -109,8 +109,8 @@ struct ContentView: View {
                 print(".sink { globalAlert in")
                 if let alert = globalAlert["globalError"] {
                     print(".sink showAlert = true")
-                    alertMessage = alert.first?.message ?? "Something went wrong try again!"
-                    alertTitle = alert.first?.operationDescription ?? "Error"
+                    alertMessage = alert.first?.message ?? Localized.Alerts.defaultMessage
+                    alertTitle = alert.first?.operationDescription ?? Localized.Alerts.title
                     isShowAlert = true
                 }
             }

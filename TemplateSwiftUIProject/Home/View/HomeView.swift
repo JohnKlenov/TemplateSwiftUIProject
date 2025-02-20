@@ -55,8 +55,8 @@ struct HomeView: View {
     
     //alert
     @State private var isShowAlert: Bool = false
-    @State private var alertMessage: String = "Error"
-    @State private var alertTitle: String = "Something went wrong try again!"
+    @State private var alertMessage: String = ""
+    @State private var alertTitle: String = ""
     @State private var cancellables = Set<AnyCancellable>()
     
     @EnvironmentObject var homeCoordinator:HomeCoordinator
@@ -106,8 +106,8 @@ struct HomeView: View {
                 print(".sink { (localAlert, isHomeViewVisible)")
                 if isHomeViewVisible, let alert = localAlert["HomeView"] {
                     print("if isHomeViewVisible, let alert = localAlert")
-                    alertMessage = alert.first?.message ?? "Something went wrong try again!"
-                    alertTitle = alert.first?.operationDescription ?? "Error"
+                    alertMessage = alert.first?.message ?? Localized.Alerts.defaultMessage
+                    alertTitle = alert.first?.operationDescription ?? Localized.Alerts.title
                     isShowAlert = true
                 }
             }

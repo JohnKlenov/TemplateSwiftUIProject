@@ -20,7 +20,7 @@ class AuthService:AuthServiceProtocol {
             if let user = Auth.auth().currentUser {
                 promise(.success(.success(user.uid)))
             } else {
-                promise(.success(.failure(FirebaseEnternalAppError.notSignedIn)))
+                promise(.success(.failure(FirebaseEnternalError.notSignedIn)))
             }
         }
         .eraseToAnyPublisher()

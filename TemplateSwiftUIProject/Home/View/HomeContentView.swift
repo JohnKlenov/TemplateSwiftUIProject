@@ -39,10 +39,10 @@ struct HomeContentView:View {
         ZStack {
             switch viewModel.viewState {
             case .loading:
-                ProgressView("Loading...")
+                ProgressView(Localized.Home.loading)
             case .content(let data):
                 BooksListView(data: data) { book in
-                    viewModel.removeBook(book: book, forView: "HomeView", operationDescription: "Error deleting book")
+                    viewModel.removeBook(book: book, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.deletingBook)
                 }
             case .error(let error):
                 ContentErrorView(error: error) {
@@ -51,10 +51,10 @@ struct HomeContentView:View {
             }
         }
         .background(AppColors.background)
-        .navigationTitle("Home")
+        .navigationTitle(Localized.Home.title)
         .toolbar{
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Add") {
+                Button(Localized.Home.addButton) {
                     let sheetContent = AnyView(BookEditView(managerCRUDS: viewModel.managerCRUDS, presentEditView: "HomeView"))
                     homeCoordinator.presentSheet(SheetItem(content: sheetContent))
                 }

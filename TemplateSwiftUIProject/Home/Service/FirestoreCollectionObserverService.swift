@@ -53,7 +53,7 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
 
     func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], Error>, Never> {
         guard PathValidator.validateCollectionPath(path) else {
-            return Just(.failure(FirebaseEnternalAppError.invalidCollectionPath)).eraseToAnyPublisher()
+            return Just(.failure(FirebaseEnternalError.invalidCollectionPath)).eraseToAnyPublisher()
         }
         let subject = PassthroughSubject<Result<[BookCloud], Error>, Never>()
         
@@ -89,7 +89,7 @@ class RealtimeCollectionObserverService : FirestoreCollectionObserverProtocol {
     
     func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], any Error>, Never> {
         guard PathValidator.validateCollectionPath(path) else {
-            return Just(.failure(FirebaseEnternalAppError.invalidCollectionPath)).eraseToAnyPublisher()
+            return Just(.failure(FirebaseEnternalError.invalidCollectionPath)).eraseToAnyPublisher()
         }
         
         let subject = PassthroughSubject<Result<[BookCloud], Error>, Never>()

@@ -22,6 +22,29 @@
 "home.contentErrorView.description" = "Попробуйте еще раз! Что-то пошло не так!";
 "home.contentErrorView.refresh_button" = "Обновить";
 
+/* BookDetailsView */
+"book_details.title" = "Название";
+"book_details.description" = "Описание";
+"book_details.author" = "Автор";
+"book_details.go_to_some_view_button" = "Перейти к другому виду";
+"book_details.navigation_title" = "Детали книги";
+"book_details.edit_button" = "Редактировать";
+
+/* BookEditView */
+"book_edit.cancel" = "Отмена";
+"book_edit.done" = "Готово";
+"book_edit.save" = "Сохранить";
+"book_edit.new_book" = "Новая книга";
+"book_edit.book_section" = "Книга";
+"book_edit.title" = "Название";
+"book_edit.description" = "Описание";
+"book_edit.path_image" = "Путь к изображению";
+"book_edit.author_section" = "Автор";
+"book_edit.author" = "Автор";
+"book_edit.delete_book" = "Удалить книгу";
+"book_edit.confirmation_dialog" = "Вы уверены?";
+
+
 
 /* Profile Navigation Stack */
 
@@ -36,6 +59,13 @@
 
 
 /* Firebase error */
+
+/* Description Of Operation Error */
+"error.deleting_book" = "Ошибка при удалении книги";
+"error.authentication" = "Ошибка аутентификации";
+"error.database" = "Ошибка базы данных";
+"error.adding_or_changing_book" = "Ошибка при добавлении или изменении книги";
+
 
 /* Custom Firebase Errors */
 "error.custom_firebase.default_error" = "Что-то пошло не так. Пожалуйста, попробуйте еще раз.";

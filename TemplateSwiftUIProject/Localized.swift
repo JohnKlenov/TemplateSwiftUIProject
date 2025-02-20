@@ -15,7 +15,9 @@ enum Localized {
         static let profile = localized("tab.profile")
     }
     
-    // MARK: - Home View
+    // MARK: - Home View Navigation Stack
+    
+    //Home view
     enum Home {
         static let title = localized("home.title")
         static let addButton = localized("home.add_button")
@@ -28,6 +30,32 @@ enum Localized {
             static let description = localized("home.contentErrorView.description")
             static let refreshButton = localized("home.contentErrorView.refresh_button")
         }
+    }
+    
+    //BookDetailsView
+    enum BookDetailsView {
+            static let title = localized("book_details.title")
+            static let description = localized("book_details.description")
+            static let author = localized("book_details.author")
+            static let goToSomeViewButton = localized("book_details.go_to_some_view_button")
+            static let navigationTitle = localized("book_details.navigation_title")
+            static let editButton = localized("book_details.edit_button")
+        }
+    
+    //BookEditView
+    enum BookEditView {
+        static let cancel = localized("book_edit.cancel")
+        static let done = localized("book_edit.done")
+        static let save = localized("book_edit.save")
+        static let newBook = localized("book_edit.new_book")
+        static let bookSection = localized("book_edit.book_section")
+        static let title = localized("book_edit.title")
+        static let description = localized("book_edit.description")
+        static let pathImage = localized("book_edit.path_image")
+        static let authorSection = localized("book_edit.author_section")
+        static let author = localized("book_edit.author")
+        static let deleteBook = localized("book_edit.delete_book")
+        static let confirmationDialog = localized("book_edit.confirmation_dialog")
     }
     
     // MARK: - Profile Navigation Stack
@@ -45,7 +73,12 @@ enum Localized {
     
     // MARK: - Firebase Errors -
     
-    
+    enum DescriptionOfOperationError {
+        static let addingOrChangingBook = localized("error.adding_or_changing_book")
+        static let deletingBook = localized("error.deleting_book")
+        static let authentication = localized("error.authentication")
+        static let database = localized("error.database")
+    }
     
     // MARK: - Custom Firebase Error -
     

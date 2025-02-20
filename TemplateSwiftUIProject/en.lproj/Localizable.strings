@@ -24,6 +24,28 @@
 "home.contentErrorView.description" = "Try again! Something went wrong!";
 "home.contentErrorView.refresh_button" = "Refresh";
 
+/* BookDetailsView */
+"book_details.title" = "Title";
+"book_details.description" = "Description";
+"book_details.author" = "Author";
+"book_details.go_to_some_view_button" = "Go To Some View";
+"book_details.navigation_title" = "Book Details";
+"book_details.edit_button" = "Edit";
+
+/* BookEditView */
+"book_edit.cancel" = "Cancel";
+"book_edit.done" = "Done";
+"book_edit.save" = "Save";
+"book_edit.new_book" = "New book";
+"book_edit.book_section" = "Book";
+"book_edit.title" = "Title";
+"book_edit.description" = "Description";
+"book_edit.path_image" = "PathImage";
+"book_edit.author_section" = "Author";
+"book_edit.author" = "Author";
+"book_edit.delete_book" = "Delete book";
+"book_edit.confirmation_dialog" = "Are you sure?";
+
 
 
 
@@ -42,6 +64,13 @@
 
 
 /* Firebase error */
+
+/* Description Of Operation Error */
+"error.deleting_book" = "Error deleting book";
+"error.authentication" = "Error authentication";
+"error.database" = "Error Database";
+"error.adding_or_changing_book" = "Error adding or changing book";
+
 
 /* Custom Firebase Errors */
 "error.custom_firebase.default_error" = "Something went wrong. Please try again.";

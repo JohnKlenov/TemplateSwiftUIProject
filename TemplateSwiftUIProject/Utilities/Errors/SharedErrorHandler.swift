@@ -40,7 +40,7 @@ class SharedErrorHandler: ErrorHandlerProtocol {
             }
         }
         
-        if let customError = error as? FirebaseEnternalAppError {
+        if let customError = error as? FirebaseEnternalError {
             return customError.errorDescription ?? Localized.FirebaseEnternalError.defaultError
         }
         
