@@ -18,7 +18,7 @@ struct BooksListView: View {
                     Button(role: .destructive) {
                         removeBookAction(book)
                     } label: {
-                        Label(Localized.Home.BookRowView.swipeActionsDelete, systemImage: "trash.fill")
+                        Label(Localized.Home.BookRowView.swipeActionsDelete.localized(), systemImage: "trash.fill")
                     }
                 }
         }

@@ -21,7 +21,7 @@ class OnboardingService : OnboardingServiceProtocol {
      }
 
     
-    var pages: [OnboardingPage] = [OnboardingPage(title: "Welcome", description: "Welcome to our app", imageName: "house.fill"), OnboardingPage(title: "Discover", description: "Discover new features", imageName: "safari.fill"), OnboardingPage(title: "Get started", description: "Let's get started!", imageName: "flag.fill")]
+    var pages: [OnboardingPage] = [OnboardingPage(title: Localized.Onboarding.welcomeTitle.localized(), description: Localized.Onboarding.welcomeDescription.localized(), imageName: "house.fill"), OnboardingPage(title: Localized.Onboarding.discoverTitle.localized(), description: Localized.Onboarding.discoverDescription.localized(), imageName: "safari.fill"), OnboardingPage(title: Localized.Onboarding.getStartedTitle.localized(), description: Localized.Onboarding.getStartedDescription.localized(), imageName: "flag.fill")]
     
        
     init() {

@@ -38,6 +38,9 @@ class SharedErrorHandler: ErrorHandlerProtocol {
             if nsError.domain == RealtimeDatabaseErrorDomain {
                 return handleRealtimeDatabaseError(nsError)
             }
+            if nsError.domain == "Anonymous Auth" {
+                return Localized.FirebaseEnternalError.anonymousAuthError
+            }
         }
         
         if let customError = error as? FirebaseEnternalError {

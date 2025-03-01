@@ -54,6 +54,18 @@
 
 /* Gallery Navigation Stack */
 
+/* OnboardingView */
+
+"onboarding.back_button" = "Back";
+"onboarding.next_button" = "Next";
+"onboarding.get_started_button" = "Get started";
+"onboarding.page_welcome.title" = "Welcome";
+"onboarding.page_welcome.description" = "Welcome to our app";
+"onboarding.page_discover.title" = "Discover";
+"onboarding.page_discover.description" = "Discover new features";
+"onboarding.page_get_started.title" = "Get started";
+"onboarding.page_get_started.description" = "Let's get started!";
+
 
 
 /* Alerts - Global */
@@ -79,7 +91,7 @@
 "error.custom_firebase.failed_deploy_optional_id" = "Failed to deploy optional ID.";
 "error.custom_firebase.json_conversion_failed" = "JSON conversion failed.";
 "error.custom_firebase.not_signed_in" = "No user is currently signed in.";
-
+"error.anonymous_auth" = "Unknown error occurred during anonymous authentication";
 
 /* Auth Errors */
 "error.auth.provider_already_linked" = "The user is already linked to this provider. Please log in using this provider or link another.";

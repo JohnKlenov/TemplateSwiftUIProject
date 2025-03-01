@@ -51,6 +51,18 @@
 
 /* Gallery Navigation Stack */
 
+/* OnboardingView */
+
+"onboarding.back_button" = "Назад";
+"onboarding.next_button" = "Далее";
+"onboarding.get_started_button" = "Начать";
+"onboarding.page_welcome.title" = "Добро пожаловать";
+"onboarding.page_welcome.description" = "Добро пожаловать в наше приложение";
+"onboarding.page_discover.title" = "Обзор";
+"onboarding.page_discover.description" = "Откройте для себя новые функции";
+"onboarding.page_get_started.title" = "Начать";
+"onboarding.page_get_started.description" = "Давайте начнем!";
+
 
 /* Alerts - Global */
 "alert.title" = "Ошибка";
@@ -74,6 +86,7 @@
 "error.custom_firebase.failed_deploy_optional_id" = "Не удалось обработать необязательный идентификатор.";
 "error.custom_firebase.json_conversion_failed" = "Сбой преобразования JSON.";
 "error.custom_firebase.not_signed_in" = "В настоящий момент ни один пользователь не вошел в систему.";
+"error.anonymous_auth" = "Неизвестная ошибка при анонимной аутентификации";
 
 
 

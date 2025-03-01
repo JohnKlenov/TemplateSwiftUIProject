@@ -62,18 +62,31 @@ class AuthenticationService: AuthenticationServiceProtocol {
     private func createAnonymousUser() {
         Auth.auth().signInAnonymously { [weak self] authResult, error in
             guard let self = self else { return }
-            guard let _ = authResult?.user else {
-                if let error = error {
-                    
-                    self.authenticationPublisher.send(.failure(error))
-                } else {
-                    self.authenticationPublisher.send(.failure(NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])))
-                }
+            guard let user = authResult?.user else {
+                let authenticationError = error ?? NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])
+                self.authenticationPublisher.send(.failure(authenticationError))
                 return
             }
             // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
         }
     }
+
+    
+//    private func createAnonymousUser() {
+//        Auth.auth().signInAnonymously { [weak self] authResult, error in
+//            guard let self = self else { return }
+//            guard let _ = authResult?.user else {
+//                if let error = error {
+//                    
+//                    self.authenticationPublisher.send(.failure(error))
+//                } else {
+//                    self.authenticationPublisher.send(.failure(NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])))
+//                }
+//                return
+//            }
+//            // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
+//        }
+//    }
     
     func authenticate() -> AnyPublisher<Result<String, any Error>, Never> {
         return authenticationPublisher.eraseToAnyPublisher()

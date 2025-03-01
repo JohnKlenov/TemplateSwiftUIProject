@@ -52,6 +52,19 @@
 
 /* Gallery Navigation Stack */
 
+/* OnboardingView */
+
+"onboarding.back_button" = "Atrás";
+"onboarding.next_button" = "Siguiente";
+"onboarding.get_started_button" = "Comenzar";
+"onboarding.page_welcome.title" = "Bienvenido";
+"onboarding.page_welcome.description" = "Bienvenido a nuestra aplicación";
+"onboarding.page_discover.title" = "Descubrir";
+"onboarding.page_discover.description" = "Descubre nuevas funciones";
+"onboarding.page_get_started.title" = "Comenzar";
+"onboarding.page_get_started.description" = "¡Vamos a empezar!";
+
+
 /* Alerts - Global */
 "alert.title" = "Error";
 "alert.default_message" = "Algo salió mal. Por favor, inténtelo de nuevo.";
@@ -73,6 +86,7 @@
 "error.custom_firebase.failed_deploy_optional_id" = "No se pudo desplegar el ID opcional.";
 "error.custom_firebase.json_conversion_failed" = "Falló la conversión de JSON.";
 "error.custom_firebase.not_signed_in" = "Ningún usuario ha iniciado sesión actualmente.";
+"error.anonymous_auth" = "Error desconocido durante la autenticación anónima";
 
 
 /* Auth Errors */

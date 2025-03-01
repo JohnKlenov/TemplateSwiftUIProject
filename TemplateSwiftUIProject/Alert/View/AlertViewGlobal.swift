@@ -28,8 +28,8 @@ struct AlertViewGlobal: View {
         EmptyView()
             .alert(alertTitle, isPresented: $isShowAlert) {
                 Button("Ok") {
-                    alertMessage = "Something went wrong try again!"
-                    alertTitle = "Error"
+                    alertMessage = ""
+                    alertTitle = ""
                     isShowAlert = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         // Логика сброса сообщения алерта

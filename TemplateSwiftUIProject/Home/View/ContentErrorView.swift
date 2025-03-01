@@ -21,13 +21,13 @@ struct ContentErrorView: View {
             Spacer()
             ContentUnavailableView(
                 label: {
-                    Label(Localized.Home.ContentErrorView.title, systemImage: "exclamationmark.triangle")
+                    Label(Localized.Home.ContentErrorView.title.localized(), systemImage: "exclamationmark.triangle")
                 },
                 description: {
-                    Text(Localized.Home.ContentErrorView.description)
+                    Text(Localized.Home.ContentErrorView.description.localized())
                 },
                 actions: {
-                    Button(Localized.Home.ContentErrorView.refreshButton) {
+                    Button(Localized.Home.ContentErrorView.refreshButton.localized()) {
                         retryAction()
                     }
                 }

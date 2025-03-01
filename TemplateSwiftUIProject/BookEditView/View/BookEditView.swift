@@ -54,14 +54,14 @@ struct BookEditView: View {
     var completionHandler: ((Result<Action, Error>) -> Void)?
     var presentEditView = ""
     var cancelButton: some View {
-        Button(Localized.BookEditView.cancel) {
+        Button(Localized.BookEditView.cancel.localized()) {
             handleCancelTapped()
         }
     }
     
     
     var saveButton: some View {
-        Button(viewModel.mode == .new ? Localized.BookEditView.done : Localized.BookEditView.save) {
+        Button(viewModel.mode == .new ? Localized.BookEditView.done.localized() : Localized.BookEditView.save.localized()) {
             handleDoneTapped()
         }
         .disabled(!viewModel.modified)
@@ -78,22 +78,22 @@ struct BookEditView: View {
         NavigationStack {
             ZStack {
                 Form {
-                    Section(header: Text(Localized.BookEditView.bookSection)) {
-                        customTextField(Localized.BookEditView.title, text: $viewModel.book.title, field: .title, focus: $focus)
-                        customTextField(Localized.BookEditView.description, text: $viewModel.book.description, field: .description, focus: $focus)
-                        customTextField(Localized.BookEditView.pathImage, text: $viewModel.book.urlImage, field: .pathImage, focus: $focus)
+                    Section(header: Text(Localized.BookEditView.bookSection.localized())) {
+                        customTextField(Localized.BookEditView.title.localized(), text: $viewModel.book.title, field: .title, focus: $focus)
+                        customTextField(Localized.BookEditView.description.localized(), text: $viewModel.book.description, field: .description, focus: $focus)
+                        customTextField(Localized.BookEditView.pathImage.localized(), text: $viewModel.book.urlImage, field: .pathImage, focus: $focus)
                     }
-                    Section(header: Text(Localized.BookEditView.authorSection)) {
-                        customTextField(Localized.BookEditView.author, text: $viewModel.book.author, field: .author, focus: $focus)
+                    Section(header: Text(Localized.BookEditView.authorSection.localized())) {
+                        customTextField(Localized.BookEditView.author.localized(), text: $viewModel.book.author, field: .author, focus: $focus)
                     }
                     
                     if viewModel.mode == .edit {
-                        Button(Localized.BookEditView.deleteBook, role: .destructive) {
+                        Button(Localized.BookEditView.deleteBook.localized(), role: .destructive) {
                             self.presentActionSheet.toggle()
                         }
                     }
                 }
-                .navigationTitle(viewModel.mode == .new ? Localized.BookEditView.newBook : viewModel.book.title)
+                .navigationTitle(viewModel.mode == .new ? Localized.BookEditView.newBook.localized() : viewModel.book.title)
                 .navigationBarTitleDisplayMode(viewModel.mode == .new ? .inline : .large)
                 .toolbar{
                     ToolbarItem(placement: .topBarTrailing) {
@@ -103,11 +103,11 @@ struct BookEditView: View {
                         cancelButton
                     }
                 }
-                .confirmationDialog(Localized.BookEditView.confirmationDialog, isPresented: $presentActionSheet) {
-                    Button(Localized.BookEditView.deleteBook, role: .destructive) {
+                .confirmationDialog(Localized.BookEditView.confirmationDialog.localized(), isPresented: $presentActionSheet) {
+                    Button(Localized.BookEditView.deleteBook.localized(), role: .destructive) {
                         handleDeleteTapped()
                     }
-                    Button(Localized.BookEditView.cancel, role: .cancel) {}
+                    Button(Localized.BookEditView.cancel.localized(), role: .cancel) {}
                 }
             }
         }
@@ -157,13 +157,13 @@ struct BookEditView: View {
     }
     
     private func handleDoneTapped() {
-        viewModel.updateOrAddBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.addingOrChangingBook)
+        viewModel.updateOrAddBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.addingOrChangingBook.localized())
         self.completionHandler?(.success((.done)))
         dismiss()
     }
     
     private func handleDeleteTapped() {
-        viewModel.removeBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.deletingBook)
+        viewModel.removeBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.deletingBook.localized())
         self.completionHandler?(.success((.delete)))
         dismiss()
     }

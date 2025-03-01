@@ -28,8 +28,8 @@ struct AlertViewLocal: View {
         EmptyView() // Основное содержимое можно оставить пустым, так как alert показывается независимо
             .alert(alertTitle, isPresented: $isShowAlert) {
                 Button("Ok") {
-                    alertMessage = "Something went wrong try again!"
-                    alertTitle = "Error"
+                    alertMessage = ""
+                    alertTitle = ""
                     isShowAlert = false
                     viewModel.alertManager.resetFirstLocalAlert(forView: nameView)
 //                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

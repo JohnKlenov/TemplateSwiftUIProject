@@ -37,7 +37,7 @@ struct BookDetailsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     // Title Section
-                    Text(Localized.BookDetailsView.title)
+                    Text(Localized.BookDetailsView.title.localized())
                         .font(.headline)
                         .foregroundColor(.secondary)
                     
@@ -46,7 +46,7 @@ struct BookDetailsView: View {
                         .foregroundColor(.primary)
                     
                     // Description Section
-                    Text(Localized.BookDetailsView.description)
+                    Text(Localized.BookDetailsView.description.localized())
                         .font(.headline)
                         .foregroundColor(.secondary)
                     
@@ -56,7 +56,7 @@ struct BookDetailsView: View {
                         .multilineTextAlignment(.leading)
                     
                     // Author Section
-                    Text(Localized.BookDetailsView.author)
+                    Text(Localized.BookDetailsView.author.localized())
                         .font(.headline)
                         .foregroundColor(.secondary)
                     
@@ -73,7 +73,7 @@ struct BookDetailsView: View {
                         .padding(.vertical, 16)
                     
                     // Navigation Button
-                    Button(Localized.BookDetailsView.goToSomeViewButton) {
+                    Button(Localized.BookDetailsView.goToSomeViewButton.localized()) {
                         homeCoordinator.navigateTo(page: .someHomeView)
                     }
                     .buttonStyle(.borderedProminent)
@@ -85,10 +85,10 @@ struct BookDetailsView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(Localized.BookDetailsView.navigationTitle)
+        .navigationTitle(Localized.BookDetailsView.navigationTitle.localized())
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button(Localized.BookDetailsView.editButton) {
+                Button(Localized.BookDetailsView.editButton.localized()) {
                     ///Для struct использование [weak self] не требуется, так как они не создают циклов удержания.
                     ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
                     let sheetContent = AnyView(BookEditView(book: book, mode: .edit, managerCRUDS: viewModel.crudManager, presentEditView: "HomeView") {  result in

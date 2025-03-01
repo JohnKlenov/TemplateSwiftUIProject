@@ -22,63 +22,93 @@ import SwiftUI
 
 struct GalleryView: View {
     
-    @State private var isPresentingAlert = false
-    @State private var isPresentingSheet = false
-    @StateObject var viewModel = GalleryViewModel()
-//    @EnvironmentObject private var crudManager: CRUDSManager
+    // Получаем сервис локализации через EnvironmentObject
+    @EnvironmentObject var localization: LocalizationService
+    
+    // Список поддерживаемых языков
+    let supportedLanguages = ["en", "ru", "es"]
     
     var body: some View {
-        VStack {
-            let _ = Self._printChanges()
-            Button("Show Sheet") {
-//                isPresentingSheet = true
-                viewModel.managerCRUDS?.removeBook(book: BookCloud(title: "", author: "", description: "", urlImage: ""), forView: "TestView", operationDescription: "TestOperation")
-            }
-        }
-        .onFirstAppear {
-            print("onFirstAppear GalleryView")
-            /// ID
-//            viewModel.setDataModel(crudManager)
-        }
-        .onAppear {
-            print("onAppear GalleryView")
-        }
-        .sheet(isPresented: $isPresentingSheet) {
-            ModalView(isPresentingAlert: $isPresentingAlert)
-                .alert(isPresented: $isPresentingAlert) {
-                    Alert(title: Text("Alert"), message: nil, dismissButton: .default(Text("OK")))
+        List(supportedLanguages, id: \.self) { code in
+            Button(action: {
+                // Устанавливаем выбранный язык
+                localization.setLanguage(code)
+            }) {
+                HStack {
+                    // Отображаем название языка
+                    Text(languageName(for: code))
+                    Spacer()
+                    // Показываем галочку для текущего языка
+                    if code == localization.currentLanguage {
+                        Image(systemName: "checkmark")
+                    }
                 }
-        }
-    }
-}
-
-class GalleryViewModel:ObservableObject {
-    
-    var managerCRUDS:CRUDSManager?
-    
-    init() {
-        print("init GalleryViewModel")
-    }
-    
-    func setDataModel(_ model:CRUDSManager) {
-        self.managerCRUDS = model
-    }
-    
-}
-
-struct ModalView: View {
-    @Binding var isPresentingAlert: Bool
-    
-    var body: some View {
-        VStack {
-            
-            Button("Show Alert") {
-                isPresentingAlert = true
             }
         }
-        
     }
+    
+    // Метод для получения названия языка
+    private func languageName(for code: String) -> String {
+        Locale.current.localizedString(forLanguageCode: code) ?? code.uppercased()
+    }
+    
+//    @State private var isPresentingAlert = false
+//    @State private var isPresentingSheet = false
+//    @StateObject var viewModel = GalleryViewModel()
+////    @EnvironmentObject private var crudManager: CRUDSManager
+//    
+//    var body: some View {
+//        VStack {
+//            let _ = Self._printChanges()
+//            Button("Show Sheet") {
+////                isPresentingSheet = true
+//                viewModel.managerCRUDS?.removeBook(book: BookCloud(title: "", author: "", description: "", urlImage: ""), forView: "TestView", operationDescription: "TestOperation")
+//            }
+//        }
+//        .onFirstAppear {
+//            print("onFirstAppear GalleryView")
+//            /// ID
+////            viewModel.setDataModel(crudManager)
+//        }
+//        .onAppear {
+//            print("onAppear GalleryView")
+//        }
+//        .sheet(isPresented: $isPresentingSheet) {
+//            ModalView(isPresentingAlert: $isPresentingAlert)
+//                .alert(isPresented: $isPresentingAlert) {
+//                    Alert(title: Text("Alert"), message: nil, dismissButton: .default(Text("OK")))
+//                }
+//        }
+//    }
 }
+
+//class GalleryViewModel:ObservableObject {
+//    
+//    var managerCRUDS:CRUDSManager?
+//    
+//    init() {
+//        print("init GalleryViewModel")
+//    }
+//    
+//    func setDataModel(_ model:CRUDSManager) {
+//        self.managerCRUDS = model
+//    }
+//    
+//}
+//
+//struct ModalView: View {
+//    @Binding var isPresentingAlert: Bool
+//    
+//    var body: some View {
+//        VStack {
+//            
+//            Button("Show Alert") {
+//                isPresentingAlert = true
+//            }
+//        }
+//        
+//    }
+//}
 
 
 
@@ -130,7 +160,7 @@ struct ModalView: View {
 //    }
 //}
 
-#Preview {
-    GalleryView()
-}
+//#Preview {
+//    GalleryView()
+//}
 

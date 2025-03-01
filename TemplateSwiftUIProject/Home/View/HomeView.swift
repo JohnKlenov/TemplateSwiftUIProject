@@ -106,8 +106,8 @@ struct HomeView: View {
                 print(".sink { (localAlert, isHomeViewVisible)")
                 if isHomeViewVisible, let alert = localAlert["HomeView"] {
                     print("if isHomeViewVisible, let alert = localAlert")
-                    alertMessage = alert.first?.message ?? Localized.Alerts.defaultMessage
-                    alertTitle = alert.first?.operationDescription ?? Localized.Alerts.title
+                    alertMessage = alert.first?.message.localized() ?? Localized.Alerts.defaultMessage.localized()
+                    alertTitle = alert.first?.operationDescription.localized() ?? Localized.Alerts.title.localized()
                     isShowAlert = true
                 }
             }

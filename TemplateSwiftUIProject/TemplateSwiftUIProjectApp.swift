@@ -21,6 +21,8 @@ struct TemplateSwiftUIProjectApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     ///использование @AppStorage позволяет привязать переменную(tiedOnboarding) к UserDefaults, а SwiftUI автоматически отслеживает и реагирует на изменения этой переменной, что приводит к обновлению пользовательского интерфейса без необходимости явных вызовов для переключения представлений.
     @AppStorage("hasSeenOnboarding") var tiedOnboarding:Bool = false
+    // Создаем экземпляр LocalizationService
+    @StateObject private var localizationService = LocalizationService.shared
     
     init() {
         
@@ -34,6 +36,13 @@ struct TemplateSwiftUIProjectApp: App {
         WindowGroup {
             if tiedOnboarding {
                 ContentView()
+                // Передаем сервис локализации через EnvironmentObject
+                    .environmentObject(localizationService)
+                // Ловим уведомление о смене языка
+//                    .onReceive(NotificationCenter.default.publisher(for: .languageChanged)) { _ in
+//                        // Форсируем обновление корневого View
+//                        localizationService.objectWillChange.send()
+//                    }
             } else {
                 OnboardingView()
             }

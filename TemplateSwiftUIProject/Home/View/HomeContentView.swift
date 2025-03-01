@@ -24,6 +24,7 @@ struct HomeContentView:View {
     @StateObject private var viewModel: HomeContentViewModel
     @EnvironmentObject var homeDataStore:HomeBookDataStore
     @EnvironmentObject var homeCoordinator:HomeCoordinator
+//    @EnvironmentObject var localization: LocalizationService
     
     init(managerCRUDS: CRUDSManager) {
         _viewModel = StateObject(wrappedValue: HomeContentViewModel(
@@ -39,7 +40,7 @@ struct HomeContentView:View {
         ZStack {
             switch viewModel.viewState {
             case .loading:
-                ProgressView(Localized.Home.loading)
+                ProgressView(Localized.Home.loading.localized())
             case .content(let data):
                 BooksListView(data: data) { book in
                     viewModel.removeBook(book: book, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.deletingBook)
@@ -51,10 +52,10 @@ struct HomeContentView:View {
             }
         }
         .background(AppColors.background)
-        .navigationTitle(Localized.Home.title)
+        .navigationTitle(Localized.Home.title.localized())
         .toolbar{
             ToolbarItem(placement: .topBarTrailing) {
-                Button(Localized.Home.addButton) {
+                Button(Localized.Home.addButton.localized()) {
                     let sheetContent = AnyView(BookEditView(managerCRUDS: viewModel.managerCRUDS, presentEditView: "HomeView"))
                     homeCoordinator.presentSheet(SheetItem(content: sheetContent))
                 }

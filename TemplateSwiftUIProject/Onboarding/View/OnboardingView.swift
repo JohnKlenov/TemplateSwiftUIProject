@@ -34,7 +34,7 @@ struct OnboardingView: View {
             HStack {
                 
                 if viewModel.currentPage > 0 {
-                    Button("Back") {
+                    Button(Localized.Onboarding.backButton.localized()) {
                         viewModel.previousPage()
                     }
                     .padding()
@@ -42,12 +42,12 @@ struct OnboardingView: View {
                 Spacer()
                 
                 if viewModel.currentPage < viewModel.pages.count - 1 {
-                    Button("Next") {
+                    Button(Localized.Onboarding.nextButton.localized()) {
                         viewModel.nextPage()
                     }
                     .padding()
                 } else {
-                    Button("Get started") {
+                    Button(Localized.Onboarding.getStartedButton.localized()) {
                         viewModel.completeOnboarding()
                         // Navigate to the main creen
                         
