@@ -112,8 +112,8 @@ struct ContentView: View {
                 print(".sink { globalAlert in")
                 if let alert = globalAlert["globalError"] {
                     print(".sink showAlert = true")
-                    alertMessage = alert.first?.message ?? Localized.Alerts.defaultMessage.localized()
-                    alertTitle = alert.first?.operationDescription ?? Localized.Alerts.title.localized()
+                    alertMessage = alert.first?.message.localized() ?? Localized.Alerts.defaultMessage.localized()
+                    alertTitle = alert.first?.operationDescription.localized() ?? Localized.Alerts.title.localized()
                     isShowAlert = true
                 }
             }

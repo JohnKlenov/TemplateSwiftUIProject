@@ -13,6 +13,8 @@
 import SwiftUI
 
 struct ContentErrorView: View {
+    @EnvironmentObject var localization: LocalizationService
+    
     let error: String
     let retryAction: () -> Void
     

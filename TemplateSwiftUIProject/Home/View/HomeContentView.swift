@@ -24,7 +24,7 @@ struct HomeContentView:View {
     @StateObject private var viewModel: HomeContentViewModel
     @EnvironmentObject var homeDataStore:HomeBookDataStore
     @EnvironmentObject var homeCoordinator:HomeCoordinator
-//    @EnvironmentObject var localization: LocalizationService
+    @EnvironmentObject var localization: LocalizationService
     
     init(managerCRUDS: CRUDSManager) {
         _viewModel = StateObject(wrappedValue: HomeContentViewModel(
@@ -46,6 +46,7 @@ struct HomeContentView:View {
                     viewModel.removeBook(book: book, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.deletingBook)
                 }
             case .error(let error):
+                ///error на ContentErrorView не распечатывается
                 ContentErrorView(error: error) {
                     viewModel.retry()
                 }

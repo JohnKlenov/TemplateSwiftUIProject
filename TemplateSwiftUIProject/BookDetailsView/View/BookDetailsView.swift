@@ -11,6 +11,7 @@ struct BookDetailsView: View {
     
     @EnvironmentObject var homeCoordinator:HomeCoordinator
     @EnvironmentObject var homeBookDataStore:HomeBookDataStore
+    @EnvironmentObject var localization: LocalizationService
     @StateObject var viewModel:BookDetailsViewModel
     @Environment(\.dismiss) var dismiss
     @State var bookID: String

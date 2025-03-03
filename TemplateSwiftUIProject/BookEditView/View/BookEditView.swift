@@ -50,6 +50,7 @@ struct BookEditView: View {
     @StateObject var viewModel: BookViewModel
     @FocusState var focus:FocusedField?
     @State var presentActionSheet = false
+    @EnvironmentObject var localization: LocalizationService
     
     var completionHandler: ((Result<Action, Error>) -> Void)?
     var presentEditView = ""
@@ -157,13 +158,13 @@ struct BookEditView: View {
     }
     
     private func handleDoneTapped() {
-        viewModel.updateOrAddBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.addingOrChangingBook.localized())
+        viewModel.updateOrAddBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.addingOrChangingBook)
         self.completionHandler?(.success((.done)))
         dismiss()
     }
     
     private func handleDeleteTapped() {
-        viewModel.removeBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.deletingBook.localized())
+        viewModel.removeBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.deletingBook)
         self.completionHandler?(.success((.delete)))
         dismiss()
     }

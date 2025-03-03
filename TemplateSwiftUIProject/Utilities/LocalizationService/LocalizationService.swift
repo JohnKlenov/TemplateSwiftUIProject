@@ -36,20 +36,12 @@ final class LocalizationService: ObservableObject {
             ?? "en"
         }
     }
-
     
     // Метод для смены языка
     func setLanguage(_ code: String) {
         currentLanguage = code
-        // Отправляем уведомление об изменении языка
-//        NotificationCenter.default.post(name: .languageChanged, object: nil)
     }
 }
-
-//// Расширение для Notification.Name
-//extension Notification.Name {
-//    static let languageChanged = Notification.Name("LanguageChanged")
-//}
 
 //Это расширение позволяет использовать метод .localized() для получения перевода.
 extension String {

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct BooksListView: View {
+    @EnvironmentObject var localization: LocalizationService
     let data: [BookCloud]
     let removeBookAction: (BookCloud) -> Void
     

@@ -45,6 +45,9 @@ struct GalleryView: View {
                 }
             }
         }
+        .onAppear{
+            print("GalleryView .onAppear")
+        }
     }
     
     // Метод для получения названия языка
