@@ -35,48 +35,94 @@ import Combine
 import FirebaseFirestore
 import FirebaseDatabase
 
+import Combine
 
 protocol FirestoreCollectionObserverProtocol {
-    func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], Error>, Never>
+    func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never>
 }
-
 
 class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
     private let db: Firestore
     private var listener: ListenerRegistration?
     
-
-    ///let mockFirestore = FirestoreMock() // Твой mock-объект Firestore
+    /// Инициализация с указанием контейнера Firestore (по умолчанию используется Firestore.firestore())
     init(db: Firestore = Firestore.firestore()) {
         self.db = db
     }
-
-    func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], Error>, Never> {
+    
+    func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never> {
+        // Проверка валидности пути
         guard PathValidator.validateCollectionPath(path) else {
-            return Just(.failure(FirebaseEnternalError.invalidCollectionPath)).eraseToAnyPublisher()
+            return Just(.failure(FirebaseEnternalError.invalidCollectionPath))
+                .eraseToAnyPublisher()
         }
-        let subject = PassthroughSubject<Result<[BookCloud], Error>, Never>()
         
+        let subject = PassthroughSubject<Result<[T], Error>, Never>()
+        
+        // Отписываемся от предыдущего слушателя (если был)
         listener?.remove()
-        listener = db.collection(path)
-            .addSnapshotListener { (querySnapshot, error) in
-                if let error = error {
-                    subject.send(.failure(error))
-                } else {
-                    let data = querySnapshot?.documents.compactMap({ queryDocumentSnapshot in
-                        try? queryDocumentSnapshot.data(as: BookCloud.self)
-                    })
-                    print("books  \(String(describing: data))")
-                    subject.send(.success(data ?? []))
-                }
-
+        listener = db.collection(path).addSnapshotListener { (querySnapshot, error) in
+            if let error = error {
+                subject.send(.failure(error))
+            } else {
+                // Пытаемся преобразовать каждый документ в модель T
+                let data = querySnapshot?.documents.compactMap({ document in
+                    try? document.data(as: T.self)
+                }) ?? []
+                
+                print("Received objects: \(data)")
+                subject.send(.success(data))
             }
+        }
+        
         return subject.eraseToAnyPublisher()
     }
 }
 
 
-class RealtimeCollectionObserverService : FirestoreCollectionObserverProtocol {
+
+// MARK: - before generic tupe for Firestore
+protocol FirestoreCollectionObserverProtocolBefore {
+    func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], Error>, Never>
+}
+//
+//
+//class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
+//    private let db: Firestore
+//    private var listener: ListenerRegistration?
+//    
+//
+//    ///let mockFirestore = FirestoreMock() // Твой mock-объект Firestore
+//    init(db: Firestore = Firestore.firestore()) {
+//        self.db = db
+//    }
+//
+//    func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], Error>, Never> {
+//        guard PathValidator.validateCollectionPath(path) else {
+//            return Just(.failure(FirebaseEnternalError.invalidCollectionPath)).eraseToAnyPublisher()
+//        }
+//        let subject = PassthroughSubject<Result<[BookCloud], Error>, Never>()
+//        
+//        listener?.remove()
+//        listener = db.collection(path)
+//            .addSnapshotListener { (querySnapshot, error) in
+//                if let error = error {
+//                    subject.send(.failure(error))
+//                } else {
+//                    let data = querySnapshot?.documents.compactMap({ queryDocumentSnapshot in
+//                        try? queryDocumentSnapshot.data(as: BookCloud.self)
+//                    })
+//                    print("books  \(String(describing: data))")
+//                    subject.send(.success(data ?? []))
+//                }
+//
+//            }
+//        return subject.eraseToAnyPublisher()
+//    }
+//}
+
+
+class RealtimeCollectionObserverService : FirestoreCollectionObserverProtocolBefore {
     
     
     private var listenerHandle:DatabaseHandle?

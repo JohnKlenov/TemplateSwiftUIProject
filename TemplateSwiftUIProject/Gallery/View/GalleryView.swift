@@ -6,6 +6,24 @@
 //
 
 import SwiftUI
+
+struct GalleryView: View {
+    
+    // Получаем сервис локализации через EnvironmentObject
+    @EnvironmentObject var localization: LocalizationService
+    @StateObject private var viewModel:GalleryViewModel
+    
+    init() {
+        _viewModel = StateObject(wrappedValue:GalleryViewModel(firestorColletionObserverService: FirestoreCollectionObserverService(), errorHandler: SharedErrorHandler()))
+    }
+
+    var body: some View {
+        Color.black
+    }
+    
+}
+// MARK: - before firestore localization
+
 //
 //struct ModalView:View {
 //    var body: some View {
@@ -20,46 +38,47 @@ import SwiftUI
 
 
 
-struct GalleryView: View {
-    
-    // Получаем сервис локализации через EnvironmentObject
-    @EnvironmentObject var localization: LocalizationService
-    
-    // Список поддерживаемых языков
-    let supportedLanguages = ["en", "ru", "es"]
-    
-    var body: some View {
-        List(supportedLanguages, id: \.self) { code in
-            Button(action: {
-                // Устанавливаем выбранный язык
-                localization.setLanguage(code)
-            }) {
-                HStack {
-                    // Отображаем название языка
-                    Text(languageName(for: code))
-                    Spacer()
-                    // Показываем галочку для текущего языка
-                    if code == localization.currentLanguage {
-                        Image(systemName: "checkmark")
-                    }
-                }
-            }
-        }
-        .onAppear{
-            print("GalleryView .onAppear")
-        }
-    }
-    
-    // Метод для получения названия языка
-    private func languageName(for code: String) -> String {
-        Locale.current.localizedString(forLanguageCode: code) ?? code.uppercased()
-    }
-    
+//struct GalleryView: View {
+//    
+//    // Получаем сервис локализации через EnvironmentObject
+//    @EnvironmentObject var localization: LocalizationService
+//    
+//    // Список поддерживаемых языков
+//    let supportedLanguages = ["en", "ru", "es"]
+//    
+//    var body: some View {
+//        List(supportedLanguages, id: \.self) { code in
+//            Button(action: {
+//                // Устанавливаем выбранный язык
+//                localization.setLanguage(code)
+//            }) {
+//                HStack {
+//                    // Отображаем название языка
+//                    Text(languageName(for: code))
+//                    Spacer()
+//                    // Показываем галочку для текущего языка
+//                    if code == localization.currentLanguage {
+//                        Image(systemName: "checkmark")
+//                    }
+//                }
+//            }
+//        }
+//        .onAppear{
+//            print("GalleryView onAppear")
+//        }
+//    }
+//    
+//    // Метод для получения названия языка
+//    private func languageName(for code: String) -> String {
+//        Locale.current.localizedString(forLanguageCode: code) ?? code.uppercased()
+//    }
+//}
+
 //    @State private var isPresentingAlert = false
 //    @State private var isPresentingSheet = false
 //    @StateObject var viewModel = GalleryViewModel()
 ////    @EnvironmentObject private var crudManager: CRUDSManager
-//    
+//
 //    var body: some View {
 //        VStack {
 //            let _ = Self._printChanges()
@@ -83,7 +102,6 @@ struct GalleryView: View {
 //                }
 //        }
 //    }
-}
 
 //class GalleryViewModel:ObservableObject {
 //    

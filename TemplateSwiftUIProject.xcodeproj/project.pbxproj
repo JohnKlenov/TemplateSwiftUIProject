@@ -22,6 +22,8 @@
 		5E8F9C962D65F4F2004036F6 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5E8F9C942D65F4F2004036F6 /* Localizable.strings */; };
 		5E8F9C9A2D65F573004036F6 /* Localized.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C992D65F573004036F6 /* Localized.swift */; };
 		5E8F9C9D2D6F53E3004036F6 /* LocalizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C9C2D6F53E3004036F6 /* LocalizationService.swift */; };
+		5E8F9CA12D7CDFB7004036F6 /* GalleryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CA02D7CDFB7004036F6 /* GalleryViewModel.swift */; };
+		5E8F9CA32D7CDFCF004036F6 /* GalleryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CA22D7CDFCF004036F6 /* GalleryModel.swift */; };
 		5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */; };
 		5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDBA2CD51037001CA401 /* AppColors.swift */; };
 		5EA4FDC52CD79747001CA401 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDC42CD79747001CA401 /* Book.swift */; };
@@ -86,6 +88,8 @@
 		5E8F9C982D65F513004036F6 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		5E8F9C992D65F573004036F6 /* Localized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localized.swift; sourceTree = "<group>"; };
 		5E8F9C9C2D6F53E3004036F6 /* LocalizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationService.swift; sourceTree = "<group>"; };
+		5E8F9CA02D7CDFB7004036F6 /* GalleryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryViewModel.swift; sourceTree = "<group>"; };
+		5E8F9CA22D7CDFCF004036F6 /* GalleryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryModel.swift; sourceTree = "<group>"; };
 		5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedErrorHandler.swift; sourceTree = "<group>"; };
 		5EA4FDBA2CD51037001CA401 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		5EA4FDC42CD79747001CA401 /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
@@ -177,6 +181,22 @@
 				5E8F9C9C2D6F53E3004036F6 /* LocalizationService.swift */,
 			);
 			path = LocalizationService;
+			sourceTree = "<group>";
+		};
+		5E8F9C9E2D7CDF7D004036F6 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5E8F9CA02D7CDFB7004036F6 /* GalleryViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		5E8F9C9F2D7CDF91004036F6 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				5E8F9CA22D7CDFCF004036F6 /* GalleryModel.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		5EA4FDB92CD51013001CA401 /* Resources */ = {
@@ -439,6 +459,8 @@
 		5EC949F72CC2912C003736A9 /* Gallery */ = {
 			isa = PBXGroup;
 			children = (
+				5E8F9C9F2D7CDF91004036F6 /* Model */,
+				5E8F9C9E2D7CDF7D004036F6 /* ViewModel */,
 				5EC949FA2CC29197003736A9 /* View */,
 			);
 			path = Gallery;
@@ -659,6 +681,7 @@
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
 				5EA4FDC72CD8E780001CA401 /* BookEditView.swift in Sources */,
 				5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */,
+				5E8F9CA12D7CDFB7004036F6 /* GalleryViewModel.swift in Sources */,
 				5EA4FE2F2D05B89B001CA401 /* SheetManager.swift in Sources */,
 				5EAF5B032D2D552900D96FD6 /* HomeViewModel.swift in Sources */,
 				5EAF5B082D2D563D00D96FD6 /* AlertViewGlobal.swift in Sources */,
@@ -670,6 +693,7 @@
 				5E8F9C902D634EA4004036F6 /* ContentErrorView.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
 				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
+				5E8F9CA32D7CDFCF004036F6 /* GalleryModel.swift in Sources */,
 				5E8F9C8E2D6348D8004036F6 /* BookRowView.swift in Sources */,
 				5EAF5B0A2D2D567700D96FD6 /* AlertViewLocal.swift in Sources */,
 				5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */,

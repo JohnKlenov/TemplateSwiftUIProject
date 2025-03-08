@@ -26,6 +26,8 @@
 /// Ошибки которые приходят в таких сценариях мы отправляем в локальный алерт самого root view с которого был осуществлен переход до ошибки(он должен всегда жить в памяти в рамках одной сессии)
 /// Все ошибки которые поступают на счет этого root view накапливаются в словаре (если ошибки одинаковые по errorMassege то они объединяются в одну) и отображаются в виде alert на rootView по очереди, при каждом уничтожении отображенного алерта удаляется ошибка из словаря в alertManager и далее если есть еще ошибки в словаре для этого root view отображаются последовательно.
 
+
+
 import SwiftUI
 
 enum Action {
@@ -68,13 +70,14 @@ struct BookEditView: View {
         .disabled(!viewModel.modified)
     }
     
+   
     init(book:BookCloud = BookCloud(title: "", author: "", description: "", urlImage: ""), mode:Mode = .new, managerCRUDS: CRUDSManager, presentEditView:String, completionHandler: ((Result<Action, Error>) -> Void)? = nil) {
         print("init BookEditView")
         _viewModel = StateObject(wrappedValue: BookViewModel(book: book, mode: mode, managerCRUDS: managerCRUDS))
         self.presentEditView = presentEditView
         self.completionHandler = completionHandler
     }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
