@@ -51,6 +51,12 @@
 
 /* Gallery Navigation Stack */
 
+"gallery.title" = "Галерея";
+"gallery.loading" = "Загрузка...";
+"gallery.contentErrorView.title" = "Упс :(";
+"gallery.contentErrorView.description" = "Попробуйте еще раз! Что-то пошло не так!";
+"gallery.contentErrorView.refresh_button" = "Обновить";
+
 /* OnboardingView */
 
 "onboarding.back_button" = "Назад";

@@ -19,23 +19,23 @@ struct GalleryContentView: View {
 
     var body: some View {
         ZStack {
-            Color.blue
-//            switch viewModel.viewState {
-//            case .loading:
-//                ProgressView(Localized.Home.loading.localized())
-//            case .error(let error):
-//                ///error на ContentErrorView не распечатывается
-//                ContentErrorView(error: error) {
-//                    viewModel.retry()
-//                }
-//            case .content(let data):
-//                GalleryListView(data: data)
-//            }
+//            Color.blue
+            switch viewModel.viewState {
+            case .loading:
+                ProgressView(Localized.Gallery.loading.localized())
+            case .error(let error):
+                ///error на ContentErrorView не распечатывается
+                ContentErrorView(error: error) {
+                    viewModel.retry()
+                }
+            case .content(let data):
+                GalleryListView(data: data)
+            }
         }
         .background(AppColors.background)
-        .navigationTitle(Localized.Home.title.localized())
+        .navigationTitle(Localized.Gallery.title.localized())
         .onFirstAppear {
-//            viewModel.setupViewModel()
+            viewModel.setupViewModel()
         }
         
     }

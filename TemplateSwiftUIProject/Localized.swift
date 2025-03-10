@@ -80,6 +80,18 @@ enum Localized {
     // MARK: - Gallery Navigation Stack
     // (Добавьте локализованные строки для Gallery, если они будут)
     
+    // Home view
+    enum Gallery {
+        static let title = "gallery.title"
+        static let loading = "gallery.loading"
+        
+        enum ContentErrorView {
+            static let title = "gallery.contentErrorView.title"
+            static let description = "gallery.contentErrorView.description"
+            static let refreshButton = "gallery.contentErrorView.refresh_button"
+        }
+    }
+    
     // MARK: - Alerts - Global
     enum Alerts {
         static let title = "alert.title"

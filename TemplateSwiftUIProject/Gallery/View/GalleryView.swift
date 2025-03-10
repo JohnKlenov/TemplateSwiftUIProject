@@ -60,10 +60,10 @@ struct GalleryView: View {
     
     private func subscribeToLocalAlerts() {
         viewModel.alertManager.$localAlerts
-            .combineLatest(viewModel.alertManager.$isHomeViewVisible)
-            .sink { (localAlert, isHomeViewVisible) in
+            .combineLatest(viewModel.alertManager.$isGalleryViewVisible)
+            .sink { (localAlert, isGalleryViewVisible) in
                 print(".sink { (localAlert, isGalleryViewVisible)")
-                if isHomeViewVisible, let alert = localAlert["GalleryView"] {
+                if isGalleryViewVisible, let alert = localAlert["GalleryView"] {
                     print("if isGalleryViewVisible, let alert = localAlert")
                     alertMessage = alert.first?.message.localized() ?? Localized.Alerts.defaultMessage.localized()
                     alertTitle = alert.first?.operationDescription.localized() ?? Localized.Alerts.title.localized()
