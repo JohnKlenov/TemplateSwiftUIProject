@@ -89,6 +89,9 @@ struct ContentView: View {
                         Label(Localized.TabBar.gallery.localized(), systemImage: "photo.on.rectangle.fill")
                     }
                     .tag(1)
+                    .environmentObject(mainCoordinator)
+                    .environmentObject(mainCoordinator.galleryCoordinator)
+                    .environmentObject(viewBuilderService)
                 profileView
                     .tabItem {
                         Label(Localized.TabBar.profile.localized(), systemImage: "person.crop.circle.fill")

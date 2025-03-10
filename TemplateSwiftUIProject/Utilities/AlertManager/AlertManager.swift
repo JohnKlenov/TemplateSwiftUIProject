@@ -64,6 +64,13 @@ class AlertManager: AlertManagerProtocol {
             print("didSet isHomeViewVisible")
         }
     }
+    
+    @Published var isGalleryViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости HomeView
+        didSet {
+            print("didSet isGalleryViewVisible")
+        }
+    }
+    
     func showGlobalAlert(message: String, operationDescription: String) {
         let alert = AlertData(message: message, operationDescription: operationDescription)
         

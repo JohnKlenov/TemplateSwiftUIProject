@@ -10,4 +10,5 @@ import SwiftUI
 class MainCoordinator:ObservableObject {
     var tabViewSwitcher = TabViewSwitcher()
     var homeCoordinator = HomeCoordinator()
+    var galleryCoordinator = GalleryCoordinator()
 }

@@ -29,6 +29,14 @@ class ViewBuilderService: ObservableObject {
         }
     }
     
+    @ViewBuilder func galleryViewBuild(page: GalleryFlow) -> some View {
+        switch page {
+        case .gallery:
+            GalleryContentView()
+        }
+    }
+    
+    /// будут ли у нас проблемы если у нас ViewBuilderService работает на двух стеках и на одгом мы дерним buildSheet что произойдет на втором стеке он тоже дернится?
     @ViewBuilder
     func buildSheet(sheet: SheetItem) -> some View {
         sheet.content
