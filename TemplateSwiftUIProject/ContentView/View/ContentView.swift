@@ -47,10 +47,11 @@ struct ContentView: View {
     private var galleryView: LazyView<GalleryView> {
         return LazyView { GalleryView() }
     }
-    
+   
     private var profileView: LazyView<ProfileView> {
         return LazyView { ProfileView() }
     }
+    
     @StateObject private var viewModel:ContentViewModel
     @StateObject private var mainCoordinator = MainCoordinator()
     @StateObject private var viewBuilderService = ViewBuilderService()

@@ -33,6 +33,18 @@ struct GalleryBook: Identifiable, Codable, Equatable, Hashable {
     var urlImage: String
 }
 
+struct Item: Identifiable {
+    let id: String
+    let title: String
+    // Добавьте нужные свойства для каждой ячейки
+}
+
+struct SectionModel: Identifiable {
+    let id = UUID()
+    let section: String   // "Malls", "Shops", "PopularProducts"
+    let items: [Item]
+}
+
 //
 //// Промежуточная модель для Encodable
 //struct EncodableBook: Codable {

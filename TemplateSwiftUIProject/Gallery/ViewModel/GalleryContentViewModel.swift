@@ -1,17 +1,16 @@
 //
-//  GalleryViewModel.swift
+//  GalleryContentViewModel.swift
 //  TemplateSwiftUIProject
 //
-//  Created by Evgenyi on 8.03.25.
+//  Created by Evgenyi on 12.03.25.
 //
 
-import Foundation
-import Combine
+import SwiftUI
 
 enum GalleryViewState {
     case loading
     case error(String)
-    case content([GalleryBook])
+    case content([SectionModel])
 }
 
 extension GalleryViewState {
@@ -26,47 +25,67 @@ extension GalleryViewState {
 class GalleryContentViewModel: ObservableObject {
     
     @Published var viewState: GalleryViewState = .loading
-    private var cancellables = Set<AnyCancellable>()
+    @Published var lastUpdated: Date? = nil // Время последнего обновления
     
     // Для получения коллекции моделей GalleryBook:
-    private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
+    private var firestoreService: FirestoreGetService
     private let errorHandler: ErrorHandlerProtocol
     private var alertManager:AlertManager
     
-    init(alertManager: AlertManager = AlertManager.shared, firestorColletionObserverService: FirestoreCollectionObserverProtocol,
+    // Порог для автоматического обновления (например, 1 день)
+    private let autoRefreshThreshold: TimeInterval = 24 * 60 * 60
+    
+    init(alertManager: AlertManager = AlertManager.shared, firestoreService: FirestoreGetService,
          errorHandler: ErrorHandlerProtocol) {
         self.alertManager = alertManager
-        self.firestorColletionObserverService = firestorColletionObserverService
+        self.firestoreService = firestoreService
         self.errorHandler = errorHandler
-        print("init GalleryViewModel")
+        print("init GalleryContentViewModel")
     }
     
-    private func bind() {
-        viewState = .loading
+    @MainActor
+    func fetchData() async {
         
-        // Приведение к нужному типу AnyPublisher<Result<[GalleryBook], Error>, Never>
-        let publisher: AnyPublisher<Result<[GalleryBook], Error>, Never> = firestorColletionObserverService.observeCollection(at: "GalleryBook")
-
-        publisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] result in
-                guard let self = self else { return }
-                switch result {
-                case .success(let data):
-                    self.viewState = .content(data)
-                case .failure(let error):
-                    self.handleFirestoreError(error)
-                }
+        do {
+            async let mallsItems: [Item] = firestoreService.fetchMalls()
+            async let shopsItems: [Item] = firestoreService.fetchShops()
+            async let popularProductsItems: [Item] = firestoreService.fetchPopularProducts()
+            
+            let (malls, shops, popularProducts) = try await (mallsItems, shopsItems, popularProductsItems)
+            
+            let newSections = [
+                SectionModel(section: "Malls", items: malls),
+                SectionModel(section: "Shops", items: shops),
+                SectionModel(section: "PopularProducts", items: popularProducts)
+            ]
+            
+            self.lastUpdated = Date()
+            viewState = .content(newSections)
+            
+        } catch let error as DataFetchError {
+            /// тут мы ожидаем ошибку из CloudFirestore а так же ошибку преобразования модели.
+            /// нам нужно из любой DataFetchError что сюда приходит достать Error и передать в errorHandler.handle(error: error)
+            /// ошибку преобразования модели нужно обязательно логировать но сообзать это юзеру не нужно.
+            // Логирование ошибки через Crashlytics или аналогичный сервис
+            print("Ошибка загрузки данных: \(error.localizedDescription)")
+            self.handleFirestoreError(error)
+        } catch {
+            /// тут мы ожидаем неизвестную ошибку
+            print("Неизвестная ошибка: \(error.localizedDescription)")
+            self.handleFirestoreError(error)
+        }
+    }
+    
+    @MainActor
+    func checkAndRefreshIfNeeded() async {
+        if let lastUpdated = lastUpdated {
+            let elapsed = Date().timeIntervalSince(lastUpdated)
+            if elapsed > autoRefreshThreshold {
+                await fetchData()
             }
-            .store(in: &cancellables)
-    }
-    
-    func setupViewModel() {
-        bind()
-    }
-    
-    func retry() {
-        bind()
+        } else {
+            await fetchData()
+        }
     }
     
     private func handleFirestoreError(_ error: Error) {
@@ -76,3 +95,32 @@ class GalleryContentViewModel: ObservableObject {
     }
 }
 
+
+
+//    private func bind() {
+//        viewState = .loading
+//
+//        // Приведение к нужному типу AnyPublisher<Result<[GalleryBook], Error>, Never>
+//        let publisher: AnyPublisher<Result<[GalleryBook], Error>, Never> = firestorColletionObserverService.observeCollection(at: "GalleryBook")
+//
+//        publisher
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] result in
+//                guard let self = self else { return }
+//                switch result {
+//                case .success(let data):
+//                    self.viewState = .content(data)
+//                case .failure(let error):
+//                    self.handleFirestoreError(error)
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//
+//    func setupViewModel() {
+//        bind()
+//    }
+//
+//    func retry() {
+//        bind()
+//    }

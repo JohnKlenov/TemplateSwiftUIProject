@@ -2,7 +2,7 @@
 //  GalleryViewModel.swift
 //  TemplateSwiftUIProject
 //
-//  Created by Evgenyi on 10.03.25.
+//  Created by Evgenyi on 12.03.25.
 //
 
 import SwiftUI
