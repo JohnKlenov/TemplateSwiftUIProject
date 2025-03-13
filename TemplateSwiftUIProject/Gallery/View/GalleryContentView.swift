@@ -5,6 +5,17 @@
 //  Created by Evgenyi on 12.03.25.
 //
 
+
+// MARK: - Task + async/await -
+
+///SwiftUI требует, чтобы любой асинхронный вызов (await) был сделан внутри асинхронного контекста, такого как Task.
+///Асинхронные операции должны выполняться в асинхронных контекстах, таких как Task, чтобы избежать блокировки главного потока и поддерживать плавный и отзывчивый интерфейс.
+///Task гарантирует, что код внутри будет выполняться в асинхронном контексте, а если задача приостанавливается (например, во время сетевого запроса), то выполнение будет продолжено позже, как только данные придут.
+
+///Ключевое слово await означает, что выполнение данной задачи (Task) приостанавливается до тех пор, пока метод не завершится
+///Всякий раз, когда вызывается асинхронная функция (отмеченная async), вы должны использовать await, чтобы указать, что выполнение «подождёт» окончания операции.
+
+
 import SwiftUI
 
 struct GalleryContentView: View {
@@ -19,7 +30,6 @@ struct GalleryContentView: View {
     
     var body: some View {
         ZStack {
-            //            Color.blue
             switch viewModel.viewState {
             case .loading:
                 ProgressView(Localized.Gallery.loading.localized())
@@ -37,7 +47,6 @@ struct GalleryContentView: View {
         .background(AppColors.background)
         .navigationTitle(Localized.Gallery.title.localized())
         .onAppear{
-            // При появлении вкладки проверяем, не пора ли обновить данные
             Task {
                 await viewModel.checkAndRefreshIfNeeded()
             }

@@ -5,6 +5,34 @@
 //  Created by Evgenyi on 12.03.25.
 //
 
+
+// MARK: - Последовательные запросы let malls = try await firestoreService.fetchMalls() -
+
+///Использование async let порождает несколько задач, выполняющихся параллельно, и затем try await ожидает их всех одновременно. Это намного быстрее, если независимые запросы не зависят друг от друга, но не подходит, если требуется строгая последовательность.
+
+//do {
+//    let malls = try await firestoreService.fetchMalls()          // Выполнение завершится
+//    let shops = try await firestoreService.fetchShops()            // Только после завершения malls
+//    let popularProducts = try await firestoreService.fetchPopularProducts() // После shops завершается
+//       
+//    let newSections = [
+//        SectionModel(section: "Malls", items: malls),
+//        SectionModel(section: "Shops", items: shops),
+//        SectionModel(section: "PopularProducts", items: popularProducts)
+//    ]
+//    
+//    self.lastUpdated = Date()
+//    viewState = .content(newSections)
+//} catch let error as DataFetchError {
+//    print("Ошибка загрузки данных: \(error.localizedDescription)")
+//    self.handleFirestoreError(error)
+//} catch {
+//    print("Неизвестная ошибка: \(error.localizedDescription)")
+//    self.handleFirestoreError(error)
+//}
+
+
+
 import SwiftUI
 
 enum GalleryViewState {
@@ -32,8 +60,12 @@ class GalleryContentViewModel: ObservableObject {
     private let errorHandler: ErrorHandlerProtocol
     private var alertManager:AlertManager
     
-    // Порог для автоматического обновления (например, 1 день)
-    private let autoRefreshThreshold: TimeInterval = 24 * 60 * 60
+//    // Порог для автоматического обновления (например, 1 день)
+//    private let autoRefreshThreshold: TimeInterval = 24 * 60 * 60
+    
+    // Порог для автоматического обновления (1 минута)
+    private let autoRefreshThreshold: TimeInterval = 60
+
     
     init(alertManager: AlertManager = AlertManager.shared, firestoreService: FirestoreGetService,
          errorHandler: ErrorHandlerProtocol) {
@@ -45,7 +77,9 @@ class GalleryContentViewModel: ObservableObject {
     
     @MainActor
     func fetchData() async {
-        
+        // паралельные запросы async let (быстрее последовательных)
+        ///С помощью ключевого слова async let запускаются три запроса параллельно
+        ///"async let" и "try await": – async let позволяет запустить несколько операций параллельно, – try await гарантирует, что выполнение будет приостановлено до завершения всех этих операций, и если возникает ошибка, она передается в блок catch.
         do {
             async let mallsItems: [Item] = firestoreService.fetchMalls()
             async let shopsItems: [Item] = firestoreService.fetchShops()
@@ -61,21 +95,11 @@ class GalleryContentViewModel: ObservableObject {
             
             self.lastUpdated = Date()
             viewState = .content(newSections)
-            
-        } catch let error as DataFetchError {
-            /// тут мы ожидаем ошибку из CloudFirestore а так же ошибку преобразования модели.
-            /// нам нужно из любой DataFetchError что сюда приходит достать Error и передать в errorHandler.handle(error: error)
-            /// ошибку преобразования модели нужно обязательно логировать но сообзать это юзеру не нужно.
-            // Логирование ошибки через Crashlytics или аналогичный сервис
-            print("Ошибка загрузки данных: \(error.localizedDescription)")
-            self.handleFirestoreError(error)
         } catch {
-            /// тут мы ожидаем неизвестную ошибку
-            print("Неизвестная ошибка: \(error.localizedDescription)")
             self.handleFirestoreError(error)
         }
     }
-    
+    ///@MainActor, что означает—всё его содержимое выполняется на главном потоке. Это важно, когда вы обновляете UI-связанные свойства (viewState).
     @MainActor
     func checkAndRefreshIfNeeded() async {
         if let lastUpdated = lastUpdated {
@@ -97,30 +121,11 @@ class GalleryContentViewModel: ObservableObject {
 
 
 
-//    private func bind() {
-//        viewState = .loading
-//
-//        // Приведение к нужному типу AnyPublisher<Result<[GalleryBook], Error>, Never>
-//        let publisher: AnyPublisher<Result<[GalleryBook], Error>, Never> = firestorColletionObserverService.observeCollection(at: "GalleryBook")
-//
-//        publisher
-//            .receive(on: DispatchQueue.main)
-//            .sink { [weak self] result in
-//                guard let self = self else { return }
-//                switch result {
-//                case .success(let data):
-//                    self.viewState = .content(data)
-//                case .failure(let error):
-//                    self.handleFirestoreError(error)
-//                }
-//            }
-//            .store(in: &cancellables)
-//    }
-//
-//    func setupViewModel() {
-//        bind()
-//    }
-//
-//    func retry() {
-//        bind()
-//    }
+
+//        } catch let error as DataFetchError {
+//            /// тут мы ожидаем ошибку из CloudFirestore а так же ошибку преобразования модели.
+//            /// нам нужно из любой DataFetchError что сюда приходит достать Error и передать в errorHandler.handle(error: error)
+//            /// ошибку преобразования модели нужно обязательно логировать но сообзать это юзеру не нужно.
+//            // Логирование ошибки через Crashlytics или аналогичный сервис
+//            print("Ошибка загрузки данных: \(error.localizedDescription)")
+//            self.handleFirestoreError(error)

@@ -27,9 +27,7 @@ struct GalleryCompositView:View {
                         PopularProductsSectionView(items: section.items,
                                                    headerTitle: "Популярные товары")
                     default:
-                        // Если тип секции не распознан, по умолчанию показываем malls
-                        //                        MallsSectionView(items: section.items,
-                        //                                         headerTitle: "Торговые Центры")
+                        // Если тип секции не распознан
                         EmptyView()
                     }
                 }
