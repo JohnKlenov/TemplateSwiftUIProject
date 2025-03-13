@@ -53,16 +53,19 @@ extension GalleryViewState {
 class GalleryContentViewModel: ObservableObject {
     
     @Published var viewState: GalleryViewState = .loading
-    @Published var lastUpdated: Date? = nil // Время последнего обновления
+    @Published var lastUpdated: Date? = nil { // Время последнего обновления
+        didSet {
+            print("didSet lastUpdated ")
+        }
+    }
     
     // Для получения коллекции моделей GalleryBook:
     private var firestoreService: FirestoreGetService
     private let errorHandler: ErrorHandlerProtocol
     private var alertManager:AlertManager
     
-//    // Порог для автоматического обновления (например, 1 день)
-//    private let autoRefreshThreshold: TimeInterval = 24 * 60 * 60
-    
+//    private let autoRefreshThreshold: TimeInterval = 2 * 60 * 60 // 2 часа (7200 секунд)
+
     // Порог для автоматического обновления (1 минута)
     private let autoRefreshThreshold: TimeInterval = 60
 
@@ -100,6 +103,7 @@ class GalleryContentViewModel: ObservableObject {
         }
     }
     ///@MainActor, что означает—всё его содержимое выполняется на главном потоке. Это важно, когда вы обновляете UI-связанные свойства (viewState).
+    ///Date().timeIntervalSince(lastUpdated) Это выражение вернёт количество секунд, прошедших с момента сохранённого времени до текущего.
     @MainActor
     func checkAndRefreshIfNeeded() async {
         if let lastUpdated = lastUpdated {
@@ -114,18 +118,24 @@ class GalleryContentViewModel: ObservableObject {
     
     private func handleFirestoreError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
-        alertManager.showLocalalAlert(message: errorMessage, forView: "GalleryView", operationDescription: Localized.DescriptionOfOperationError.database)
-        viewState = .error(errorMessage)
+        alertManager.showLocalalAlert(message: errorMessage,
+                                      forView: "GalleryView",
+                                      operationDescription: Localized.DescriptionOfOperationError.database)
+        // Переключаемся в состояние ошибки только если данных ещё не было получено
+        if case .content = viewState {
+            print(".content = viewState")
+            // Если уже отображается контент, оставляем state как есть;
+            // тем самым ContentErrorView не показывается.
+        } else {
+            print("viewState = .error")
+            viewState = .error(errorMessage)
+        }
     }
+//    private func handleFirestoreError(_ error: Error) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showLocalalAlert(message: errorMessage, forView: "GalleryView", operationDescription: Localized.DescriptionOfOperationError.database)
+//        viewState = .error(errorMessage)
+//    }
 }
 
 
-
-
-//        } catch let error as DataFetchError {
-//            /// тут мы ожидаем ошибку из CloudFirestore а так же ошибку преобразования модели.
-//            /// нам нужно из любой DataFetchError что сюда приходит достать Error и передать в errorHandler.handle(error: error)
-//            /// ошибку преобразования модели нужно обязательно логировать но сообзать это юзеру не нужно.
-//            // Логирование ошибки через Crashlytics или аналогичный сервис
-//            print("Ошибка загрузки данных: \(error.localizedDescription)")
-//            self.handleFirestoreError(error)

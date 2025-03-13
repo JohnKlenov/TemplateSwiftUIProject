@@ -15,41 +15,49 @@
 ///Ключевое слово await означает, что выполнение данной задачи (Task) приостанавливается до тех пор, пока метод не завершится
 ///Всякий раз, когда вызывается асинхронная функция (отмеченная async), вы должны использовать await, чтобы указать, что выполнение «подождёт» окончания операции.
 
+///GalleryCompositView(data: data, refreshAction: {
+   /// await viewModel.fetchData()
+///})
+/// В данном случае, оборачивать await viewModel.fetchData() в Task не обязательно. Это связано с тем, что метод refreshAction в GalleryCompositView уже передан как асинхронное замыкание(let refreshAction: () async -> Void).
+//print("did tap GalleryCompositView")
 
 import SwiftUI
 
 struct GalleryContentView: View {
     
-    // Получаем сервис локализации через EnvironmentObject
     @EnvironmentObject var localization: LocalizationService
-    @StateObject private var viewModel:GalleryContentViewModel
+    @StateObject private var viewModel: GalleryContentViewModel
     
     init() {
-        _viewModel = StateObject(wrappedValue:GalleryContentViewModel(firestoreService: FirestoreGetService(), errorHandler: SharedErrorHandler()))
+        _viewModel = StateObject(wrappedValue: GalleryContentViewModel(firestoreService: FirestoreGetService(), errorHandler: SharedErrorHandler()))
     }
-    
+
     var body: some View {
         ZStack {
             switch viewModel.viewState {
             case .loading:
                 ProgressView(Localized.Gallery.loading.localized())
             case .error(let error):
-                ///error на ContentErrorView не распечатывается
                 ContentErrorView(error: error) {
-                    //                    viewModel.retry()
+                    refreshData()
                 }
             case .content(let data):
                 GalleryCompositView(data: data, refreshAction: {
-                    await viewModel.fetchData()
+                    print("did tap GalleryCompositView")
+//                    await viewModel.fetchData()
                 })
             }
         }
         .background(AppColors.background)
         .navigationTitle(Localized.Gallery.title.localized())
-        .onAppear{
-            Task {
-                await viewModel.checkAndRefreshIfNeeded()
-            }
+        .onAppear {
+            refreshData()
+        }
+    }
+    
+    private func refreshData() {
+        Task {
+            await viewModel.checkAndRefreshIfNeeded()
         }
     }
 }

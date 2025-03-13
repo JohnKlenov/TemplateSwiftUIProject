@@ -9,13 +9,6 @@
 import FirebaseFirestore
 import Foundation
 
-//enum DataFetchError: Error {
-//    case mallsError(Error)
-//    case shopsError(Error)
-//    case popularProductsError(Error)
-//    case decodingError
-//}
-
 final class FirestoreGetService {
     private let db = Firestore.firestore()
     
