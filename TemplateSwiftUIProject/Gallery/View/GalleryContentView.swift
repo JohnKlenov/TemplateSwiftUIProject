@@ -30,6 +30,7 @@ struct GalleryContentView: View {
     
     init() {
         _viewModel = StateObject(wrappedValue: GalleryContentViewModel(firestoreService: FirestoreGetService(), errorHandler: SharedErrorHandler()))
+        print("init GalleryContentView")
     }
 
     var body: some View {

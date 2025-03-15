@@ -14,6 +14,7 @@ enum FirebaseEnternalError: Error, LocalizedError {
     case jsonConversionFailed
     case notSignedIn
     case defaultError
+    case emptyResult
 
     var errorDescription: String? {
         switch self {
@@ -29,6 +30,8 @@ enum FirebaseEnternalError: Error, LocalizedError {
             return Localized.FirebaseEnternalError.notSignedIn
         case .defaultError:
             return Localized.FirebaseEnternalError.defaultError
+        case .emptyResult:
+            return Localized.FirebaseEnternalError.emptyResult
         }
     }
 }

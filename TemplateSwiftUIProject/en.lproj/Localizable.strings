@@ -98,6 +98,7 @@
 "error.custom_firebase.json_conversion_failed" = "JSON conversion failed.";
 "error.custom_firebase.not_signed_in" = "No user is currently signed in.";
 "error.anonymous_auth" = "Unknown error occurred during anonymous authentication";
+"error.custom_firebase.empty_result" = "No data found.";
 
 /* Auth Errors */
 "error.auth.provider_already_linked" = "The user is already linked to this provider. Please log in using this provider or link another.";

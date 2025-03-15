@@ -18,7 +18,8 @@ class ViewBuilderService: ObservableObject {
         )
     }
     
-    @ViewBuilder func homeViewBuild(page: HomeFlow) -> some View {
+    @ViewBuilder 
+    func homeViewBuild(page: HomeFlow) -> some View {
         switch page {
         case .home:
             HomeContentView(managerCRUDS: crudManager)
@@ -29,7 +30,8 @@ class ViewBuilderService: ObservableObject {
         }
     }
     
-    @ViewBuilder func galleryViewBuild(page: GalleryFlow) -> some View {
+    @ViewBuilder 
+    func galleryViewBuild(page: GalleryFlow) -> some View {
         switch page {
         case .gallery:
             GalleryContentView()

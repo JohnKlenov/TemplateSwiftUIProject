@@ -95,6 +95,7 @@ class GalleryContentViewModel: ObservableObject {
                 SectionModel(section: "Shops", items: shops),
                 SectionModel(section: "PopularProducts", items: popularProducts)
             ]
+            print("newSections = \(newSections)")
             
             self.lastUpdated = Date()
             viewState = .content(newSections)
@@ -112,6 +113,7 @@ class GalleryContentViewModel: ObservableObject {
                 await fetchData()
             }
         } else {
+            print("lastUpdated == nil")
             await fetchData()
         }
     }

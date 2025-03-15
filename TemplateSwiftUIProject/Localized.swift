@@ -117,6 +117,7 @@ enum Localized {
         static var jsonConversionFailed = "error.custom_firebase.json_conversion_failed"
         static var notSignedIn = "error.custom_firebase.not_signed_in"
         static var anonymousAuthError = "error.anonymous_auth"
+        static var emptyResult = "error.custom_firebase.empty_result"
     }
     
     // MARK: - Auth Errors

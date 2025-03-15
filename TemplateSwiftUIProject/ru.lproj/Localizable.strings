@@ -93,6 +93,8 @@
 "error.custom_firebase.json_conversion_failed" = "Сбой преобразования JSON.";
 "error.custom_firebase.not_signed_in" = "В настоящий момент ни один пользователь не вошел в систему.";
 "error.anonymous_auth" = "Неизвестная ошибка при анонимной аутентификации";
+"error.custom_firebase.empty_result" = "Данные не найдены.";
+
 
 
 

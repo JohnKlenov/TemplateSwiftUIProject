@@ -93,6 +93,8 @@
 "error.custom_firebase.json_conversion_failed" = "Falló la conversión de JSON.";
 "error.custom_firebase.not_signed_in" = "Ningún usuario ha iniciado sesión actualmente.";
 "error.anonymous_auth" = "Error desconocido durante la autenticación anónima";
+"error.custom_firebase.empty_result" = "No se encontraron datos.";
+
 
 
 /* Auth Errors */
