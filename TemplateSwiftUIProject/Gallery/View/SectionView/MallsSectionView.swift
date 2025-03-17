@@ -42,3 +42,4 @@ struct MallsSectionView: View {
         .frame(height: 250) // Подберите это значение под ваш контент
     }
 }
+

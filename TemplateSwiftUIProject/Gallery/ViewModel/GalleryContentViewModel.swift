@@ -84,9 +84,9 @@ class GalleryContentViewModel: ObservableObject {
         ///С помощью ключевого слова async let запускаются три запроса параллельно
         ///"async let" и "try await": – async let позволяет запустить несколько операций параллельно, – try await гарантирует, что выполнение будет приостановлено до завершения всех этих операций, и если возникает ошибка, она передается в блок catch.
         do {
-            async let mallsItems: [Item] = firestoreService.fetchMalls()
-            async let shopsItems: [Item] = firestoreService.fetchShops()
-            async let popularProductsItems: [Item] = firestoreService.fetchPopularProducts()
+            async let mallsItems: [Item] = firestoreService.fetchCollection(from: "mall")
+            async let shopsItems: [Item] = firestoreService.fetchCollection(from: "shop")
+            async let popularProductsItems: [Item] = firestoreService.fetchCollection(from: "popularProduct")
             
             let (malls, shops, popularProducts) = try await (mallsItems, shopsItems, popularProductsItems)
             
@@ -133,11 +133,13 @@ class GalleryContentViewModel: ObservableObject {
             viewState = .error(errorMessage)
         }
     }
-//    private func handleFirestoreError(_ error: Error) {
-//        let errorMessage = errorHandler.handle(error: error)
-//        alertManager.showLocalalAlert(message: errorMessage, forView: "GalleryView", operationDescription: Localized.DescriptionOfOperationError.database)
-//        viewState = .error(errorMessage)
-//    }
 }
 
 
+
+
+// MARK: - old code
+
+///async let mallsItems: [Item] = firestoreService.fetchMalls()
+///async let shopsItems: [Item] = firestoreService.fetchShops()
+///async let popularProductsItems: [Item] = firestoreService.fetchPopularProducts()

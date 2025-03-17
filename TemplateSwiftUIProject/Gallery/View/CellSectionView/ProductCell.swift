@@ -13,7 +13,7 @@ struct ProductCell: View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.green)
-            Text(item.title)
+            Text(item.title?.value() ?? "" )
                 .font(.subheadline)
                 .foregroundColor(.white)
         }

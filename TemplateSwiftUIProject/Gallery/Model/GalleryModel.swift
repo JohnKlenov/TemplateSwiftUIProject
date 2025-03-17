@@ -33,16 +33,47 @@ struct GalleryBook: Identifiable, Codable, Equatable, Hashable {
     var urlImage: String
 }
 
-struct Item: Identifiable {
-    let id: String
-    let title: String
-    // Добавьте нужные свойства для каждой ячейки
-}
+//struct Item: Identifiable {
+//    let id: String
+//    let title: String
+//    // Добавьте нужные свойства для каждой ячейки
+//}
+//
+//struct SectionModel: Identifiable {
+//    let id = UUID()
+//    let section: String   // "Malls", "Shops", "PopularProducts"
+//    let items: [Item]
+//}
 
 struct SectionModel: Identifiable {
     let id = UUID()
     let section: String   // "Malls", "Shops", "PopularProducts"
     let items: [Item]
+}
+
+struct Item: Identifiable, Codable, Equatable, Hashable {
+    
+
+    struct LocalizedText: Codable, Equatable, Hashable {
+        let en: String
+        let ru: String?
+        let es: String?
+
+        func value() -> String {
+            let lang = LocalizationService.shared.currentLanguage
+            switch lang {
+            case "ru" : return ru ?? en
+            case "es": return es ?? en
+            default:
+                return en
+            }
+        }
+    }
+    var id: String?
+    var title: LocalizedText?
+    var author: String?
+    var description: LocalizedText?
+    var urlImage: String?
 }
 
 //

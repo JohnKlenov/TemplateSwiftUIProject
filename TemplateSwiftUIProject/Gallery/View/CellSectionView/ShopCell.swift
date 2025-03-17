@@ -7,15 +7,15 @@
 
 import SwiftUI
 
-struct ShopCell: View {
-    let item: Item
-    var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(Color.purple)
-            Text(item.title)
-                .font(.subheadline)
-                .foregroundColor(.white)
-        }
-    }
-}
+//struct ShopCell: View {
+//    let item: Item
+//    var body: some View {
+//        ZStack {
+//            Rectangle()
+//                .fill(Color.purple)
+//            Text(item.title)
+//                .font(.subheadline)
+//                .foregroundColor(.white)
+//        }
+//    }
+//}

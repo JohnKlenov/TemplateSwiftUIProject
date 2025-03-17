@@ -27,7 +27,7 @@ struct ShopsSectionView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(items) { item in
-                        ShopCell(item: item)
+                        MallCell(item: item)
                             .frame(width: cellSize, height: cellSize)
                             .cornerRadius(8)
                     }
