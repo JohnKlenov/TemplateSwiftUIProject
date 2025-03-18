@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Секция Магазинов (Shops)
 struct ShopsSectionView: View {
-    let items: [Item]
+    let items: [ShopItem]
     let headerTitle: String
     
     // Вычисляем размер так, чтобы ширина ячейки была 1/5 от ширины экрана
@@ -27,7 +27,7 @@ struct ShopsSectionView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(items) { item in
-                        MallCell(item: item)
+                        ShopCell(item: item)
                             .frame(width: cellSize, height: cellSize)
                             .cornerRadius(8)
                     }

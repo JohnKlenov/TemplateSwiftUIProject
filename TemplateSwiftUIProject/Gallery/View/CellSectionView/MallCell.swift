@@ -8,20 +8,20 @@
 import SwiftUI
 
 struct MallCell: View {
-    let item: Item
+    let item: MallItem
 
     var body: some View {
         GeometryReader { proxy in
             ZStack {
                 // Фоновое изображение, растянутое на весь размер ячейки
                 WebImageView(
-                    url: URL(string: item.urlImage ?? ""),
+                    url: URL(string: item.urlImage),
                     placeholder: Image(systemName: "photo"),
                     width: proxy.size.width,
                     height: proxy.size.height
                 )
                 // Текст выведется по центру ZStack (по умолчанию центрован)
-                Text(item.title?.value() ?? "")
+                Text(item.title.value())
                     .font(.headline)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)

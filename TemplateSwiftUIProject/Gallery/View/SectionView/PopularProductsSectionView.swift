@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Секция Популярных товаров (PopularProducts)
 struct PopularProductsSectionView: View {
-    let items: [Item]
+    let items: [ProductItem]
     let headerTitle: String
     
     // Определяем 2 колонки для grid layout

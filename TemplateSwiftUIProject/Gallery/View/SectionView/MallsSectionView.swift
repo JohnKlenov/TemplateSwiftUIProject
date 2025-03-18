@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Секция Торговых Центров (Malls)
 struct MallsSectionView: View {
-    let items: [Item]
+    let items: [MallItem]
     let headerTitle: String
 
     var body: some View {

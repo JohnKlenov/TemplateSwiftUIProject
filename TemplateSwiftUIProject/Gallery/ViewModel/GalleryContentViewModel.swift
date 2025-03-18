@@ -32,13 +32,13 @@
 //}
 
 
-
+//[SectionModel]
 import SwiftUI
 
 enum GalleryViewState {
     case loading
     case error(String)
-    case content([SectionModel])
+    case content([UnifiedSectionModel])
 }
 
 extension GalleryViewState {
@@ -84,21 +84,24 @@ class GalleryContentViewModel: ObservableObject {
         ///С помощью ключевого слова async let запускаются три запроса параллельно
         ///"async let" и "try await": – async let позволяет запустить несколько операций параллельно, – try await гарантирует, что выполнение будет приостановлено до завершения всех этих операций, и если возникает ошибка, она передается в блок catch.
         do {
-            async let mallsItems: [Item] = firestoreService.fetchCollection(from: "mall")
-            async let shopsItems: [Item] = firestoreService.fetchCollection(from: "shop")
-            async let popularProductsItems: [Item] = firestoreService.fetchCollection(from: "popularProduct")
+            async let mallsItems: [MallItem] = firestoreService.fetchMalls()
+            async let shopsItems: [ShopItem] = firestoreService.fetchShops()
+            async let popularProductsItems: [ProductItem] = firestoreService.fetchPopularProducts()
             
             let (malls, shops, popularProducts) = try await (mallsItems, shopsItems, popularProductsItems)
             
-            let newSections = [
-                SectionModel(section: "Malls", items: malls),
-                SectionModel(section: "Shops", items: shops),
-                SectionModel(section: "PopularProducts", items: popularProducts)
+            let mallSection = MallSectionModel(header: "Торговые Центры", items: malls)
+            let shopSection = ShopSectionModel(header: "Магазины", items: shops)
+            let productSection = PopularProductsSectionModel(header: "Популярные товары", items: popularProducts)
+            
+            let unifiedSections: [UnifiedSectionModel] = [
+                .malls(mallSection),
+                .shops(shopSection),
+                .popularProducts(productSection)
             ]
-            print("newSections = \(newSections)")
             
             self.lastUpdated = Date()
-            viewState = .content(newSections)
+            viewState = .content(unifiedSections)
         } catch {
             self.handleFirestoreError(error)
         }
@@ -143,3 +146,28 @@ class GalleryContentViewModel: ObservableObject {
 ///async let mallsItems: [Item] = firestoreService.fetchMalls()
 ///async let shopsItems: [Item] = firestoreService.fetchShops()
 ///async let popularProductsItems: [Item] = firestoreService.fetchPopularProducts()
+
+//func fetchData() async {
+//    // паралельные запросы async let (быстрее последовательных)
+//    ///С помощью ключевого слова async let запускаются три запроса параллельно
+//    ///"async let" и "try await": – async let позволяет запустить несколько операций параллельно, – try await гарантирует, что выполнение будет приостановлено до завершения всех этих операций, и если возникает ошибка, она передается в блок catch.
+//    do {
+//        async let mallsItems: [Item] = firestoreService.fetchCollection(from: "mall")
+//        async let shopsItems: [Item] = firestoreService.fetchCollection(from: "shop")
+//        async let popularProductsItems: [Item] = firestoreService.fetchCollection(from: "popularProduct")
+//        
+//        let (malls, shops, popularProducts) = try await (mallsItems, shopsItems, popularProductsItems)
+//        
+//        let newSections = [
+//            SectionModel(section: "Malls", items: malls),
+//            SectionModel(section: "Shops", items: shops),
+//            SectionModel(section: "PopularProducts", items: popularProducts)
+//        ]
+//        print("newSections = \(newSections)")
+//        
+//        self.lastUpdated = Date()
+//        viewState = .content(newSections)
+//    } catch {
+//        self.handleFirestoreError(error)
+//    }
+//}
