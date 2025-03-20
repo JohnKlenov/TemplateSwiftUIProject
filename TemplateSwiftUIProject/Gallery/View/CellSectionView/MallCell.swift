@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct MallCell: View {
     let item: MallItem
 
@@ -28,7 +29,33 @@ struct MallCell: View {
                     .padding() // опционально, чтобы текст не слипался с краями
             }
         }
-//        .frame(height: 200) // здесь задается фиксированная высота для MallCell, при необходимости можно изменить
     }
 }
 
+// MARK: - DeepSeek
+
+//struct MallCell: View {
+//    let item: MallItem
+//
+//    var body: some View {
+//        GeometryReader { proxy in
+//            ZStack {
+//                WebImageView(
+//                    url: URL(string: item.urlImage),
+//                    placeholder: Image(systemName: "photo"),
+//                    width: proxy.size.width,
+//                    height: proxy.size.height
+//                )
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .foregroundColor(.white)
+//                    .multilineTextAlignment(.center)
+//                    .padding()
+//            }
+//            .background(AppColors.background)
+//        }
+//    }
+//}
+
+
+//        .frame(height: 200) // здесь задается фиксированная высота для MallCell, при необходимости можно изменить

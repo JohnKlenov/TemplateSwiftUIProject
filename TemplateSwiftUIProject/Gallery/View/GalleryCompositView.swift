@@ -7,21 +7,20 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct GalleryCompositView: View {
     let data: [UnifiedSectionModel]
     let refreshAction: () async -> Void // Асинхронное замыкание
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            LazyVStack(spacing: 10) { // Используем LazyVStack
                 ForEach(data) { section in
                     switch section {
                     case .malls(let mallSection):
                         MallsSectionView(items: mallSection.items, headerTitle: mallSection.header)
                     case .shops(let shopSection):
                         ShopsSectionView(items: shopSection.items, headerTitle: shopSection.header)
+                    
                     case .popularProducts(let productSection):
                         PopularProductsSectionView(items: productSection.items, headerTitle: productSection.header)
                     }
@@ -29,13 +28,42 @@ struct GalleryCompositView: View {
             }
             .padding(.vertical)
         }
-        .refreshable {
-            // Явное обновление данных при pull-to-refresh
-            await refreshAction()
-        }
+        .refreshable { await refreshAction() }
     }
 }
 
+struct CellHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        // Можно выбрать, например, максимальное значение
+        value = max(value, nextValue())
+    }
+}
+
+
+
+
+//    var body: some View {
+//        ScrollView {
+//            VStack(spacing: 20) {
+//                ForEach(data) { section in
+//                    switch section {
+//                    case .malls(let mallSection):
+//                        MallsSectionView(items: mallSection.items, headerTitle: mallSection.header)
+//                    case .shops(let shopSection):
+//                        ShopsSectionView(items: shopSection.items, headerTitle: shopSection.header)
+//                    case .popularProducts(let productSection):
+//                        PopularProductsSectionView(items: productSection.items, headerTitle: productSection.header)
+//                    }
+//                }
+//            }
+//            .padding(.vertical)
+//        }
+//        .refreshable {
+//            // Явное обновление данных при pull-to-refresh
+//            await refreshAction()
+//        }
+//    }
 
 // MARK: - old models
 

@@ -63,7 +63,7 @@ final class FirestoreGetService {
     
     func fetchMalls() async throws -> [MallItem] {
         try await withCheckedThrowingContinuation { continuation in
-            db.collection("mall").getDocuments { snapshot, error in
+            db.collection("MallCenters").getDocuments { snapshot, error in
                 if let error = error {
                     // Логирование (Crashlytics, Sentry, и т.д.) - тех ошибок которые с большой вероятностью не смогут исчерпать себя самостоятельно или без участия разработчиков на стороне сервера(InvalidArgument, PermissionDenied, ResourceExhausted, FailedPrecondition, Unimplemented, Internal, DataLoss, Unauthenticated).
                     print("MallSection error = \(error.localizedDescription)")
@@ -106,7 +106,7 @@ final class FirestoreGetService {
    
     func fetchShops() async throws -> [ShopItem] {
         try await withCheckedThrowingContinuation { continuation in
-            db.collection("shop").getDocuments { snapshot, error in
+            db.collection("BookStores").getDocuments { snapshot, error in
                 if let error = error {
                     // Логирование (Crashlytics, Sentry, и т.д.) - тех ошибок которые с большой вероятностью не смогут исчерпать себя самостоятельно или без участия разработчиков на стороне сервера(InvalidArgument, PermissionDenied, ResourceExhausted, FailedPrecondition, Unimplemented, Internal, DataLoss, Unauthenticated).
                     print("ShopSection error = \(error.localizedDescription)")
@@ -147,7 +147,7 @@ final class FirestoreGetService {
         
     func fetchPopularProducts() async throws -> [ProductItem] {
         try await withCheckedThrowingContinuation { continuation in
-            db.collection("popularProduct").getDocuments { snapshot, error in
+            db.collection("books").getDocuments { snapshot, error in
                 if let error = error {
                     // Логирование (Crashlytics, Sentry, и т.д.) - тех ошибок которые с большой вероятностью не смогут исчерпать себя самостоятельно или без участия разработчиков на стороне сервера(InvalidArgument, PermissionDenied, ResourceExhausted, FailedPrecondition, Unimplemented, Internal, DataLoss, Unauthenticated).
                     print("PopularProducts error = \(error.localizedDescription)")

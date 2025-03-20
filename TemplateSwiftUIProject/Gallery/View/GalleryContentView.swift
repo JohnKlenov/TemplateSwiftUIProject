@@ -49,6 +49,7 @@ struct GalleryContentView: View {
                 })
             }
         }
+//        .background(Color.white)
         .background(AppColors.background)
         .navigationTitle(Localized.Gallery.title.localized())
         .onAppear {

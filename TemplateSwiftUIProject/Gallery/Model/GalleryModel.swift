@@ -84,7 +84,7 @@ struct ShopItem: Identifiable, Codable, Equatable, Hashable {
         }
     }
     
-    var id: String
+    @DocumentID var id: String?  // автоматически заполняется document.documentID
     var title: LocalizedText
     var urlImage: String
 }
@@ -107,7 +107,7 @@ struct MallItem: Identifiable, Codable, Equatable, Hashable {
         }
     }
     
-    var id: String
+    @DocumentID var id: String?  // автоматически заполняется document.documentID
     var title: LocalizedText
     var urlImage: String
 }
@@ -130,7 +130,9 @@ struct ProductItem: Identifiable, Codable, Equatable, Hashable {
             }
         }
     }
-    var id: String
+    ///SDK Firebase для Firestore автоматически заполнит свойство id из document.documentID — даже если в документе нет поля с именем "id"
+    ///автоматически заполняется строкой, содержащей название документа из вашей базы данных в Firestore.
+    @DocumentID var id: String?  // автоматически заполняется document.documentID
     var title: LocalizedText
     var author: String
     var description: LocalizedText
