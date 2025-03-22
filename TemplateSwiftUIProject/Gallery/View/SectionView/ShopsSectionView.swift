@@ -7,11 +7,23 @@
 
 import SwiftUI
 
+struct ShopsCellHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        // Можно выбрать, например, максимальное значение
+        value = max(value, nextValue())
+    }
+}
+
 struct ShopsSectionView: View {
     let items: [ShopItem]
     let headerTitle: String
-
-    @State private var computedCellSize: CGFloat = 0
+    
+    @State private var computedCellSize: CGFloat = 0 {
+        didSet {
+            print("computedCellSize - \(computedCellSize)")
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -28,7 +40,7 @@ struct ShopsSectionView: View {
                 let cellSize = (availableWidth - (4 * spacing)) / 5.0
                 
                 Color.clear
-                    .preference(key: CellHeightKey.self, value: cellSize)
+                    .preference(key: ShopsCellHeightKey.self, value: cellSize)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: spacing) {
@@ -41,7 +53,7 @@ struct ShopsSectionView: View {
                     .padding(.horizontal, horizontalPadding)
                 }
             }
-            .onPreferenceChange(CellHeightKey.self) { value in
+            .onPreferenceChange(ShopsCellHeightKey.self) { value in
                 computedCellSize = value
             }
         }
@@ -49,6 +61,7 @@ struct ShopsSectionView: View {
         .background(Color.green.opacity(0.1))
     }
 }
+
 
 
 //struct ShopsSectionView: View {

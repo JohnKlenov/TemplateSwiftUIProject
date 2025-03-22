@@ -22,6 +22,7 @@ struct SomeView: View {
                 print("did tap BackToRoot")
             }
         }
+        .navigationTitle("EmptyView")
         .onAppear {
             print("onAppear SomeView")
         }

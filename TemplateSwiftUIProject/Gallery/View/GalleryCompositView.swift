@@ -13,11 +13,13 @@ struct GalleryCompositView: View {
     
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 10) { // Используем LazyVStack
+//            LazyVStack(spacing: 10) {
+            VStack(spacing: 10) { // Используем LazyVStack
                 ForEach(data) { section in
                     switch section {
                     case .malls(let mallSection):
                         MallsSectionView(items: mallSection.items, headerTitle: mallSection.header)
+                    
                     case .shops(let shopSection):
                         ShopsSectionView(items: shopSection.items, headerTitle: shopSection.header)
                     
@@ -32,13 +34,7 @@ struct GalleryCompositView: View {
     }
 }
 
-struct CellHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        // Можно выбрать, например, максимальное значение
-        value = max(value, nextValue())
-    }
-}
+
 
 
 

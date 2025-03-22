@@ -43,20 +43,43 @@ enum HomeFlow: Hashable, Equatable {
 
 enum GalleryFlow: Hashable, Equatable {
     case gallery
+    case someHomeView
     static func == (lhs: GalleryFlow, rhs: GalleryFlow) -> Bool {
         switch (lhs, rhs) {
-        case (.gallery, .gallery):
+        case (.gallery, .gallery), (.someHomeView, .someHomeView):
             return true
+        default:
+            return false
         }
     }
-    
-    func hash(into hasher: inout Hasher) {
-        switch self {
-        case .gallery:
-            hasher.combine("gallery")
+        
+        func hash(into hasher: inout Hasher) {
+            switch self {
+            case .gallery:
+                hasher.combine("gallery")
+            case .someHomeView:
+                hasher.combine("someHomeView")
+            }
         }
-    }
 }
+
+//enum GalleryFlow: Hashable, Equatable {
+//    case gallery
+//    
+//    static func == (lhs: GalleryFlow, rhs: GalleryFlow) -> Bool {
+//        switch (lhs, rhs) {
+//        case (.gallery, .gallery):
+//            return true
+//        }
+//    }
+//    
+//    func hash(into hasher: inout Hasher) {
+//        switch self {
+//        case .gallery:
+//            hasher.combine("gallery")
+//        }
+//    }
+//}
 
 struct SheetItem: Identifiable {
     var id = UUID()

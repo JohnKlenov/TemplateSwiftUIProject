@@ -26,6 +26,7 @@ import SwiftUI
 struct GalleryContentView: View {
     
     @EnvironmentObject var localization: LocalizationService
+    @EnvironmentObject var galleryCoordinator:GalleryCoordinator
     @StateObject private var viewModel: GalleryContentViewModel
     
     init() {
@@ -52,6 +53,16 @@ struct GalleryContentView: View {
 //        .background(Color.white)
         .background(AppColors.background)
         .navigationTitle(Localized.Gallery.title.localized())
+//        .toolbar{
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button(Localized.Home.addButton.localized()) {
+//                    galleryCoordinator.navigateTo(page: .someHomeView)
+//                }
+//                .foregroundStyle(AppColors.activeColor)
+//                .padding()
+//                .disabled(viewModel.viewState.isError)
+//            }
+//        }
         .onAppear {
             refreshData()
         }

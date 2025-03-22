@@ -8,6 +8,30 @@
 import SwiftUI
 
 
+//struct MallCell: View {
+//    let item: MallItem
+//    let width: CGFloat
+//    let height: CGFloat
+//
+//    var body: some View {
+//        ZStack {
+//            WebImageView(
+//                url: URL(string: item.urlImage),
+//                placeholder: Image(systemName: "photo"),
+//                width: width,
+//                height: height
+//            )
+//            Text(item.title.value())
+//                .font(.headline)
+//                .foregroundColor(.white)
+//                .multilineTextAlignment(.center)
+//                .padding()
+//        }
+//    }
+//}
+
+
+
 struct MallCell: View {
     let item: MallItem
 

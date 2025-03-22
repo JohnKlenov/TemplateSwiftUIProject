@@ -22,7 +22,7 @@ class GalleryCoordinator:ObservableObject {
     }
     @Published var fullScreenItem:FullScreenItem?
     
-    func navigateTo(page:HomeFlow) {
+    func navigateTo(page:GalleryFlow) {
         path.append(page)
     }
     

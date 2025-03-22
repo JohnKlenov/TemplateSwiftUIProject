@@ -31,6 +31,7 @@ struct GalleryView: View {
         ///поэксперементировать с homeCoordinator - вынести его из состояния в HomeView
         NavigationStack(path: $galleryCoordinator.path) {
             viewBuilderService.galleryViewBuild(page: .gallery)
+                .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: GalleryFlow.self) { page in
                     viewBuilderService.galleryViewBuild(page: page)
                 }

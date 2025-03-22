@@ -35,6 +35,8 @@ class ViewBuilderService: ObservableObject {
         switch page {
         case .gallery:
             GalleryContentView()
+        case .someHomeView:
+            SomeView()
         }
     }
     
