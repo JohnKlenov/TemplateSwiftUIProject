@@ -7,13 +7,13 @@
 
 import SwiftUI
 
-struct ShopsCellHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        // Можно выбрать, например, максимальное значение
-        value = max(value, nextValue())
-    }
-}
+//struct ShopsCellHeightKey: PreferenceKey {
+//    static var defaultValue: CGFloat = 0
+//    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+//        // Можно выбрать, например, максимальное значение
+//        value = max(value, nextValue())
+//    }
+//}
 
 struct ShopsSectionView: View {
     let items: [ShopItem]
@@ -40,12 +40,12 @@ struct ShopsSectionView: View {
                 let cellSize = (availableWidth - (4 * spacing)) / 5.0
                 
                 Color.clear
-                    .preference(key: ShopsCellHeightKey.self, value: cellSize)
+                    .preference(key: CellHeightKey.self, value: cellSize)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: spacing) {
                         ForEach(items) { item in
-                            ShopCell(item: item)
+                            ShopCell(item: item, width: cellSize, height: cellSize)
                                 .frame(width: cellSize, height: cellSize)
                                 .cornerRadius(8)
                         }
@@ -53,12 +53,12 @@ struct ShopsSectionView: View {
                     .padding(.horizontal, horizontalPadding)
                 }
             }
-            .onPreferenceChange(ShopsCellHeightKey.self) { value in
+            .onPreferenceChange(CellHeightKey.self) { value in
                 computedCellSize = value
             }
         }
         .frame(height: computedCellSize + 60)
-        .background(Color.green.opacity(0.1))
+//        .background(Color.green.opacity(0.1))
     }
 }
 

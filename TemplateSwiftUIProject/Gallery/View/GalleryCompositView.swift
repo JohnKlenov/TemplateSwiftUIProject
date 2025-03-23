@@ -13,7 +13,6 @@ struct GalleryCompositView: View {
     
     var body: some View {
         ScrollView {
-//            LazyVStack(spacing: 10) {
             VStack(spacing: 10) { // Используем LazyVStack
                 ForEach(data) { section in
                     switch section {

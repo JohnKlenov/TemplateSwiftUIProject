@@ -9,26 +9,55 @@ import SwiftUI
 
 struct ShopCell: View {
     let item: ShopItem
+    let width: CGFloat
+    let height: CGFloat
 
     var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                WebImageView(
-                    url: URL(string: item.urlImage),
-                    placeholder: Image(systemName: "photo"),
-                    width: proxy.size.width,
-                    height: proxy.size.height
-                )
-                Text(item.title.value())
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .padding()
-            }
-            .background(AppColors.background)
-        }
+        WebImageView(
+            url: URL(string: item.urlImage),
+            placeholder: Image(systemName: "photo"),
+            width: width,
+            height: height
+        )
     }
 }
+
+//        ZStack {
+//            WebImageView(
+//                url: URL(string: item.urlImage),
+//                placeholder: Image(systemName: "photo"),
+//                width: width,
+//                height: height
+//            )
+//            Text(item.title.value())
+//                .font(.headline)
+//                .foregroundColor(.white)
+//                .multilineTextAlignment(.center)
+//                .padding()
+//        }
+
+//struct ShopCell: View {
+//    let item: ShopItem
+//
+//    var body: some View {
+//        GeometryReader { proxy in
+//            ZStack {
+//                WebImageView(
+//                    url: URL(string: item.urlImage),
+//                    placeholder: Image(systemName: "photo"),
+//                    width: proxy.size.width,
+//                    height: proxy.size.height
+//                )
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .foregroundColor(.white)
+//                    .multilineTextAlignment(.center)
+//                    .padding()
+//            }
+//            .background(AppColors.background)
+//        }
+//    }
+//}
 // MARK: - DeepSeek
 
 //struct ShopCell: View {

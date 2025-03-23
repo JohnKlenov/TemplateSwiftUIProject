@@ -53,13 +53,13 @@ struct CellHeightKey: PreferenceKey {
 struct MallsSectionView: View {
     let items: [MallItem]
     let headerTitle: String
-
+    
     @State private var computedCellHeight: CGFloat = 0 {
         didSet {
             print("MallsSectionView computedCellHeight - \(computedCellHeight)")
         }
     }
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // Заголовок секции
@@ -77,12 +77,9 @@ struct MallsSectionView: View {
                 // Помещаем прозрачный элемент, чтобы установить preference
                 Color.clear
                     .preference(key: CellHeightKey.self, value: cellHeight)
-                
                 TabView {
                     ForEach(items) { item in
-//                        MallCell(item: item, width: cellWidth, height: cellHeight)
-                        MallCell(item: item)
-                            .frame(width: cellWidth, height: cellHeight)
+                        MallCell(item: item, width: cellWidth, height: cellHeight)
                             .cornerRadius(10)
                             .padding(.horizontal, cellSpacing / 2)
                     }
@@ -97,12 +94,14 @@ struct MallsSectionView: View {
         }
         // Общая высота секции: вычисленная cellHeight + отступы (например, 60)
         .frame(height: computedCellHeight + 60)
-        .background(Color.blue.opacity(0.1))
+//        .background(Color.blue.opacity(0.1))
     }
 }
 
 
-
+//                        MallCell(item: item, width: cellWidth, height: cellHeight)
+//                            .cornerRadius(10)
+//                            .padding(.horizontal, cellSpacing / 2)
 
 //struct MallsSectionView: View {
 //    let items: [MallItem]

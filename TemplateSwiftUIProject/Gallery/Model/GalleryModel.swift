@@ -8,6 +8,8 @@
 import Foundation
 import FirebaseFirestore
 
+// MARK: - models from HomeView
+
 struct GalleryBook: Identifiable, Codable, Equatable, Hashable {
     
 
