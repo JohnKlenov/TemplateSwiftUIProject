@@ -18,7 +18,7 @@ struct ProductCell: View {
                 let imageHeight = cellWidth * (9 / 16)
                 WebImageView(
                     url: URL(string: item.urlImage),
-                    placeholder: Image(systemName: "photo"),
+                    placeholderColor: AppColors.secondaryBackground,
                     width: cellWidth,
                     height: imageHeight
                 )

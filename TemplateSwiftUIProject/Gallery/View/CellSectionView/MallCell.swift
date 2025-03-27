@@ -11,12 +11,12 @@ struct MallCell: View {
     let item: MallItem
     let width: CGFloat
     let height: CGFloat
-
+    
     var body: some View {
         ZStack(alignment: .topLeading) { // Устанавливаем выравнивание ZStack
             WebImageView(
                 url: URL(string: item.urlImage),
-                placeholder: Image(systemName: "photo"),
+                placeholderColor: AppColors.secondaryBackground,
                 width: width,
                 height: height
             )

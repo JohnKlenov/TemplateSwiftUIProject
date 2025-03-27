@@ -15,7 +15,7 @@ struct ShopCell: View {
     var body: some View {
         WebImageView(
             url: URL(string: item.urlImage),
-            placeholder: Image(systemName: "photo"),
+            placeholderColor: AppColors.secondaryBackground,
             width: width,
             height: height
         )

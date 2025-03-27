@@ -66,7 +66,7 @@ struct BookDetailsView: View {
                         .foregroundColor(.primary)
                     
                     // Image Section
-                    WebImageView(url: URL(string: book.urlImage), placeholder: Image(systemName: "photo"), width: 300, height: 300)
+                    WebImageView(url: URL(string: book.urlImage), placeholderColor: AppColors.secondaryBackground, width: 300, height: 300)
                         .aspectRatio(contentMode: .fill)
                         .frame(maxWidth: .infinity)
                         .cornerRadius(10)

@@ -18,7 +18,7 @@ struct BookRowView: View {
     
     var body: some View {
         HStack(spacing: 10) {
-            WebImageView(url: URL(string: book.urlImage), placeholder: Image(systemName: "photo"), width: 50, height: 50)
+            WebImageView(url: URL(string: book.urlImage), placeholderColor: AppColors.secondaryBackground, width: 50, height: 50)
             VStack(alignment: .leading) {
                 Text(book.title)
                     .font(.headline)
