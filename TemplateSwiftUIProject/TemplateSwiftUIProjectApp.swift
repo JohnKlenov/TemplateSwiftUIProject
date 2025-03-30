@@ -24,9 +24,11 @@ struct TemplateSwiftUIProjectApp: App {
     @StateObject private var localizationService = LocalizationService.shared
     
     init() {
+      
         
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
+        self.setupCache()
 #endif
     }
     
@@ -40,6 +42,10 @@ struct TemplateSwiftUIProjectApp: App {
                 OnboardingView()
             }
         }
+    }
+    
+    private func setupCache() {
+        ImageCacheManager.shared.deleteOldFiles()
     }
 }
 
