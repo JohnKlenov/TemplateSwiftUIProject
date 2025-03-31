@@ -83,6 +83,7 @@ class GalleryContentViewModel: ObservableObject {
         // паралельные запросы async let (быстрее последовательных)
         ///С помощью ключевого слова async let запускаются три запроса параллельно
         ///"async let" и "try await": – async let позволяет запустить несколько операций параллельно, – try await гарантирует, что выполнение будет приостановлено до завершения всех этих операций, и если возникает ошибка, она передается в блок catch.
+        print("fetchData() GalleryContentViewModel")
         do {
             async let mallsItems: [MallItem] = firestoreService.fetchMalls()
             async let shopsItems: [ShopItem] = firestoreService.fetchShops()

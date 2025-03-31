@@ -7,43 +7,257 @@
 
 import SwiftUI
 
+
 struct ProductCell: View {
     let item: ProductItem
-
+    let width: CGFloat
+    let height: CGFloat
+    
     var body: some View {
-        GeometryReader { geo in
-            VStack(alignment: .leading, spacing: 8) {
-                // Рассчитываем размеры изображения равными ширине ячейки и пропорциональной высотой
-                let cellWidth = geo.size.width
-                let imageHeight = cellWidth * (9 / 16)
-                WebImageView(
-                    url: URL(string: item.urlImage),
-                    placeholderColor: AppColors.secondaryBackground,
-                    width: cellWidth,
-                    height: imageHeight
-                )
-                .cornerRadius(8)
-                .clipped()
-                
+        VStack(alignment: .leading, spacing: 8) {
+            // Изображение: его высота вычисляется по соотношению 3:2
+            WebImageView(
+                url: URL(string: item.urlImage),
+                placeholderColor: AppColors.secondaryBackground,
+                width: width,
+                height: width * 0.66
+            )
+            .clipped()
+            
+            // Текстовая информация
+            VStack(alignment: .leading, spacing: 4) {
                 Text(item.title.value())
                     .font(.headline)
                     .lineLimit(2)
-                
                 Text(item.author)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                
                 Text(item.description.value())
-                    .font(.body)
+                    .font(.caption)
                     .lineLimit(3)
             }
-            .padding(4)
-            .background(AppColors.background)
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
         }
-        .frame(height: 300) // Определяем высоту ячейки; можно экспериментировать с этим значением
+        // Явно задаём общую ширину и высоту ячейки
+        .frame(width: width, height: height)
+        .background(Color.red.opacity(0.2))
+        .cornerRadius(8)
     }
 }
 
+//struct ProductCell: View {
+//    let item: ProductItem
+//    let width: CGFloat
+//    let height: CGFloat
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 8) {
+//            // Передаём ширину, а высоту изображения вычисляем по соотношению 3:2
+//            WebImageView(
+//                url: URL(string: item.urlImage),
+//                placeholderColor: AppColors.secondaryBackground,
+//                width: width,
+//                height: width * 0.66
+//            )
+//            .clipped()
+//            
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .lineLimit(2)
+//                
+//                Text(item.author)
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                
+//                Text(item.description.value())
+//                    .font(.caption)
+//                    .lineLimit(3)
+//            }
+//            .padding(.horizontal, 8)
+//            .padding(.bottom, 8)
+//        }
+//        // Явно задаём общую ширину и высоту ячейки
+//        .frame(width: width, height: height)
+//        .background(Color.red.opacity(0.2))
+//        .cornerRadius(8)
+//    }
+//}
+
+//struct ProductCell: View {
+//    let item: ProductItem
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 8) { // Заменяем ZStack на VStack
+//            // Изображение
+//           
+//                
+//                // Текстовая информация
+//                VStack(alignment: .leading, spacing: 4) {
+//                    GeometryReader { geometry in
+//                        WebImageView(
+//                            url: URL(string: item.urlImage),
+//                            placeholderColor: AppColors.secondaryBackground,
+//                            width: geometry.size.width,
+//                            height: geometry.size.width * 0.66 // 3:2 соотношение
+//                        )
+//                    }
+//                    .aspectRatio(3/2, contentMode: .fit)
+//                    Text(item.title.value())
+//                        .font(.headline)
+//                        .lineLimit(2)
+//                    
+//                    Text(item.author)
+//                        .font(.subheadline)
+//                        .foregroundColor(.secondary)
+//                    
+//                    Text(item.description.value())
+//                        .font(.caption)
+//                        .lineLimit(3)
+//                }
+//                .padding(.horizontal, 8)
+//                .padding(.bottom, 8)
+//        }
+//        .background(Color.red.opacity(0.2))
+//    }
+//}
+
+
+//struct ProductCell: View {
+//    let item: ProductItem
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 8) { // Заменяем ZStack на VStack
+//            // Изображение
+//            GeometryReader { geometry in
+//                WebImageView(
+//                    url: URL(string: item.urlImage),
+//                    placeholderColor: AppColors.secondaryBackground,
+//                    width: geometry.size.width,
+//                    height: geometry.size.width * 0.66 // 3:2 соотношение
+//                )
+//            }
+//            .aspectRatio(3/2, contentMode: .fit)
+//            
+//            // Текстовая информация
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .lineLimit(2)
+//                
+//                Text(item.author)
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                
+//                Text(item.description.value())
+//                    .font(.caption)
+//                    .lineLimit(3)
+//            }
+//            .padding(.horizontal, 8)
+//            .padding(.bottom, 8)
+//        }
+//        .background(Color.red.opacity(0.2))
+////        .background(
+////            RoundedRectangle(cornerRadius: 8)
+////                .fill(AppColors.background)
+////                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+////        )
+//    }
+//}
+
+
+//struct ProductCell: View {
+//    let item: ProductItem
+////    @State private var imageHeight: CGFloat = 0
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 8) {
+//            GeometryReader { geometry in
+//                WebImageView(
+//                    url: URL(string: item.urlImage),
+//                    placeholderColor: AppColors.secondaryBackground,
+//                    width: geometry.size.width,
+//                    height: geometry.size.width * 1.3 // 4:3 aspect ratio
+//                )
+//                .cornerRadius(8)
+//                .clipped()
+////                .onAppear {
+////                    imageHeight = geometry.size.width * 1.3
+////                }
+//            }
+//            .aspectRatio(1.3, contentMode: .fit) // Сохраняем пропорции
+//            
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .lineLimit(2)
+//                    .fixedSize(horizontal: false, vertical: true)
+//                
+//                Text(item.author)
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                    .lineLimit(1)
+//                
+//                Text(item.description.value())
+//                    .font(.caption)
+//                    .lineLimit(3)
+//                    .fixedSize(horizontal: false, vertical: true)
+//            }
+//            .padding(.horizontal, 8)
+//            .padding(.bottom, 8)
+//        }
+//        .background(
+//            RoundedRectangle(cornerRadius: 8)
+//                .fill(AppColors.background)
+//                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+//        )
+//        .padding(4)
+//    }
+//}
+
+
+
+//struct ProductCell: View {
+//    let item: ProductItem
+//
+//    var body: some View {
+//        GeometryReader { geo in
+//            VStack(alignment: .leading, spacing: 8) {
+//                // Рассчитываем размеры изображения равными ширине ячейки и пропорциональной высотой
+//                let horizontalPadding: CGFloat = 4
+//                let cellWidth = geo.size.width - 2 * horizontalPadding
+////                (9 / 16)
+//                let imageHeight = cellWidth * 0.7
+//                WebImageView(
+//                    url: URL(string: item.urlImage),
+//                    placeholderColor: AppColors.secondaryBackground,
+//                    width: cellWidth,
+//                    height: imageHeight
+//                )
+//                .cornerRadius(8)
+//                .clipped()
+//                
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .lineLimit(2)
+//                
+//                Text(item.author)
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                
+//                Text(item.description.value())
+//                    .font(.body)
+//                    .lineLimit(3)
+//            }
+//            .padding(4)
+//            .background(AppColors.background)
+//        }
+//        .frame(height: 300) // Определяем высоту ячейки; можно экспериментировать с этим значением
+//        .background(Color.red.opacity(0.2))
+//    }
+//}
+//
 
 
 //struct ProductCell: View {

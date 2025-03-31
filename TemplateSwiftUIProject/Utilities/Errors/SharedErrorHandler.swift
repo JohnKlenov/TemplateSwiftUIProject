@@ -5,6 +5,10 @@
 //  Created by Evgenyi on 25.10.24.
 //
 
+
+
+// MARK: - тут мы еще не работали с ошибками которые нужно отображть через алерт а какие логировать
+
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseStorage

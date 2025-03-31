@@ -45,7 +45,6 @@ struct GalleryContentView: View {
             case .content(let data):
                 GalleryCompositView(data: data, refreshAction: {
                     print("did tap GalleryCompositView")
-                    ImageCacheManager.shared.getCacheSize()
 //                    await viewModel.fetchData()
                 })
             }
