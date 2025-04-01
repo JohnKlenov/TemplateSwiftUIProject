@@ -13,7 +13,7 @@ struct ProductCell: View {
     let height: CGFloat
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             // Изображение: его высота рассчитывается по соотношению 3:2 от переданной ширины
             WebImageView(
                 url: URL(string: item.urlImage),
@@ -22,7 +22,6 @@ struct ProductCell: View {
                 height: width * 0.66
             )
             .clipped()
-            
             // Вычисляем высоту для текстовой части:
             // imageHeight = width * 0.66, тогда текстовый блок должен занять:
             let imageHeight = width * 0.66
@@ -44,7 +43,7 @@ struct ProductCell: View {
             }
             .frame(height: textBlockHeight) // Фиксированная высота текстового блока
             .padding(.horizontal, 8)
-            .padding(.bottom, 8)
+            .padding(.bottom, 6)
         }
         // Фиксируем размеры всей ячейки
         .frame(width: width, height: height)
@@ -52,6 +51,8 @@ struct ProductCell: View {
         .cornerRadius(8)
     }
 }
+
+
 //struct ProductCell: View {
 //    let item: ProductItem
 //    let width: CGFloat

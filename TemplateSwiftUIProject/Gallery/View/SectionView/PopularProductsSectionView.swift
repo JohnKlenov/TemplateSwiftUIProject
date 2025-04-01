@@ -5,14 +5,10 @@
 //  Created by Evgenyi on 12.03.25.
 //
 
-//    let columns = [
-//        GridItem(.flexible(), spacing: 10),
-//        GridItem(.flexible(), spacing: 10)
-//    ]
-
 
 
 import SwiftUI
+
 
 struct PopularProductsSectionView: View {
     let items: [ProductItem]
@@ -21,10 +17,10 @@ struct PopularProductsSectionView: View {
     // Состояние для хранения вычисленной высоты ячейки
     @State private var computedCellHeight: CGFloat = 0
     
-    // Определяем 2 колонки с гибкой шириной
-    var columns: [GridItem] {
-        Array(repeating: GridItem(.flexible(minimum: 150)), count: 2)
-    }
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -60,7 +56,7 @@ struct PopularProductsSectionView: View {
                 // Внутренний spacing между текстовыми элементами — два промежутка по 4 пункта
                 let textInnerSpacing: CGFloat = 4 * 2
                 // Внешние отступы: 8 пунктов между изображением и текстом плюс 8 снизу
-                let outerTextSpacing: CGFloat = 8 + 8
+                let outerTextSpacing: CGFloat = 6 + 6
                 
                 // Итоговая высота текстовой части
                 let textAndPadding = titleHeight + authorHeight + descriptionHeight + textInnerSpacing + outerTextSpacing
@@ -89,7 +85,9 @@ struct PopularProductsSectionView: View {
                 computedCellHeight = newHeight
             }
             // Определяем общую высоту контейнера для ячеек.
-            // Число строк = ceil(количество ячеек / 2). Междустрочный spacing = 15.
+            ///Функция ceil(_:) из стандартной библиотеки принимает значение типа Double и возвращает наименьшее целое число (в виде Double), которое не меньше исходного.
+            ///Например, если у вас 5 элементов, тогда 5 / 2.0 = 2.5, а ceil(2.5) даст 3.
+            ///(CGFloat(numRows - 1) * 15) – добавляем отступ между строками (если строк больше одной, то между ними именно (numRows - 1) промежуток, а spacing между строками задаётся равным 15).
             .frame(height: {
                 let numRows = ceil(Double(items.count) / 2.0)
                 return computedCellHeight > 0
@@ -180,9 +178,9 @@ struct PopularProductsSectionView: View {
 //                computedCellHeight = newHeight
 //            }
 //            // Задаём общую высоту контейнера для ячеек, рассчитывая число строк с учётом spacing’а
-//            ///Функция ceil(_:) из стандартной библиотеки принимает значение типа Double и возвращает наименьшее целое число (в виде Double), которое не меньше исходного.
-//            ///Например, если у вас 5 элементов, тогда 5 / 2.0 = 2.5, а ceil(2.5) даст 3.
-//            ///(CGFloat(numRows - 1) * 15) – добавляем отступ между строками (если строк больше одной, то между ними именно (numRows - 1) промежуток, а spacing между строками задаётся равным 15).
+//            /Функция ceil(_:) из стандартной библиотеки принимает значение типа Double и возвращает наименьшее целое число (в виде Double), которое не меньше исходного.
+//            /Например, если у вас 5 элементов, тогда 5 / 2.0 = 2.5, а ceil(2.5) даст 3.
+//            /(CGFloat(numRows - 1) * 15) – добавляем отступ между строками (если строк больше одной, то между ними именно (numRows - 1) промежуток, а spacing между строками задаётся равным 15).
 //            .frame(height: {
 //                let numRows = ceil(Double(items.count) / 2.0)
 //                return computedCellHeight > 0
