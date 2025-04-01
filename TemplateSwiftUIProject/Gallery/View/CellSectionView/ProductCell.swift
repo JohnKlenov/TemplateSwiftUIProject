@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct ProductCell: View {
     let item: ProductItem
     let width: CGFloat
@@ -15,7 +14,7 @@ struct ProductCell: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Изображение: его высота вычисляется по соотношению 3:2
+            // Изображение: его высота рассчитывается по соотношению 3:2 от переданной ширины
             WebImageView(
                 url: URL(string: item.urlImage),
                 placeholderColor: AppColors.secondaryBackground,
@@ -24,7 +23,13 @@ struct ProductCell: View {
             )
             .clipped()
             
-            // Текстовая информация
+            // Вычисляем высоту для текстовой части:
+            // imageHeight = width * 0.66, тогда текстовый блок должен занять:
+            let imageHeight = width * 0.66
+            let textBlockHeight = height - imageHeight
+            
+            // Текстовая информация обвернута во VStack с фиксированной высотой,
+            // чтобы все ячейки имели одинаковое расположение текста.
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.title.value())
                     .font(.headline)
@@ -32,19 +37,135 @@ struct ProductCell: View {
                 Text(item.author)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
                 Text(item.description.value())
                     .font(.caption)
                     .lineLimit(3)
             }
+            .frame(height: textBlockHeight) // Фиксированная высота текстового блока
             .padding(.horizontal, 8)
             .padding(.bottom, 8)
         }
-        // Явно задаём общую ширину и высоту ячейки
+        // Фиксируем размеры всей ячейки
         .frame(width: width, height: height)
         .background(Color.red.opacity(0.2))
         .cornerRadius(8)
     }
 }
+//struct ProductCell: View {
+//    let item: ProductItem
+//    let width: CGFloat
+//    let height: CGFloat
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 8) {
+//            // Изображение: его высота рассчитывается с соотношением 3:2 от переданной ширины
+//            WebImageView(
+//                url: URL(string: item.urlImage),
+//                placeholderColor: AppColors.secondaryBackground,
+//                width: width,
+//                height: width * 0.66
+//            )
+//            .clipped()
+//            
+//            // Текстовая информация
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .lineLimit(2)
+//                Text(item.author)
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                Text(item.description.value())
+//                    .font(.caption)
+//                    .lineLimit(3)
+//            }
+//            .padding(.horizontal, 8)
+//            .padding(.bottom, 8)
+//        }
+//        // Фиксируем размеры ячейки согласно вычисленным значениям
+//        .frame(width: width, height: height)
+//        .background(Color.red.opacity(0.2))
+//        .cornerRadius(8)
+//    }
+//}
+
+//struct ProductCell: View {
+//    let item: ProductItem
+//    let width: CGFloat
+//    let height: CGFloat
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 8) {
+//            // Изображение: высота рассчитывается по соотношению 3:2 от переданной ширины
+//            WebImageView(
+//                url: URL(string: item.urlImage),
+//                placeholderColor: AppColors.secondaryBackground,
+//                width: width,
+//                height: width * 0.66
+//            )
+//            .clipped()
+//            
+//            // Текстовая информация
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .lineLimit(2)
+//                Text(item.author)
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                Text(item.description.value())
+//                    .font(.caption)
+//                    .lineLimit(3)
+//            }
+//            .padding(.horizontal, 8)
+//            .padding(.bottom, 8)
+//        }
+//        // Задаём точные размеры ячейки
+//        .frame(width: width, height: height)
+//        .background(Color.red.opacity(0.2))
+//        .cornerRadius(8)
+//    }
+//}
+
+
+//struct ProductCell: View {
+//    let item: ProductItem
+//    let width: CGFloat
+//    let height: CGFloat
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 8) {
+//            // Изображение: его высота вычисляется по соотношению 3:2
+//            WebImageView(
+//                url: URL(string: item.urlImage),
+//                placeholderColor: AppColors.secondaryBackground,
+//                width: width,
+//                height: width * 0.66
+//            )
+//            .clipped()
+//            
+//            // Текстовая информация
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .lineLimit(2)
+//                Text(item.author)
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                Text(item.description.value())
+//                    .font(.caption)
+//                    .lineLimit(3)
+//            }
+//            .padding(.horizontal, 8)
+//            .padding(.bottom, 8)
+//        }
+//        // Явно задаём общую ширину и высоту ячейки
+//        .frame(width: width, height: height)
+//        .background(Color.red.opacity(0.2))
+//        .cornerRadius(8)
+//    }
+//}
 
 //struct ProductCell: View {
 //    let item: ProductItem

@@ -42,6 +42,7 @@
 		5E8F9CCA2D81AC47004036F6 /* FirestoreGetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CC92D81AC47004036F6 /* FirestoreGetService.swift */; };
 		5E8F9CCC2D81AF68004036F6 /* GalleryContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CCB2D81AF68004036F6 /* GalleryContentViewModel.swift */; };
 		5E8F9CCF2D99777A004036F6 /* ImageCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */; };
+		5E8F9CD12D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */; };
 		5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */; };
 		5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDBA2CD51037001CA401 /* AppColors.swift */; };
 		5EA4FDC52CD79747001CA401 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDC42CD79747001CA401 /* Book.swift */; };
@@ -126,6 +127,7 @@
 		5E8F9CC92D81AC47004036F6 /* FirestoreGetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreGetService.swift; sourceTree = "<group>"; };
 		5E8F9CCB2D81AF68004036F6 /* GalleryContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryContentViewModel.swift; sourceTree = "<group>"; };
 		5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManager.swift; sourceTree = "<group>"; };
+		5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+DynamicTypeMetrics.swift"; sourceTree = "<group>"; };
 		5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedErrorHandler.swift; sourceTree = "<group>"; };
 		5EA4FDBA2CD51037001CA401 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		5EA4FDC42CD79747001CA401 /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
@@ -669,6 +671,7 @@
 			isa = PBXGroup;
 			children = (
 				5EAF5B0D2D2FF96000D96FD6 /* FirstAppear.swift */,
+				5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */,
 			);
 			path = Extension;
 			sourceTree = "<group>";
@@ -798,6 +801,7 @@
 				5E8F9CA12D7CDFB7004036F6 /* GalleryContentViewModel(test).swift in Sources */,
 				5EA4FE2F2D05B89B001CA401 /* SheetManager.swift in Sources */,
 				5EAF5B032D2D552900D96FD6 /* HomeViewModel.swift in Sources */,
+				5E8F9CD12D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift in Sources */,
 				5EAF5B082D2D563D00D96FD6 /* AlertViewGlobal.swift in Sources */,
 				5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */,
 				5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */,
