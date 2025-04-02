@@ -7,50 +7,53 @@
 
 import SwiftUI
 
-struct ProductCell: View {
-    let item: ProductItem
-    let width: CGFloat
-    let height: CGFloat
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            // Изображение: его высота рассчитывается по соотношению 3:2 от переданной ширины
-            WebImageView(
-                url: URL(string: item.urlImage),
-                placeholderColor: AppColors.secondaryBackground,
-                width: width,
-                height: width * 0.66
-            )
-            .clipped()
-            // Вычисляем высоту для текстовой части:
-            // imageHeight = width * 0.66, тогда текстовый блок должен занять:
-            let imageHeight = width * 0.66
-            let textBlockHeight = height - imageHeight
-            
-            // Текстовая информация обвернута во VStack с фиксированной высотой,
-            // чтобы все ячейки имели одинаковое расположение текста.
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.title.value())
-                    .font(.headline)
-                    .lineLimit(2)
-                Text(item.author)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                Text(item.description.value())
-                    .font(.caption)
-                    .lineLimit(3)
-            }
-            .frame(height: textBlockHeight) // Фиксированная высота текстового блока
-            .padding(.horizontal, 8)
-            .padding(.bottom, 6)
-        }
-        // Фиксируем размеры всей ячейки
-        .frame(width: width, height: height)
-        .background(Color.red.opacity(0.2))
-        .cornerRadius(8)
-    }
-}
+
+// MARK: - Version Frame Bilding 
+
+//struct ProductCell: View {
+//    let item: ProductItem
+//    let width: CGFloat
+//    let height: CGFloat
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 6) {
+//            // Изображение: его высота рассчитывается по соотношению 3:2 от переданной ширины
+//            WebImageView(
+//                url: URL(string: item.urlImage),
+//                placeholderColor: AppColors.secondaryBackground,
+//                width: width,
+//                height: width * 0.66
+//            )
+//            .clipped()
+//            // Вычисляем высоту для текстовой части:
+//            // imageHeight = width * 0.66, тогда текстовый блок должен занять:
+//            let imageHeight = width * 0.66
+//            let textBlockHeight = height - imageHeight
+//            
+//            // Текстовая информация обвернута во VStack с фиксированной высотой,
+//            // чтобы все ячейки имели одинаковое расположение текста.
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .lineLimit(2)
+//                Text(item.author)
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                    .lineLimit(1)
+//                Text(item.description.value())
+//                    .font(.caption)
+//                    .lineLimit(3)
+//            }
+//            .frame(height: textBlockHeight) // Фиксированная высота текстового блока
+//            .padding(.horizontal, 8)
+//            .padding(.bottom, 6)
+//        }
+//        // Фиксируем размеры всей ячейки
+//        .frame(width: width, height: height)
+//        .background(Color.red.opacity(0.2))
+//        .cornerRadius(8)
+//    }
+//}
 
 
 //struct ProductCell: View {

@@ -8,95 +8,340 @@
 
 
 import SwiftUI
+import SDWebImage
+import SDWebImageSwiftUI
 
 
+// MARK: - WebImageView
+struct WebImageView2: View {
+    let url: URL?
+    let placeholderColor: Color
+    
+    var body: some View {
+        Color.clear
+            .overlay(
+                WebImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    placeholderColor
+                }
+                .indicator(.progress)
+                .transition(.fade(duration: 0.5))
+            .aspectRatio(3/2, contentMode: .fit)
+            .clipped())
+    }
+}
+
+// MARK: - ProductCell
+struct ProductCell: View {
+    let item: ProductItem
+    @Environment(\.dynamicTypeSize) private var dynamicType
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            WebImageView2(
+                url: URL(string: item.urlImage),
+                placeholderColor: Color(.secondarySystemBackground)
+            )
+            .cornerRadius(12)
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title.value())
+                    .font(.headline)
+                    .lineLimit(dynamicType.isAccessibilitySize ? 3 : 2)
+                
+                Text(item.author)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                
+                Text(item.description.value())
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(dynamicType.isAccessibilitySize ? 5 : 3)
+            }
+            .padding(.horizontal, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.bottom, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.secondarySystemBackground))
+        )
+    }
+}
+
+// MARK: - PopularProductsSectionView
 struct PopularProductsSectionView: View {
     let items: [ProductItem]
     let headerTitle: String
     
-    // Состояние для хранения вычисленной высоты ячейки
-    @State private var computedCellHeight: CGFloat = 0
+    @Environment(\.horizontalSizeClass) private var sizeClass
     
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
+    private var gridItems: [GridItem] {
+        let minWidth: CGFloat = sizeClass == .compact ? 160 : 200
+        return [GridItem(.adaptive(minimum: minWidth), spacing: 16)]
+    }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Заголовок секции
+        VStack(alignment: .leading, spacing: 16) {
             Text(headerTitle)
-                .font(.title2)
-                .bold()
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
+                .font(.title2.bold())
+                .padding(.horizontal)
             
-            // GeometryReader для вычисления размеров ячеек — один раз для всей секции
-            GeometryReader { geometry in
-                let totalHorizontalPadding: CGFloat = 16 * 2   // отступы слева и справа
-                let totalSpacing: CGFloat = 15                 // spacing между колонками
-                // Вычисляем ширину одной ячейки
-                let cellWidth = (geometry.size.width - totalHorizontalPadding - totalSpacing) / 2
-                // Высота изображения соотношением 3:2
-                let imageHeight = cellWidth * 0.66
-                
-                // Расчёт высоты текстовой части с учётом Dynamic Type:
-                // Заголовок: стиль .headline — максимум 2 строки
-                let titleLineHeight = UIFont.lineHeight(for: .headline)
-                let titleHeight = titleLineHeight * 2
-                
-                // Автор: стиль .subheadline — 1 строка
-                let authorLineHeight = UIFont.lineHeight(for: .subheadline)
-                let authorHeight = authorLineHeight * 1
-                
-                // Описание: стиль .caption1 — максимум 3 строки
-                let descriptionLineHeight = UIFont.lineHeight(for: .caption1)
-                let descriptionHeight = descriptionLineHeight * 3
-                
-                // Внутренний spacing между текстовыми элементами — два промежутка по 4 пункта
-                let textInnerSpacing: CGFloat = 4 * 2
-                // Внешние отступы: 8 пунктов между изображением и текстом плюс 8 снизу
-                let outerTextSpacing: CGFloat = 6 + 6
-                
-                // Итоговая высота текстовой части
-                let textAndPadding = titleHeight + authorHeight + descriptionHeight + textInnerSpacing + outerTextSpacing
-                
-                // Итоговая ожидаемая высота ячейки
-                let cellHeightEstimate = imageHeight + textAndPadding
-                
-                // Передаём вычисленное значение через PreferenceKey
-                Color.clear
-                    .preference(key: CellHeightKey.self, value: cellHeightEstimate)
-                
-                // Выводим LazyVGrid с 2 колонками, каждая ячейка получает вычисленные размеры
-                LazyVGrid(columns: columns, spacing: 15) {
-                    ForEach(items) { item in
-                        ProductCell(
-                            item: item,
-                            width: cellWidth,
-                            height: computedCellHeight > 0 ? computedCellHeight : cellHeightEstimate
-                        )
-                    }
+            LazyVGrid(columns: gridItems, spacing: 16) {
+                ForEach(items) { item in
+                    ProductCell(item: item)
+                        .frame(minHeight: 280) // Минимальная высота
                 }
-                .padding(.horizontal, 16)
             }
-            // Обрабатываем изменение значения PreferenceKey
-            .onPreferenceChange(CellHeightKey.self) { newHeight in
-                computedCellHeight = newHeight
-            }
-            // Определяем общую высоту контейнера для ячеек.
-            ///Функция ceil(_:) из стандартной библиотеки принимает значение типа Double и возвращает наименьшее целое число (в виде Double), которое не меньше исходного.
-            ///Например, если у вас 5 элементов, тогда 5 / 2.0 = 2.5, а ceil(2.5) даст 3.
-            ///(CGFloat(numRows - 1) * 15) – добавляем отступ между строками (если строк больше одной, то между ними именно (numRows - 1) промежуток, а spacing между строками задаётся равным 15).
-            .frame(height: {
-                let numRows = ceil(Double(items.count) / 2.0)
-                return computedCellHeight > 0
-                    ? computedCellHeight * CGFloat(numRows) + (CGFloat(numRows - 1) * 15)
-                    : 0
-            }())
+            .padding(.horizontal)
         }
     }
 }
+
+//// MARK: - WebImageView (Новая версия)
+//struct WebImageView2: View {
+//    let url: URL?
+//    let placeholderColor: Color
+//    var debugMode: Bool = true
+//    var contentMode: ContentMode = .fill
+//    var cornerRadius: CGFloat = 0
+//    
+//    @State private var lastError: String?
+//    
+//    var body: some View {
+//        ZStack {
+//            WebImage(url: url) { image in
+//                image
+//                    .resizable()
+//                    .aspectRatio(contentMode: contentMode)
+//            } placeholder: {
+//                placeholderColor
+//                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+//            }
+//            .onFailure { error in
+//                lastError = error.localizedDescription
+//            }
+//            .indicator(.progress)
+//            .transition(.fade(duration: 0.5))
+//            .clipped()
+//            .cornerRadius(cornerRadius)
+//            
+//            errorOverlay
+//        }
+//        .aspectRatio(contentMode == .fill ? 3/2 : nil, contentMode: .fit)
+//    }
+//    
+//    @ViewBuilder
+//    private var errorOverlay: some View {
+//        if debugMode, let error = lastError {
+//            Text(error)
+//                .font(.system(size: 8))
+//                .foregroundColor(.red)
+//                .padding(4)
+//                .background(Color.black.opacity(0.8))
+//                .cornerRadius(4)
+//                .padding(4)
+//                .frame(maxWidth: .infinity, alignment: .bottom)
+//        }
+//    }
+//}
+//
+//// MARK: - ProductCell (Обновленная)
+//struct ProductCell: View {
+//    let item: ProductItem
+//    @Environment(\.dynamicTypeSize) private var dynamicType
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 8) {
+//            WebImageView2(
+//                url: URL(string: item.urlImage),
+//                placeholderColor: Color(.secondarySystemBackground),
+//                contentMode: .fill,
+//                cornerRadius: 12
+//            )
+//            .overlay(
+//                RoundedRectangle(cornerRadius: 12)
+//                    .stroke(Color(.systemGray5), lineWidth: 0.5)
+//            )
+//            
+//            VStack(alignment: .leading, spacing: 6) {
+//                Text(item.title.value())
+//                    .font(.headline)
+//                    .lineLimit(dynamicType.isAccessibilitySize ? 3 : 2)
+//                
+//                Text(item.author)
+//                    .font(.subheadline)
+//                    .foregroundStyle(.secondary)
+//                    .lineLimit(1)
+//                
+//                Text(item.description.value())
+//                    .font(.caption)
+//                    .foregroundStyle(.tertiary)
+//                    .lineLimit(dynamicType.isAccessibilitySize ? 5 : 3)
+//            }
+//            .padding(.horizontal, 8)
+//            .padding(.bottom, 8)
+//        }
+//        .background(
+//            RoundedRectangle(cornerRadius: 16)
+//                .fill(Color(.secondarySystemBackground))
+//        )
+//        .contentShape(RoundedRectangle(cornerRadius: 16))
+//    }
+//}
+//
+//// MARK: - PopularProductsSectionView (Финал)
+//struct PopularProductsSectionView: View {
+//    let items: [ProductItem]
+//    let headerTitle: String
+//    
+//    @State private var containerWidth: CGFloat = 0
+//    @Environment(\.horizontalSizeClass) private var sizeClass
+//    
+//    private var gridItems: [GridItem] {
+//        let minWidth: CGFloat = sizeClass == .compact ? 160 : 240
+//        return [GridItem(.adaptive(minimum: minWidth), spacing: 16)]
+//    }
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 16) {
+//            Text(headerTitle)
+//                .font(.title2.bold())
+//                .padding(.horizontal)
+//            
+//            LazyVGrid(columns: gridItems, spacing: 16) {
+//                ForEach(items) { item in
+//                    ProductCell(item: item)
+//                        .aspectRatio(0.75, contentMode: .fit)
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//        .readSize { containerWidth = $0.width }
+//    }
+//}
+//// MARK: - Helper Extensions
+//extension View {
+//    func readSize(onChange: @escaping (CGSize) -> Void) -> some View {
+//        background(
+//            GeometryReader { geometry in
+//                Color.clear
+//                    .preference(key: SizePreferenceKey.self, value: geometry.size)
+//            }
+//        )
+//        .onPreferenceChange(SizePreferenceKey.self, perform: onChange)
+//    }
+//}
+//
+//private struct SizePreferenceKey: PreferenceKey {
+//    static var defaultValue: CGSize = .zero
+//    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {}
+//}
+//
+//struct SectionHeader: View {
+//    let title: String
+//    
+//    var body: some View {
+//        Text(title)
+//            .font(.system(.title2, design: .rounded, weight: .semibold))
+//            .padding(.horizontal, 4)
+//            .frame(maxWidth: .infinity, alignment: .leading)
+//    }
+//}
+
+// MARK: - Version Frame Bilding
+
+//struct PopularProductsSectionView: View {
+//    let items: [ProductItem]
+//    let headerTitle: String
+//    
+//    // Состояние для хранения вычисленной высоты ячейки
+//    @State private var computedCellHeight: CGFloat = 0
+//    
+//    let columns = [
+//        GridItem(.flexible()),
+//        GridItem(.flexible())
+//    ]
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 10) {
+//            // Заголовок секции
+//            Text(headerTitle)
+//                .font(.title2)
+//                .bold()
+//                .padding(.horizontal, 16)
+//                .padding(.top, 10)
+//            
+//            // GeometryReader для вычисления размеров ячеек — один раз для всей секции
+//            GeometryReader { geometry in
+//                let totalHorizontalPadding: CGFloat = 16 * 2   // отступы слева и справа
+//                let totalSpacing: CGFloat = 15                 // spacing между колонками
+//                // Вычисляем ширину одной ячейки
+//                let cellWidth = (geometry.size.width - totalHorizontalPadding - totalSpacing) / 2
+//                // Высота изображения соотношением 3:2
+//                let imageHeight = cellWidth * 0.66
+//                
+//                // Расчёт высоты текстовой части с учётом Dynamic Type:
+//                // Заголовок: стиль .headline — максимум 2 строки
+//                let titleLineHeight = UIFont.lineHeight(for: .headline)
+//                let titleHeight = titleLineHeight * 2
+//                
+//                // Автор: стиль .subheadline — 1 строка
+//                let authorLineHeight = UIFont.lineHeight(for: .subheadline)
+//                let authorHeight = authorLineHeight * 1
+//                
+//                // Описание: стиль .caption1 — максимум 3 строки
+//                let descriptionLineHeight = UIFont.lineHeight(for: .caption1)
+//                let descriptionHeight = descriptionLineHeight * 3
+//                
+//                // Внутренний spacing между текстовыми элементами — два промежутка по 4 пункта
+//                let textInnerSpacing: CGFloat = 4 * 2
+//                // Внешние отступы: 8 пунктов между изображением и текстом плюс 8 снизу
+//                let outerTextSpacing: CGFloat = 6 + 6
+//                
+//                // Итоговая высота текстовой части
+//                let textAndPadding = titleHeight + authorHeight + descriptionHeight + textInnerSpacing + outerTextSpacing
+//                
+//                // Итоговая ожидаемая высота ячейки
+//                let cellHeightEstimate = imageHeight + textAndPadding
+//                
+//                // Передаём вычисленное значение через PreferenceKey
+//                Color.clear
+//                    .preference(key: CellHeightKey.self, value: cellHeightEstimate)
+//                
+//                // Выводим LazyVGrid с 2 колонками, каждая ячейка получает вычисленные размеры
+//                LazyVGrid(columns: columns, spacing: 15) {
+//                    ForEach(items) { item in
+//                        ProductCell(
+//                            item: item,
+//                            width: cellWidth,
+//                            height: computedCellHeight > 0 ? computedCellHeight : cellHeightEstimate
+//                        )
+//                    }
+//                }
+//                .padding(.horizontal, 16)
+//            }
+//            // Обрабатываем изменение значения PreferenceKey
+//            .onPreferenceChange(CellHeightKey.self) { newHeight in
+//                computedCellHeight = newHeight
+//            }
+//            // Определяем общую высоту контейнера для ячеек.
+//            ///Функция ceil(_:) из стандартной библиотеки принимает значение типа Double и возвращает наименьшее целое число (в виде Double), которое не меньше исходного.
+//            ///Например, если у вас 5 элементов, тогда 5 / 2.0 = 2.5, а ceil(2.5) даст 3.
+//            ///(CGFloat(numRows - 1) * 15) – добавляем отступ между строками (если строк больше одной, то между ними именно (numRows - 1) промежуток, а spacing между строками задаётся равным 15).
+//            .frame(height: {
+//                let numRows = ceil(Double(items.count) / 2.0)
+//                return computedCellHeight > 0
+//                    ? computedCellHeight * CGFloat(numRows) + (CGFloat(numRows - 1) * 15)
+//                    : 0
+//            }())
+//        }
+//    }
+//}
 
 
 //struct PopularProductsSectionView: View {
