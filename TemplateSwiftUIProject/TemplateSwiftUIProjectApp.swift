@@ -66,6 +66,7 @@ struct TemplateSwiftUIProjectApp: App {
             if tiedOnboarding {
                 ContentView()
                     .environmentObject(localizationService)
+                    .environment(\.sizeCategory, .medium)
             } else {
                 OnboardingView()
             }
