@@ -70,26 +70,35 @@
 
 ///https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/Malls%2F998a8459755389.5a2e89a931ef4.jpeg?alt=media&token=b6fc6474-4e60-4205-9da5-d8f80c01cb6b
 
+
+
+
+
+
+// MARK: - shared implemintation WebImageView (frame + aspectRatio)
+
 import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
 
+enum WebImageDisplayStyle {
+    case fixedFrame(width: CGFloat, height: CGFloat)
+    case aspectRatio(CGFloat, contentMode: ContentMode)
+}
 
 struct WebImageView: View {
     let url: URL?
     let placeholderColor: Color
-    let width: CGFloat
-    let height: CGFloat
-    let debugMode: Bool = true// Флаг для отладки
-    
+    let displayStyle: WebImageDisplayStyle
+    let debugMode: Bool = true // Флаг для отладки
+
     @State private var lastError: String?
 
     var body: some View {
-        WebImage(url: url) { image in
+        // Базовое изображение с общими модификаторами
+        let baseImage = WebImage(url: url) { image in
             image
                 .resizable()
-                .aspectRatio(contentMode: .fill)
-                .clipped()
         } placeholder: {
             placeholderColor
         }
@@ -98,8 +107,24 @@ struct WebImageView: View {
         }
         .indicator(.progress)
         .transition(.fade(duration: 0.5))
-        .frame(width: width, height: height)
-        .clipped()
+        
+        // Используем Group и switch для выбора способа отображения.
+        // Благодаря ViewBuilder SwiftUI объединит оба случая в единую структуру типа `some View`.
+        return Group {
+            switch displayStyle {
+            case .fixedFrame(let width, let height):
+                baseImage
+                    .aspectRatio(contentMode: .fill)
+                    .clipped()
+                    .frame(width: width, height: height)
+                    .clipped()
+            case .aspectRatio(let ratio, let contentMode):
+                baseImage
+//                    .scaledToFit()
+                    .aspectRatio(ratio, contentMode: contentMode)
+                    .clipped()
+            }
+        }
         .overlay(
             Group {
                 if debugMode, let error = lastError {
@@ -117,19 +142,16 @@ struct WebImageView: View {
     // MARK: - Error Handling Core
     private func handleError(_ error: Error) {
         let nsError = error as NSError
-
         // Обновление состояния нужно выполнить асинхронно
-           DispatchQueue.main.async {
-               self.lastError = "Error: \(nsError.localizedDescription)"
-           }
+        DispatchQueue.main.async {
+            self.lastError = "Error: \(nsError.localizedDescription)"
+        }
         
         switch nsError.domain {
         case NSURLErrorDomain:
             handleURLError(nsError)
-            
         case SDWebImageErrorDomain:
             handleSDWebImageError(nsError)
-            
         default:
             logToCrashlytics(
                 message: "Unhandled error domain: \(nsError.domain)",
@@ -139,68 +161,55 @@ struct WebImageView: View {
         }
     }
     
-    // MARK: - NSURLErrorDomain (Critical Errors)
     private func handleURLError(_ error: NSError) {
-        let url = error.userInfo[NSURLErrorFailingURLErrorKey] as? URL
-        
+        let urlValue = error.userInfo[NSURLErrorFailingURLErrorKey] as? URL
         switch error.code {
-        // Permanent URL Errors
         case NSURLErrorBadURL: // -1000
             logCriticalError(
                 "Malformed URL (invalid syntax)",
                 error: error,
-                metadata: ["url": url?.absoluteString ?? "nil"]
+                metadata: ["url": urlValue?.absoluteString ?? "nil"]
             )
-            
         case NSURLErrorUnsupportedURL: // -1002
             logCriticalError(
                 "Unsupported URL scheme",
                 error: error,
-                metadata: ["scheme": url?.scheme ?? "nil"]
+                metadata: ["scheme": urlValue?.scheme ?? "nil"]
             )
-            
         case NSURLErrorCannotFindHost: // -1003
             logCriticalError(
                 "Host not found",
                 error: error,
-                metadata: ["host": url?.host ?? "nil"]
+                metadata: ["host": urlValue?.host ?? "nil"]
             )
-            
         case NSURLErrorCannotConnectToHost: // -1004
             logCriticalError(
                 "Failed to connect to host",
                 error: error,
-                metadata: ["host": url?.host ?? "nil"]
+                metadata: ["host": urlValue?.host ?? "nil"]
             )
-            
         case NSURLErrorDNSLookupFailed: // -1006
             logCriticalError(
                 "DNS lookup failed",
                 error: error,
-                metadata: ["host": url?.host ?? "nil"]
+                metadata: ["host": urlValue?.host ?? "nil"]
             )
-            
         case NSURLErrorHTTPTooManyRedirects: // -1007
             logCriticalError(
                 "Redirect loop detected",
                 error: error,
-                metadata: ["url": url?.absoluteString ?? "nil"]
+                metadata: ["url": urlValue?.absoluteString ?? "nil"]
             )
-            
         case NSURLErrorSecureConnectionFailed: // -1200
             logCriticalError(
                 "SSL/TLS handshake failed",
                 error: error,
-                metadata: ["host": url?.host ?? "nil"]
+                metadata: ["host": urlValue?.host ?? "nil"]
             )
-            
-        // Temporary Errors (не логируем)
         case NSURLErrorTimedOut, // -1001
              NSURLErrorNetworkConnectionLost, // -1005
              NSURLErrorNotConnectedToInternet: // -1009
             print("Temporary NSURLError (не логируем)")
-            break
-            
         default:
             logToCrashlytics(
                 message: "Unhandled URL error (NSURLErrorDomain)",
@@ -210,7 +219,6 @@ struct WebImageView: View {
         }
     }
     
-    // MARK: - SDWebImageErrorDomain (Critical Errors)
     private func handleSDWebImageError(_ error: NSError) {
         guard let code = SDWebImageError.Code(rawValue: error.code) else {
             logToCrashlytics(
@@ -228,14 +236,12 @@ struct WebImageView: View {
                 error: error,
                 metadata: ["url": url?.absoluteString ?? "nil"]
             )
-            
         case .badImageData:
             logCriticalError(
                 "Corrupted image data",
                 error: error,
                 metadata: ["url": url?.absoluteString ?? "nil"]
             )
-            
         case .invalidDownloadStatusCode:
             if let statusCode = error.userInfo[SDWebImageErrorDownloadStatusCodeKey] as? Int {
                 logCriticalError(
@@ -247,24 +253,18 @@ struct WebImageView: View {
                     ]
                 )
             }
-            
         case .blackListed:
             logCriticalError(
                 "URL is blacklisted",
                 error: error,
                 metadata: ["url": url?.absoluteString ?? "nil"]
             )
-            
-        // Temporary Errors (не логируем)
         case .cancelled,
              .cacheNotModified,
              .invalidDownloadOperation,
              .invalidDownloadResponse,
              .invalidDownloadContentType:
             print("Temporary SDWebImageError (не логируем)")
-
-            break
-            
         @unknown default:
             logToCrashlytics(
                 message: "Unhandled SDWebImage error",
@@ -284,17 +284,15 @@ struct WebImageView: View {
         print("Error Code:", error.code)
         print("Error Description:", error.localizedDescription)
         print("Metadata:", metadata)
-        
         // Crashlytics Integration
-        /*
-        let keys: [String: Any] = [
-            "error_code": error.code,
-            "error_domain": error.domain
-        ].merging(metadata) { $1 }
+        //        let keys: [String: Any] = [
+        //            "error_code": error.code,
+        //            "error_domain": error.domain
+        //        ].merging(metadata) { $1 }
+        //
+        //        Crashlytics.crashlytics().log("\(message)\n\(keys)")
+        //        Crashlytics.crashlytics().record(error: error)
         
-        Crashlytics.crashlytics().log("\(message)\n\(keys)")
-        Crashlytics.crashlytics().record(error: error)
-        */
     }
     
     private func logToCrashlytics(
@@ -307,9 +305,261 @@ struct WebImageView: View {
     }
 }
 
+
+
+
+
+// MARK: - Separate imlemintation WebImageView
+
+
 // MARK: - WebImageView
 
+
+//import SwiftUI
+//import SDWebImage
+//import SDWebImageSwiftUI
+//
+//
+//struct WebImageView: View {
+//    let url: URL?
+//    let placeholderColor: Color
+//    let width: CGFloat
+//    let height: CGFloat
+//    let debugMode: Bool = true// Флаг для отладки
+//    
+//    @State private var lastError: String?
+//
+//    var body: some View {
+//        WebImage(url: url) { image in
+//            image
+//                .resizable()
+//                .aspectRatio(contentMode: .fill)
+//                .clipped()
+//        } placeholder: {
+//            placeholderColor
+//        }
+//        .onFailure { error in
+//            handleError(error)
+//        }
+//        .indicator(.progress)
+//        .transition(.fade(duration: 0.5))
+//        .frame(width: width, height: height)
+//        .clipped()
+//        .overlay(
+//            Group {
+//                if debugMode, let error = lastError {
+//                    Text(error)
+//                        .font(.caption)
+//                        .foregroundColor(.red)
+//                        .padding(4)
+//                        .background(Color.black.opacity(0.8))
+//                        .cornerRadius(4)
+//                }
+//            }
+//        )
+//    }
+//    
+//    // MARK: - Error Handling Core
+//    private func handleError(_ error: Error) {
+//        let nsError = error as NSError
+//
+//        // Обновление состояния нужно выполнить асинхронно
+//           DispatchQueue.main.async {
+//               self.lastError = "Error: \(nsError.localizedDescription)"
+//           }
+//        
+//        switch nsError.domain {
+//        case NSURLErrorDomain:
+//            handleURLError(nsError)
+//            
+//        case SDWebImageErrorDomain:
+//            handleSDWebImageError(nsError)
+//            
+//        default:
+//            logToCrashlytics(
+//                message: "Unhandled error domain: \(nsError.domain)",
+//                error: nsError,
+//                metadata: ["domain": nsError.domain]
+//            )
+//        }
+//    }
+//    
+//    // MARK: - NSURLErrorDomain (Critical Errors)
+//    private func handleURLError(_ error: NSError) {
+//        let url = error.userInfo[NSURLErrorFailingURLErrorKey] as? URL
+//        
+//        switch error.code {
+//        // Permanent URL Errors
+//        case NSURLErrorBadURL: // -1000
+//            logCriticalError(
+//                "Malformed URL (invalid syntax)",
+//                error: error,
+//                metadata: ["url": url?.absoluteString ?? "nil"]
+//            )
+//            
+//        case NSURLErrorUnsupportedURL: // -1002
+//            logCriticalError(
+//                "Unsupported URL scheme",
+//                error: error,
+//                metadata: ["scheme": url?.scheme ?? "nil"]
+//            )
+//            
+//        case NSURLErrorCannotFindHost: // -1003
+//            logCriticalError(
+//                "Host not found",
+//                error: error,
+//                metadata: ["host": url?.host ?? "nil"]
+//            )
+//            
+//        case NSURLErrorCannotConnectToHost: // -1004
+//            logCriticalError(
+//                "Failed to connect to host",
+//                error: error,
+//                metadata: ["host": url?.host ?? "nil"]
+//            )
+//            
+//        case NSURLErrorDNSLookupFailed: // -1006
+//            logCriticalError(
+//                "DNS lookup failed",
+//                error: error,
+//                metadata: ["host": url?.host ?? "nil"]
+//            )
+//            
+//        case NSURLErrorHTTPTooManyRedirects: // -1007
+//            logCriticalError(
+//                "Redirect loop detected",
+//                error: error,
+//                metadata: ["url": url?.absoluteString ?? "nil"]
+//            )
+//            
+//        case NSURLErrorSecureConnectionFailed: // -1200
+//            logCriticalError(
+//                "SSL/TLS handshake failed",
+//                error: error,
+//                metadata: ["host": url?.host ?? "nil"]
+//            )
+//            
+//        // Temporary Errors (не логируем)
+//        case NSURLErrorTimedOut, // -1001
+//             NSURLErrorNetworkConnectionLost, // -1005
+//             NSURLErrorNotConnectedToInternet: // -1009
+//            print("Temporary NSURLError (не логируем)")
+//            break
+//            
+//        default:
+//            logToCrashlytics(
+//                message: "Unhandled URL error (NSURLErrorDomain)",
+//                error: error,
+//                metadata: ["code": error.code]
+//            )
+//        }
+//    }
+//    
+//    // MARK: - SDWebImageErrorDomain (Critical Errors)
+//    private func handleSDWebImageError(_ error: NSError) {
+//        guard let code = SDWebImageError.Code(rawValue: error.code) else {
+//            logToCrashlytics(
+//                message: "Unknown SDWebImage error code",
+//                error: error,
+//                metadata: ["code": error.code]
+//            )
+//            return
+//        }
+//        
+//        switch code {
+//        case .invalidURL:
+//            logCriticalError(
+//                "Invalid image URL",
+//                error: error,
+//                metadata: ["url": url?.absoluteString ?? "nil"]
+//            )
+//            
+//        case .badImageData:
+//            logCriticalError(
+//                "Corrupted image data",
+//                error: error,
+//                metadata: ["url": url?.absoluteString ?? "nil"]
+//            )
+//            
+//        case .invalidDownloadStatusCode:
+//            if let statusCode = error.userInfo[SDWebImageErrorDownloadStatusCodeKey] as? Int {
+//                logCriticalError(
+//                    "Server responded with error",
+//                    error: error,
+//                    metadata: [
+//                        "status": statusCode,
+//                        "url": url?.absoluteString ?? "nil"
+//                    ]
+//                )
+//            }
+//            
+//        case .blackListed:
+//            logCriticalError(
+//                "URL is blacklisted",
+//                error: error,
+//                metadata: ["url": url?.absoluteString ?? "nil"]
+//            )
+//            
+//        // Temporary Errors (не логируем)
+//        case .cancelled,
+//             .cacheNotModified,
+//             .invalidDownloadOperation,
+//             .invalidDownloadResponse,
+//             .invalidDownloadContentType:
+//            print("Temporary SDWebImageError (не логируем)")
+//
+//            break
+//            
+//        @unknown default:
+//            logToCrashlytics(
+//                message: "Unhandled SDWebImage error",
+//                error: error,
+//                metadata: ["case": "unknown"]
+//            )
+//        }
+//    }
+//    
+//    // MARK: - Logging System
+//    private func logCriticalError(
+//        _ message: String,
+//        error: NSError,
+//        metadata: [String: Any]
+//    ) {
+//        print("🛑 CRITICAL ERROR: \(message)")
+//        print("Error Code:", error.code)
+//        print("Error Description:", error.localizedDescription)
+//        print("Metadata:", metadata)
+//        
+//         Crashlytics Integration
+//        /*
+//        let keys: [String: Any] = [
+//            "error_code": error.code,
+//            "error_domain": error.domain
+//        ].merging(metadata) { $1 }
+//        
+//        Crashlytics.crashlytics().log("\(message)\n\(keys)")
+//        Crashlytics.crashlytics().record(error: error)
+//        */
+//    }
+//    
+//    private func logToCrashlytics(
+//        message: String,
+//        error: NSError,
+//        metadata: [String: Any]
+//    ) {
+//        print("⚠️ NON-CRITICAL ERROR: \(message)")
+//        // Crashlytics.crashlytics().log(message)
+//    }
+//}
+
+
+
+
+
+// MARK: - WebImageViewAspectRatio
+
 //.resizable()
+///Модификатор делает изображение "растягиваемым". По умолчанию изображения (например, из Image("example")) используют свой intrinsic size (то есть естественные размеры, заложенные в сам файл). После применения .resizable() изображение становится гибким, его размеры можно изменять в соответствии с другими модификаторами или ограничениями контейнера.
 ///Модификатор .resizable() в SwiftUI говорит системе, что изображение можно изменить по размеру, а не использовать его исходные (физические) размеры. То есть, когда вы применяете этот модификатор к изображению, вы разрешаете SwiftUI масштабировать его, адаптируя под размеры контейнера, куда вы его помещаете (например, через .frame, .aspectRatio, .scaledToFill() или .scaledToFit()).
 ///Без .resizable(), изображение будет отображаться в своих оригинальных размерах, независимо от того, какой размер имеет контейнер. Это может привести к тому, что изображение либо не заполнит отведённое пространство, либо выйдет за его пределы. С .resizable() изображение подстраивается под заданные размеры, что особенно полезно для создания гибкого и адаптивного интерфейса.
 
@@ -323,6 +573,21 @@ struct WebImageView: View {
 
 //scaledToFit()
 ///Если вместо .scaledToFill() использовать .scaledToFit(), изображение целиком впишется внутрь контейнера, сохраняя пропорции, но при этом может остаться "пустое пространство" (например, появятся полосы сверху/снизу или по бокам).
+
+
+//.aspectRatio
+///Модификатор .aspectRatio — это инструмент SwiftUI для управления соотношением сторон представления. Он позволяет задать «желательное» соотношение (отношение ширины к высоте) для содержимого, что полезно как для изображений, так и для любых других вью, где важно сохранить пропорции.
+///func aspectRatio(_ aspectRatio: CGFloat?, contentMode: ContentMode = .fit) -> some View
+///aspectRatio: CGFloat? Вы можете передать либо конкретное значение соотношения, либо nil. Если значение nil, то SwiftUI попытается использовать «intrinsic» (естественное) соотношение сторон содержимого, если оно известно.
+///.fit – масштабирует содержимое так, чтобы оно полностью поместилось в указанном размере, сохраняя соотношение сторон; при этом могут появиться пустые промежутки (поля) по краям.
+///.fill – масштабирует содержимое до полного заполнения контейнера, при этом оно может обрезаться, если его соотношение сторон не совпадает с заданным.
+
+//.aspectRatio(nil, contentMode: .fit)
+///Если у изображения уже есть определённое соотношение (например, оно встроено в само изображение), и вы хотите, чтобы SwiftUI его использовал, можно передать nil
+///Здесь SwiftUI определит естественное соотношение сторон содержимого и масштабирует изображение так, чтобы оно полностью вписалось в контейнер с сохранением этих пропорций.
+///
+// .aspectRatio(2/3, contentMode: .fit).frame(width: 200) - Принудительно задаём соотношение сторон 2:3 + Задаём фиксированную ширину, высота вычислится автоматически по соотношению
+
 
 //.aspectRatio(3/2, contentMode: .fit)
 ///.aspectRatio(3/2, contentMode: .fit) обеспечивает сохранение соотношения сторон 3:2 при вписывании изображения в доступное пространство. То есть, даже если контейнер меняется по размеру, изображение будет масштабироваться так, чтобы сохранить это соотношение.
@@ -338,27 +603,39 @@ struct WebImageView: View {
 //.aspectRatio(2/3, contentMode: .fit)
 ///.aspectRatio(2/3, contentMode: .fit), то элемент или изображение будет масштабироваться так, чтобы его соотношение сторон стало 2:3 — то есть ширина будет в 2 раза меньше высоты. Это приведёт к вертикально ориентированному прямоугольнику, который выглядит более вытянутым по высоте.
 
+// WebImageViewAspectRatio как высчитывается размер это view ?
+///Размер WebImageViewAspectRatio устанавливается динамически на основе доступного пространства в родительском представлении (например, в ProductCell или в ячейке сетки).
+///Модификатор .aspectRatio(2/3, contentMode: .fill) гарантирует, что даже если размеры задаются системой, изображение будет масштабироваться так, чтобы его соотношение сторон оставалось равным 2 к 3, заполняя отведённое пространство, а лишние части (если они выходят за рамки) будут обрезаться благодаря .clipped().
+///при .fit мы не видим .cornerRadius(12) потому что наши картинки что приходят с сети имееют схожую пропорцию с 2:3 но так как есть отличия он не заполняет полностью собой выделенное пространство WebImageViewAspectRatio и края с лева и с право прозрачны.
 
-struct WebImageViewAspectRatio: View {
-    let url: URL?
-    let placeholderColor: Color
-    
-    var body: some View {
-        Color.clear
-            .overlay(
-                WebImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    placeholderColor
-                }
-                    .indicator(.progress)
-                    .transition(.fade(duration: 0.5))
-                    .aspectRatio(2/3, contentMode: .fit)
-                    .clipped())
-    }
-}
+
+//struct WebImageViewAspectRatio: View {
+//    let url: URL?
+//    let placeholderColor: Color
+//    
+//    var body: some View {
+//        Color.clear
+//            .overlay(
+//                WebImage(url: url) { image in
+//                    image
+//                        .resizable()
+//                        .scaledToFit()
+//                } placeholder: {
+//                    placeholderColor
+//                }
+//                    .indicator(.progress)
+//                    .transition(.fade(duration: 0.5))
+//                    .aspectRatio(2/3, contentMode: .fit)
+//                    .clipped()
+//                    .background(GeometryReader { geometry in
+//                        Color.clear
+//                            .onAppear {
+//                                print("Высота WebImageViewAspectRatio: \(geometry.size.height)")
+//                                print("Ширина WebImageViewAspectRatio: \(geometry.size.width)")
+//                            }
+//                    }))
+//    }
+//}
 
 
 

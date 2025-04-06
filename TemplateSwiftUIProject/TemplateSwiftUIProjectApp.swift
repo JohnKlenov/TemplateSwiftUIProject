@@ -52,7 +52,7 @@ struct TemplateSwiftUIProjectApp: App {
     @Environment(\.scenePhase) private var scenePhase
     
     init() {
-      
+        
         
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
@@ -63,13 +63,15 @@ struct TemplateSwiftUIProjectApp: App {
     var body: some Scene {
         
         WindowGroup {
-            if tiedOnboarding {
-                ContentView()
-                    .environmentObject(localizationService)
-                    .environment(\.sizeCategory, .medium)
-            } else {
-                OnboardingView()
+            Group {
+                if tiedOnboarding {
+                    ContentView()
+                        .environmentObject(localizationService)
+                } else {
+                    OnboardingView()
+                }
             }
+            .environment(\.sizeCategory, .medium) // Общий для всей группы
         }
         .onChange(of: scenePhase) { newPhase, _ in
             switch newPhase {
@@ -83,7 +85,7 @@ struct TemplateSwiftUIProjectApp: App {
                 print("Unknown scene phase")
             }
         }
-
+        
     }
     
     private func setupCache() {

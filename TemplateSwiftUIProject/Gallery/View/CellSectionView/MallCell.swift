@@ -17,9 +17,14 @@ struct MallCell: View {
             WebImageView(
                 url: URL(string: item.urlImage),
                 placeholderColor: AppColors.secondaryBackground,
-                width: width,
-                height: height
+                displayStyle: .fixedFrame(width: width, height: height)
             )
+//            WebImageView(
+//                url: URL(string: item.urlImage),
+//                placeholderColor: AppColors.secondaryBackground,
+//                width: width,
+//                height: height
+//            )
             Color.black.opacity(0.6)
                 .frame(width: width, height: height)
                 .overlay(

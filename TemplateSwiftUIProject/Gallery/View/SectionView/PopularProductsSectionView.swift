@@ -46,7 +46,10 @@ import SwiftUI
 //Если хочется добиться, чтобы изображение всегда имело оптимальное соотношение и не «сжималось», можно попробовать:
 /// Задать изображению фиксированный фрейм (например, .frame(height: ...)) или Настроить его приоритет через .layoutPriority(1) по сравнению с текстовыми элементами.
 
-
+//LazyVGrid + GridItem(.adaptive(minimum: minWidth)
+///Модификатор .adaptive(minimum:) говорит LazyVGrid: Создавай столько колонок, сколько позволяет ширина контейнера.
+///как работает .adaptive(minimum:) в GridItem. Даже если вы указали всего один элемент в массиве [GridItem], этот единственный элемент с .adaptive(minimum:) позволяет SwiftUI динамически добавлять столько колонок, сколько поместится в доступное пространство, с учётом заданной минимальной ширины minWidth.
+///Даже с одним GridItem и .adaptive(minimum:), LazyVGrid может адаптироваться под ширину экрана и добавлять больше колонок. Это гибкость дизайна SwiftUI. Если вам нужно больше контроля над количеством колонок, вы можете использовать подход с GeometryReader или даже вручную задать нужное количество колонок с помощью .fixed.
 
 
 struct PopularProductsSectionView: View {
@@ -72,11 +75,25 @@ struct PopularProductsSectionView: View {
                         .frame(minHeight: 280)
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 8)
         }
     }
 }
 
+
+// MARK: - adaptive gridItems
+
+/// сейчас у нас ячейка ProductCell в LazyVGrid всегда выглядит одинаково на всех устройствах и изменяется только в приделах ограничения minWidth: CGFloat = sizeClass == .compact ? 160 : 200 и .frame(minHeight: 280).
+
+///Если вы хотите более точного контроля, например, чтобы адаптировать минимальную ширину колонки к конкретной ширине экрана, можно использовать GeometryReader для вычислений:
+
+//private var gridItems: [GridItem] {
+//    GeometryReader { geometry in
+//        let availableWidth = geometry.size.width
+//        let minWidth = availableWidth / 2.5 // Например, разделяем ширину на 2.5 для адаптации
+//        return [GridItem(.adaptive(minimum: minWidth), spacing: 16)]
+//    }
+//}
 
 
 // MARK: - adaptive VStack for Texts

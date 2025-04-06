@@ -5,6 +5,8 @@
 //  Created by Evgenyi on 12.03.25.
 //
 
+//                .layoutPriority(1)
+
 import SwiftUI
     
 
@@ -13,11 +15,15 @@ struct ProductCell: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-                WebImageViewAspectRatio(
-                    url: URL(string: item.urlImage),
-                    placeholderColor: Color(.secondarySystemBackground)
-                )
-//                .layoutPriority(1)
+            WebImageView(
+                url: URL(string: item.urlImage),
+                placeholderColor: AppColors.secondaryBackground,
+                displayStyle: .aspectRatio(2/3, contentMode: .fit)
+            )
+//                WebImageViewAspectRatio(
+//                    url: URL(string: item.urlImage),
+//                    placeholderColor: Color(.secondarySystemBackground)
+//                )
                 .cornerRadius(12)
             
             VStack(alignment: .leading, spacing: 6) {
