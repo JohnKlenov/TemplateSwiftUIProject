@@ -60,6 +60,11 @@
 "gallery.contentErrorView.description" = "Try again! Something went wrong!";
 "gallery.contentErrorView.refresh_button" = "Refresh";
 
+"gallery.galleryCompositView.mallHeader" = "Shopping Centers";
+"gallery.galleryCompositView.shopHeader" = "Stores";
+"gallery.galleryCompositView.productHeader" = "Popular Products";
+
+
 /* OnboardingView */
 
 "onboarding.back_button" = "Back";

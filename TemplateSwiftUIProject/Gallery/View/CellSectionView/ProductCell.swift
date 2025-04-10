@@ -5,27 +5,35 @@
 //  Created by Evgenyi on 12.03.25.
 //
 
-//                .layoutPriority(1)
 
 import SwiftUI
     
 
 struct ProductCell: View {
+    
+    @EnvironmentObject var localization: LocalizationService
+    
     let item: ProductItem
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            WebImageView(
-                url: URL(string: item.urlImage),
-                placeholderColor: AppColors.secondaryBackground,
-                displayStyle: .aspectRatio(2/3, contentMode: .fit)
-            )
-//                WebImageViewAspectRatio(
-//                    url: URL(string: item.urlImage),
-//                    placeholderColor: Color(.secondarySystemBackground)
-//                )
+        VStack(alignment: .center, spacing: 4) {
+                WebImageView(
+                    url: URL(string: item.urlImage),
+                    placeholderColor: AppColors.secondaryBackground,
+                    displayStyle: .aspectRatio(2/3, contentMode: .fit)
+                )
+            ///Да, если вы добавите .frame(height: 200) к WebImageView с модификатором .aspectRatio(2/3, contentMode: .fit), то ширина будет автоматически подбираться так, чтобы соблюдалось соотношение 2:3 (то есть около 133 pt для высоты 200 pt), при условии отсутствия других ограничений по ширине.
+            ///Мы можем передавать значение height в качестве параметра в зависисмости от ширины и высоты доступного экрана!
+                .frame(height: 200)
+                .background(GeometryReader { geometry in
+                    Color.clear
+                        .onAppear {
+                            print("Высота WebImageView: \(geometry.size.height)")
+                            print("Ширина WebImageView: \(geometry.size.width)")
+                        }
+                })
                 .cornerRadius(12)
-            
+           
             VStack(alignment: .leading, spacing: 6) {
                 Text(item.title.value())
                     .font(.headline)
@@ -52,8 +60,8 @@ struct ProductCell: View {
         .background(GeometryReader { geometry in
             Color.clear
                 .onAppear {
-                    print("Высота ячейки: \(geometry.size.height)")
-                    print("Ширина ячейки: \(geometry.size.width)")
+                    print("Высота ProductCell: \(geometry.size.height)")
+                    print("Ширина ProductCell: \(geometry.size.width)")
                 }
         })
     }

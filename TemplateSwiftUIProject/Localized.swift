@@ -80,7 +80,7 @@ enum Localized {
     // MARK: - Gallery Navigation Stack
     // (Добавьте локализованные строки для Gallery, если они будут)
     
-    // Home view
+    // Gallery view
     enum Gallery {
         static let title = "gallery.title"
         static let loading = "gallery.loading"
@@ -89,6 +89,13 @@ enum Localized {
             static let title = "gallery.contentErrorView.title"
             static let description = "gallery.contentErrorView.description"
             static let refreshButton = "gallery.contentErrorView.refresh_button"
+        }
+        
+        // Новые ключи для GalleryCompositView
+        enum GalleryCompositView {
+            static let mallHeader = "gallery.galleryCompositView.mallHeader"
+            static let shopHeader = "gallery.galleryCompositView.shopHeader"
+            static let productHeader = "gallery.galleryCompositView.productHeader"
         }
     }
     

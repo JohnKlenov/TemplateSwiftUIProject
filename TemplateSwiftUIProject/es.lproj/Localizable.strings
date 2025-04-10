@@ -58,6 +58,10 @@
 "gallery.contentErrorView.description" = "¡Inténtalo de nuevo! ¡Algo salió mal!";
 "gallery.contentErrorView.refresh_button" = "Actualizar";
 
+"gallery.galleryCompositView.mallHeader" = "Centros Comerciales";
+"gallery.galleryCompositView.shopHeader" = "Tiendas";
+"gallery.galleryCompositView.productHeader" = "Productos Populares";
+
 /* OnboardingView */
 
 "onboarding.back_button" = "Atrás";

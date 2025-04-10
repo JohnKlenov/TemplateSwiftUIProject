@@ -57,6 +57,10 @@
 "gallery.contentErrorView.description" = "Попробуйте еще раз! Что-то пошло не так!";
 "gallery.contentErrorView.refresh_button" = "Обновить";
 
+"gallery.galleryCompositView.mallHeader" = "Торговые Центры";
+"gallery.galleryCompositView.shopHeader" = "Магазины";
+"gallery.galleryCompositView.productHeader" = "Популярные товары";
+
 /* OnboardingView */
 
 "onboarding.back_button" = "Назад";

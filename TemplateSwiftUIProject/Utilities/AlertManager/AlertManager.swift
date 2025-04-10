@@ -65,7 +65,7 @@ class AlertManager: AlertManagerProtocol {
         }
     }
     
-    @Published var isGalleryViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости HomeView
+    @Published var isGalleryViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости GalleryView
         didSet {
             print("didSet isGalleryViewVisible")
         }

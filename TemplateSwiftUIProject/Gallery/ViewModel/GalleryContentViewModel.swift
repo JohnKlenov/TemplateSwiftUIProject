@@ -91,9 +91,9 @@ class GalleryContentViewModel: ObservableObject {
             
             let (malls, shops, popularProducts) = try await (mallsItems, shopsItems, popularProductsItems)
             
-            let mallSection = MallSectionModel(header: "Торговые Центры", items: malls)
-            let shopSection = ShopSectionModel(header: "Магазины", items: shops)
-            let productSection = PopularProductsSectionModel(header: "Популярные товары", items: popularProducts)
+            let mallSection = MallSectionModel(header: Localized.Gallery.GalleryCompositView.mallHeader, items: malls)
+            let shopSection = ShopSectionModel(header:  Localized.Gallery.GalleryCompositView.shopHeader, items: shops)
+            let productSection = PopularProductsSectionModel(header:  Localized.Gallery.GalleryCompositView.productHeader, items: popularProducts)
             
             let unifiedSections: [UnifiedSectionModel] = [
                 .malls(mallSection),

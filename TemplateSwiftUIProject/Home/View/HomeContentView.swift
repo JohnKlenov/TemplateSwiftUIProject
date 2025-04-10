@@ -21,6 +21,7 @@ import SwiftUI
 
 struct HomeContentView:View {
     
+    
     @StateObject private var viewModel: HomeContentViewModel
     @EnvironmentObject var homeDataStore:HomeBookDataStore
     @EnvironmentObject var homeCoordinator:HomeCoordinator
