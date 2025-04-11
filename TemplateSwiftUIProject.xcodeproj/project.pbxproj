@@ -69,6 +69,7 @@
 		5EAF5B0E2D2FF96000D96FD6 /* FirstAppear.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B0D2D2FF96000D96FD6 /* FirstAppear.swift */; };
 		5EAF5B132D367E7E00D96FD6 /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B122D367E7E00D96FD6 /* ContentViewModel.swift */; };
 		5EAF5B1B2D4B863B00D96FD6 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */; };
+		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -147,6 +148,7 @@
 		5EAF5B0D2D2FF96000D96FD6 /* FirstAppear.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstAppear.swift; sourceTree = "<group>"; };
 		5EAF5B122D367E7E00D96FD6 /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
 		5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
+		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -663,6 +665,7 @@
 			children = (
 				5EC94A0C2CC3CA4E003736A9 /* CustomErrorsFB.swift */,
 				5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */,
+				5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */,
 			);
 			path = Errors;
 			sourceTree = "<group>";
@@ -801,6 +804,7 @@
 				5E8F9CA12D7CDFB7004036F6 /* GalleryContentViewModel(test).swift in Sources */,
 				5EA4FE2F2D05B89B001CA401 /* SheetManager.swift in Sources */,
 				5EAF5B032D2D552900D96FD6 /* HomeViewModel.swift in Sources */,
+				5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */,
 				5E8F9CD12D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift in Sources */,
 				5EAF5B082D2D563D00D96FD6 /* AlertViewGlobal.swift in Sources */,
 				5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */,
