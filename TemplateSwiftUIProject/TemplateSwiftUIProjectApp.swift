@@ -41,6 +41,7 @@
 
 import SwiftUI
 import Combine
+import UIKit
 
 @main
 struct TemplateSwiftUIProjectApp: App {
@@ -68,7 +69,10 @@ struct TemplateSwiftUIProjectApp: App {
                     ContentView()
                         .environmentObject(localizationService)
                 } else {
-                    OnboardingView()
+                                        OnboardingView()
+                    // Здесь мы оборачиваем OnboardingView в FixedOrientationView,
+                    // чтобы принудить портретную ориентацию для онбординга.
+//                    FixedOrientationView(content: OnboardingView())
                 }
             }
             .environment(\.sizeCategory, .medium) // Общий для всей группы
@@ -93,6 +97,31 @@ struct TemplateSwiftUIProjectApp: App {
     }
 }
 
+
+//class FixedOrientationHostingController<Content: View>: UIHostingController<Content> {
+//    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+//        // Разрешаем только портретную ориентацию
+//        return .portrait
+//    }
+//    
+//    override var shouldAutorotate: Bool {
+//        // Запрещаем автоповорот
+//        return false
+//    }
+//}
+//
+//
+//struct FixedOrientationView<Content: View>: UIViewControllerRepresentable {
+//    let content: Content
+//    
+//    func makeUIViewController(context: Context) -> FixedOrientationHostingController<Content> {
+//        FixedOrientationHostingController(rootView: content)
+//    }
+//    
+//    func updateUIViewController(_ uiViewController: FixedOrientationHostingController<Content>, context: Context) {
+//        uiViewController.rootView = content
+//    }
+//}
 
 
 // MARK: - before pattern Coordinator

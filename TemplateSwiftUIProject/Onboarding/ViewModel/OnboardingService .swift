@@ -19,8 +19,8 @@ class OnboardingService : OnboardingServiceProtocol {
              UserDefaults.standard.set(hasSeenOnboarding, forKey: "hasSeenOnboarding")
          }
      }
-
     
+
     var pages: [OnboardingPage] = [OnboardingPage(title: Localized.Onboarding.welcomeTitle.localized(), description: Localized.Onboarding.welcomeDescription.localized(), imageName: "house.fill"), OnboardingPage(title: Localized.Onboarding.discoverTitle.localized(), description: Localized.Onboarding.discoverDescription.localized(), imageName: "safari.fill"), OnboardingPage(title: Localized.Onboarding.getStartedTitle.localized(), description: Localized.Onboarding.getStartedDescription.localized(), imageName: "flag.fill")]
     
        
