@@ -68,8 +68,7 @@
 ///.cancelled – отмена загрузки (пользовательская или системная)
 ///.cacheNotModified + .invalidDownloadOperation + .invalidDownloadResponse + .invalidDownloadContentType
 
-///https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/Malls%2F998a8459755389.5a2e89a931ef4.jpeg?alt=media&token=b6fc6474-4e60-4205-9da5-d8f80c01cb6b
-
+///https://gist.github.com/klein-artur/a3aab89959decfa3472fc9f7bca7a03d
 
 //.resizable()
 ///Модификатор делает изображение "растягиваемым". По умолчанию изображения (например, из Image("example")) используют свой intrinsic size (то есть естественные размеры, заложенные в сам файл). После применения .resizable() изображение становится гибким, его размеры можно изменять в соответствии с другими модификаторами или ограничениями контейнера.

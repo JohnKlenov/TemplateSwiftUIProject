@@ -25,13 +25,13 @@ struct ProductCell: View {
             ///Да, если вы добавите .frame(height: 200) к WebImageView с модификатором .aspectRatio(2/3, contentMode: .fit), то ширина будет автоматически подбираться так, чтобы соблюдалось соотношение 2:3 (то есть около 133 pt для высоты 200 pt), при условии отсутствия других ограничений по ширине.
             ///Мы можем передавать значение height в качестве параметра в зависисмости от ширины и высоты доступного экрана!
                 .frame(height: 200)
-                .background(GeometryReader { geometry in
-                    Color.clear
-                        .onAppear {
-                            print("Высота WebImageView: \(geometry.size.height)")
-                            print("Ширина WebImageView: \(geometry.size.width)")
-                        }
-                })
+//                .background(GeometryReader { geometry in
+//                    Color.clear
+//                        .onAppear {
+//                            print("Высота WebImageView: \(geometry.size.height)")
+//                            print("Ширина WebImageView: \(geometry.size.width)")
+//                        }
+//                })
                 .cornerRadius(12)
            
             VStack(alignment: .leading, spacing: 6) {
@@ -57,13 +57,13 @@ struct ProductCell: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.secondarySystemBackground))
         )
-        .background(GeometryReader { geometry in
-            Color.clear
-                .onAppear {
-                    print("Высота ProductCell: \(geometry.size.height)")
-                    print("Ширина ProductCell: \(geometry.size.width)")
-                }
-        })
+//        .background(GeometryReader { geometry in
+//            Color.clear
+//                .onAppear {
+//                    print("Высота ProductCell: \(geometry.size.height)")
+//                    print("Ширина ProductCell: \(geometry.size.width)")
+//                }
+//        })
     }
 }
 

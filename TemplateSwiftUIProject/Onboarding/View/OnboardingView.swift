@@ -54,6 +54,14 @@ struct OnboardingView: View {
             .padding()
         }
         .background(Color.orange)
+        .onAppear {
+            // Устанавливаем блокировку только на портрет
+//            AppDelegate.orientationLock = .portrait
+        }
+        .onDisappear {
+            // При исчезновении возвращаем стандартную ориентацию для остальных экранов
+//            AppDelegate.orientationLock = .all
+        }
 //        .edgesIgnoringSafeArea(.all)
     }
 }
