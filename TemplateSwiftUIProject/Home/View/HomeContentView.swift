@@ -38,6 +38,7 @@ struct HomeContentView:View {
     
     var body: some View {
         // let _ = Self._printChanges()
+        
         ZStack {
             switch viewModel.viewState {
             case .loading:

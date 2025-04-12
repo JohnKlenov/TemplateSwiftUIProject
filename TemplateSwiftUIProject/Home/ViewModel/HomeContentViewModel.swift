@@ -94,7 +94,16 @@ class HomeContentViewModel: HomeViewModelProtocol {
                     self?.homeBookDataStore?.books = data
                     self?.viewState = .content(data)
                 case .failure(let error):
-                    self?.handleError(error)
+                    // Если уже есть кэшированные данные, отображаем их вместо ошибки
+                    if let cachedData = self?.homeBookDataStore?.books, !cachedData.isEmpty {
+                        print("Ошибка получения данных, используем кэш")
+                        self?.viewState = .content(cachedData)
+                        self?.handleError(error)
+                        // Возможно, добавить механизм показа неинвазивного уведомления об ошибке
+                    } else {
+                        self?.handleStateError(error)
+                    }
+//                    self?.handleError(error)
                 }
             }
             .store(in: &cancellables)
@@ -111,7 +120,7 @@ class HomeContentViewModel: HomeViewModelProtocol {
         bind()
     }
     
-    private func handleError(_ error: Error) {
+    private func handleStateError(_ error: Error) {
         switch stateError {
         case .localError: 
             handleFirestoreError(error)
@@ -135,6 +144,11 @@ class HomeContentViewModel: HomeViewModelProtocol {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.database)
         viewState = .error(errorMessage)
+    }
+    
+    private func handleError(_ error: Error) {
+        let errorMessage = errorHandler.handle(error: error)
+        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.database)
     }
 }
 

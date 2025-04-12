@@ -45,7 +45,8 @@ struct GalleryContentView: View {
             case .content(let data):
                 GalleryCompositView(data: data, refreshAction: {
                     print("did tap GalleryCompositView")
-//                    await viewModel.fetchData()
+                    // что если слишком часто будут идти запросы на refreshAction и данные не будут успевать прийти как произойдет новыйй refresh data??? 
+                    await viewModel.fetchData()
                 })
             }
         }

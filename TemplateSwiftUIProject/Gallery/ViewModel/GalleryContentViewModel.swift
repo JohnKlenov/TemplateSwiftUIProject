@@ -67,7 +67,7 @@ class GalleryContentViewModel: ObservableObject {
 //    private let autoRefreshThreshold: TimeInterval = 2 * 60 * 60 // 2 часа (7200 секунд)
 
     // Порог для автоматического обновления (1 минута)
-    private let autoRefreshThreshold: TimeInterval = 60
+    private let autoRefreshThreshold: TimeInterval = 20
 
     
     init(alertManager: AlertManager = AlertManager.shared, firestoreService: FirestoreGetService,
