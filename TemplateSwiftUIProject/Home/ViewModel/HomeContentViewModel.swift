@@ -70,6 +70,18 @@ class HomeContentViewModel: HomeViewModelProtocol {
         print("init HomeContentViewModel")
     }
     
+    //нужно понимать что данный экран не HomeView а CardProduct
+    
+    //.sink { case .failure = cachedData }
+    //разшовор о том как использовать let cachedData = self?.homeBookDataStore?.books, !cachedData.isEmpty
+    // к примеру мы ловим ошибку после того как уже заходили в систему удачно и не хотим видеть ContentErrorView (у нас уже есть кэшь)
+    
+    ///authenticationService.authenticate()
+    /// ошибка из authenticationService.authenticate() может возникнуть, если Auth.auth().signInAnonymously вернул error
+    /// это возможно при первом запуске App на device или при удалении permanent user
+    /// при первом запуске cachedData пуст поэтому мы попадаем в  handleStateError(error) = все ok!
+    /// если мы удалили permanent user и authenticationService.authenticate() возвращает error (из signInAnonymously)
+    /// мы попадем в  .sink { case .failure = cachedData } и cachedData тут не пуст он остался от прошлого user = это плохо! (при успешном удалении permanent user мы должны  в observeCollection listener?.remove() и self?.homeBookDataStore?.books = [])
     private func bind() {
         
         viewState = .loading

@@ -59,6 +59,7 @@ struct HomeView: View {
     @State private var alertTitle: String = ""
     @State private var cancellables = Set<AnyCancellable>()
     
+    
     @EnvironmentObject var homeCoordinator:HomeCoordinator
     @EnvironmentObject var viewBuilderService:ViewBuilderService
     

@@ -49,7 +49,7 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
     init(db: Firestore = Firestore.firestore()) {
         self.db = db
     }
-    
+    /// если мы успешно удаляем account то для card product нужно удалить listener?.remove()
     func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never> {
         // Проверка валидности пути
         guard PathValidator.validateCollectionPath(path) else {

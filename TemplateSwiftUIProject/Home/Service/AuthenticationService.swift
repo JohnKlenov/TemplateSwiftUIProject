@@ -59,6 +59,7 @@ class AuthenticationService: AuthenticationServiceProtocol {
         })
     }
     
+    
     private func createAnonymousUser() {
         Auth.auth().signInAnonymously { [weak self] authResult, error in
             guard let self = self else { return }
@@ -70,23 +71,6 @@ class AuthenticationService: AuthenticationServiceProtocol {
             // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
         }
     }
-
-    
-//    private func createAnonymousUser() {
-//        Auth.auth().signInAnonymously { [weak self] authResult, error in
-//            guard let self = self else { return }
-//            guard let _ = authResult?.user else {
-//                if let error = error {
-//                    
-//                    self.authenticationPublisher.send(.failure(error))
-//                } else {
-//                    self.authenticationPublisher.send(.failure(NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])))
-//                }
-//                return
-//            }
-//            // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
-//        }
-//    }
     
     func authenticate() -> AnyPublisher<Result<String, any Error>, Never> {
         return authenticationPublisher.eraseToAnyPublisher()
@@ -125,4 +109,20 @@ class AuthenticationService: AuthenticationServiceProtocol {
 
 
 
+// MARK: - old code
 
+//    private func createAnonymousUser() {
+//        Auth.auth().signInAnonymously { [weak self] authResult, error in
+//            guard let self = self else { return }
+//            guard let _ = authResult?.user else {
+//                if let error = error {
+//
+//                    self.authenticationPublisher.send(.failure(error))
+//                } else {
+//                    self.authenticationPublisher.send(.failure(NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])))
+//                }
+//                return
+//            }
+//            // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
+//        }
+//    }
