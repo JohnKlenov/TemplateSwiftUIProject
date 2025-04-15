@@ -14,6 +14,40 @@
 ///Контроль таймаутов в Firebase не является абсолютно необходимым и может усложнить ваш код, особенно если у вас нет строгих требований к времени ожидания. В большинстве случаев, можно доверить Firebase управлять соединением и ждать ответ от сервера столько, сколько необходимо.
 
 
+//нужно понимать что данный экран не HomeView а CardProduct
+
+//.sink { case .failure = cachedData }
+//разшовор о том как использовать let cachedData = self?.homeBookDataStore?.books, !cachedData.isEmpty
+// к примеру мы ловим ошибку после того как уже заходили в систему удачно и не хотим видеть ContentErrorView (у нас уже есть кэшь)
+//homeBookDataStore нужен для того что бы обновлять BookDetailsView(данные из db.collection(path).addSnapshotListener приходят во viewModel и там мы обновляем homeBookDataStore?.books)
+
+///authenticationService.authenticate()
+/// ошибка из authenticationService.authenticate() может возникнуть, если Auth.auth().signInAnonymously вернул error
+/// это возможно при первом запуске App на device или при удалении permanent user
+/// при первом запуске cachedData пуст поэтому мы попадаем в  handleStateError(error) = все ok!
+/// если мы удалили permanent user и authenticationService.authenticate() возвращает error (из signInAnonymously)
+/// мы попадем в  .sink { case .failure = cachedData } и cachedData тут не пуст он остался от прошлого user = это плохо! (при успешном удалении permanent user мы должны  в observeCollection listener?.remove() и self?.homeBookDataStore?.books = [])
+
+//.sink { [weak self] result in
+//    switch result {
+//    case .success(let data):
+//        self?.homeBookDataStore?.books = data
+//        self?.viewState = .content(data)
+//    case .failure(let error):
+//        // Если уже есть кэшированные данные, отображаем их вместо ошибки
+//        if let cachedData = self?.homeBookDataStore?.books, !cachedData.isEmpty {
+//            print("Ошибка получения данных, используем кэш")
+//            self?.viewState = .content(cachedData)
+//            self?.handleError(error)
+//            // Возможно, добавить механизм показа неинвазивного уведомления об ошибке
+//        } else {
+//            self?.handleStateError(error)
+//        }
+////                    self?.handleError(error)
+//    }
+//}
+
+
 import Combine
 import SwiftUI
 
@@ -59,7 +93,6 @@ class HomeContentViewModel: HomeViewModelProtocol {
     private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
     var managerCRUDS: CRUDSManager
     private let errorHandler: ErrorHandlerProtocol
-    private var homeBookDataStore:HomeBookDataStore?
     
     init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: CRUDSManager, errorHandler: ErrorHandlerProtocol) {
         self.alertManager = alertManager
@@ -69,19 +102,8 @@ class HomeContentViewModel: HomeViewModelProtocol {
         self.managerCRUDS = managerCRUDS
         print("init HomeContentViewModel")
     }
+
     
-    //нужно понимать что данный экран не HomeView а CardProduct
-    
-    //.sink { case .failure = cachedData }
-    //разшовор о том как использовать let cachedData = self?.homeBookDataStore?.books, !cachedData.isEmpty
-    // к примеру мы ловим ошибку после того как уже заходили в систему удачно и не хотим видеть ContentErrorView (у нас уже есть кэшь)
-    
-    ///authenticationService.authenticate()
-    /// ошибка из authenticationService.authenticate() может возникнуть, если Auth.auth().signInAnonymously вернул error
-    /// это возможно при первом запуске App на device или при удалении permanent user
-    /// при первом запуске cachedData пуст поэтому мы попадаем в  handleStateError(error) = все ok!
-    /// если мы удалили permanent user и authenticationService.authenticate() возвращает error (из signInAnonymously)
-    /// мы попадем в  .sink { case .failure = cachedData } и cachedData тут не пуст он остался от прошлого user = это плохо! (при успешном удалении permanent user мы должны  в observeCollection listener?.remove() и self?.homeBookDataStore?.books = [])
     private func bind() {
         
         viewState = .loading
@@ -103,31 +125,19 @@ class HomeContentViewModel: HomeViewModelProtocol {
             .sink { [weak self] result in
                 switch result {
                 case .success(let data):
-                    self?.homeBookDataStore?.books = data
                     self?.viewState = .content(data)
                 case .failure(let error):
-                    // Если уже есть кэшированные данные, отображаем их вместо ошибки
-                    if let cachedData = self?.homeBookDataStore?.books, !cachedData.isEmpty {
-                        print("Ошибка получения данных, используем кэш")
-                        self?.viewState = .content(cachedData)
-                        self?.handleError(error)
-                        // Возможно, добавить механизм показа неинвазивного уведомления об ошибке
-                    } else {
-                        self?.handleStateError(error)
-                    }
-//                    self?.handleError(error)
+                    self?.handleStateError(error)
                 }
             }
             .store(in: &cancellables)
     }
     
-    func setupViewModel(dataStore:HomeBookDataStore) {
-        homeBookDataStore = dataStore
+    func setupViewModel() {
         bind()
     }
     
     func retry() {
-        homeBookDataStore?.books = []
         authenticationService.reset()
         bind()
     }
@@ -161,10 +171,18 @@ class HomeContentViewModel: HomeViewModelProtocol {
     private func handleError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.database)
+        stateError = .localError
     }
 }
 
 
+
+//    private var homeBookDataStore:HomeBookDataStore?
+//        homeBookDataStore?.books = []
+//    func setupViewModel(dataStore:HomeBookDataStore) {
+//        homeBookDataStore = dataStore
+//        bind()
+//    }
 
 
 // MARK: - before pattern Coordinator

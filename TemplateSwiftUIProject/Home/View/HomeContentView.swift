@@ -23,7 +23,6 @@ struct HomeContentView:View {
     
     
     @StateObject private var viewModel: HomeContentViewModel
-    @EnvironmentObject var homeDataStore:HomeBookDataStore
     @EnvironmentObject var homeCoordinator:HomeCoordinator
     @EnvironmentObject var localization: LocalizationService
     
@@ -31,13 +30,13 @@ struct HomeContentView:View {
         _viewModel = StateObject(wrappedValue: HomeContentViewModel(
             authenticationService: AuthenticationService(),
             firestorColletionObserverService: FirestoreCollectionObserverService(),
-            managerCRUDS: managerCRUDS,
+            managerCRUDS: managerCRUDS, 
             errorHandler: SharedErrorHandler()))
         print("init HomeContentView")
     }
     
     var body: some View {
-        // let _ = Self._printChanges()
+//         let _ = Self._printChanges()
         
         ZStack {
             switch viewModel.viewState {
@@ -69,7 +68,7 @@ struct HomeContentView:View {
         }
         .onFirstAppear {
             print("onFirstAppear HomeContentView")
-            viewModel.setupViewModel(dataStore: homeDataStore)
+            viewModel.setupViewModel()
         }
         .onAppear {
             print("onAppear HomeContentView")
@@ -84,6 +83,11 @@ struct HomeContentView:View {
     }
 }
 
+
+
+
+//    @EnvironmentObject var homeDataStore:HomeBookDataStore
+//            viewModel.setupViewModel(dataStore: homeDataStore)
 
 // MARK: - before new struct
 

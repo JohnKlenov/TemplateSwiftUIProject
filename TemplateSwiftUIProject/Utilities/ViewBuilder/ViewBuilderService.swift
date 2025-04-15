@@ -23,8 +23,8 @@ class ViewBuilderService: ObservableObject {
         switch page {
         case .home:
             HomeContentView(managerCRUDS: crudManager)
-        case .bookDetails(let bookID):
-            BookDetailsView(managerCRUDS: crudManager, bookID: bookID)
+        case .bookDetails(let book):
+            BookDetailsView(managerCRUDS: crudManager, book: book)
         case .someHomeView:
             SomeView()
         }
@@ -51,3 +51,8 @@ class ViewBuilderService: ObservableObject {
         cover.content
     }
 }
+
+
+
+//        case .bookDetails(let bookID):
+//            BookDetailsView(managerCRUDS: crudManager, bookID: bookID)

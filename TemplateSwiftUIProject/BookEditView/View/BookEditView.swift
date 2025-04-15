@@ -31,7 +31,7 @@
 import SwiftUI
 
 enum Action {
-    case done
+    case done(BookCloud)
     case delete
     case cancel
 }
@@ -77,6 +77,7 @@ struct BookEditView: View {
         self.presentEditView = presentEditView
         self.completionHandler = completionHandler
     }
+    
 
     var body: some View {
         NavigationStack {
@@ -162,7 +163,8 @@ struct BookEditView: View {
     
     private func handleDoneTapped() {
         viewModel.updateOrAddBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.addingOrChangingBook)
-        self.completionHandler?(.success((.done)))
+        // Передаем ассоциированный параметр с текущей книгой
+        self.completionHandler?(.success(.done(viewModel.book)))
         dismiss()
     }
     
@@ -174,6 +176,152 @@ struct BookEditView: View {
 }
 
 
+// MARK: - Cancel HomeBookDataStore
+
+
+//enum Action {
+//    case done
+//    case delete
+//    case cancel
+//}
+//
+//enum Mode {
+//    case new
+//    case edit
+//}
+//
+//enum FocusedField:Hashable {
+//    case title, description, pathImage, author
+//}
+//
+//
+//struct BookEditView: View {
+//    
+//    @Environment(\.dismiss) private var dismiss
+//    @StateObject var viewModel: BookViewModel
+//    @FocusState var focus:FocusedField?
+//    @State var presentActionSheet = false
+//    @EnvironmentObject var localization: LocalizationService
+//    
+//    var completionHandler: ((Result<Action, Error>) -> Void)?
+//    var presentEditView = ""
+//    var cancelButton: some View {
+//        Button(Localized.BookEditView.cancel.localized()) {
+//            handleCancelTapped()
+//        }
+//    }
+//    
+//    
+//    var saveButton: some View {
+//        Button(viewModel.mode == .new ? Localized.BookEditView.done.localized() : Localized.BookEditView.save.localized()) {
+//            handleDoneTapped()
+//        }
+//        .disabled(!viewModel.modified)
+//    }
+//    
+//   
+//    init(book:BookCloud = BookCloud(title: "", author: "", description: "", urlImage: ""), mode:Mode = .new, managerCRUDS: CRUDSManager, presentEditView:String, completionHandler: ((Result<Action, Error>) -> Void)? = nil) {
+//        print("init BookEditView")
+//        _viewModel = StateObject(wrappedValue: BookViewModel(book: book, mode: mode, managerCRUDS: managerCRUDS))
+//        self.presentEditView = presentEditView
+//        self.completionHandler = completionHandler
+//    }
+//    
+//
+//    var body: some View {
+//        NavigationStack {
+//            ZStack {
+//                Form {
+//                    Section(header: Text(Localized.BookEditView.bookSection.localized())) {
+//                        customTextField(Localized.BookEditView.title.localized(), text: $viewModel.book.title, field: .title, focus: $focus)
+//                        customTextField(Localized.BookEditView.description.localized(), text: $viewModel.book.description, field: .description, focus: $focus)
+//                        customTextField(Localized.BookEditView.pathImage.localized(), text: $viewModel.book.urlImage, field: .pathImage, focus: $focus)
+//                    }
+//                    Section(header: Text(Localized.BookEditView.authorSection.localized())) {
+//                        customTextField(Localized.BookEditView.author.localized(), text: $viewModel.book.author, field: .author, focus: $focus)
+//                    }
+//                    
+//                    if viewModel.mode == .edit {
+//                        Button(Localized.BookEditView.deleteBook.localized(), role: .destructive) {
+//                            self.presentActionSheet.toggle()
+//                        }
+//                    }
+//                }
+//                .navigationTitle(viewModel.mode == .new ? Localized.BookEditView.newBook.localized() : viewModel.book.title)
+//                .navigationBarTitleDisplayMode(viewModel.mode == .new ? .inline : .large)
+//                .toolbar{
+//                    ToolbarItem(placement: .topBarTrailing) {
+//                        saveButton
+//                    }
+//                    ToolbarItem(placement: .topBarLeading) {
+//                        cancelButton
+//                    }
+//                }
+//                .confirmationDialog(Localized.BookEditView.confirmationDialog.localized(), isPresented: $presentActionSheet) {
+//                    Button(Localized.BookEditView.deleteBook.localized(), role: .destructive) {
+//                        handleDeleteTapped()
+//                    }
+//                    Button(Localized.BookEditView.cancel.localized(), role: .cancel) {}
+//                }
+//            }
+//        }
+//        .onAppear {
+//            print("onAppear BookEditView")
+//        }
+//    }
+//    
+//    private func customTextField(_ title: String, text: Binding<String>, field: FocusedField, focus: FocusState<FocusedField?>.Binding) -> some View {
+//        ZStack(alignment: .leading) {
+//            TextField(title, text: text)
+//                .keyboardType(.default)
+//                .autocapitalization(.none)
+//                .disableAutocorrection(true)
+//                .focused(focus, equals: field)
+//                .padding([.leading, .trailing], 30)
+//                .tint(.pink)
+//                .foregroundStyle(.secondary)
+//                .onSubmit {
+//                    withAnimation {
+//                        switch field {
+//                        case .title:
+//                            focus.wrappedValue = .description
+//                        case .description:
+//                            focus.wrappedValue = .pathImage
+//                        case .pathImage:
+//                            focus.wrappedValue = .author
+//                        case .author:
+//                            focus.wrappedValue = nil
+//                        }
+//                    }
+//                }
+//            Button(action: {
+//                print("Did tap Image")
+//            }, label: {
+//                Image(systemName: "swift")
+//                    .foregroundStyle(.pink)
+//                    .frame(width: 30, height: 30)
+//                    .padding(.leading, -10)
+//            })
+//        }
+//    }
+//    
+//    private func handleCancelTapped() {
+//        self.completionHandler?(.success((.cancel)))
+//        dismiss()
+//    }
+//    
+//    private func handleDoneTapped() {
+//        viewModel.updateOrAddBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.addingOrChangingBook)
+//        self.completionHandler?(.success((.done)))
+//        dismiss()
+//    }
+//    
+//    private func handleDeleteTapped() {
+//        viewModel.removeBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.deletingBook)
+//        self.completionHandler?(.success((.delete)))
+//        dismiss()
+//    }
+//}
 
 // MARK: - before pattern Coordinator
 

@@ -55,7 +55,6 @@ struct ContentView: View {
     @StateObject private var viewModel:ContentViewModel
     @StateObject private var mainCoordinator = MainCoordinator()
     @StateObject private var viewBuilderService = ViewBuilderService()
-    @StateObject private var dataStore = DataStore()
     
     @State private var selection: Int = 0
     @State private var isShowAlert: Bool = false
@@ -83,7 +82,6 @@ struct ContentView: View {
                     .tag(0)
                     .environmentObject(mainCoordinator)
                     .environmentObject(mainCoordinator.homeCoordinator)
-                    .environmentObject(dataStore.homeBookDataStore)
                     .environmentObject(viewBuilderService)
                 galleryView
                     .tabItem {
@@ -147,6 +145,9 @@ struct LazyView<Content: View>: View {
 }
 
 
+
+//    @StateObject private var dataStore = DataStore()
+//                    .environmentObject(dataStore.homeBookDataStore)
 
 // MARK: - before pattern Coordinator
 

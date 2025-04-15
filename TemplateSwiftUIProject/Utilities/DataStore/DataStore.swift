@@ -8,11 +8,11 @@
 import SwiftUI
 
 
-class DataStore:ObservableObject {
-    var homeBookDataStore = HomeBookDataStore()
-}
-
-
-class HomeBookDataStore: ObservableObject {
-    @Published var books:[BookCloud] = []
-}
+//class DataStore:ObservableObject {
+//    var homeBookDataStore = HomeBookDataStore()
+//}
+//
+//
+//class HomeBookDataStore: ObservableObject {
+//    @Published var books:[BookCloud] = []
+//}

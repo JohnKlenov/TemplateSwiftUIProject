@@ -30,6 +30,7 @@
 ///Асинхронные операции, такие как addSnapshotListener, происходят позже, после того, как функции завершили свои синхронные действия. Они не могут начать выполнение до завершения текущих синхронных операций.
 
 ///db.child(path).observe(.value, with: { snapshot in ... }), он будет продолжать свою работу, независимо от того, произошла ли ошибка при записи, удалении или обновлении. Так как данные попадают в локальный кэш и затем пытаются синхранизироваться с сервером..
+/// не все ошибки которые приходят из addSnapshotListener критичные, есть временные ошибки котороые не останавливают работу слушателя. 
 
 import Combine
 import FirebaseFirestore
@@ -70,7 +71,7 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
                     try? document.data(as: T.self)
                 }) ?? []
                 
-                print("Received objects: \(data)")
+//                print("Received objects: \(data)")
                 subject.send(.success(data))
             }
         }

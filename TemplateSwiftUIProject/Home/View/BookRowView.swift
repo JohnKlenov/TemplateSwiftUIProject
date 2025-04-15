@@ -18,7 +18,6 @@ struct BookRowView: View {
     
     var body: some View {
         HStack(spacing: 10) {
-//            WebImageView(url: URL(string: book.urlImage), placeholderColor: AppColors.secondaryBackground, width: 50, height: 50)
             WebImageView(
                 url: URL(string: book.urlImage),
                 placeholderColor: AppColors.secondaryBackground,
@@ -42,10 +41,15 @@ struct BookRowView: View {
         .background(Color.clear) // Прозрачный фон для расширения области нажатия
         .contentShape(Rectangle()) // Задает форму области для захвата событий жестов
         .onTapGesture {
-            if let id = book.id {
-                homeCoordinator.navigateTo(page: .bookDetails(id))
-            }
+            homeCoordinator.navigateTo(page: .bookDetails(book))
         }
     }
 }
 
+
+
+
+// MARK: - Cancel HomeBookDataStore
+//            if let id = book.id {
+//                homeCoordinator.navigateTo(page: .bookDetails(id))
+//            }

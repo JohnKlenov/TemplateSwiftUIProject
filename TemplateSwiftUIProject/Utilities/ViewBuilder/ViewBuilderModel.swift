@@ -13,9 +13,9 @@ import SwiftUI
 ///Протокол Hashable используется для создания хэш-кода для объекта. Если тип соответствует Hashable, это означает, что экземпляры этого типа можно хэшировать, что требуется для использования в структурах данных, таких как словари и множества.
 
 
-enum HomeFlow: Hashable, Equatable {
+enum HomeFlow: Hashable {
     case home
-    case bookDetails(String) // Передаем ID книги
+    case bookDetails(BookCloud)
     case someHomeView
 
     static func == (lhs: HomeFlow, rhs: HomeFlow) -> Bool {
@@ -23,6 +23,10 @@ enum HomeFlow: Hashable, Equatable {
         case (.home, .home), (.someHomeView, .someHomeView):
             return true
         case (.bookDetails(let lhsBook), .bookDetails(let rhsBook)):
+            // Если хочется сравнить только по id (если не nil) или по другому
+            if let lhsId = lhsBook.id, let rhsId = rhsBook.id {
+                return lhsId == rhsId
+            }
             return lhsBook == rhsBook
         default:
             return false
@@ -35,11 +39,17 @@ enum HomeFlow: Hashable, Equatable {
             hasher.combine("home")
         case .someHomeView:
             hasher.combine("someHomeView")
-        case .bookDetails(let bookID):
-            hasher.combine(bookID)
+        case .bookDetails(let book):
+            // Если id присутствует, хешируем его, иначе всю структуру
+            if let id = book.id {
+                hasher.combine(id)
+            } else {
+                hasher.combine(book)
+            }
         }
     }
 }
+
 
 enum GalleryFlow: Hashable, Equatable {
     case gallery
@@ -63,24 +73,6 @@ enum GalleryFlow: Hashable, Equatable {
         }
 }
 
-//enum GalleryFlow: Hashable, Equatable {
-//    case gallery
-//    
-//    static func == (lhs: GalleryFlow, rhs: GalleryFlow) -> Bool {
-//        switch (lhs, rhs) {
-//        case (.gallery, .gallery):
-//            return true
-//        }
-//    }
-//    
-//    func hash(into hasher: inout Hasher) {
-//        switch self {
-//        case .gallery:
-//            hasher.combine("gallery")
-//        }
-//    }
-//}
-
 struct SheetItem: Identifiable {
     var id = UUID()
     var content: AnyView
@@ -90,3 +82,53 @@ struct FullScreenItem: Identifiable {
     var id = UUID()
     var content: AnyView
 }
+
+
+// MARK: - Cancel HomeBookDataStore
+
+//enum HomeFlow: Hashable, Equatable {
+//    case home
+//    case bookDetails(String) // Передаем ID книги
+//    case someHomeView
+//
+//    static func == (lhs: HomeFlow, rhs: HomeFlow) -> Bool {
+//        switch (lhs, rhs) {
+//        case (.home, .home), (.someHomeView, .someHomeView):
+//            return true
+//        case (.bookDetails(let lhsBook), .bookDetails(let rhsBook)):
+//            return lhsBook == rhsBook
+//        default:
+//            return false
+//        }
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        switch self {
+//        case .home:
+//            hasher.combine("home")
+//        case .someHomeView:
+//            hasher.combine("someHomeView")
+//        case .bookDetails(let bookID):
+//            hasher.combine(bookID)
+//        }
+//    }
+//}
+
+
+//enum GalleryFlow: Hashable, Equatable {
+//    case gallery
+//
+//    static func == (lhs: GalleryFlow, rhs: GalleryFlow) -> Bool {
+//        switch (lhs, rhs) {
+//        case (.gallery, .gallery):
+//            return true
+//        }
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        switch self {
+//        case .gallery:
+//            hasher.combine("gallery")
+//        }
+//    }
+//}
