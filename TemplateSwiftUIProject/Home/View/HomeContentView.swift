@@ -43,8 +43,15 @@ struct HomeContentView:View {
             case .loading:
                 ProgressView(Localized.Home.loading.localized())
             case .content(let data):
-                BooksListView(data: data) { book in
-                    viewModel.removeBook(book: book, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.deletingBook)
+                if data.isEmpty {
+                    // Используем EmptyStateView для заполнителя
+                    EmptyStateView()
+                } else {
+                    BooksListView(data: data) { book in
+                        viewModel.removeBook(book: book,
+                                             forView: "HomeView",
+                                             operationDescription: Localized.DescriptionOfOperationError.deletingBook)
+                    }
                 }
             case .error(let error):
                 ///error на ContentErrorView не распечатывается
@@ -85,7 +92,9 @@ struct HomeContentView:View {
 
 
 
-
+//                BooksListView(data: data) { book in
+//                    viewModel.removeBook(book: book, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.deletingBook)
+//                }
 //    @EnvironmentObject var homeDataStore:HomeBookDataStore
 //            viewModel.setupViewModel(dataStore: homeDataStore)
 
