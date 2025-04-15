@@ -14,38 +14,10 @@
 ///Контроль таймаутов в Firebase не является абсолютно необходимым и может усложнить ваш код, особенно если у вас нет строгих требований к времени ожидания. В большинстве случаев, можно доверить Firebase управлять соединением и ждать ответ от сервера столько, сколько необходимо.
 
 
-//нужно понимать что данный экран не HomeView а CardProduct
+// MARK: - firestorColletionObserverService.observeCollection
+/// не все ошибки которые приходят из addSnapshotListener критичные, есть временные ошибки котороые не останавливают работу слушателя. (можно для некоторых ошибок блокировать вызов viewState = .error(errorMessage) что бы улучшить пользовательский опыт)
 
-//.sink { case .failure = cachedData }
-//разшовор о том как использовать let cachedData = self?.homeBookDataStore?.books, !cachedData.isEmpty
-// к примеру мы ловим ошибку после того как уже заходили в систему удачно и не хотим видеть ContentErrorView (у нас уже есть кэшь)
-//homeBookDataStore нужен для того что бы обновлять BookDetailsView(данные из db.collection(path).addSnapshotListener приходят во viewModel и там мы обновляем homeBookDataStore?.books)
 
-///authenticationService.authenticate()
-/// ошибка из authenticationService.authenticate() может возникнуть, если Auth.auth().signInAnonymously вернул error
-/// это возможно при первом запуске App на device или при удалении permanent user
-/// при первом запуске cachedData пуст поэтому мы попадаем в  handleStateError(error) = все ok!
-/// если мы удалили permanent user и authenticationService.authenticate() возвращает error (из signInAnonymously)
-/// мы попадем в  .sink { case .failure = cachedData } и cachedData тут не пуст он остался от прошлого user = это плохо! (при успешном удалении permanent user мы должны  в observeCollection listener?.remove() и self?.homeBookDataStore?.books = [])
-
-//.sink { [weak self] result in
-//    switch result {
-//    case .success(let data):
-//        self?.homeBookDataStore?.books = data
-//        self?.viewState = .content(data)
-//    case .failure(let error):
-//        // Если уже есть кэшированные данные, отображаем их вместо ошибки
-//        if let cachedData = self?.homeBookDataStore?.books, !cachedData.isEmpty {
-//            print("Ошибка получения данных, используем кэш")
-//            self?.viewState = .content(cachedData)
-//            self?.handleError(error)
-//            // Возможно, добавить механизм показа неинвазивного уведомления об ошибке
-//        } else {
-//            self?.handleStateError(error)
-//        }
-////                    self?.handleError(error)
-//    }
-//}
 
 
 import Combine
