@@ -32,7 +32,14 @@
 //}
 
 
-//[SectionModel]
+// MARK: - defer
+// defer это страховочный вариант так как .refreshable не дас повторно вызвать свой блок пока асинхронная операция не прекрит свое выполнение
+
+///defer в Swift — это механизм, который гарантирует выполнение блока кода при выходе из области видимости, то есть при завершении функции (независимо от того, произошло ли это из-за успешного завершения или через выброс ошибки). Он не является асинхронным механизмом сам по себе и не «ожидает» выполнения асинхронных операций. Однако, когда в функции используются операторы await, выполнение функции приостанавливается до завершения этих асинхронных операций.
+///Когда все await завершены, выполнение доходит до конца функции (или до перехода в блок catch в случае ошибки). В этот момент срабатывает зарегистрированный блок defer и сбрасывает isFetching в false.
+///аким образом, оператор defer гарантирует, что независимо от результата (успех или ошибка) флаг isFetching будет сброшен, и метод fetchData() сможет быть вызван снова, без риска начинать новый запрос, пока предыдущий не завершен.
+
+
 import SwiftUI
 
 enum GalleryViewState {
@@ -64,10 +71,11 @@ class GalleryContentViewModel: ObservableObject {
     private let errorHandler: ErrorHandlerProtocol
     private var alertManager:AlertManager
     
-//    private let autoRefreshThreshold: TimeInterval = 2 * 60 * 60 // 2 часа (7200 секунд)
-
+    private var isFetching: Bool = false
+    
+    private let autoRefreshThreshold: TimeInterval = 2 * 60 * 60 // 2 часа (7200 секунд)
     // Порог для автоматического обновления (1 минута)
-    private let autoRefreshThreshold: TimeInterval = 20
+//    private let autoRefreshThreshold: TimeInterval = 20
 
     
     init(alertManager: AlertManager = AlertManager.shared, firestoreService: FirestoreGetService,
@@ -84,6 +92,17 @@ class GalleryContentViewModel: ObservableObject {
         ///С помощью ключевого слова async let запускаются три запроса параллельно
         ///"async let" и "try await": – async let позволяет запустить несколько операций параллельно, – try await гарантирует, что выполнение будет приостановлено до завершения всех этих операций, и если возникает ошибка, она передается в блок catch.
         print("fetchData() GalleryContentViewModel")
+        
+        guard !isFetching else {
+            return
+        }
+        
+        isFetching = true
+        
+        defer {
+            isFetching = false
+        }
+        
         do {
             async let mallsItems: [MallItem] = firestoreService.fetchMalls()
             async let shopsItems: [ShopItem] = firestoreService.fetchShops()
