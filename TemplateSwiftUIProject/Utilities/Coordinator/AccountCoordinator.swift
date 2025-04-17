@@ -1,13 +1,13 @@
 //
-//  HomeCoordinator.swift
+//  AccountCoordinator.swift
 //  TemplateSwiftUIProject
 //
-//  Created by Evgenyi on 5.02.25.
+//  Created by Evgenyi on 17.04.25.
 //
 
 import SwiftUI
 
-class HomeCoordinator:ObservableObject {
+class AccountCoordinator:ObservableObject {
     
     @Published var path: NavigationPath = NavigationPath() {
         didSet {
@@ -21,7 +21,7 @@ class HomeCoordinator:ObservableObject {
     }
     @Published var fullScreenItem:FullScreenItem?
     
-    func navigateTo(page:HomeFlow) {
+    func navigateTo(page:AccountFlow) {
         path.append(page)
     }
     

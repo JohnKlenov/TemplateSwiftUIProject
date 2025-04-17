@@ -11,4 +11,5 @@ class MainCoordinator:ObservableObject {
     var tabViewSwitcher = TabViewSwitcher()
     var homeCoordinator = HomeCoordinator()
     var galleryCoordinator = GalleryCoordinator()
+    var accountCoordinator = AccountCoordinator()
 }

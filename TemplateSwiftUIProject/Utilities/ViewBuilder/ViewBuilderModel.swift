@@ -73,6 +73,35 @@ enum GalleryFlow: Hashable, Equatable {
         }
 }
 
+enum AccountFlow: Hashable {
+    case language
+    case aboutUs
+    case createAccount
+
+    static func == (lhs: AccountFlow, rhs: AccountFlow) -> Bool {
+        switch (lhs, rhs) {
+        case (.language, .language),
+             (.aboutUs, .aboutUs),
+             (.createAccount, .createAccount):
+            return true
+        default:
+            return false
+        }
+    }
+
+    func hash(into hasher: inout Hasher) {
+        switch self {
+        case .language:
+            hasher.combine("language")
+        case .aboutUs:
+            hasher.combine("aboutUs")
+        case .createAccount:
+            hasher.combine("createAccount")
+        }
+    }
+}
+
+
 struct SheetItem: Identifiable {
     var id = UUID()
     var content: AnyView

@@ -5,43 +5,222 @@
 //  Created by Evgenyi on 18.10.24.
 //
 
+/// смотри я хочу что бы ты создал мне такой же AccountView но вместо номера телефона в верхнем cell я хочу поместить email. Все остальные cell которые размещены на скрин шоте я хочу другие - (Notification, Change language, Dark mode, About Us, Create Account  ) для image можеш сразу использовать мой WebImageView. Ты старший ios разработчик! постарайся написать код так что бы UI был адаптивный под экран устройств начиная с iPhone 8 и самые новые модели.
+
+/// С Create Account мы переходим в навигационном стеке на SignIn с него можем перейти на SignUp так же в навигационном стеке. C SignUp можем вернуться на SignIn нажав на back или на кнопку signIn и это будет тот же back.
+/// На cartProduct если пользователь анонимный то при отсутствии товара в корзине мы сможем видить кнопку Create Account перейдя на которую мы попадаем на стек SignIn + SignUp (или SignUp + SignIn)
+
 import SwiftUI
 
-struct ProfileView: View {
-    
-    // Получаем сервис локализации через EnvironmentObject
-    @EnvironmentObject var localization: LocalizationService
-    
-    // Список поддерживаемых языков
-    let supportedLanguages = ["en", "ru", "es"]
-    
+
+
+// MARK: - Основной экран профиля (AccountView)
+
+enum AccountRow: Identifiable {
+    case toggle(title: String, binding: Binding<Bool>)
+    case navigation(title: String, destination: AccountFlow)
+
+    var id: String {
+        switch self {
+        case .toggle(let title, _):
+            return title + "_toggle"
+        case .navigation(let title, _):
+            return title + "_nav"
+        }
+    }
+}
+
+extension AccountRow {
+    @ViewBuilder
+    var rowView: some View {
+        switch self {
+        case .toggle(let title, let binding):
+            ToggleCellView(title: title, isOn: binding)
+        case .navigation(let title, let destination):
+            NavigationCellView(title: title, destination: destination)
+        }
+    }
+}
+
+struct AccountView: View {
+    @State private var notificationsEnabled: Bool = true
+    @State private var darkModeEnabled: Bool = false
+
+    // Формируем массив строк, где каждая строка описывает конкретный тип ячейки
+    var rows: [AccountRow] {
+        [
+            .toggle(title: "Notification", binding: $notificationsEnabled),
+            .navigation(title: "Change language", destination: .language),
+            .toggle(title: "Dark mode", binding: $darkModeEnabled),
+            .navigation(title: "About Us", destination: .aboutUs),
+            .navigation(title: "Create Account", destination: .createAccount)
+        ]
+    }
+
     var body: some View {
-        List(supportedLanguages, id: \.self) { code in
-            Button(action: {
-                // Устанавливаем выбранный язык
-                localization.setLanguage(code)
-            }) {
-                HStack {
-                    // Отображаем название языка
-                    Text(languageName(for: code))
-                    Spacer()
-                    // Показываем галочку для текущего языка
-                    if code == localization.currentLanguage {
-                        Image(systemName: "checkmark")
+        NavigationView {
+            List {
+                // Верхняя ячейка с информацией о пользователе
+                HStack(spacing: 16) {
+                    WebImageView(url: URL(string: "https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/GalleryShop%2FBooks-A-Million.jpeg?alt=media&token=12c59f38-9e1f-42ff-9c81-3074f9f229bf"),
+                                 placeholderColor: .gray,
+                                 displayStyle: .fixedFrame(width: 60, height: 60))
+                        .clipShape(Circle())
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Константин")
+                            .font(.headline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+
+                        Text("example@example.com")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                }
+                .padding(.vertical, 8)
+
+                // Секция с настройками профиля
+                Section {
+                    ForEach(rows) { row in
+                        row.rowView
                     }
                 }
             }
+            .listStyle(InsetGroupedListStyle())
+            .navigationTitle("Account")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .onAppear{
-            print("GalleryView onAppear")
+    }
+}
+
+
+
+struct NavigationCellView: View {
+    let title: String
+    let destination: AccountFlow
+//    @EnvironmentObject var accountCoordinator: AccountCoordinator
+
+    var body: some View {
+        HStack {
+            Image(systemName: iconName(for: title))
+                .foregroundColor(.blue) // можно настроить цвет под стиль приложения
+                .frame(width: 24, height: 24)
+            
+            Text(title)
+                .foregroundColor(.primary)
+                .padding(.leading, 8)
+            
+            Spacer()
+            
+            // Стандартная стрелочка, сигнализирующая о переходе
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
+                .imageScale(.small)
+        }
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            print("onTapGesture - \(title)")
+//            accountCoordinator.navigateTo(page: destination)
         }
     }
     
-    // Метод для получения названия языка
-    private func languageName(for code: String) -> String {
-        Locale.current.localizedString(forLanguageCode: code) ?? code.uppercased()
+    /// Функция возвращает имя системной иконки для заданного заголовка.
+    private func iconName(for title: String) -> String {
+        switch title {
+        case "Change language":
+            return "globe"
+        case "About Us":
+            return "info.circle"
+        case "Create Account":
+            return "person.crop.circle.badge.plus"
+        default:
+            return "questionmark.circle"
+        }
     }
 }
+
+// MARK: - ToggleCellView
+
+struct ToggleCellView: View {
+    let title: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack {
+            Image(systemName: iconName(for: title))
+                .foregroundColor(.blue)
+                .frame(width: 24, height: 24)
+            
+            Text(title)
+                .foregroundColor(.primary)
+                .padding(.leading, 8)
+            
+            Spacer()
+            
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .toggleStyle(SwitchToggleStyle())
+        }
+        .padding(.vertical, 12)
+    }
+    
+    /// Функция возвращает имя иконки для ToggleCellView по заголовку.
+    private func iconName(for title: String) -> String {
+        switch title {
+        case "Notification":
+            return "bell.fill"
+        case "Dark mode":
+            return "moon.fill"
+        default:
+            return "questionmark.circle"
+        }
+    }
+}
+
+
+
+
+
+// MARK: - old ProfileView
+//struct ProfileView: View {
+//
+//    // Получаем сервис локализации через EnvironmentObject
+//    @EnvironmentObject var localization: LocalizationService
+//
+//    // Список поддерживаемых языков
+//    let supportedLanguages = ["en", "ru", "es"]
+//
+//    var body: some View {
+//        List(supportedLanguages, id: \.self) { code in
+//            Button(action: {
+//                // Устанавливаем выбранный язык
+//                localization.setLanguage(code)
+//            }) {
+//                HStack {
+//                    // Отображаем название языка
+//                    Text(languageName(for: code))
+//                    Spacer()
+//                    // Показываем галочку для текущего языка
+//                    if code == localization.currentLanguage {
+//                        Image(systemName: "checkmark")
+//                    }
+//                }
+//            }
+//        }
+//        .onAppear{
+//            print("GalleryView onAppear")
+//        }
+//    }
+//
+//    // Метод для получения названия языка
+//    private func languageName(for code: String) -> String {
+//        Locale.current.localizedString(forLanguageCode: code) ?? code.uppercased()
+//    }
+//}
 
 
 // MARK: - Модели

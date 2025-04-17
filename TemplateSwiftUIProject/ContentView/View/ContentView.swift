@@ -48,8 +48,12 @@ struct ContentView: View {
         return LazyView { GalleryView() }
     }
    
-    private var profileView: LazyView<ProfileView> {
-        return LazyView { ProfileView() }
+//    private var profileView: LazyView<ProfileView> {
+//        return LazyView { ProfileView() }
+//    }
+//    AccountView
+    private var accountView: LazyView<AccountView> {
+        return LazyView { AccountView() }
     }
     
     @StateObject private var viewModel:ContentViewModel
@@ -91,7 +95,7 @@ struct ContentView: View {
                     .environmentObject(mainCoordinator)
                     .environmentObject(mainCoordinator.galleryCoordinator)
                     .environmentObject(viewBuilderService)
-                profileView
+                accountView
                     .tabItem {
                         Label(Localized.TabBar.profile.localized(), systemImage: "person.crop.circle.fill")
                     }
