@@ -100,6 +100,9 @@ struct ContentView: View {
                         Label(Localized.TabBar.profile.localized(), systemImage: "person.crop.circle.fill")
                     }
                     .tag(2)
+                    .environmentObject(viewBuilderService)
+                    .environmentObject(mainCoordinator)
+                    .environmentObject(mainCoordinator.accountCoordinator)
             }
             .background(
                 AlertViewGlobal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage)

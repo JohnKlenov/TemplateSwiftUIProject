@@ -71,6 +71,12 @@ class AlertManager: AlertManagerProtocol {
         }
     }
     
+    @Published var isAccountViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости AccountView
+        didSet {
+            print("didSet isAccountViewVisible")
+        }
+    }
+    
     func showGlobalAlert(message: String, operationDescription: String) {
         let alert = AlertData(message: message, operationDescription: operationDescription)
         

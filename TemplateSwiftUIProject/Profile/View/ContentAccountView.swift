@@ -1,5 +1,5 @@
 //
-//  ProfileView.swift
+//  ContentAccountView.swift
 //  TemplateSwiftUIProject
 //
 //  Created by Evgenyi on 18.10.24.
@@ -42,10 +42,10 @@ extension AccountRow {
     }
 }
 
-struct AccountView: View {
+struct ContentAccountView: View {
     @State private var notificationsEnabled: Bool = true
     @State private var darkModeEnabled: Bool = false
-
+    
     // Формируем массив строк, где каждая строка описывает конкретный тип ячейки
     var rows: [AccountRow] {
         [
@@ -56,32 +56,12 @@ struct AccountView: View {
             .navigation(title: "Create Account", destination: .createAccount)
         ]
     }
-
+    
     var body: some View {
-        NavigationView {
+//        NavigationView {
             List {
-                // Верхняя ячейка с информацией о пользователе
-                HStack(spacing: 16) {
-                    WebImageView(url: URL(string: "https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/GalleryShop%2FBooks-A-Million.jpeg?alt=media&token=12c59f38-9e1f-42ff-9c81-3074f9f229bf"),
-                                 placeholderColor: .gray,
-                                 displayStyle: .fixedFrame(width: 60, height: 60))
-                        .clipShape(Circle())
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Константин")
-                            .font(.headline)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-
-                        Text("example@example.com")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                    }
-                }
-                .padding(.vertical, 8)
-
+                // Верхняя ячейка для инфо о пользователе вынесена в отдельное представление:
+                UserInfoCellView()
                 // Секция с настройками профиля
                 Section {
                     ForEach(rows) { row in
@@ -92,16 +72,53 @@ struct AccountView: View {
             .listStyle(InsetGroupedListStyle())
             .navigationTitle("Account")
             .navigationBarTitleDisplayMode(.inline)
+//        }
+    }
+}
+
+struct UserInfoCellView: View {
+    @EnvironmentObject var accountCoordinator: AccountCoordinator
+
+    var body: some View {
+        HStack(spacing: 16) {
+            WebImageView(
+                url: URL(string: "https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/GalleryShop%2FBooks-A-Million.jpeg?alt=media&token=12c59f38-9e1f-42ff-9c81-3074f9f229bf"),
+                placeholderColor: .gray,
+                displayStyle: .fixedFrame(width: 60, height: 60)
+            )
+            .clipShape(Circle())
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Константин")
+                    .font(.headline)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+
+                Text("example@example.com")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            Spacer()
+            // Chevron справа
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
+                .imageScale(.small)
+        }
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            print("onTapGesture - UserInfoCellView")
+            accountCoordinator.navigateTo(page: .userInfo)
         }
     }
 }
 
-
-
 struct NavigationCellView: View {
     let title: String
     let destination: AccountFlow
-//    @EnvironmentObject var accountCoordinator: AccountCoordinator
+    @EnvironmentObject var accountCoordinator: AccountCoordinator
 
     var body: some View {
         HStack {
@@ -120,13 +137,15 @@ struct NavigationCellView: View {
                 .foregroundColor(.gray)
                 .imageScale(.small)
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, 0)
         .contentShape(Rectangle())
         .onTapGesture {
+            accountCoordinator.navigateTo(page: destination)
             print("onTapGesture - \(title)")
-//            accountCoordinator.navigateTo(page: destination)
         }
     }
+    
+
     
     /// Функция возвращает имя системной иконки для заданного заголовка.
     private func iconName(for title: String) -> String {
@@ -165,7 +184,7 @@ struct ToggleCellView: View {
                 .labelsHidden()
                 .toggleStyle(SwitchToggleStyle())
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, 0)
     }
     
     /// Функция возвращает имя иконки для ToggleCellView по заголовку.

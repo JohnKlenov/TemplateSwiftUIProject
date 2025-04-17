@@ -74,15 +74,19 @@ enum GalleryFlow: Hashable, Equatable {
 }
 
 enum AccountFlow: Hashable {
+    case account
+    case userInfo
     case language
     case aboutUs
     case createAccount
 
     static func == (lhs: AccountFlow, rhs: AccountFlow) -> Bool {
         switch (lhs, rhs) {
-        case (.language, .language),
-             (.aboutUs, .aboutUs),
-             (.createAccount, .createAccount):
+        case (.account, .account),
+            (.userInfo, .userInfo),
+            (.language, .language),
+            (.aboutUs, .aboutUs),
+            (.createAccount, .createAccount):
             return true
         default:
             return false
@@ -91,12 +95,16 @@ enum AccountFlow: Hashable {
 
     func hash(into hasher: inout Hasher) {
         switch self {
+        case .userInfo:
+            hasher.combine("userInfo")
         case .language:
             hasher.combine("language")
         case .aboutUs:
             hasher.combine("aboutUs")
         case .createAccount:
             hasher.combine("createAccount")
+        case .account:
+            hasher.combine("account")
         }
     }
 }

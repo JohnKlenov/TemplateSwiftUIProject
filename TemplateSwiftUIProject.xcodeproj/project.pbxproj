@@ -73,6 +73,8 @@
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
 		5EC88EDA2DB128F100A95224 /* AccountCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED92DB128F100A95224 /* AccountCoordinator.swift */; };
+		5EC88EDC2DB136F500A95224 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EDB2DB136F500A95224 /* AccountView.swift */; };
+		5EC88EDF2DB1377B00A95224 /* AccountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EDE2DB1377B00A95224 /* AccountViewModel.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -84,7 +86,7 @@
 		5EC949EA2CBA954F003736A9 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949E92CBA954F003736A9 /* OnboardingView.swift */; };
 		5EC949EC2CBBE280003736A9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949EB2CBBE280003736A9 /* GoogleService-Info.plist */; };
 		5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949F42CBBF5F7003736A9 /* AppDelegate.swift */; };
-		5EC94A002CC291DB003736A9 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949FF2CC291DB003736A9 /* ProfileView.swift */; };
+		5EC94A002CC291DB003736A9 /* ContentAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949FF2CC291DB003736A9 /* ContentAccountView.swift */; };
 		5EC94A022CC2954C003736A9 /* GalleryView(test).swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A012CC2954C003736A9 /* GalleryView(test).swift */; };
 		5EC94A042CC29607003736A9 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A032CC29607003736A9 /* HomeView.swift */; };
 		5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC94A052CC29770003736A9 /* AuthenticationService.swift */; };
@@ -155,6 +157,8 @@
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLoggingService.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		5EC88ED92DB128F100A95224 /* AccountCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountCoordinator.swift; sourceTree = "<group>"; };
+		5EC88EDB2DB136F500A95224 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
+		5EC88EDE2DB1377B00A95224 /* AccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViewModel.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -167,7 +171,7 @@
 		5EC949E92CBA954F003736A9 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		5EC949EB2CBBE280003736A9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5EC949F42CBBF5F7003736A9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		5EC949FF2CC291DB003736A9 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		5EC949FF2CC291DB003736A9 /* ContentAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentAccountView.swift; sourceTree = "<group>"; };
 		5EC94A012CC2954C003736A9 /* GalleryView(test).swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GalleryView(test).swift"; sourceTree = "<group>"; };
 		5EC94A032CC29607003736A9 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		5EC94A052CC29770003736A9 /* AuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationService.swift; sourceTree = "<group>"; };
@@ -466,6 +470,14 @@
 			path = Coordinator;
 			sourceTree = "<group>";
 		};
+		5EC88EDD2DB1375A00A95224 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5EC88EDE2DB1377B00A95224 /* AccountViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		5EC949C32CB526E5003736A9 = {
 			isa = PBXGroup;
 			children = (
@@ -576,6 +588,7 @@
 		5EC949F82CC29137003736A9 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				5EC88EDD2DB1375A00A95224 /* ViewModel */,
 				5EC949F92CC2918F003736A9 /* View */,
 			);
 			path = Profile;
@@ -584,7 +597,8 @@
 		5EC949F92CC2918F003736A9 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				5EC949FF2CC291DB003736A9 /* ProfileView.swift */,
+				5EC949FF2CC291DB003736A9 /* ContentAccountView.swift */,
+				5EC88EDB2DB136F500A95224 /* AccountView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -781,7 +795,7 @@
 				5E8F9C6E2D537A57004036F6 /* ViewBuilderModel.swift in Sources */,
 				5E8F9CC52D81A4CB004036F6 /* ShopCell.swift in Sources */,
 				5E8F9CCF2D99777A004036F6 /* ImageCacheManager.swift in Sources */,
-				5EC94A002CC291DB003736A9 /* ProfileView.swift in Sources */,
+				5EC94A002CC291DB003736A9 /* ContentAccountView.swift in Sources */,
 				5EAF5B0C2D2D56D400D96FD6 /* AlertLocalViewModel.swift in Sources */,
 				5EA4FE362D21C8D7001CA401 /* HomeContentView.swift in Sources */,
 				5EA4FE322D09CF87001CA401 /* CRUDSManager.swift in Sources */,
@@ -792,6 +806,7 @@
 				5E8F9CBD2D81A401004036F6 /* MallsSectionView.swift in Sources */,
 				5E8F9CB32D819F21004036F6 /* GalleryViewModel.swift in Sources */,
 				5E8F9CBF2D81A451004036F6 /* ShopsSectionView.swift in Sources */,
+				5EC88EDC2DB136F500A95224 /* AccountView.swift in Sources */,
 				5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */,
 				5E8F9CCC2D81AF68004036F6 /* GalleryContentViewModel.swift in Sources */,
 				5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */,
@@ -806,6 +821,7 @@
 				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,
 				5E8F9C8C2D6348BF004036F6 /* BooksListView.swift in Sources */,
 				5EA4FE292CF5B558001CA401 /* BookDetailsView.swift in Sources */,
+				5EC88EDF2DB1377B00A95224 /* AccountViewModel.swift in Sources */,
 				5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */,
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
 				5E8F9CC12D81A476004036F6 /* PopularProductsSectionView.swift in Sources */,
