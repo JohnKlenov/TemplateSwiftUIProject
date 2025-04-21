@@ -31,11 +31,11 @@ struct AlertViewLocal: View {
                     alertMessage = ""
                     alertTitle = ""
                     isShowAlert = false
-                    viewModel.alertManager.resetFirstLocalAlert(forView: nameView)
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-//                        // Логика сброса сообщения алерта
-//                        viewModel.alertManager.resetFirstLocalAlert(forView: nameView)
-//                    }
+//                    viewModel.alertManager.resetFirstLocalAlert(forView: nameView)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        // Логика сброса сообщения алерта
+                        viewModel.alertManager.resetFirstLocalAlert(forView: nameView)
+                    }
                 }
             } message: {
                 Text(alertMessage)

@@ -48,10 +48,6 @@ struct ContentView: View {
         return LazyView { GalleryView() }
     }
    
-//    private var profileView: LazyView<ProfileView> {
-//        return LazyView { ProfileView() }
-//    }
-//    AccountView
     private var accountView: LazyView<AccountView> {
         return LazyView { AccountView() }
     }

@@ -6,12 +6,71 @@
 //
 
 
+
+
+// MARK: - new imlemintation AlertManager and errorHandling
+
+/// все начилось с того что я захотел сделать возможным из любого места в app иметь возможность retry createUserAnonimous!
+
+// Get data ( addSnapshotListener + getDocuments, getDocument если кэш не пуст ошибки не выбросит долгое время) / ContentErrorView
+
+// Post data (setData + addDocument + updateData)
+/// debug: любая запись succes если в блок приходит error логируем в Crashlytics
+/// release: любая запись succes если в блок приходит error логируем в Crashlytics + отображаем на локальном алерт пока rootView isVisable + FirestoreOperationsManager(сохраняем статус всех операций записи )
+
+/// оффлайн-поддержа запись выполняется локально а затем ждет синхронизации с сервером.
+///Если же существуют проблемы, независимо от сети тогда ошибка будет передана в блок error. Но не факт что этот блок еще будет в памяти.
+///Если проблема возникает, например, из-за нарушения правил безопасности или некорректных данных, ошибка будет возвращена через блок error мгновенно но если интернет плохой, то и ошибка из-за нарушения правил может отреагировать с задержкой.
+///Заносите информацию о попытке записи, её статус или ошибок в долговременное хранилище (например, UserDefaults, local database или на уровне бизнес-логики). При следующем запуске приложения можно проверить, была ли операция завершена корректно, и уведомить пользователя о неудачной попытке.
+///Firebase Crashlytics
+///Если операция критична для пользователя, можно предусмотреть промежуточное состояние с индикатором незавершённой синхронизации или временным статусом «Ожидание подтверждения от сервера»
+
+///я решил пересмотреть стратегию работы AlertManager and errorHandling
+/// основные моменты: максимально уйти от localAlert. оставить globalAlert для максимально критических ошибок (Auth ... )
+/// использовать errorHandling дизайн GitHub. Если у нас не получается отобоазить данные(get + observer) на View размещаем ContentErrorView (на всех экранах NavigationStack)
+/// если ошибка приходит от addSnapshotListener отображваем ContentErrorView (localAlert не используем)
+
+/// localAlert мы можем применять только там где моментально получаем информацио об ошибки (Put data а они nil, failed validation .. )
+/// пользователь должен как можно меньше получать информации об ошибки , только ту информацию которая ему может реально помочь!
+
+// создать NWPathMonitor() import Network
+// что бы при выключенном WiFi или сотовой связи всплывала плашка(popView) поверх всех экранов
+
+///по сути, NWPathMonitor предоставляет базовую информацию о состоянии подключения устройства к сети, включая тип активного соединения (Wi‑Fi, сотовая связь, Ethernet и т.д.) и статус доступности сетевого пути (например, свойство currentPath.status == .satisfied говорит о том, что соединение имеется). Он не измеряет скорость передачи данных, задержки или качество сигнала. Для оценки этих параметров понадобятся дополнительные инструменты или тесты, такие как ping или специальные библиотеки для измерения пропускной способности.
+
+// MARK: - AlertManager
+
+//появление предупреждения (желтого warning) в консоли.
+
+///SwiftUI пытается показать алерт в момент, когда вид, к которому он прикреплён, не находится в активном или видимом контексте.
+///система регистрирует конфликт в иерархии представлений, приводит к появлению предупреждения (желтого warning) в консоли.
+/// если мы разместим код отображения alert на rootView но при этом он сработает в момент когда  childView лежит поверх rootView мы получим желтый ворнинг в консоль ?
+///Такое предупреждение не обязательно означает фатальную ошибку, но сигнализирует о том, что реализация показа алертов может работать не так, как ожидалось. Чтобы избежать подобных ситуаций, рекомендуется: Привязывать алерты к активным представлениям, Контролировать показ алертов,
+///желтые предупреждения (warnings) в консоли не означают, что приложение будет работать некорректно в продакшене. Это больше сигнал, что какая-то часть логики (например, показ алерта на rootView, когда поверх него уже находится childView) может быть реализована не идеально с точки зрения управления иерархией представлений.
+///Однако с точки зрения качественного кода и дальнейшего обслуживания рекомендуется по возможности избегать подобных предупреждений, чтобы не вводить в заблуждение других разработчиков и не создавать потенциальных проблем при дальнейшем развитии приложения.
+
+// Глобальные алерты + Локальные алерты
+
 ///Глобальные алерты: Используются для критических ошибок, которые могут затронуть весь функционал приложения. Эти алерты управляются на уровне корневого представления.
-///Локальные алерты: Используются для ошибок, специфичных для текущего представления или действия. Эти алерты управляются непосредственно в представлении, где происходит ошибка.
+///Локальные алерты: Используются для ошибок, специфичных для текущего представления или действия. Эти алерты управляются непосредств енно в представлении, где происходит ошибка.
 
 ///На iOS система не позволяет одновременно отображать два алерта. Если второй алерт будет вызван, пока первый алерт уже отображается, второй алерт не появится до тех пор, пока первый не будет закрыт.
 
-// MARK: - a new understanding of how bindingError works -
+///SwiftUI обрабатывает модификаторы снизу вверх. GlobalAlert, будучи "ближе" к корню, получает приоритет.
+///SwiftUI не позволяет отображать несколько алертов одновременно. При активации нового: Текущий алерт автоматически закрывается / Новый алерт замещает предыдущий
+
+
+// приоритет работы alert в AlertManager
+
+/// GalleryView
+/// в маем коде работа AlertManager следующая
+/// showGlobalAlert поверх showLocalalAlert
+/// при вызове showGlobalAlert поверх showLocalalAlert LocalalAlert  закрывается и отображается GlobalAlert но из var localAlerts: [String: [AlertData]] не удаляется
+/// затем после закрытия GlobalAlert когда мы уходим из GalleryView и снова заходим на GalleryView  срабатывает LocalalAlert так как все Publisher отрабатывают
+
+///showLocalalAlert поверх showLocalalAlert
+///если мы добавляем showLocalalAlert поверх showLocalalAlert то первый LocalalAlert не закрывается но когда мы нажимаем на OK то отрабатывает viewModel.alertManager.resetFirstLocalAlert(forView: nameView) (с задержкой в 0.1 сек) и когда отрабатывает localAlerts[view] = alerts то отображается второй LocalalAlert который отработал позже первого. Но почему это работает только с  задержкой в 0.1 сек(DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { })???
+
 
 import SwiftUI
 import Combine
@@ -25,12 +84,6 @@ protocol AlertManagerProtocol: ObservableObject {
     func resetFirstLocalAlert(forView view: String)
     func resetFirstGlobalAlert()
 }
-
-//struct AlertData: Identifiable {
-//    let id = UUID()
-//    let message: String
-//    let operationDescription: String
-//}
 
 struct AlertData: Identifiable, Equatable {
     let id = UUID()
@@ -49,33 +102,38 @@ class AlertManager: AlertManagerProtocol {
     
     @Published var globalAlert: [String: [AlertData]] = [:] {
         didSet {
-            print("didSet globalAlert")
+            print("globalAlert - \(globalAlert)")
         }
     }
     
     @Published var localAlerts: [String: [AlertData]] = [:] {
         didSet {
-            print("didSet localAlerts")
+            print("localAlerts - \(localAlerts)")
         }
     }
     
-    @Published var isHomeViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости HomeView
-        didSet {
-            print("didSet isHomeViewVisible")
-        }
-    }
+    @Published var isHomeViewVisible: Bool = false
     
-    @Published var isGalleryViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости GalleryView
-        didSet {
-            print("didSet isGalleryViewVisible")
-        }
-    }
+    @Published var isGalleryViewVisible: Bool = false
     
-    @Published var isAccountViewVisible: Bool = false { // Добавляем флаг для отслеживания видимости AccountView
-        didSet {
-            print("didSet isAccountViewVisible")
+    @Published var isAccountViewVisible: Bool = false
+    
+    private var timer: Timer?
+
+        init() {
+            // Инициализация таймера для вызова showGlobalAlert каждую минуту
+//            timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+//                guard let self = self else { return }
+//                self.showGlobalAlert(message: "This is a global alert.", operationDescription: "Periodic alert")
+//            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+                self?.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
+            }
+//            timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+//                guard let self = self else { return }
+//                self.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
+//            }
         }
-    }
     
     func showGlobalAlert(message: String, operationDescription: String) {
         let alert = AlertData(message: message, operationDescription: operationDescription)
@@ -102,10 +160,8 @@ class AlertManager: AlertManagerProtocol {
         if var alerts = localAlerts[view], !alerts.isEmpty {
             alerts.removeFirst()
             if alerts.isEmpty {
-                print("localAlerts[view] = nil")
                 localAlerts[view] = nil
             } else {
-                print("localAlerts[view] = alerts")
                 localAlerts[view] = alerts
             }
         }
@@ -115,10 +171,8 @@ class AlertManager: AlertManagerProtocol {
         if var alerts = globalAlert["globalError"], !alerts.isEmpty {
             alerts.removeFirst()
             if alerts.isEmpty {
-                print("globalAlert[globalError] = nil")
                 globalAlert["globalError"] = nil
             } else {
-                print("globalAlert[globalError] = alerts")
                 globalAlert["globalError"] = alerts
             }
         }
@@ -132,15 +186,222 @@ extension Notification.Name {
 
 
 
-//    func showGlobalAlert(message: String, operationDescription: String) {
-//        let alert = AlertData(message: message, operationDescription: operationDescription)
-//        globalAlert = alert
-//        NotificationCenter.default.post(name: .globalAlert, object: alert)
-//    }
 
-//func isErrorForView(forView:String) -> Bool {
-//    return self.localAlerts[forView] != nil
+
+// MARK: - FirestoreOperationsManager
+
+///. Если же пользователь свернёт приложение или система выгрузит его из памяти до того, как ответ от сервера придет, то этот блок не будет вызван. В таком случае pending-операция останется в долговременном хранилище (например, в UserDefaults) со статусом .pending.
+///Чтобы решить эту проблему и обеспечить «отслеживание» успешной или неуспешной отправки даже если приложение было закрыто:
+
+///можно сохранить информацию о каждом отправляемом документе (например, его идентификатор) и затем при следующем запуске (или когда приложение снова становится активным) выполнить запрос для проверки состояния этого документа. При получении DocumentSnapshot можно использовать свойство metadata.hasPendingWrites для определения, находятся ли изменения в очереди, или уже синхронизированы с сервером.
+
+
+// сервер
+
+//import Foundation
+//import FirebaseFirestore
+//import FirebaseFirestoreSwift
+//import Network
+//
+//class FirestoreOperationsManager: ObservableObject {
+//    
+//    static let shared = FirestoreOperationsManager()
+//    
+//    @Published var pendingOperations: [FirestoreWriteOperation] = []
+//    
+//    private let userDefaultsKey = "pendingFirestoreOperations"
+//    private var db = Firestore.firestore()
+//    
+//    init() {
+//        loadPendingOperations()
+//    }
+//    
+//    // Загружаем список операций из UserDefaults
+//    private func loadPendingOperations() {
+//        if let data = UserDefaults.standard.data(forKey: userDefaultsKey) {
+//            do {
+//                let ops = try JSONDecoder().decode([FirestoreWriteOperation].self, from: data)
+//                self.pendingOperations = ops
+//            } catch {
+//                print("Ошибка декодирования операций: \(error)")
+//                self.pendingOperations = []
+//            }
+//        }
+//    }
+//    
+//    // Сохраняем операции в UserDefaults
+//    private func savePendingOperations() {
+//        do {
+//            let data = try JSONEncoder().encode(pendingOperations)
+//            UserDefaults.standard.set(data, forKey: userDefaultsKey)
+//        } catch {
+//            print("Ошибка кодирования операций: \(error)")
+//        }
+//    }
+//    
+//    /// Добавление документа в Firestore с сохранением идентификатора документа.
+//    /// Используем setData на конкретном documentReference, чтобы сразу получить documentID.
+//    func addDocument(data: [String: Any], description: String, completion: @escaping (Bool) -> Void) {
+//        // Создаем документ с заранее определенным ID.
+//        let docRef = db.collection("myCollection").document()
+//        let operationId = UUID().uuidString
+//        var operation = FirestoreWriteOperation(
+//            id: operationId,
+//            timestamp: Date(),
+//            description: description,
+//            status: .pending,
+//            documentID: docRef.documentID
+//        )
+//        pendingOperations.append(operation)
+//        savePendingOperations()
+//        
+//        // Отправляем данные
+//        docRef.setData(data) { [weak self] error in
+//            guard let self = self else { return }
+//            if let error = error {
+//                if let index = self.pendingOperations.firstIndex(where: { $0.id == operationId }) {
+//                    self.pendingOperations[index].status = .failed(error.localizedDescription)
+//                }
+//                self.savePendingOperations()
+//                completion(false)
+//            } else {
+//                if let index = self.pendingOperations.firstIndex(where: { $0.id == operationId }) {
+//                    self.pendingOperations[index].status = .success
+//                }
+//                self.savePendingOperations()
+//                completion(true)
+//            }
+//        }
+//    }
+//    
+//    /// Функция, которая проверяет состояние ранее отправленных документов.
+//    /// Если documentID известен, мы получаем документ и смотрим, есть ли еще pendingWrites.
+//    func checkOperationStatus(for operation: FirestoreWriteOperation, completion: @escaping (FirestoreWriteOperation) -> Void) {
+//        guard let documentID = operation.documentID else {
+//            completion(operation)
+//            return
+//        }
+//        
+//        let docRef = db.collection("myCollection").document(documentID)
+//        // Запрашиваем документ с типом запроса default (использует локальный кэш + синхронизацию с сервером)
+//        docRef.getDocument { snapshot, error in
+//            var updatedOperation = operation
+//            if let error = error {
+//                // Если получили ошибку, фиксируем её
+//                updatedOperation.status = .failed(error.localizedDescription)
+//            } else if let snapshot = snapshot {
+//                // Если hasPendingWrites == false, запись синхронизирована
+//                if snapshot.metadata.hasPendingWrites {
+//                    updatedOperation.status = .pending
+//                } else {
+//                    updatedOperation.status = .success
+//                }
+//            }
+//            completion(updatedOperation)
+//        }
+//    }
+//    
+//    /// Проверка всех pending операций, обновление их статуса и возврат списка обновлённых операций.
+//    func recheckPendingOperations(completion: @escaping ([FirestoreWriteOperation]) -> Void) {
+//        let pendingOps = pendingOperations.filter { op in
+//            if case .pending = op.status { return true }
+//            return false
+//        }
+//
+//        let group = DispatchGroup()
+//        var updatedOperations = pendingOperations
+//        
+//        for op in pendingOps {
+//            group.enter()
+//            checkOperationStatus(for: op) { updatedOp in
+//                if let index = updatedOperations.firstIndex(where: { $0.id == updatedOp.id }) {
+//                    updatedOperations[index] = updatedOp
+//                }
+//                group.leave()
+//            }
+//        }
+//        
+//        group.notify(queue: .main) {
+//            self.pendingOperations = updatedOperations
+//            self.savePendingOperations()
+//            completion(updatedOperations)
+//        }
+//    }
 //}
+
+
+
+//клиент
+
+//import SwiftUI
+//
+//struct AppContentView: View {
+//    @StateObject var operationsManager = FirestoreOperationsManager.shared
+//    @State private var showAlert = false
+//    @State private var alertMessage = ""
+//    
+//    var body: some View {
+//        VStack(spacing: 20) {
+//            Text("Главный экран приложения")
+//                .font(.largeTitle)
+//            
+//            Button("Добавить документ") {
+//                let sampleData: [String: Any] = ["name": "Тестовый документ", "value": 42]
+//                operationsManager.addDocument(data: sampleData, description: "Добавление тестового документа") { success in
+//                    if !success {
+//                        // Можно сразу отобразить ошибку (если присутствует)
+//                        alertMessage = "Ошибка записи документа"
+//                        showAlert = true
+//                    }
+//                }
+//            }
+//            
+//            // Отображение списка pending операций (для отладки)
+//            List(operationsManager.pendingOperations) { op in
+//                VStack(alignment: .leading) {
+//                    Text(op.description)
+//                    Text("Статус: \(statusText(for: op.status))")
+//                        .font(.footnote)
+//                        .foregroundColor(.gray)
+//                }
+//            }
+//        }
+//        .onAppear {
+//            // При запуске снова проверяем состояние операций
+//            operationsManager.recheckPendingOperations { ops in
+//                let failed = ops.filter {
+//                    if case .failed(let message) = $0.status, !message.isEmpty {
+//                        return true
+//                    }
+//                    return false
+//                }
+//                if !failed.isEmpty {
+//                    // Если есть операции, завершившиеся с ошибкой, оповещаем пользователя
+//                    alertMessage = "Некоторые операции не были синхронизированы с сервером."
+//                    showAlert = true
+//                }
+//            }
+//        }
+//        .alert(isPresented: $showAlert) {
+//            Alert(title: Text("Статус операций"),
+//                  message: Text(alertMessage),
+//                  dismissButton: .default(Text("OK")))
+//        }
+//    }
+//    
+//    func statusText(for status: WriteOperationStatus) -> String {
+//        switch status {
+//        case .pending: return "pending"
+//        case .success: return "success"
+//        case .failed(let error): return "failed: \(error)"
+//        }
+//    }
+//}
+
+
+
+
+
 
 // MARK: - new solution with func resetFirstLocalAlert -
 

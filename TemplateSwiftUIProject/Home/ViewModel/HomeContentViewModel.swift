@@ -89,6 +89,16 @@ class HomeContentViewModel: HomeViewModelProtocol {
                     
                     return firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
                 case .failure(let error):
+                    /// это ошибка может возникнуть только если createAnonymousUser вернет ошибку
+                    /// она может возникнуть (при первом старте, если мы удалили account и не удадось createAnonymousUser ... )
+                    /// так как HomeContentViewModel это единственная точка создания createAnonymousUser
+                    /// refresh из любой точки приложения нужно делать сдесь через globalAlert и notification
+                    /// может получится так что при первом старте время ответа от Firebase Auth будет долгим из за плохой сети
+                    /// и пользователь перейдет на другую вкладку TabBar
+                    /// тогда при ошибки создания createAnonymousUser мы должны через globalAlert на любом другом экране refresh
+                    /// тут важно что бы globalAlert всегда первым отображался на экране ()
+                    /// Таймауты Firebase Auth: Стандартный таймаут: 10-60 секунд (зависит от версии SDK и сетевых условий)
+                    /// 3G: 2-8 секунд / Edge-сети (2G): 12-30 секунд / После 15 сек 60% пользователей закрывают приложение
                     stateError = .globalError
                     return Just(.failure(error)).eraseToAnyPublisher()
                 }

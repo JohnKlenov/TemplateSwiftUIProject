@@ -75,6 +75,9 @@
 		5EC88EDA2DB128F100A95224 /* AccountCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED92DB128F100A95224 /* AccountCoordinator.swift */; };
 		5EC88EDC2DB136F500A95224 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EDB2DB136F500A95224 /* AccountView.swift */; };
 		5EC88EDF2DB1377B00A95224 /* AccountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EDE2DB1377B00A95224 /* AccountViewModel.swift */; };
+		5EC88EE12DB2342700A95224 /* UserInfoCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EE02DB2342700A95224 /* UserInfoCellView.swift */; };
+		5EC88EE32DB2347800A95224 /* NavigationCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EE22DB2347800A95224 /* NavigationCellView.swift */; };
+		5EC88EE52DB234CF00A95224 /* ToggleCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EE42DB234CF00A95224 /* ToggleCellView.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -159,6 +162,9 @@
 		5EC88ED92DB128F100A95224 /* AccountCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountCoordinator.swift; sourceTree = "<group>"; };
 		5EC88EDB2DB136F500A95224 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		5EC88EDE2DB1377B00A95224 /* AccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViewModel.swift; sourceTree = "<group>"; };
+		5EC88EE02DB2342700A95224 /* UserInfoCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfoCellView.swift; sourceTree = "<group>"; };
+		5EC88EE22DB2347800A95224 /* NavigationCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCellView.swift; sourceTree = "<group>"; };
+		5EC88EE42DB234CF00A95224 /* ToggleCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToggleCellView.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -599,6 +605,9 @@
 			children = (
 				5EC949FF2CC291DB003736A9 /* ContentAccountView.swift */,
 				5EC88EDB2DB136F500A95224 /* AccountView.swift */,
+				5EC88EE02DB2342700A95224 /* UserInfoCellView.swift */,
+				5EC88EE22DB2347800A95224 /* NavigationCellView.swift */,
+				5EC88EE42DB234CF00A95224 /* ToggleCellView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -818,9 +827,11 @@
 				5E8F9C8A2D5CC8D8004036F6 /* WebImageView.swift in Sources */,
 				5E8F9CA72D7EC9F6004036F6 /* GalleryRowView(test).swift in Sources */,
 				5E8F9C9D2D6F53E3004036F6 /* LocalizationService.swift in Sources */,
+				5EC88EE32DB2347800A95224 /* NavigationCellView.swift in Sources */,
 				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,
 				5E8F9C8C2D6348BF004036F6 /* BooksListView.swift in Sources */,
 				5EA4FE292CF5B558001CA401 /* BookDetailsView.swift in Sources */,
+				5EC88EE12DB2342700A95224 /* UserInfoCellView.swift in Sources */,
 				5EC88EDF2DB1377B00A95224 /* AccountViewModel.swift in Sources */,
 				5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */,
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
@@ -852,6 +863,7 @@
 				5EAF5B0A2D2D567700D96FD6 /* AlertViewLocal.swift in Sources */,
 				5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */,
 				5EC88EDA2DB128F100A95224 /* AccountCoordinator.swift in Sources */,
+				5EC88EE52DB234CF00A95224 /* ToggleCellView.swift in Sources */,
 				5EA4FDC52CD79747001CA401 /* Book.swift in Sources */,
 				5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */,
 				5E8F9C672D537949004036F6 /* TabSwitcher.swift in Sources */,
