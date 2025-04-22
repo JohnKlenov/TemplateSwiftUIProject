@@ -145,7 +145,7 @@ class GalleryContentViewModel: ObservableObject {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showLocalalAlert(message: errorMessage,
                                       forView: "GalleryView",
-                                      operationDescription: Localized.DescriptionOfOperationError.database)
+                                      operationDescription: Localized.DescriptionOfOperationError.database, alertType: .common)
         // Переключаемся в состояние ошибки только если данных ещё не было получено
         if case .content = viewState {
             print(".content = viewState")

@@ -60,6 +60,7 @@ struct ContentView: View {
     @State private var isShowAlert: Bool = false
     @State private var alertMessage: String = ""
     @State private var alertTitle: String = ""
+    @State private var alertType: AlertType = .common
     @State private var cancellables = Set<AnyCancellable>()
     
     @EnvironmentObject var localization: LocalizationService
@@ -101,7 +102,16 @@ struct ContentView: View {
                     .environmentObject(mainCoordinator.accountCoordinator)
             }
             .background(
-                AlertViewGlobal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage)
+                // Передаём все необходимые binding-переменные и замыкание для обработки retry
+                AlertViewGlobal(isShowAlert: $isShowAlert,
+                                alertTitle: $alertTitle,
+                                alertMessage: $alertMessage,
+                                alertType: $alertType,
+                                onRetry: {
+                                    // Здесь прописывается логика повторной попытки аутентификации
+                                    print("Custom retry logic executed in ContentView")
+                                    // Например, можно вызвать метод viewModel.retryAuthentication()
+                                })
             )
             .onFirstAppear {
                 print("onFirstAppear ContentView")
@@ -111,15 +121,15 @@ struct ContentView: View {
         }
     }
     
+    // Подписка на изменения глобальных алертов. При получении алерта извлекаем все данные, включая тип.
     private func subscribeToGlobalAlerts() {
         viewModel.alertManager.$globalAlert
             .sink { globalAlert in
-                print(".sink { globalAlert in")
-                if let alert = globalAlert["globalError"] {
-                    print(".sink showAlert = true")
-                    alertMessage = alert.first?.message.localized() ?? Localized.Alerts.defaultMessage.localized()
-                    alertTitle = alert.first?.operationDescription.localized() ?? Localized.Alerts.title.localized()
-                    isShowAlert = true
+                if let alerts = globalAlert["globalError"], let alert = alerts.first {
+                    self.alertMessage = alert.message.localized()
+                    self.alertTitle = alert.operationDescription.localized()
+                    self.alertType = alert.type
+                    self.isShowAlert = true
                 }
             }
             .store(in: &cancellables)
@@ -146,6 +156,122 @@ struct LazyView<Content: View>: View {
         build()
     }
 }
+
+
+// MARK: - old implemintation with var isViewVisible: Bool
+
+
+//struct ContentView: View {
+//    
+//    private var homeView: LazyView<HomeView> {
+//        return LazyView { HomeView() }
+//    }
+//    
+//    private var galleryView: LazyView<GalleryView> {
+//        return LazyView { GalleryView() }
+//    }
+//   
+//    private var accountView: LazyView<AccountView> {
+//        return LazyView { AccountView() }
+//    }
+//    
+//    @StateObject private var viewModel:ContentViewModel
+//    @StateObject private var mainCoordinator = MainCoordinator()
+//    @StateObject private var viewBuilderService = ViewBuilderService()
+//    
+//    @State private var selection: Int = 0
+//    @State private var isShowAlert: Bool = false
+//    @State private var alertMessage: String = ""
+//    @State private var alertTitle: String = ""
+//    @State private var cancellables = Set<AnyCancellable>()
+//    
+//    @EnvironmentObject var localization: LocalizationService
+//    
+//    init() {
+//        print("init ContentView")
+//        _viewModel = StateObject(wrappedValue: ContentViewModel(alertManager: AlertManager.shared))
+//
+//    }
+//
+//    var body: some View {
+//        let _ = Self._printChanges()
+//        VStack {
+//            
+//            TabView(selection:$selection) {
+//                homeView
+//                    .tabItem {
+//                        Label(Localized.TabBar.home.localized(), systemImage: "house.fill")
+//                    }
+//                    .tag(0)
+//                    .environmentObject(mainCoordinator)
+//                    .environmentObject(mainCoordinator.homeCoordinator)
+//                    .environmentObject(viewBuilderService)
+//                galleryView
+//                    .tabItem {
+//                        Label(Localized.TabBar.gallery.localized(), systemImage: "photo.on.rectangle.fill")
+//                    }
+//                    .tag(1)
+//                    .environmentObject(mainCoordinator)
+//                    .environmentObject(mainCoordinator.galleryCoordinator)
+//                    .environmentObject(viewBuilderService)
+//                accountView
+//                    .tabItem {
+//                        Label(Localized.TabBar.profile.localized(), systemImage: "person.crop.circle.fill")
+//                    }
+//                    .tag(2)
+//                    .environmentObject(viewBuilderService)
+//                    .environmentObject(mainCoordinator)
+//                    .environmentObject(mainCoordinator.accountCoordinator)
+//            }
+//            .background(
+//                AlertViewGlobal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage)
+//            )
+//            .onFirstAppear {
+//                print("onFirstAppear ContentView")
+//                subscribeToGlobalAlerts()
+//                subscribeToSwitchTabViewItem()
+//            }
+//        }
+//    }
+//    
+//    private func subscribeToGlobalAlerts() {
+//        viewModel.alertManager.$globalAlert
+//            .sink { globalAlert in
+//                print(".sink { globalAlert in")
+//                if let alert = globalAlert["globalError"] {
+//                    print(".sink showAlert = true")
+//                    alertMessage = alert.first?.message.localized() ?? Localized.Alerts.defaultMessage.localized()
+//                    alertTitle = alert.first?.operationDescription.localized() ?? Localized.Alerts.title.localized()
+//                    isShowAlert = true
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func subscribeToSwitchTabViewItem() {
+//        mainCoordinator.tabViewSwitcher.$tabSelection
+//            .sink { selectionItem in
+//                selection = selectionItem
+//            }
+//            .store(in: &cancellables)
+//    }
+//}
+//
+//
+/////в TabBarViewController инициализация вкладок происходит по умолчанию при их выборе.
+/////LazyView - это удобный и простой способ. Он позволяет отложить инициализацию до момента, когда представление действительно потребуется, что может улучшить производительность приложения.
+//struct LazyView<Content: View>: View {
+//    let build: () -> Content
+//    init(_ build: @escaping () -> Content) {
+//        self.build = build
+//    }
+//    var body: Content {
+//        build()
+//    }
+//}
+
+
+
 
 
 

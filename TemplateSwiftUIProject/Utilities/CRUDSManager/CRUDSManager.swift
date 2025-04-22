@@ -118,7 +118,7 @@ class CRUDSManager {
     /// так же мы должны передавать имя того корневого view из которого пришла ошибка!
     private func handleError(_ error: Error, forView:String, operationDescription: String) {
         let errorMessage = errorHandler.handle(error: error)
-        alertManager.showLocalalAlert(message: errorMessage, forView: forView, operationDescription: operationDescription)
+        alertManager.showLocalalAlert(message: errorMessage, forView: forView, operationDescription: operationDescription, alertType: .common)
     }
     
     deinit {

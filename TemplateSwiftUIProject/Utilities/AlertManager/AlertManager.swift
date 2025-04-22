@@ -38,6 +38,9 @@
 
 ///по сути, NWPathMonitor предоставляет базовую информацию о состоянии подключения устройства к сети, включая тип активного соединения (Wi‑Fi, сотовая связь, Ethernet и т.д.) и статус доступности сетевого пути (например, свойство currentPath.status == .satisfied говорит о том, что соединение имеется). Он не измеряет скорость передачи данных, задержки или качество сигнала. Для оценки этих параметров понадобятся дополнительные инструменты или тесты, такие как ping или специальные библиотеки для измерения пропускной способности.
 
+// log Crashlytics
+/// все log уходят из SharedErrorHandler 
+
 // MARK: - AlertManager
 
 //появление предупреждения (желтого warning) в консоли.
@@ -75,26 +78,49 @@
 import SwiftUI
 import Combine
 
-protocol AlertManagerProtocol: ObservableObject {
-    var globalAlert: [String: [AlertData]] { get set }
-    var localAlerts: [String: [AlertData]] { get set }
-    var isHomeViewVisible: Bool { get set }
-    func showGlobalAlert(message: String, operationDescription: String)
-    func showLocalalAlert(message: String, forView view: String, operationDescription: String)
-    func resetFirstLocalAlert(forView view: String)
-    func resetFirstGlobalAlert()
+//protocol AlertManagerProtocol: ObservableObject {
+//    var globalAlert: [String: [AlertData]] { get set }
+//    var localAlerts: [String: [AlertData]] { get set }
+//    func showGlobalAlert(message: String, operationDescription: String)
+//    func showLocalalAlert(message: String, forView view: String, operationDescription: String)
+//    func resetFirstLocalAlert(forView view: String)
+//    func resetFirstGlobalAlert()
+//}
+
+// MARK: - Enum для типа алерта
+
+enum AlertType {
+    case authentication
+    case common
 }
+
+// MARK: - Модель данных алерта
 
 struct AlertData: Identifiable, Equatable {
     let id = UUID()
     let message: String
     let operationDescription: String
-
+    let type: AlertType
+    
     static func == (lhs: AlertData, rhs: AlertData) -> Bool {
         return lhs.id == rhs.id
     }
 }
 
+// MARK: - Протокол для менеджера алертов
+
+protocol AlertManagerProtocol: ObservableObject {
+    var globalAlert: [String: [AlertData]] { get set }
+    var localAlerts: [String: [AlertData]] { get set }
+    
+    // Теперь метод принимает тип алерта
+    func showGlobalAlert(message: String, operationDescription: String, alertType: AlertType)
+    func showLocalalAlert(message: String, forView view: String, operationDescription: String, alertType: AlertType)
+    func resetFirstLocalAlert(forView view: String)
+    func resetFirstGlobalAlert()
+}
+
+// MARK: - Реализация менеджера алертов
 
 class AlertManager: AlertManagerProtocol {
     
@@ -112,32 +138,25 @@ class AlertManager: AlertManagerProtocol {
         }
     }
     
-    @Published var isHomeViewVisible: Bool = false
-    
-    @Published var isGalleryViewVisible: Bool = false
-    
-    @Published var isAccountViewVisible: Bool = false
-    
     private var timer: Timer?
-
-        init() {
-            // Инициализация таймера для вызова showGlobalAlert каждую минуту
+    
+    init() {
+        // Инициализация таймера для вызова showGlobalAlert каждую минуту
 //            timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
 //                guard let self = self else { return }
 //                self.showGlobalAlert(message: "This is a global alert.", operationDescription: "Periodic alert")
 //            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
-                self?.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
-            }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+            self?.showGlobalAlert(message: "This is a test local alert.", operationDescription: "Test", alertType: .authentication)
+        }
 //            timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
 //                guard let self = self else { return }
 //                self.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
 //            }
-        }
+    }
     
-    func showGlobalAlert(message: String, operationDescription: String) {
-        let alert = AlertData(message: message, operationDescription: operationDescription)
-        
+    func showGlobalAlert(message: String, operationDescription: String, alertType: AlertType) {
+        let alert = AlertData(message: message, operationDescription: operationDescription, type: alertType)
         if globalAlert["globalError"] == nil {
             globalAlert["globalError"] = [alert]
         } else {
@@ -145,9 +164,8 @@ class AlertManager: AlertManagerProtocol {
         }
     }
     
-    func showLocalalAlert(message: String, forView view: String, operationDescription: String) {
-        
-        let alert = AlertData(message: message, operationDescription: operationDescription)
+    func showLocalalAlert(message: String, forView view: String, operationDescription: String, alertType: AlertType) {
+        let alert = AlertData(message: message, operationDescription: operationDescription, type: alertType)
         
         if localAlerts[view] == nil {
             localAlerts[view] = [alert]
@@ -178,11 +196,6 @@ class AlertManager: AlertManagerProtocol {
         }
     }
 }
-
-extension Notification.Name {
-    static let globalAlert = Notification.Name("globalAlert")
-}
-
 
 
 
@@ -400,6 +413,201 @@ extension Notification.Name {
 
 
 
+
+//class AlertManager: AlertManagerProtocol {
+//
+//    static let shared = AlertManager()
+//
+//    @Published var globalAlert: [String: [AlertData]] = [:] {
+//        didSet {
+//            print("globalAlert - \(globalAlert)")
+//        }
+//    }
+//
+//    @Published var localAlerts: [String: [AlertData]] = [:] {
+//        didSet {
+//            print("localAlerts - \(localAlerts)")
+//        }
+//    }
+//
+//    private var timer: Timer?
+//
+//        init() {}
+//
+//    func showGlobalAlert(message: String, operationDescription: String) {
+//        let alert = AlertData(message: message, operationDescription: operationDescription)
+//
+//        if globalAlert["globalError"] == nil {
+//            globalAlert["globalError"] = [alert]
+//        } else {
+//            globalAlert["globalError"]?.append(alert)
+//        }
+//    }
+//
+//    func showLocalalAlert(message: String, forView view: String, operationDescription: String) {
+//
+//        let alert = AlertData(message: message, operationDescription: operationDescription)
+//
+//        if localAlerts[view] == nil {
+//            localAlerts[view] = [alert]
+//        } else if !localAlerts[view]!.contains(where: { $0.operationDescription == operationDescription }) {
+//            localAlerts[view]?.append(alert)
+//        }
+//    }
+//
+//    func resetFirstLocalAlert(forView view: String) {
+//        if var alerts = localAlerts[view], !alerts.isEmpty {
+//            alerts.removeFirst()
+//            if alerts.isEmpty {
+//                localAlerts[view] = nil
+//            } else {
+//                localAlerts[view] = alerts
+//            }
+//        }
+//    }
+//
+//    func resetFirstGlobalAlert() {
+//        if var alerts = globalAlert["globalError"], !alerts.isEmpty {
+//            alerts.removeFirst()
+//            if alerts.isEmpty {
+//                globalAlert["globalError"] = nil
+//            } else {
+//                globalAlert["globalError"] = alerts
+//            }
+//        }
+//    }
+//}
+//
+//extension Notification.Name {
+//    static let globalAlert = Notification.Name("globalAlert")
+//}
+
+
+
+//// Инициализация таймера для вызова showGlobalAlert каждую минуту
+////            timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+////                guard let self = self else { return }
+////                self.showGlobalAlert(message: "This is a global alert.", operationDescription: "Periodic alert")
+////            }
+//DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+//    self?.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
+//}
+////            timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+////                guard let self = self else { return }
+////                self.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
+////            }
+
+
+
+// MARK: - old implemintation with var isViewVisible: Bool
+
+//protocol AlertManagerProtocol: ObservableObject {
+//    var globalAlert: [String: [AlertData]] { get set }
+//    var localAlerts: [String: [AlertData]] { get set }
+//    var isHomeViewVisible: Bool { get set }
+//    func showGlobalAlert(message: String, operationDescription: String)
+//    func showLocalalAlert(message: String, forView view: String, operationDescription: String)
+//    func resetFirstLocalAlert(forView view: String)
+//    func resetFirstGlobalAlert()
+//}
+//
+//struct AlertData: Identifiable, Equatable {
+//    let id = UUID()
+//    let message: String
+//    let operationDescription: String
+//
+//    static func == (lhs: AlertData, rhs: AlertData) -> Bool {
+//        return lhs.id == rhs.id
+//    }
+//}
+//
+//
+//class AlertManager: AlertManagerProtocol {
+//
+//    static let shared = AlertManager()
+//
+//    @Published var globalAlert: [String: [AlertData]] = [:] {
+//        didSet {
+//            print("globalAlert - \(globalAlert)")
+//        }
+//    }
+//
+//    @Published var localAlerts: [String: [AlertData]] = [:] {
+//        didSet {
+//            print("localAlerts - \(localAlerts)")
+//        }
+//    }
+//
+//    @Published var isHomeViewVisible: Bool = false
+//
+//    @Published var isGalleryViewVisible: Bool = false
+//
+//    @Published var isAccountViewVisible: Bool = false
+//
+//    private var timer: Timer?
+//
+//        init() {
+//            // Инициализация таймера для вызова showGlobalAlert каждую минуту
+////            timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+////                guard let self = self else { return }
+////                self.showGlobalAlert(message: "This is a global alert.", operationDescription: "Periodic alert")
+////            }
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+//                self?.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
+//            }
+////            timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+////                guard let self = self else { return }
+////                self.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
+////            }
+//        }
+//
+//    func showGlobalAlert(message: String, operationDescription: String) {
+//        let alert = AlertData(message: message, operationDescription: operationDescription)
+//
+//        if globalAlert["globalError"] == nil {
+//            globalAlert["globalError"] = [alert]
+//        } else {
+//            globalAlert["globalError"]?.append(alert)
+//        }
+//    }
+//
+//    func showLocalalAlert(message: String, forView view: String, operationDescription: String) {
+//
+//        let alert = AlertData(message: message, operationDescription: operationDescription)
+//
+//        if localAlerts[view] == nil {
+//            localAlerts[view] = [alert]
+//        } else if !localAlerts[view]!.contains(where: { $0.operationDescription == operationDescription }) {
+//            localAlerts[view]?.append(alert)
+//        }
+//    }
+//
+//    func resetFirstLocalAlert(forView view: String) {
+//        if var alerts = localAlerts[view], !alerts.isEmpty {
+//            alerts.removeFirst()
+//            if alerts.isEmpty {
+//                localAlerts[view] = nil
+//            } else {
+//                localAlerts[view] = alerts
+//            }
+//        }
+//    }
+//
+//    func resetFirstGlobalAlert() {
+//        if var alerts = globalAlert["globalError"], !alerts.isEmpty {
+//            alerts.removeFirst()
+//            if alerts.isEmpty {
+//                globalAlert["globalError"] = nil
+//            } else {
+//                globalAlert["globalError"] = alerts
+//            }
+//        }
+//    }
+//}
+//
+//extension Notification.Name {
+//    static let globalAlert = Notification.Name("globalAlert")
+//}
 
 
 

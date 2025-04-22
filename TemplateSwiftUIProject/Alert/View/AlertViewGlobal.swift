@@ -7,32 +7,67 @@
 
 import SwiftUI
 
-// Обособленное представление для алертов
+
+
+// MARK: - Localization Alert
+
 struct AlertViewGlobal: View {
     
-    @StateObject private var viewModel:AlertViewModel
+    @StateObject private var viewModel: AlertViewModel
     
     @Binding var isShowAlert: Bool
     @Binding var alertMessage: String
-    @Binding var alertTitle:String
+    @Binding var alertTitle: String
+    @Binding var alertType: AlertType
     
-    init(isShowAlert: Binding<Bool>, alertTitle: Binding<String>, alertMessage: Binding<String>) {
+    // Дополнительное замыкание для обработки retry, если тип ошибки – authentication
+    var onRetry: (() -> Void)?
+    
+    init(isShowAlert: Binding<Bool>,
+         alertTitle: Binding<String>,
+         alertMessage: Binding<String>,
+         alertType: Binding<AlertType>,
+         onRetry: (() -> Void)? = nil) {
+        
         self._isShowAlert = isShowAlert
         self._alertMessage = alertMessage
         self._alertTitle = alertTitle
+        self._alertType = alertType
+        self.onRetry = onRetry
         _viewModel = StateObject(wrappedValue: AlertViewModel(alertManager: AlertManager.shared))
         print("init GlobalAlertView")
     }
     
+    // Вычисляемое свойство для определения текста кнопки в зависимости от типа ошибки
+    var alertButtonText: String {
+        switch alertType {
+        case .authentication:
+            return "Try again"
+        case .common:
+            return "Ok"
+        }
+    }
+    
     var body: some View {
+        // Используем невидимую вьюшку, от которой показываем модальное уведомление
         EmptyView()
             .alert(alertTitle, isPresented: $isShowAlert) {
-                Button("Ok") {
+                Button(alertButtonText) {
+                    if alertType == .authentication {
+                        // Если тип ошибки – аутентификация, вызываем дополнительное действие (например, повторный запрос)
+                        print("Retrying authentication...")
+                        onRetry?()
+                    } else {
+                        // Для общих ошибок – просто закрываем алерт
+                        print("Acknowledging alert")
+                    }
+                    // Сброс состояния алерта
                     alertMessage = ""
                     alertTitle = ""
                     isShowAlert = false
+                    
+                    // С небольшим отложением сбрасываем первый глобальный алерт
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        // Логика сброса сообщения алерта
                         viewModel.alertManager.resetFirstGlobalAlert()
                     }
                 }
@@ -41,3 +76,42 @@ struct AlertViewGlobal: View {
             }
     }
 }
+
+
+
+
+
+//// Обособленное представление для алертов
+//struct AlertViewGlobal: View {
+//    
+//    @StateObject private var viewModel:AlertViewModel
+//    
+//    @Binding var isShowAlert: Bool
+//    @Binding var alertMessage: String
+//    @Binding var alertTitle:String
+//    
+//    init(isShowAlert: Binding<Bool>, alertTitle: Binding<String>, alertMessage: Binding<String>) {
+//        self._isShowAlert = isShowAlert
+//        self._alertMessage = alertMessage
+//        self._alertTitle = alertTitle
+//        _viewModel = StateObject(wrappedValue: AlertViewModel(alertManager: AlertManager.shared))
+//        print("init GlobalAlertView")
+//    }
+//    
+//    var body: some View {
+//        EmptyView()
+//            .alert(alertTitle, isPresented: $isShowAlert) {
+//                Button("Ok") {
+//                    alertMessage = ""
+//                    alertTitle = ""
+//                    isShowAlert = false
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                        // Логика сброса сообщения алерта
+//                        viewModel.alertManager.resetFirstGlobalAlert()
+//                    }
+//                }
+//            } message: {
+//                Text(alertMessage)
+//            }
+//    }
+//}

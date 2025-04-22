@@ -53,13 +53,6 @@ struct HomeView: View {
     
     @StateObject private var viewModel:HomeViewModel
     
-    //alert
-    @State private var isShowAlert: Bool = false
-    @State private var alertMessage: String = ""
-    @State private var alertTitle: String = ""
-    @State private var cancellables = Set<AnyCancellable>()
-    
-    
     @EnvironmentObject var homeCoordinator:HomeCoordinator
     @EnvironmentObject var viewBuilderService:ViewBuilderService
     
@@ -84,39 +77,88 @@ struct HomeView: View {
             viewBuilderService.buildCover(cover: cover)
         }
         .onFirstAppear {
-            print("onFirstAppear")
-            subscribeToLocalAlerts()
+            print("onFirstAppear HomeView")
         }
         .onAppear {
-            viewModel.alertManager.isHomeViewVisible = true
             print("onAppear HomeView")
         }
         .onDisappear {
-            viewModel.alertManager.isHomeViewVisible = false
             print("onDisappear HomeView")
         }
-        .background {
-            AlertViewLocal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage, nameView: "HomeView")
-        }
-    }
-    
-    private func subscribeToLocalAlerts() {
-        viewModel.alertManager.$localAlerts
-            .combineLatest(viewModel.alertManager.$isHomeViewVisible)
-            .sink { (localAlert, isHomeViewVisible) in
-                print(".sink { (localAlert, isHomeViewVisible)")
-                if isHomeViewVisible, let alert = localAlert["HomeView"] {
-                    print("if isHomeViewVisible, let alert = localAlert")
-                    alertMessage = alert.first?.message.localized() ?? Localized.Alerts.defaultMessage.localized()
-                    alertTitle = alert.first?.operationDescription.localized() ?? Localized.Alerts.title.localized()
-                    isShowAlert = true
-                }
-            }
-            .store(in: &cancellables)
     }
 }
 
 
+
+
+// MARK: - old implemintation with var isViewVisible: Bool
+
+//struct HomeView: View {
+//    
+//    @StateObject private var viewModel:HomeViewModel
+//    
+//    //alert
+//    @State private var isShowAlert: Bool = false
+//    @State private var alertMessage: String = ""
+//    @State private var alertTitle: String = ""
+//    @State private var cancellables = Set<AnyCancellable>()
+//    
+//    
+//    @EnvironmentObject var homeCoordinator:HomeCoordinator
+//    @EnvironmentObject var viewBuilderService:ViewBuilderService
+//    
+//    init() {
+//        _viewModel = StateObject(wrappedValue: HomeViewModel(alertManager: AlertManager.shared))
+//        print("init HomeView")
+//    }
+//    
+//    var body: some View {
+//        ///в момент rerendering в init View передаются те же параметры что и при первой инициализации
+//        ///поэксперементировать с homeCoordinator - вынести его из состояния в HomeView
+//        NavigationStack(path: $homeCoordinator.path) {
+//            viewBuilderService.homeViewBuild(page: .home)
+//                .navigationDestination(for: HomeFlow.self) { page in
+//                    viewBuilderService.homeViewBuild(page: page)
+//                }
+//        }
+//        .sheet(item: $homeCoordinator.sheet) { sheet in
+//            viewBuilderService.buildSheet(sheet: sheet)
+//        }
+//        .fullScreenCover(item: $homeCoordinator.fullScreenItem) { cover in
+//            viewBuilderService.buildCover(cover: cover)
+//        }
+//        .onFirstAppear {
+//            print("onFirstAppear")
+//            subscribeToLocalAlerts()
+//        }
+//        .onAppear {
+//            viewModel.alertManager.isHomeViewVisible = true
+//            print("onAppear HomeView")
+//        }
+//        .onDisappear {
+//            viewModel.alertManager.isHomeViewVisible = false
+//            print("onDisappear HomeView")
+//        }
+//        .background {
+//            AlertViewLocal(isShowAlert: $isShowAlert, alertTitle: $alertTitle, alertMessage: $alertMessage, nameView: "HomeView")
+//        }
+//    }
+//    
+//    private func subscribeToLocalAlerts() {
+//        viewModel.alertManager.$localAlerts
+//            .combineLatest(viewModel.alertManager.$isHomeViewVisible)
+//            .sink { (localAlert, isHomeViewVisible) in
+//                print(".sink { (localAlert, isHomeViewVisible)")
+//                if isHomeViewVisible, let alert = localAlert["HomeView"] {
+//                    print("if isHomeViewVisible, let alert = localAlert")
+//                    alertMessage = alert.first?.message.localized() ?? Localized.Alerts.defaultMessage.localized()
+//                    alertTitle = alert.first?.operationDescription.localized() ?? Localized.Alerts.title.localized()
+//                    isShowAlert = true
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//}
 
 
 

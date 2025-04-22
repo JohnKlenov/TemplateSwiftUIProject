@@ -140,22 +140,156 @@ class HomeContentViewModel: HomeViewModelProtocol {
     
     private func handleAuthenticationError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
-        alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.DescriptionOfOperationError.authentication)
+        alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.DescriptionOfOperationError.authentication, alertType: .authentication)
         viewState = .error(errorMessage)
     }
     
     private func handleFirestoreError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
-        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.database)
         viewState = .error(errorMessage)
     }
-    
-    private func handleError(_ error: Error) {
-        let errorMessage = errorHandler.handle(error: error)
-        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.database)
-        stateError = .localError
-    }
 }
+
+
+
+// MARK: - old implemintation with var isViewVisible: Bool
+
+
+//enum ViewState {
+//    case loading
+//    case error(String)
+//    case content([BookCloud])
+//}
+//
+//extension ViewState {
+//    var isError:Bool {
+//        if case .error = self {
+//            return true
+//        }
+//        return false
+//    }
+//}
+//
+//enum StateError {
+//    case localError
+//    case globalError
+//}
+//
+//
+//protocol HomeViewModelProtocol: ObservableObject {
+//    var viewState: ViewState { get set }
+//    var alertManager:AlertManager { get set }
+//    func removeBook(book: BookCloud, forView:String, operationDescription: String)
+//    func retry()
+//}
+//
+//
+//class HomeContentViewModel: HomeViewModelProtocol {
+//    
+//    /// может просто var alertManager:AlertManager ???@ObservedObject
+//    var alertManager:AlertManager
+//    @Published var viewState: ViewState = .loading
+//    
+//    private var stateError:StateError = .localError
+//    private var cancellables = Set<AnyCancellable>()
+//    private var authenticationService: AuthenticationServiceProtocol
+//    private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
+//    var managerCRUDS: CRUDSManager
+//    private let errorHandler: ErrorHandlerProtocol
+//    
+//    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: CRUDSManager, errorHandler: ErrorHandlerProtocol) {
+//        self.alertManager = alertManager
+//        self.authenticationService = authenticationService
+//        self.firestorColletionObserverService = firestorColletionObserverService
+//        self.errorHandler = errorHandler
+//        self.managerCRUDS = managerCRUDS
+//        print("init HomeContentViewModel")
+//    }
+//
+//    
+//    private func bind() {
+//        
+//        viewState = .loading
+//        authenticationService.authenticate()
+//            .flatMap { [weak self] result -> AnyPublisher<Result<[BookCloud], Error>, Never> in
+//                guard let self = self else {
+//                    return Just(.success([])).eraseToAnyPublisher()
+//                }
+//                switch result {
+//                case .success(let userId):
+//                    
+//                    return firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
+//                case .failure(let error):
+//                    /// это ошибка может возникнуть только если createAnonymousUser вернет ошибку
+//                    /// она может возникнуть (при первом старте, если мы удалили account и не удадось createAnonymousUser ... )
+//                    /// так как HomeContentViewModel это единственная точка создания createAnonymousUser
+//                    /// refresh из любой точки приложения нужно делать сдесь через globalAlert и notification
+//                    /// может получится так что при первом старте время ответа от Firebase Auth будет долгим из за плохой сети
+//                    /// и пользователь перейдет на другую вкладку TabBar
+//                    /// тогда при ошибки создания createAnonymousUser мы должны через globalAlert на любом другом экране refresh
+//                    /// тут важно что бы globalAlert всегда первым отображался на экране ()
+//                    /// Таймауты Firebase Auth: Стандартный таймаут: 10-60 секунд (зависит от версии SDK и сетевых условий)
+//                    /// 3G: 2-8 секунд / Edge-сети (2G): 12-30 секунд / После 15 сек 60% пользователей закрывают приложение
+//                    stateError = .globalError
+//                    return Just(.failure(error)).eraseToAnyPublisher()
+//                }
+//            }
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] result in
+//                switch result {
+//                case .success(let data):
+//                    self?.viewState = .content(data)
+//                case .failure(let error):
+//                    self?.handleStateError(error)
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func setupViewModel() {
+//        bind()
+//    }
+//    
+//    func retry() {
+//        authenticationService.reset()
+//        bind()
+//    }
+//    
+//    private func handleStateError(_ error: Error) {
+//        switch stateError {
+//        case .localError:
+//            handleFirestoreError(error)
+//        case .globalError:
+//            handleAuthenticationError(error)
+//        }
+//        stateError = .localError
+//    }
+//    
+//    func removeBook(book: BookCloud, forView:String, operationDescription: String) {
+//        managerCRUDS.removeBook(book: book, forView: forView, operationDescription: operationDescription)
+//    }
+//    
+//    private func handleAuthenticationError(_ error: Error) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.DescriptionOfOperationError.authentication)
+//        viewState = .error(errorMessage)
+//    }
+//    
+//    private func handleFirestoreError(_ error: Error) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.database)
+//        viewState = .error(errorMessage)
+//    }
+//    
+//    private func handleError(_ error: Error) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showLocalalAlert(message: errorMessage, forView: "HomeView", operationDescription: Localized.DescriptionOfOperationError.database)
+//        stateError = .localError
+//    }
+//}
+
+
+
 
 
 
