@@ -106,12 +106,7 @@ struct ContentView: View {
                 AlertViewGlobal(isShowAlert: $isShowAlert,
                                 alertTitle: $alertTitle,
                                 alertMessage: $alertMessage,
-                                alertType: $alertType,
-                                onRetry: {
-                                    // Здесь прописывается логика повторной попытки аутентификации
-                                    print("Custom retry logic executed in ContentView")
-                                    // Например, можно вызвать метод viewModel.retryAuthentication()
-                                })
+                                alertType: $alertType)
             )
             .onFirstAppear {
                 print("onFirstAppear ContentView")

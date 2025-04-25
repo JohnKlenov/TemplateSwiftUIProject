@@ -78,14 +78,6 @@
 import SwiftUI
 import Combine
 
-//protocol AlertManagerProtocol: ObservableObject {
-//    var globalAlert: [String: [AlertData]] { get set }
-//    var localAlerts: [String: [AlertData]] { get set }
-//    func showGlobalAlert(message: String, operationDescription: String)
-//    func showLocalalAlert(message: String, forView view: String, operationDescription: String)
-//    func resetFirstLocalAlert(forView view: String)
-//    func resetFirstGlobalAlert()
-//}
 
 // MARK: - Enum для типа алерта
 
@@ -140,26 +132,45 @@ class AlertManager: AlertManagerProtocol {
     
     private var timer: Timer?
     
-    init() {
-        // Инициализация таймера для вызова showGlobalAlert каждую минуту
-//            timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
-//                guard let self = self else { return }
-//                self.showGlobalAlert(message: "This is a global alert.", operationDescription: "Periodic alert")
-//            }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
-            self?.showGlobalAlert(message: "This is a test local alert.", operationDescription: "Test", alertType: .authentication)
+    private var currentRetryHandler: (() -> Void)? = nil {
+        didSet {
+            print("currentRetryHandler - \(String(describing: currentRetryHandler))")
         }
-//            timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
-//                guard let self = self else { return }
-//                self.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
-//            }
     }
+    
+    init() {
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+//            self?.showGlobalAlert(message: "This is a test local alert.", operationDescription: "Test", alertType: .authentication)
+//        }
+    }
+    
+    
+    // MARK: - RetryHandler methods
+    
+    // Устанавливаем обработчик с автоматическим weak захватом
+    func setAuthenticationRetryHandler(_ handler: @escaping () -> Void) {
+        currentRetryHandler = { [weak self] in
+            handler()
+            self?.clearRetryHandler()
+        }
+    }
+    
+    func triggerRetry() {
+        currentRetryHandler?()
+    }
+    
+    func clearRetryHandler() {
+        currentRetryHandler = nil
+    }
+    
+    
+    // MARK: - Alert methods
     
     func showGlobalAlert(message: String, operationDescription: String, alertType: AlertType) {
         let alert = AlertData(message: message, operationDescription: operationDescription, type: alertType)
         if globalAlert["globalError"] == nil {
             globalAlert["globalError"] = [alert]
-        } else {
+        } else if !globalAlert["globalError"]!.contains(where: { $0.operationDescription == operationDescription }) {
             globalAlert["globalError"]?.append(alert)
         }
     }
@@ -198,7 +209,27 @@ class AlertManager: AlertManagerProtocol {
 }
 
 
+// Инициализация таймера для вызова showGlobalAlert каждую минуту
+//            timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+//                guard let self = self else { return }
+//                self.showGlobalAlert(message: "This is a global alert.", operationDescription: "Periodic alert")
+//            }
 
+//            timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+//                guard let self = self else { return }
+//                self.showLocalalAlert(message: "This is a test local alert.", forView: "HomeView", operationDescription: "Test")
+//            }
+
+
+
+//protocol AlertManagerProtocol: ObservableObject {
+//    var globalAlert: [String: [AlertData]] { get set }
+//    var localAlerts: [String: [AlertData]] { get set }
+//    func showGlobalAlert(message: String, operationDescription: String)
+//    func showLocalalAlert(message: String, forView view: String, operationDescription: String)
+//    func resetFirstLocalAlert(forView view: String)
+//    func resetFirstGlobalAlert()
+//}
 
 
 // MARK: - FirestoreOperationsManager

@@ -140,6 +140,10 @@ class HomeContentViewModel: HomeViewModelProtocol {
     
     private func handleAuthenticationError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
+        // Устанавливаем актуальный обработчик
+        alertManager.setAuthenticationRetryHandler { [weak self] in
+            self?.retry()
+        }
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.DescriptionOfOperationError.authentication, alertType: .authentication)
         viewState = .error(errorMessage)
     }
@@ -151,6 +155,15 @@ class HomeContentViewModel: HomeViewModelProtocol {
 }
 
 
+
+
+
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+//            self?.handleAuthenticationError(NSError(domain: "Anonymous Auth", code: 111, userInfo: [NSLocalizedDescriptionKey: "This is a test global alert."]))
+//        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
+//            self?.handleAuthenticationError(NSError(domain: "Anonymous Auth", code: 111, userInfo: [NSLocalizedDescriptionKey: "This is a test global alert."]))
+//        }
 
 // MARK: - old implemintation with var isViewVisible: Bool
 
