@@ -13,7 +13,7 @@ import SwiftUI
 
 struct AlertViewGlobal: View {
     
-    @StateObject private var viewModel: AlertGlobalViewModel
+    @StateObject private var viewModel: AlertViewModel
     @EnvironmentObject var retryHandler: GlobalRetryHandler
     
     @Binding var isShowAlert: Bool
@@ -31,7 +31,7 @@ struct AlertViewGlobal: View {
         self._alertMessage = alertMessage
         self._alertTitle = alertTitle
         self._alertType = alertType
-        _viewModel = StateObject(wrappedValue: AlertGlobalViewModel(alertManager: AlertManager.shared))
+        _viewModel = StateObject(wrappedValue: AlertViewModel(alertManager: AlertManager.shared))
         print("init GlobalAlertView")
     }
     
@@ -72,7 +72,7 @@ struct AlertViewGlobal: View {
         alertTitle = ""
         isShowAlert = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            viewModel.alertManager.resetFirstGlobalAlert()
+            viewModel.resetFirstGlobalAlert()
         }
     }
 }

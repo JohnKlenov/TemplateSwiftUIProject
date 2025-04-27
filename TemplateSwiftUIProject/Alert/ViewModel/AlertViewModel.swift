@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-class AlertLocalViewModel:ObservableObject {
+class AlertViewModel:ObservableObject {
     var alertManager:AlertManager
     
     init(alertManager:AlertManager) {
@@ -15,24 +15,9 @@ class AlertLocalViewModel:ObservableObject {
         self.alertManager = alertManager
     }
     
-    deinit {
-        print("deinit AlertLocalViewModel")
+    func resetFirstGlobalAlert() {
+        alertManager.resetFirstGlobalAlert()
     }
-}
-
-class AlertGlobalViewModel:ObservableObject {
-    var alertManager:AlertManager
-    
-    init(alertManager:AlertManager) {
-        print("init AlertViewModel")
-        self.alertManager = alertManager
-    }
-    
-//    func handleRetryAction(for alertType: AlertType) {
-//        if alertType == .authentication {
-//            alertManager.triggerRetry()
-//        }
-//    }
     
     deinit {
         print("deinit AlertGlobalViewModel")

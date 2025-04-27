@@ -40,6 +40,8 @@ import Combine
 
 struct ContentView: View {
     
+    
+    // MARK: - ViewBuilderService (вынести в TemplateSwiftUIProjectApp и HomeView, GalleryView, AccountView создавать там же и в LazyView { viewBuilderService.buildGalleryView } тогда все сервисы можно инициализировать в ViewBuilderService)
     private var homeView: LazyView<HomeView> {
         return LazyView { HomeView() }
     }

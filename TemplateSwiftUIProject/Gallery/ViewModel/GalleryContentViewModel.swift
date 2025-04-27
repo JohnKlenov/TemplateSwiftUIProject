@@ -126,6 +126,7 @@ class GalleryContentViewModel: ObservableObject {
             self.handleFirestoreError(error)
         }
     }
+    
     ///@MainActor, что означает—всё его содержимое выполняется на главном потоке. Это важно, когда вы обновляете UI-связанные свойства (viewState).
     ///Date().timeIntervalSince(lastUpdated) Это выражение вернёт количество секунд, прошедших с момента сохранённого времени до текущего.
     @MainActor
@@ -141,20 +142,10 @@ class GalleryContentViewModel: ObservableObject {
         }
     }
     
+    /// error internet connect не проблема если есть кэш(даже если делаем refresh получаем кэш)
     private func handleFirestoreError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
-        alertManager.showLocalalAlert(message: errorMessage,
-                                      forView: "GalleryView",
-                                      operationDescription: Localized.DescriptionOfOperationError.database, alertType: .common)
-        // Переключаемся в состояние ошибки только если данных ещё не было получено
-        if case .content = viewState {
-            print(".content = viewState")
-            // Если уже отображается контент, оставляем state как есть;
-            // тем самым ContentErrorView не показывается.
-        } else {
-            print("viewState = .error")
-            viewState = .error(errorMessage)
-        }
+        viewState = .error(errorMessage)
     }
 }
 
@@ -162,6 +153,24 @@ class GalleryContentViewModel: ObservableObject {
 
 
 // MARK: - old code
+
+
+
+//private func handleFirestoreError(_ error: Error) {
+//    let errorMessage = errorHandler.handle(error: error)
+//    alertManager.showGlobalAlert(message: errorMessage,
+//                                  operationDescription: Localized.DescriptionOfOperationError.database, alertType: .common)
+//    // Переключаемся в состояние ошибки только если данных ещё не было получено
+//    if case .content = viewState {
+//        print(".content = viewState")
+//        // Если уже отображается контент, оставляем state как есть;
+//        // тем самым ContentErrorView не показывается.
+//    } else {
+//        print("viewState = .error")
+//        viewState = .error(errorMessage)
+//    }
+//}
+
 
 ///async let mallsItems: [Item] = firestoreService.fetchMalls()
 ///async let shopsItems: [Item] = firestoreService.fetchShops()

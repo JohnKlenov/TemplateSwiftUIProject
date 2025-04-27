@@ -33,6 +33,7 @@ struct GalleryContentView: View {
         print("init GalleryContentView")
     }
 
+    
     var body: some View {
         ZStack {
             switch viewModel.viewState {

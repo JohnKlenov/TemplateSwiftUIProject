@@ -12,6 +12,7 @@ struct GalleryView: View {
     
     @StateObject private var viewModel:GalleryViewModel
     
+    
     @EnvironmentObject var galleryCoordinator:GalleryCoordinator
     @EnvironmentObject var viewBuilderService:ViewBuilderService
     

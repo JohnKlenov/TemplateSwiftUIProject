@@ -142,7 +142,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
     init(db: Firestore = Firestore.firestore()) {
         self.db = db
     }
-    
+
     func addBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future {  promise in
             
@@ -162,7 +162,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         }
         .eraseToAnyPublisher()
     }
-    
+
     func updateBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             guard let bookID = book.id else {

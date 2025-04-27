@@ -7,6 +7,11 @@
 
 
 
+// MARK: - inout parametrs showGlobalAlert
+
+/// мы должны хорошо продумать о том какие параметры передовать в showGlobalAlert message: String, operationDescription: String
+/// они должны хорошо отражать проблему , понятную для пользователя
+///  вопрос нужно ли не сокращать однотипные ошибки до одного  алерта if !globalAlert[nameKey]!.contains(where: { $0.operationDescription == operationDescription }) ?
 
 // MARK: - new imlemintation AlertManager and errorHandling
 
@@ -15,8 +20,14 @@
 // Get data ( addSnapshotListener + getDocuments, getDocument если кэш не пуст ошибки не выбросит долгое время) / ContentErrorView
 
 // Post data (setData + addDocument + updateData)
+
 /// debug: любая запись succes если в блок приходит error логируем в Crashlytics
-/// release: любая запись succes если в блок приходит error логируем в Crashlytics + отображаем на локальном алерт пока rootView isVisable + FirestoreOperationsManager(сохраняем статус всех операций записи )
+/// release: любая запись succes если в блок приходит error логируем в Crashlytics + отображаем на глобальном алерт
+/// FirestoreOperationsManager(сохраняем статус всех операций записи )
+/// для чего нужен FirestoreOperationsManager (операцию проверки делать на очереди в low priority):
+/// ошибка из блока может не прийти никогда (1. Не дождались возврата ошибки и вышли из приложения, 2. сервис который отвечал за Post data был init in viewModel а View была в NavigationStack или modalPesented и закрылось до получения ответа об ошибки в блоке)
+/// !!!!! желательно что бы все Service были в shared environment и тогда это будет единственная точка откуда мы будем деркать Api FirestoreOperationsManager
+/// и будет больше шансов получить ошибку в текущей сессии App
 
 /// оффлайн-поддержа запись выполняется локально а затем ждет синхронизации с сервером.
 ///Если же существуют проблемы, независимо от сети тогда ошибка будет передана в блок error. Но не факт что этот блок еще будет в памяти.
@@ -25,7 +36,7 @@
 ///Firebase Crashlytics
 ///Если операция критична для пользователя, можно предусмотреть промежуточное состояние с индикатором незавершённой синхронизации или временным статусом «Ожидание подтверждения от сервера»
 
-//я решил пересмотреть стратегию работы AlertManager and errorHandling
+// AlertManager and errorHandling
 
 /// основные моменты: максимально уйти от localAlert или совсем его убрать (так как в процессе вызова локальных и глобальных алертов они могут уничтожать один другого что усложнит логику AlertManager). оставить globalAlert для максимально критических ошибок (Auth ... )  и не только.
 /// использовать errorHandling дизайн GitHub. Если у нас не получается отобоазить данные(get + observer) на View размещаем ContentErrorView (на всех экранах NavigationStack)
@@ -41,6 +52,11 @@
 
 // log Crashlytics
 /// все log уходят из SharedErrorHandler 
+
+
+
+
+
 
 // MARK: - AlertManager
 
@@ -92,6 +108,9 @@
 /// при первом отображении GlobalAlert и последующим срабатывании LocalAlert: GlobalAlert не исчезает но после нажатия кнопки на GlobalAlert и его исчезновения LocalAlert не отображается и следовательно не срабатывает func resetFirstLocalAlert
 
 
+
+
+
 import SwiftUI
 import Combine
 
@@ -120,12 +139,7 @@ struct AlertData: Identifiable, Equatable {
 
 protocol AlertManagerProtocol: ObservableObject {
     var globalAlert: [String: [AlertData]] { get set }
-    var localAlerts: [String: [AlertData]] { get set }
-    
-    // Теперь метод принимает тип алерта
     func showGlobalAlert(message: String, operationDescription: String, alertType: AlertType)
-    func showLocalalAlert(message: String, forView view: String, operationDescription: String, alertType: AlertType)
-    func resetFirstLocalAlert(forView view: String)
     func resetFirstGlobalAlert()
 }
 
@@ -134,6 +148,7 @@ protocol AlertManagerProtocol: ObservableObject {
 class AlertManager: AlertManagerProtocol {
     
     static let shared = AlertManager()
+    private let nameKey = "globalError"
     
     @Published var globalAlert: [String: [AlertData]] = [:] {
         didSet {
@@ -141,64 +156,49 @@ class AlertManager: AlertManagerProtocol {
         }
     }
     
-    @Published var localAlerts: [String: [AlertData]] = [:] {
-        didSet {
-            print("localAlerts - \(localAlerts)")
-        }
-    }
-    
-    init() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
-            self?.showGlobalAlert(message: "This is a test global alert 1.", operationDescription: "Test 1", alertType: .common)
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
-//            self?.showLocalalAlert(message: "This is a test local alert 2.", forView: "HomeView", operationDescription: "Test 2", alertType: .common)
-            self?.showGlobalAlert(message: "This is a test global alert 2.", operationDescription: "Test 2", alertType: .common)
-        }
-    }
+    init() {}
     
     func showGlobalAlert(message: String, operationDescription: String, alertType: AlertType) {
         let alert = AlertData(message: message, operationDescription: operationDescription, type: alertType)
-        if globalAlert["globalError"] == nil {
-            globalAlert["globalError"] = [alert]
-        } else if !globalAlert["globalError"]!.contains(where: { $0.operationDescription == operationDescription }) {
-            globalAlert["globalError"]?.append(alert)
-        }
-    }
-    
-    func showLocalalAlert(message: String, forView view: String, operationDescription: String, alertType: AlertType) {
-        let alert = AlertData(message: message, operationDescription: operationDescription, type: alertType)
-        
-        if localAlerts[view] == nil {
-            localAlerts[view] = [alert]
-        } else if !localAlerts[view]!.contains(where: { $0.operationDescription == operationDescription }) {
-            localAlerts[view]?.append(alert)
-        }
-    }
-    
-    func resetFirstLocalAlert(forView view: String) {
-        if var alerts = localAlerts[view], !alerts.isEmpty {
-            alerts.removeFirst()
-            if alerts.isEmpty {
-                localAlerts[view] = nil
-            } else {
-                localAlerts[view] = alerts
-            }
+        if globalAlert[nameKey] == nil {
+            globalAlert[nameKey] = [alert]
+        } else if !globalAlert[nameKey]!.contains(where: { $0.operationDescription == operationDescription }) {
+            globalAlert[nameKey]?.append(alert)
         }
     }
     
     func resetFirstGlobalAlert() {
-        if var alerts = globalAlert["globalError"], !alerts.isEmpty {
+        if var alerts = globalAlert[nameKey], !alerts.isEmpty {
             alerts.removeFirst()
             if alerts.isEmpty {
-                globalAlert["globalError"] = nil
+                globalAlert[nameKey] = nil
             } else {
-                globalAlert["globalError"] = alerts
+                globalAlert[nameKey] = alerts
             }
         }
     }
+    
+    /// можно не сокращать однотипные ошибки до одного  алерта
+//func showGlobalAlert(message: String, operationDescription: String, alertType: AlertType) {
+//            let alert = AlertData(message: message, operationDescription: operationDescription, type: alertType)
+//    
+//            if globalAlert[nameKey] == nil {
+//                globalAlert[nameKey] = [alert]
+//            } else {
+//                globalAlert[nameKey]?.append(alert)
+//            }
+//        }
 }
 
+
+
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+//            self?.showGlobalAlert(message: "This is a test global alert 1.", operationDescription: "Test 1", alertType: .common)
+//        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
+////            self?.showLocalalAlert(message: "This is a test local alert 2.", forView: "HomeView", operationDescription: "Test 2", alertType: .common)
+//            self?.showGlobalAlert(message: "This is a test global alert 2.", operationDescription: "Test 2", alertType: .common)
+//        }
 
 
 //    private var currentRetryHandler: (() -> Void)? = nil {

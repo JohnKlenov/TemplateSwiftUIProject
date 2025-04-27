@@ -6,7 +6,9 @@
 //
 
 
-// связь между AlertViewGlobal и HomeContentViewModel с использованием NotificationCenter.
+
+// MARK: - NotificationCenter
+///связь между AlertViewGlobal и HomeContentViewModel с использованием NotificationCenter:
 
 ///extension Notification.Name { static let authenticationRetry = Notification.Name("authenticationRetry") }
 /// Button(alertButtonText) { if alertType == .authentication {  NotificationCenter.default.post(name: .authenticationRetry, object: nil) } }

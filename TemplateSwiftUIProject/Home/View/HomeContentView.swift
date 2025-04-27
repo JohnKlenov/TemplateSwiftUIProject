@@ -66,6 +66,7 @@ struct HomeContentView:View {
         .toolbar{
             ToolbarItem(placement: .topBarTrailing) {
                 Button(Localized.Home.addButton.localized()) {
+                    // перенести BookEditView во ViewBuilder ??? 
                     let sheetContent = AnyView(BookEditView(managerCRUDS: viewModel.managerCRUDS, presentEditView: "HomeView"))
                     homeCoordinator.presentSheet(SheetItem(content: sheetContent))
                 }
