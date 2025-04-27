@@ -50,6 +50,7 @@ struct TemplateSwiftUIProjectApp: App {
     ///использование @AppStorage позволяет привязать переменную(tiedOnboarding) к UserDefaults, а SwiftUI автоматически отслеживает и реагирует на изменения этой переменной, что приводит к обновлению пользовательского интерфейса без необходимости явных вызовов для переключения представлений.
     @AppStorage("hasSeenOnboarding") var tiedOnboarding:Bool = false
     @StateObject private var localizationService = LocalizationService.shared
+    @StateObject private var retryHandler = GlobalRetryHandler()
     @Environment(\.scenePhase) private var scenePhase
     
     init() {
@@ -67,6 +68,7 @@ struct TemplateSwiftUIProjectApp: App {
             Group {
                 if tiedOnboarding {
                     ContentView()
+                        .environmentObject(retryHandler)
                         .environmentObject(localizationService)
                 } else {
                     OnboardingView()

@@ -28,11 +28,11 @@ class AlertGlobalViewModel:ObservableObject {
         self.alertManager = alertManager
     }
     
-    func handleRetryAction(for alertType: AlertType) {
-        if alertType == .authentication {
-            alertManager.triggerRetry()
-        }
-    }
+//    func handleRetryAction(for alertType: AlertType) {
+//        if alertType == .authentication {
+//            alertManager.triggerRetry()
+//        }
+//    }
     
     deinit {
         print("deinit AlertGlobalViewModel")

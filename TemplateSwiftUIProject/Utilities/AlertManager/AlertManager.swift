@@ -25,8 +25,9 @@
 ///Firebase Crashlytics
 ///Если операция критична для пользователя, можно предусмотреть промежуточное состояние с индикатором незавершённой синхронизации или временным статусом «Ожидание подтверждения от сервера»
 
-///я решил пересмотреть стратегию работы AlertManager and errorHandling
-/// основные моменты: максимально уйти от localAlert. оставить globalAlert для максимально критических ошибок (Auth ... )
+//я решил пересмотреть стратегию работы AlertManager and errorHandling
+
+/// основные моменты: максимально уйти от localAlert или совсем его убрать (так как в процессе вызова локальных и глобальных алертов они могут уничтожать один другого что усложнит логику AlertManager). оставить globalAlert для максимально критических ошибок (Auth ... )  и не только.
 /// использовать errorHandling дизайн GitHub. Если у нас не получается отобоазить данные(get + observer) на View размещаем ContentErrorView (на всех экранах NavigationStack)
 /// если ошибка приходит от addSnapshotListener отображваем ContentErrorView (localAlert не используем)
 
@@ -65,14 +66,30 @@
 
 // приоритет работы alert в AlertManager
 
+/// в связи с сложностью совместной работы LocalAlert и GlobalAlert принито решение оставить только GlobalAlert
+
+/// если в одном стеке срабатывают LocalAlert из rootView дважды то они не уничтожают один другого.
+/// если вызовы alert происходят из разных стековв - GlobalAlert из rootView закрывает LocalalAlert из дочернего стека
+/// и на оборот LocalalAlert из дочернего стека закрывает GlobalAlert из rootView
+
 /// GalleryView
 /// в маем коде работа AlertManager следующая
 /// showGlobalAlert поверх showLocalalAlert
 /// при вызове showGlobalAlert поверх showLocalalAlert LocalalAlert  закрывается и отображается GlobalAlert но из var localAlerts: [String: [AlertData]] не удаляется
 /// затем после закрытия GlobalAlert когда мы уходим из GalleryView и снова заходим на GalleryView  срабатывает LocalalAlert так как все Publisher отрабатывают
+/// но если isVisibleView удален то LocalalAlert больше не срабатывает
 
 ///showLocalalAlert поверх showLocalalAlert
 ///если мы добавляем showLocalalAlert поверх showLocalalAlert то первый LocalalAlert не закрывается но когда мы нажимаем на OK то отрабатывает viewModel.alertManager.resetFirstLocalAlert(forView: nameView) (с задержкой в 0.1 сек) и когда отрабатывает localAlerts[view] = alerts то отображается второй LocalalAlert который отработал позже первого. Но почему это работает только с  задержкой в 0.1 сек(DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { })???
+
+///showLocalalAlert поверх showGlobalAlert
+///если мы добавляем showLocalalAlert поверх showGlobalAlert то  GlobalAlert  закрывается и отображается LocalAlert но когда мы нажимаем на его OK то GlobalAlert больше не отображается и при повторном переходе на HomeView тоже
+
+/// showGlobalAlert поверх showGlobalAlert
+/// работает точно так же как showLocalalAlert поверх showLocalalAlert
+
+// когда мы убрали из AlertManager @Published var isViewVisible
+/// при первом отображении GlobalAlert и последующим срабатывании LocalAlert: GlobalAlert не исчезает но после нажатия кнопки на GlobalAlert и его исчезновения LocalAlert не отображается и следовательно не срабатывает func resetFirstLocalAlert
 
 
 import SwiftUI
@@ -130,41 +147,15 @@ class AlertManager: AlertManagerProtocol {
         }
     }
     
-    private var timer: Timer?
-    
-    private var currentRetryHandler: (() -> Void)? = nil {
-        didSet {
-            print("currentRetryHandler - \(String(describing: currentRetryHandler))")
-        }
-    }
-    
     init() {
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
-//            self?.showGlobalAlert(message: "This is a test local alert.", operationDescription: "Test", alertType: .authentication)
-//        }
-    }
-    
-    
-    // MARK: - RetryHandler methods
-    
-    // Устанавливаем обработчик с автоматическим weak захватом
-    func setAuthenticationRetryHandler(_ handler: @escaping () -> Void) {
-        currentRetryHandler = { [weak self] in
-            handler()
-            self?.clearRetryHandler()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+            self?.showGlobalAlert(message: "This is a test global alert 1.", operationDescription: "Test 1", alertType: .common)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
+//            self?.showLocalalAlert(message: "This is a test local alert 2.", forView: "HomeView", operationDescription: "Test 2", alertType: .common)
+            self?.showGlobalAlert(message: "This is a test global alert 2.", operationDescription: "Test 2", alertType: .common)
         }
     }
-    
-    func triggerRetry() {
-        currentRetryHandler?()
-    }
-    
-    func clearRetryHandler() {
-        currentRetryHandler = nil
-    }
-    
-    
-    // MARK: - Alert methods
     
     func showGlobalAlert(message: String, operationDescription: String, alertType: AlertType) {
         let alert = AlertData(message: message, operationDescription: operationDescription, type: alertType)
@@ -208,6 +199,30 @@ class AlertManager: AlertManagerProtocol {
     }
 }
 
+
+
+//    private var currentRetryHandler: (() -> Void)? = nil {
+//        didSet {
+//            print("currentRetryHandler - \(String(describing: currentRetryHandler))")
+//        }
+//    }
+
+//
+//    // Устанавливаем обработчик с автоматическим weak захватом
+//    func setAuthenticationRetryHandler(_ handler: @escaping () -> Void) {
+//        currentRetryHandler = { [weak self] in
+//            handler()
+//            self?.clearRetryHandler()
+//        }
+//    }
+//
+//    func triggerRetry() {
+//        currentRetryHandler?()
+//    }
+//
+//    func clearRetryHandler() {
+//        currentRetryHandler = nil
+//    }
 
 // Инициализация таймера для вызова showGlobalAlert каждую минуту
 //            timer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in

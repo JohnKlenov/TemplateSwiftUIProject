@@ -25,6 +25,7 @@ struct HomeContentView:View {
     @StateObject private var viewModel: HomeContentViewModel
     @EnvironmentObject var homeCoordinator:HomeCoordinator
     @EnvironmentObject var localization: LocalizationService
+    @EnvironmentObject var retryHandler: GlobalRetryHandler
     
     init(managerCRUDS: CRUDSManager) {
         _viewModel = StateObject(wrappedValue: HomeContentViewModel(
@@ -75,6 +76,7 @@ struct HomeContentView:View {
         }
         .onFirstAppear {
             print("onFirstAppear HomeContentView")
+            viewModel.setRetryHandler(retryHandler)
             viewModel.setupViewModel()
         }
         .onAppear {

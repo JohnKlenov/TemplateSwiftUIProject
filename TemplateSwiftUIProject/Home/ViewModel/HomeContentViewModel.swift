@@ -65,6 +65,7 @@ class HomeContentViewModel: HomeViewModelProtocol {
     private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
     var managerCRUDS: CRUDSManager
     private let errorHandler: ErrorHandlerProtocol
+    private(set) var globalRetryHandler: GlobalRetryHandler?
     
     init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: CRUDSManager, errorHandler: ErrorHandlerProtocol) {
         self.alertManager = alertManager
@@ -73,11 +74,17 @@ class HomeContentViewModel: HomeViewModelProtocol {
         self.errorHandler = errorHandler
         self.managerCRUDS = managerCRUDS
         print("init HomeContentViewModel")
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+//            self?.handleAuthenticationError(NSError(domain: "Anonymous Auth", code: 111, userInfo: [NSLocalizedDescriptionKey: "This is a test global alert."]))
+//        }
     }
 
+    func setRetryHandler(_ handler: GlobalRetryHandler) {
+            self.globalRetryHandler = handler
+        }
     
     private func bind() {
-        
+        print(" private func bind() ")
         viewState = .loading
         authenticationService.authenticate()
             .flatMap { [weak self] result -> AnyPublisher<Result<[BookCloud], Error>, Never> in
@@ -141,9 +148,12 @@ class HomeContentViewModel: HomeViewModelProtocol {
     private func handleAuthenticationError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
         // Устанавливаем актуальный обработчик
-        alertManager.setAuthenticationRetryHandler { [weak self] in
+        globalRetryHandler?.setAuthenticationRetryHandler { [weak self] in
             self?.retry()
         }
+//        alertManager.setAuthenticationRetryHandler { [weak self] in
+//            self?.retry()
+//        }
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.DescriptionOfOperationError.authentication, alertType: .authentication)
         viewState = .error(errorMessage)
     }

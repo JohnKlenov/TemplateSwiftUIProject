@@ -14,6 +14,7 @@ import SwiftUI
 struct AlertViewGlobal: View {
     
     @StateObject private var viewModel: AlertGlobalViewModel
+    @EnvironmentObject var retryHandler: GlobalRetryHandler
     
     @Binding var isShowAlert: Bool
     @Binding var alertMessage: String
@@ -50,13 +51,20 @@ struct AlertViewGlobal: View {
             .alert(alertTitle, isPresented: $isShowAlert) {
                 Button(alertButtonText) {
                     // Вызываем обработку retry через ViewModel
-                    viewModel.handleRetryAction(for: alertType)
+//                    viewModel.handleRetryAction(for: alertType)
+                    handleRetryAction(for: alertType)
                     resetAlert()
                     
                 }
             } message: {
                 Text(alertMessage)
             }
+    }
+    
+    private func handleRetryAction(for alertType: AlertType) {
+        if alertType == .authentication {
+            retryHandler.triggerRetry()
+        }
     }
     
     private func resetAlert() {
