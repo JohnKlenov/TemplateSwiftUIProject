@@ -78,6 +78,8 @@
 		5EC88EE32DB2347800A95224 /* NavigationCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EE22DB2347800A95224 /* NavigationCellView.swift */; };
 		5EC88EE52DB234CF00A95224 /* ToggleCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EE42DB234CF00A95224 /* ToggleCellView.swift */; };
 		5EC88EE82DBD815900A95224 /* GlobalRetryHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EE72DBD815900A95224 /* GlobalRetryHandler.swift */; };
+		5EC88EEB2DBF8CEE00A95224 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EEA2DBF8CEE00A95224 /* NetworkMonitor.swift */; };
+		5EC88EEE2DBF92A600A95224 /* NetworkStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EED2DBF92A600A95224 /* NetworkStatusBanner.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -165,6 +167,8 @@
 		5EC88EE22DB2347800A95224 /* NavigationCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCellView.swift; sourceTree = "<group>"; };
 		5EC88EE42DB234CF00A95224 /* ToggleCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToggleCellView.swift; sourceTree = "<group>"; };
 		5EC88EE72DBD815900A95224 /* GlobalRetryHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalRetryHandler.swift; sourceTree = "<group>"; };
+		5EC88EEA2DBF8CEE00A95224 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		5EC88EED2DBF92A600A95224 /* NetworkStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStatusBanner.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -491,6 +495,22 @@
 			path = GlobalRetryHandler;
 			sourceTree = "<group>";
 		};
+		5EC88EE92DBF8CE000A95224 /* NetworkMonitor */ = {
+			isa = PBXGroup;
+			children = (
+				5EC88EEA2DBF8CEE00A95224 /* NetworkMonitor.swift */,
+			);
+			path = NetworkMonitor;
+			sourceTree = "<group>";
+		};
+		5EC88EEC2DBF929A00A95224 /* NetworkStatusBanner */ = {
+			isa = PBXGroup;
+			children = (
+				5EC88EED2DBF92A600A95224 /* NetworkStatusBanner.swift */,
+			);
+			path = NetworkStatusBanner;
+			sourceTree = "<group>";
+		};
 		5EC949C32CB526E5003736A9 = {
 			isa = PBXGroup;
 			children = (
@@ -510,6 +530,7 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5EC88EEC2DBF929A00A95224 /* NetworkStatusBanner */,
 				5E8F9C6F2D537A8B004036F6 /* SomeView */,
 				5EAF5B0F2D367DD500D96FD6 /* ContentView */,
 				5EAF5B042D2D55AA00D96FD6 /* Alert */,
@@ -683,6 +704,7 @@
 		5EC94A0A2CC3C9BF003736A9 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				5EC88EE92DBF8CE000A95224 /* NetworkMonitor */,
 				5EC88EE62DBD811500A95224 /* GlobalRetryHandler */,
 				5E8F9CCD2D99776A004036F6 /* ImageCacheManager */,
 				5E8F9C9B2D6F53D2004036F6 /* LocalizationService */,
@@ -844,6 +866,7 @@
 				5EC88EDF2DB1377B00A95224 /* AccountViewModel.swift in Sources */,
 				5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */,
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
+				5EC88EEB2DBF8CEE00A95224 /* NetworkMonitor.swift in Sources */,
 				5E8F9CC12D81A476004036F6 /* PopularProductsSectionView.swift in Sources */,
 				5EA4FDC72CD8E780001CA401 /* BookEditView.swift in Sources */,
 				5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */,
@@ -878,6 +901,7 @@
 				5EC949E02CBA88F2003736A9 /* OnboardingPage.swift in Sources */,
 				5EC949E32CBA89FC003736A9 /* OnboardingService .swift in Sources */,
 				5E8F9C762D537CC5004036F6 /* BookDetailsViewModel.swift in Sources */,
+				5EC88EEE2DBF92A600A95224 /* NetworkStatusBanner.swift in Sources */,
 				5EC949EA2CBA954F003736A9 /* OnboardingView.swift in Sources */,
 				5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */,
 				5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */,

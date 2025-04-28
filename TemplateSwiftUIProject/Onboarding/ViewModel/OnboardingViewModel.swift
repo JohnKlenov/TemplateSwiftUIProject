@@ -41,4 +41,8 @@ class OnboardingViewModel: ObservableObject {
     func completeOnboarding() {
         hasSeenOnboarding = true
     }
+    
+    deinit {
+        print("deinit OnboardingViewModel")
+    }
 }

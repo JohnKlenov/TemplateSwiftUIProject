@@ -74,47 +74,55 @@ struct ContentView: View {
     }
 
     var body: some View {
-        let _ = Self._printChanges()
-        VStack {
+        ZStack {
+            VStack {
+                TabView(selection: $selection) {
+                    homeView
+                        .tabItem {
+                            Label(Localized.TabBar.home.localized(), systemImage: "house.fill")
+                        }
+                        .tag(0)
+                        .environmentObject(mainCoordinator)
+                        .environmentObject(mainCoordinator.homeCoordinator)
+                        .environmentObject(viewBuilderService)
+                    
+                    galleryView
+                        .tabItem {
+                            Label(Localized.TabBar.gallery.localized(), systemImage: "photo.on.rectangle.fill")
+                        }
+                        .tag(1)
+                        .environmentObject(mainCoordinator)
+                        .environmentObject(mainCoordinator.galleryCoordinator)
+                        .environmentObject(viewBuilderService)
+                    
+                    accountView
+                        .tabItem {
+                            Label(Localized.TabBar.profile.localized(), systemImage: "person.crop.circle.fill")
+                        }
+                        .tag(2)
+                        .environmentObject(viewBuilderService)
+                        .environmentObject(mainCoordinator)
+                        .environmentObject(mainCoordinator.accountCoordinator)
+                }
+                .background(
+                    AlertViewGlobal(isShowAlert: $isShowAlert,
+                                    alertTitle: $alertTitle,
+                                    alertMessage: $alertMessage,
+                                    alertType: $alertType)
+                )
+                .onFirstAppear {
+                    print("onFirstAppear ContentView")
+                    subscribeToGlobalAlerts()
+                    subscribeToSwitchTabViewItem()
+                }
+            }
             
-            TabView(selection:$selection) {
-                homeView
-                    .tabItem {
-                        Label(Localized.TabBar.home.localized(), systemImage: "house.fill")
-                    }
-                    .tag(0)
-                    .environmentObject(mainCoordinator)
-                    .environmentObject(mainCoordinator.homeCoordinator)
-                    .environmentObject(viewBuilderService)
-                galleryView
-                    .tabItem {
-                        Label(Localized.TabBar.gallery.localized(), systemImage: "photo.on.rectangle.fill")
-                    }
-                    .tag(1)
-                    .environmentObject(mainCoordinator)
-                    .environmentObject(mainCoordinator.galleryCoordinator)
-                    .environmentObject(viewBuilderService)
-                accountView
-                    .tabItem {
-                        Label(Localized.TabBar.profile.localized(), systemImage: "person.crop.circle.fill")
-                    }
-                    .tag(2)
-                    .environmentObject(viewBuilderService)
-                    .environmentObject(mainCoordinator)
-                    .environmentObject(mainCoordinator.accountCoordinator)
+            // Добавляем наложение баннера – он появляется в нижней части экрана
+            VStack {
+                Spacer()
+                NetworkStatusBanner()
             }
-            .background(
-                // Передаём все необходимые binding-переменные и замыкание для обработки retry
-                AlertViewGlobal(isShowAlert: $isShowAlert,
-                                alertTitle: $alertTitle,
-                                alertMessage: $alertMessage,
-                                alertType: $alertType)
-            )
-            .onFirstAppear {
-                print("onFirstAppear ContentView")
-                subscribeToGlobalAlerts()
-                subscribeToSwitchTabViewItem()
-            }
+            .edgesIgnoringSafeArea(.bottom)
         }
     }
     
@@ -154,6 +162,54 @@ struct LazyView<Content: View>: View {
     }
 }
 
+
+
+// MARK: - body before NetworkStatusBanner
+
+//    var body: some View {
+//        let _ = Self._printChanges()
+//        VStack {
+//
+//            TabView(selection:$selection) {
+//                homeView
+//                    .tabItem {
+//                        Label(Localized.TabBar.home.localized(), systemImage: "house.fill")
+//                    }
+//                    .tag(0)
+//                    .environmentObject(mainCoordinator)
+//                    .environmentObject(mainCoordinator.homeCoordinator)
+//                    .environmentObject(viewBuilderService)
+//                galleryView
+//                    .tabItem {
+//                        Label(Localized.TabBar.gallery.localized(), systemImage: "photo.on.rectangle.fill")
+//                    }
+//                    .tag(1)
+//                    .environmentObject(mainCoordinator)
+//                    .environmentObject(mainCoordinator.galleryCoordinator)
+//                    .environmentObject(viewBuilderService)
+//                accountView
+//                    .tabItem {
+//                        Label(Localized.TabBar.profile.localized(), systemImage: "person.crop.circle.fill")
+//                    }
+//                    .tag(2)
+//                    .environmentObject(viewBuilderService)
+//                    .environmentObject(mainCoordinator)
+//                    .environmentObject(mainCoordinator.accountCoordinator)
+//            }
+//            .background(
+//                // Передаём все необходимые binding-переменные и замыкание для обработки retry
+//                AlertViewGlobal(isShowAlert: $isShowAlert,
+//                                alertTitle: $alertTitle,
+//                                alertMessage: $alertMessage,
+//                                alertType: $alertType)
+//            )
+//            .onFirstAppear {
+//                print("onFirstAppear ContentView")
+//                subscribeToGlobalAlerts()
+//                subscribeToSwitchTabViewItem()
+//            }
+//        }
+//    }
 
 // MARK: - old implemintation with var isViewVisible: Bool
 

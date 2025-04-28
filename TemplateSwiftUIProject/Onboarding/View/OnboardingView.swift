@@ -5,66 +5,132 @@
 //  Created by Evgenyi on 12.10.24.
 //
 
-import SwiftUI
-
 
 import SwiftUI
+import Combine
 
 struct OnboardingView: View {
     @StateObject private var viewModel: OnboardingViewModel
-
+    
     init() {
         _viewModel = StateObject(wrappedValue: OnboardingViewModel(onboardingService: OnboardingService()))
     }
     
     var body: some View {
-        VStack {
-            // Основной контейнер страниц
-            TabView(selection: $viewModel.currentPage) {
-                ForEach(viewModel.pages.indices, id: \.self) { index in
-                    OnboardingPageView(page: viewModel.pages[index])
-                        .tag(index)
+        ZStack {
+            VStack {
+                // Основной контейнер страниц
+                TabView(selection: $viewModel.currentPage) {
+                    ForEach(viewModel.pages.indices, id: \.self) { index in
+                        OnboardingPageView(page: viewModel.pages[index])
+                            .tag(index)
+                    }
                 }
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+                .animation(.easeInOut, value: viewModel.currentPage)
+                
+                // Кнопки управления страницами
+                HStack {
+                    if viewModel.currentPage > 0 {
+                        Button(Localized.Onboarding.backButton.localized()) {
+                            viewModel.previousPage()
+                        }
+                        .padding(.leading)
+                    }
+                    Spacer()
+                    if viewModel.currentPage < viewModel.pages.count - 1 {
+                        Button(Localized.Onboarding.nextButton.localized()) {
+                            viewModel.nextPage()
+                        }
+                        .padding(.trailing)
+                    } else {
+                        Button(Localized.Onboarding.getStartedButton.localized()) {
+                            viewModel.completeOnboarding()
+                            // Здесь можно выполнить навигацию к основному экрану
+                        }
+                        .padding(.trailing)
+                    }
+                }
+                .padding()
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-            .animation(.easeInOut, value: viewModel.currentPage)
+            .background(Color.orange)
+            .onAppear {
+                // Устанавливаем блокировку только на портрет
+                // AppDelegate.orientationLock = .portrait
+            }
+            .onDisappear {
+                // При исчезновении возвращаем стандартную ориентацию для остальных экранов
+                // AppDelegate.orientationLock = .all
+            }
             
-            // Кнопки управления страницами
-            HStack {
-                if viewModel.currentPage > 0 {
-                    Button(Localized.Onboarding.backButton.localized()) {
-                        viewModel.previousPage()
-                    }
-                    .padding(.leading)
-                }
+            // Наложение NetworkStatusBanner в нижней части экрана
+            VStack {
                 Spacer()
-                if viewModel.currentPage < viewModel.pages.count - 1 {
-                    Button(Localized.Onboarding.nextButton.localized()) {
-                        viewModel.nextPage()
-                    }
-                    .padding(.trailing)
-                } else {
-                    Button(Localized.Onboarding.getStartedButton.localized()) {
-                        viewModel.completeOnboarding()
-                        // Здесь можно выполнить навигацию к основному экрану
-                    }
-                    .padding(.trailing)
-                }
+                NetworkStatusBanner()
             }
-            .padding()
+            .edgesIgnoringSafeArea(.bottom)
         }
-        .background(Color.orange)
-        .onAppear {
-            // Устанавливаем блокировку только на портрет
-//            AppDelegate.orientationLock = .portrait
-        }
-        .onDisappear {
-            // При исчезновении возвращаем стандартную ориентацию для остальных экранов
-//            AppDelegate.orientationLock = .all
-        }
-//        .edgesIgnoringSafeArea(.all)
     }
 }
+
+
+// MARK: - before networkMonitor
+ 
+//struct OnboardingView: View {
+//    @StateObject private var viewModel: OnboardingViewModel
+//
+//    init() {
+//        _viewModel = StateObject(wrappedValue: OnboardingViewModel(onboardingService: OnboardingService()))
+//    }
+//    
+//    var body: some View {
+//        VStack {
+//            // Основной контейнер страниц
+//            TabView(selection: $viewModel.currentPage) {
+//                ForEach(viewModel.pages.indices, id: \.self) { index in
+//                    OnboardingPageView(page: viewModel.pages[index])
+//                        .tag(index)
+//                }
+//            }
+//            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+//            .animation(.easeInOut, value: viewModel.currentPage)
+//            
+//            // Кнопки управления страницами
+//            HStack {
+//                if viewModel.currentPage > 0 {
+//                    Button(Localized.Onboarding.backButton.localized()) {
+//                        viewModel.previousPage()
+//                    }
+//                    .padding(.leading)
+//                }
+//                Spacer()
+//                if viewModel.currentPage < viewModel.pages.count - 1 {
+//                    Button(Localized.Onboarding.nextButton.localized()) {
+//                        viewModel.nextPage()
+//                    }
+//                    .padding(.trailing)
+//                } else {
+//                    Button(Localized.Onboarding.getStartedButton.localized()) {
+//                        viewModel.completeOnboarding()
+//                        // Здесь можно выполнить навигацию к основному экрану
+//                    }
+//                    .padding(.trailing)
+//                }
+//            }
+//            .padding()
+//        }
+//        .background(Color.orange)
+//        .onAppear {
+//            // Устанавливаем блокировку только на портрет
+////            AppDelegate.orientationLock = .portrait
+//        }
+//        .onDisappear {
+//            // При исчезновении возвращаем стандартную ориентацию для остальных экранов
+////            AppDelegate.orientationLock = .all
+//        }
+////        .edgesIgnoringSafeArea(.all)
+//    }
+//}
 
 
 
