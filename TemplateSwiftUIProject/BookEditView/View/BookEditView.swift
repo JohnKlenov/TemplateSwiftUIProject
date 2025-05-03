@@ -114,6 +114,12 @@ struct BookEditView: View {
                     }
                     Button(Localized.BookEditView.cancel.localized(), role: .cancel) {}
                 }
+//                // Добавляем наложение баннера – он появляется в нижней части экрана
+//                VStack {
+//                    Spacer()
+//                    NetworkStatusBanner()
+//                }
+//                .edgesIgnoringSafeArea(.bottom)
             }
         }
         .onAppear {

@@ -62,13 +62,6 @@ struct OnboardingView: View {
                 // При исчезновении возвращаем стандартную ориентацию для остальных экранов
                 // AppDelegate.orientationLock = .all
             }
-            
-            // Наложение NetworkStatusBanner в нижней части экрана
-            VStack {
-                Spacer()
-                NetworkStatusBanner()
-            }
-            .edgesIgnoringSafeArea(.bottom)
         }
     }
 }

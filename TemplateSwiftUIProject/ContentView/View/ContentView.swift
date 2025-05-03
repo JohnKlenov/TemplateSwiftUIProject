@@ -116,13 +116,6 @@ struct ContentView: View {
                     subscribeToSwitchTabViewItem()
                 }
             }
-            
-            // Добавляем наложение баннера – он появляется в нижней части экрана
-            VStack {
-                Spacer()
-                NetworkStatusBanner()
-            }
-            .edgesIgnoringSafeArea(.bottom)
         }
     }
     

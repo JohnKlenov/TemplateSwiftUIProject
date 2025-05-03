@@ -54,17 +54,13 @@
 /// в struct нам не нужно передавать зависимость через конструктор просто используем @EnvironmentObject var managerCRUDS: CRUDSManager а в классах нужно передавать через конструктор - HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
 
 
-
 import SwiftUI
-import Combine
 import UIKit
 
 @main
 struct TemplateSwiftUIProjectApp: App {
-    
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    ///использование @AppStorage позволяет привязать переменную(tiedOnboarding) к UserDefaults, а SwiftUI автоматически отслеживает и реагирует на изменения этой переменной, что приводит к обновлению пользовательского интерфейса без необходимости явных вызовов для переключения представлений.
-    @AppStorage("hasSeenOnboarding") var tiedOnboarding:Bool = false
+    @AppStorage("hasSeenOnboarding") var tiedOnboarding: Bool = false
     
     @StateObject private var localizationService = LocalizationService.shared
     @StateObject private var retryHandler = GlobalRetryHandler()
@@ -73,8 +69,6 @@ struct TemplateSwiftUIProjectApp: App {
     @Environment(\.scenePhase) private var scenePhase
     
     init() {
-        
-        
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
         self.setupCache()
@@ -82,37 +76,144 @@ struct TemplateSwiftUIProjectApp: App {
     }
     
     var body: some Scene {
-        
         WindowGroup {
             Group {
                 if tiedOnboarding {
                     ContentView()
                         .environmentObject(retryHandler)
                         .environmentObject(localizationService)
-                        .environmentObject(networkMonitor)
                 } else {
                     OnboardingView()
-                        .environmentObject(networkMonitor)
                 }
             }
-            .environment(\.sizeCategory, .medium) // Общий для всей группы
-        }
-        .onChange(of: scenePhase) { newPhase, _ in
-            switch newPhase {
-            case .active:
-                print("App became active")
-            case .inactive:
-                print("App became inactive")
-            case .background:
-                print("App entered background")
-            @unknown default:
-                print("Unknown scene phase")
+            .environment(\.sizeCategory, .medium)
+            .overlay {
+                VStack {
+                    Spacer()
+                    NetworkStatusBanner()
+                        .environmentObject(networkMonitor)
+                }
+                .edgesIgnoringSafeArea(.bottom)
             }
         }
-        
+        /// first scenePhase: TemplateSwiftUIProjectApp - oldPhase: inactive, newPhase: active)
+        /// change  scenePhase: TemplateSwiftUIProjectApp - oldPhase: active, newPhase: inactive)
+        /// поэтому если мы передаем в handleScenePhaseChange(newPhase) при первом старте мы имеем networkMonitor.stopMonitoring()
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
+            handleScenePhaseChange(oldPhase)
+        }
     }
     
     private func setupCache() {
         ImageCacheManager.shared.deleteOldFiles()
     }
+    
+    private func handleScenePhaseChange(_ oldPhase: ScenePhase) {
+        #if targetEnvironment(simulator)
+        switch oldPhase {
+        case .active:
+            networkMonitor.stopMonitoring()
+        case .inactive, .background:
+            networkMonitor.startMonitoring()
+        @unknown default:
+            break
+        }
+        #else
+        switch oldPhase {
+        case .active:
+            networkMonitor.startMonitoring()
+        case .inactive, .background:
+            networkMonitor.stopMonitoring()
+        @unknown default:
+            break
+        }
+        #endif
+    }
 }
+
+//import SwiftUI
+//import Combine
+//import UIKit
+//
+//@main
+//struct TemplateSwiftUIProjectApp: App {
+//    
+//    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+//    ///использование @AppStorage позволяет привязать переменную(tiedOnboarding) к UserDefaults, а SwiftUI автоматически отслеживает и реагирует на изменения этой переменной, что приводит к обновлению пользовательского интерфейса без необходимости явных вызовов для переключения представлений.
+//    @AppStorage("hasSeenOnboarding") var tiedOnboarding:Bool = false
+//    
+//    @StateObject private var localizationService = LocalizationService.shared
+//    @StateObject private var retryHandler = GlobalRetryHandler()
+//    @StateObject private var networkMonitor = NetworkMonitor()
+//    
+//    @Environment(\.scenePhase) private var scenePhase
+//    
+//    init() {
+//        
+//        
+//#if DEBUG
+//        UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
+//        self.setupCache()
+//#endif
+//    }
+//    
+//    var body: some Scene {
+//        
+//        WindowGroup {
+//                Group {
+//                    if tiedOnboarding {
+//                        ContentView()
+//                            .environmentObject(retryHandler)
+//                            .environmentObject(localizationService)
+//                        //                        .environmentObject(networkMonitor)
+//                    } else {
+//                        OnboardingView()
+//                    }
+//                }
+//                .environment(\.sizeCategory, .medium) // Общий для всей группы
+//                .overlay {
+//                    // Глобальный оверлей с NetworkStatusBanner, который всегда виден внизу экрана.
+//                    VStack {
+//                        Spacer()
+//                        NetworkStatusBanner()
+//                            .environmentObject(networkMonitor)
+//                    }
+//                    .edgesIgnoringSafeArea(.bottom)
+//                }
+//        }
+//        .onChange(of: scenePhase) { newPhase, _ in
+//            #if targetEnvironment(simulator)
+//            // Симулятор возвращает значения scenePhase в инвертированном порядке
+//            switch newPhase {
+//            case .active:
+//                print("Simulator: App became active (инверсия) — останавливаем мониторинг")
+//                networkMonitor.stopMonitoring()
+//            case .inactive, .background:
+//                print("Simulator: App is not active (инверсия) — запускаем мониторинг")
+//                networkMonitor.startMonitoring()
+//            @unknown default:
+//                print("Simulator: Unknown scene phase")
+//            }
+//            #else
+//            // Реальное устройство: стандартное поведение
+//            switch newPhase {
+//            case .active:
+//                print("App became active")
+//                networkMonitor.startMonitoring()
+//            case .inactive, .background:
+//                print("App is not active")
+//                networkMonitor.stopMonitoring()
+//            @unknown default:
+//                print("Unknown scene phase")
+//            }
+//            #endif
+//        }
+//
+//        
+//    }
+//    
+//    private func setupCache() {
+//        ImageCacheManager.shared.deleteOldFiles()
+//    }
+//}
