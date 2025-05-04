@@ -16,9 +16,23 @@
 ///Такой подход позволяет обойти некорректное поведение симулятора и добиться ожидаемого обновления isConnected, когда вы тестируете на устройстве или в симуляторе.
 
 
-// стратегия использования в life cicle app and in the hierarchy views
+// сущности TemplateSwiftUIProjectApp + NetworkStatusBanner + NetworkMonitor
+///выполняют слаженную работу кода по управлению состояния подключения к сети (то есть важно что бы .onChange(of: scenePhase) в каждой из сущностей выполнялись последовательно - он так и выполняется а так же есть приоритет выполнения корневые view/дочерние view)
+///первый старт и отсутствие wifi : TemplateSwiftUIProjectApp - oldPhase: inactive, newPhase: active) - startMonitoring() - (isConnected - false + isSimulating - true) - NetworkStatusBanner - oldPhase: inactive, newPhase: active) - showBannerIfNeeded() - NetworkStatusBanner - isOldConnected: true, isNewConnected: false)
+///если мы изменим порядок модификаторов в NetworkStatusBanner .onChange(of: networkMonitor.isConnected) - .onChange(of: scenePhase) то их вызов будет последовательный сверху вниз!
+/// сначало вызываются модификаторы TemplateSwiftUIProjectApp а затем уже модификаторы его дочерний NetworkStatusBanner
+/// если мы после первого старта выйдим из нашего app в стороннее app то сначало отработает .onChange для TemplateSwiftUIProjectApp (+отработают методы NetworkMonitor) а затем для NetworkStatusBanner - это то что нам нужно для слаженнной и правельной работы нашего кода!
+/// важный момент : когда мы при первом старте isConnected - false выходим из нашего app в другой app а затем снова заходим
+/// print стек в консоли: TemplateSwiftUIProjectApp - oldPhase: inactive, newPhase: active) + startMonitoring() + NetworkStatusBanner - oldPhase: inactive, newPhase: active)(если бы тут newPhase == .active && !networkMonitor.isConnected .. networkMonitor.isConnected не был бы false с прошлого раза то алерт бы мы не увидели? ) + showBannerIfNeeded() +  (isConnected - false isSimulating - true)
+/// так как в  showBannerIfNeeded() у нас стоит guard showBanner == false else { return } то при многократном вызове showBannerIfNeeded() пока showBanner == false мы не вызовим анимации до тех пор пока текущая не закончит свою работу и не изменит showBanner с true на false
 
-/// 
+// стратегия использования в life cicle app and in the hierarchy views
+///NetworkMonitor мониторит есть ли подключение к сети!
+///если с самого первого старта ее нет нам на onboarding будет показан Alert. / затем при пеерходе на HomeView мы повторно его уже не увидим.
+///если с первого старта сеть была то затем при ее исчезнавении в App мы увидем Alert на любой иерархии View кроме модальных окон(на GitHub так же) и больше не увидим!
+///если мы выйдем из нашего App в другое App а затем снова вернемся в нашу App то при отсутствии сети снова сработает Alert.
+///можно в ContentView().environmentObject(networkMonitor) и к примеру как на GitHub при переходе на определенную View в onApeare { networkMonitor.stopMonitoring() + networkMonitor.startMonitoring() } что бы инициировать новый показ Alert для пользователя.
+///можно подумать о том что бы при первом срабатывании isConnected = false включался таймер для повторного инициирования Alert для пользователя. / можно добавлять NetworkStatusBanner().environmentObject(networkMonitor) в модальные View что бы отображать и там Alert
 
 // MARK: - code for simulator
 
@@ -29,7 +43,6 @@ final class NetworkMonitor: ObservableObject {
     @Published var isConnected: Bool = true {
         didSet {
             print("isConnected - \(isConnected)")
-//            print("Network status changed: \(isConnected ? "Connected" : "Disconnected")")
         }
     }
     
@@ -37,6 +50,7 @@ final class NetworkMonitor: ObservableObject {
     private let queue = DispatchQueue.global(qos: .background)
     
     #if targetEnvironment(simulator)
+    /// isSimulating проперти только для работы на симуляторе(убираем инвертное поведение)
     private var isSimulating: Bool = false {
         didSet {
             print("isSimulating - \(isSimulating)")
@@ -86,119 +100,7 @@ final class NetworkMonitor: ObservableObject {
         stopMonitoring()
     }
 }
-//import Network
-//import SwiftUI
-//
-//final class NetworkMonitor: ObservableObject {
-//    /// Публикуемое значение: true – подключение активно, false – отсутствует.
-//    @Published var isConnected: Bool = true {
-//        didSet {
-//            print("isConnected - \(isConnected)")
-//        }
-//    }
-//
-//    // Храним монитор как опциональный, чтобы можно было его создавать и уничтожать по запросу
-//    private var monitor: NWPathMonitor?
-//    private let queue = DispatchQueue.global(qos: .background)
-//    
-//    #if targetEnvironment(simulator)
-//    private var hasStatus: Bool = false {
-//        didSet {
-//            print("hasStatus - \(hasStatus)")
-//        }
-//    }
-//    #endif
-//
-//    init() {
-////        startMonitoring()
-//    }
-//    
-//    /// Запускает мониторинг подключения.
-//    func startMonitoring() {
-//        // Если монитор уже запущен — не создаём новый
-//        if monitor != nil { return }
-//        
-//        monitor = NWPathMonitor()
-//        monitor?.pathUpdateHandler = { [weak self] path in
-//            // Обновляем состояние на главном потоке, чтобы избежать UI-ошибок
-//            DispatchQueue.main.async {
-//                guard let self = self else { return }
-//                #if targetEnvironment(simulator)
-//                if !self.hasStatus {
-//                    self.isConnected = (path.status == .satisfied)
-//                    self.hasStatus = true
-//                } else {
-//                    // Для симулятора переключаем значение, чтобы имитировать изменение статуса
-//                    self.isConnected.toggle()
-//                }
-//                #else
-//                self.isConnected = (path.status == .satisfied)
-//                #endif
-//            }
-//        }
-//        monitor?.start(queue: queue)
-//    }
-//    
-//    /// Останавливает мониторинг подключения.
-//    func stopMonitoring() {
-//        monitor?.cancel()
-//        monitor = nil
-//        #if targetEnvironment(simulator)
-//        // Сбрасываем флаг, чтобы при повторном запуске симуляция работала корректно
-//        hasStatus = false
-//        #endif
-//    }
-//    
-//    deinit {
-//        stopMonitoring()
-//    }
-//}
 
-
-//import Network
-//import SwiftUI
-//
-//final class NetworkMonitor: ObservableObject {
-//    /// Публикуемое значение: true – подключение активно, false – отсутствует.
-//    @Published var isConnected: Bool = true {
-//        didSet {
-//            print("isConnected - \(isConnected)")
-//        }
-//    }
-//
-//    private let monitor: NWPathMonitor
-//    private let queue = DispatchQueue.global(qos: .background)
-//    
-//    #if targetEnvironment(simulator)
-//    private var hasStatus: Bool = false
-//    #endif
-//
-//    init() {
-//        monitor = NWPathMonitor()
-//        monitor.pathUpdateHandler = { [weak self] path in
-//            // Обновляем состояние на главном потоке, чтобы избежать UI-ошибок
-//            DispatchQueue.main.async {
-//                guard let self = self else { return }
-//                #if targetEnvironment(simulator)
-//                if !self.hasStatus {
-//                    self.isConnected = (path.status == .satisfied)
-//                    self.hasStatus = true
-//                } else {
-//                    // Если уже получили первое значение, переключаем состояние для имитации
-//                    self.isConnected.toggle()
-//                }
-//                #else
-//                self.isConnected = (path.status == .satisfied)
-//                #endif
-//            }
-//        }
-//        monitor.start(queue: queue)
-//    }
-//    
-//    deinit {
-//        monitor.cancel()
-//    }
-//}
 
 
 // MARK: - code for real device
