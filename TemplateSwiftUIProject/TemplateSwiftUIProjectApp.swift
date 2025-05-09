@@ -94,6 +94,7 @@ struct TemplateSwiftUIProjectApp: App {
                         Spacer()
                         NetworkStatusBanner()
                             .environmentObject(networkMonitor)
+                            .environmentObject(localizationService)
                         /// dynamic .padding
                         ///geometry.safeAreaInsets.bottom: динамически рассчитывает безопасный отступ внизу (например, на iPhone с Face ID это 34 pt от самого низа экрана до конца нижней safeArea)
                         ///iPhone с кнопкой "Домой" (например, iPhone SE, 8) → safeAreaInsets.bottom = 0.

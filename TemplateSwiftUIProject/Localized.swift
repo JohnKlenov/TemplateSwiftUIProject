@@ -22,6 +22,12 @@ enum Localized {
         static let getStartedDescription = "onboarding.page_get_started.description"
     }
     
+    // MARK: - NetworkStatusBanner
+    enum NetworkStatusBanner {
+        static let noInternetConnection = "network_status_banner.no_internet_connection"
+    }
+
+    
     // MARK: - Tab Bar
     enum TabBar {
         static let home = "tab.home"

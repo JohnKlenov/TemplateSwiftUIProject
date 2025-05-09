@@ -6,6 +6,10 @@
   
 */
 
+/* NetworkStatusBanner */
+"network_status_banner.no_internet_connection" = "Sin conexión a Internet";
+
+
 /* Tab Bar */
 "tab.home" = "Inicio";
 "tab.gallery" = "Galería";

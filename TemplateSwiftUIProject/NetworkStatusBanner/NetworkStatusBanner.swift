@@ -12,14 +12,15 @@ import UIKit
 struct NetworkStatusBanner: View {
     @EnvironmentObject var networkMonitor: NetworkMonitor
     @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject var localization: LocalizationService
     @State private var showBanner: Bool = false
     
-    private let bannerDuration: TimeInterval = 15.0
+    private let bannerDuration: TimeInterval = 10.0
     
     var body: some View {
         Group {
             if showBanner {
-                Text("Нет соединения с Интернетом")
+                Text(Localized.NetworkStatusBanner.noInternetConnection.localized())
                     .padding()
                     .frame(maxWidth: .infinity)
                     .background(Color.red)
