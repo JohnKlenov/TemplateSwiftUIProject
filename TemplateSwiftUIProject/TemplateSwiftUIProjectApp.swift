@@ -89,12 +89,19 @@ struct TemplateSwiftUIProjectApp: App {
             }
             .environment(\.sizeCategory, .medium)
             .overlay {
-                VStack {
-                    Spacer()
-                    NetworkStatusBanner()
-                        .environmentObject(networkMonitor)
+                GeometryReader { geometry in
+                    VStack {
+                        Spacer()
+                        NetworkStatusBanner()
+                            .environmentObject(networkMonitor)
+                        /// dynamic .padding
+                        ///geometry.safeAreaInsets.bottom: динамически рассчитывает безопасный отступ внизу (например, на iPhone с Face ID это 34 pt от самого низа экрана до конца нижней safeArea)
+                        ///iPhone с кнопкой "Домой" (например, iPhone SE, 8) → safeAreaInsets.bottom = 0.
+                        ///Отсчёт высоты TabBar (49 pt) начинается с самой нижней точки экрана, а не от safeAreaInsets.bottom.
+                        ///поэтому если safeAreaInsets.bottom == 0 то высоту 49 + 5 иначе 34 + 20 / можно сделать 10/15 пунктов вместо 5 для надежнности (59 : 25, 64:30)
+                            .padding(.bottom, geometry.safeAreaInsets.bottom == 0 ? 64 : geometry.safeAreaInsets.bottom + 30)
+                    }
                 }
-                .edgesIgnoringSafeArea(.bottom)
             }
         }
         // так как при работе с симулятором у нас инвертное поведение мы в handleScenePhaseChange(oldPhase) передаем oldPhase
@@ -135,3 +142,15 @@ struct TemplateSwiftUIProjectApp: App {
     }
 }
 
+//                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+
+//            .overlay {
+//                VStack {
+//                    Spacer()
+//                    NetworkStatusBanner()
+//                        .environmentObject(networkMonitor)
+//                        .padding(.bottom, 54)  // 49 (типичная высота TabBar) + 5 пунктов
+//
+//                }
+//                .edgesIgnoringSafeArea(.bottom)
+//            }

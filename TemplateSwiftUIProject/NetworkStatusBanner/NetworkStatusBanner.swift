@@ -7,13 +7,14 @@
 
 
 import SwiftUI
+import UIKit
 
 struct NetworkStatusBanner: View {
     @EnvironmentObject var networkMonitor: NetworkMonitor
     @Environment(\.scenePhase) private var scenePhase
     @State private var showBanner: Bool = false
     
-    private let bannerDuration: TimeInterval = 8.0
+    private let bannerDuration: TimeInterval = 15.0
     
     var body: some View {
         Group {
@@ -26,7 +27,6 @@ struct NetworkStatusBanner: View {
                     .cornerRadius(8)
                     .shadow(radius: 4)
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
                     .transition(.move(edge: .bottom))
             }
         }
@@ -55,6 +55,13 @@ struct NetworkStatusBanner: View {
     private func showBannerIfNeeded() {
         guard showBanner == false else { return }
         print("showBannerIfNeeded() сработает дважды если при первом старте isConnected == false")
+        /// Создаем haptic feedback -  Генерация тактильного сигнала при потере соединения.
+        /// Можно использовать UINotificationFeedbackGenerator с типом .warning, .success, .error
+        /// для тактильной вибрации (haptic feedback) можно использовать классы UIImpactFeedbackGenerator, UINotificationFeedbackGenerator, UISelectionFeedbackGenerator
+        let notificationGenerator = UINotificationFeedbackGenerator()
+        notificationGenerator.prepare()
+        notificationGenerator.notificationOccurred(.warning)
+
         withAnimation { showBanner = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + bannerDuration) {
             withAnimation { showBanner = false }
