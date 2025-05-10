@@ -26,6 +26,9 @@
 "home.contentErrorView.title" = "Ups :(";
 "home.contentErrorView.description" = "Try again! Something went wrong!";
 "home.contentErrorView.refresh_button" = "Refresh";
+"empty_state_view.title" = "Empty. Add new records!";
+
+
 
 /* BookDetailsView */
 "book_details.title" = "Title";

@@ -25,6 +25,8 @@
 "home.contentErrorView.title" = "Упс :(";
 "home.contentErrorView.description" = "Попробуйте еще раз! Что-то пошло не так!";
 "home.contentErrorView.refresh_button" = "Обновить";
+"empty_state_view.title" = "Пусто. Добавьте новые записи!";
+
 
 /* BookDetailsView */
 "book_details.title" = "Название";

@@ -25,6 +25,8 @@
 "home.contentErrorView.title" = "Ups :(";
 "home.contentErrorView.description" = "¡Inténtalo de nuevo! ¡Algo salió mal!";
 "home.contentErrorView.refresh_button" = "Actualizar";
+"empty_state_view.title" = "Vacío. ¡Agrega nuevos registros!";
+
 
 /* BookDetailsView */
 "book_details.title" = "Título";

@@ -111,7 +111,7 @@ struct TemplateSwiftUIProjectApp: App {
         /// change  scenePhase: TemplateSwiftUIProjectApp - oldPhase: active, newPhase: inactive)
         /// поэтому если мы передаем в handleScenePhaseChange(newPhase) при первом старте мы имеем networkMonitor.stopMonitoring()
         .onChange(of: scenePhase) { oldPhase, newPhase in
-            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
+//            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
             handleScenePhaseChange(oldPhase)
         }
     }

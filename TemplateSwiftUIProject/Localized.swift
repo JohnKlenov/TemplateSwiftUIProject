@@ -52,6 +52,10 @@ enum Localized {
             static let description = "home.contentErrorView.description"
             static let refreshButton = "home.contentErrorView.refresh_button"
         }
+        
+        enum EmptyStateView {
+            static let title = "empty_state_view.title"
+        }
     }
     
     // BookDetailsView

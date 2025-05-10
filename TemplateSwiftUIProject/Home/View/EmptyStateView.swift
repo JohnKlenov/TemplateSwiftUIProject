@@ -10,8 +10,8 @@ import SwiftUI
 struct EmptyStateView: View {
     // Опционально можно сделать параметризуемым,
     // например, передавать название изображения и текст.
+    @EnvironmentObject var localization: LocalizationService
     var imageName: String = "doc.plaintext"
-    var title: String = "Пусто. Добавьте новые записи!"
 
     var body: some View {
         VStack(alignment: .center, spacing: 16) {
@@ -20,7 +20,7 @@ struct EmptyStateView: View {
                 .scaledToFit()
                 .frame(width: 80, height: 80)
                 .foregroundColor(.gray)
-            Text(title)
+            Text(Localized.Home.EmptyStateView.title.localized())
                 .font(.headline)
                 .foregroundColor(.gray)
         }

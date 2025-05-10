@@ -50,22 +50,15 @@ import Network
 import SwiftUI
 
 final class NetworkMonitor: ObservableObject {
-    @Published var isConnected: Bool = true {
-        didSet {
-            print("isConnected - \(isConnected)")
-        }
-    }
+    @Published var isConnected: Bool = true
     
     private var monitor: NWPathMonitor?
     private let queue = DispatchQueue.global(qos: .background)
     
     #if targetEnvironment(simulator)
     /// isSimulating проперти только для работы на симуляторе(убираем инвертное поведение)
-    private var isSimulating: Bool = false {
-        didSet {
-            print("isSimulating - \(isSimulating)")
-        }
-    }
+    private var isSimulating: Bool = false
+    
     #endif
     
     init() {
@@ -73,7 +66,6 @@ final class NetworkMonitor: ObservableObject {
     }
     
     func startMonitoring() {
-        print("startMonitoring()")
         guard monitor == nil else { return }
         
         monitor = NWPathMonitor()
@@ -98,7 +90,6 @@ final class NetworkMonitor: ObservableObject {
     }
     
     func stopMonitoring() {
-        print("stopMonitoring()")
         monitor?.cancel()
         monitor = nil
         #if targetEnvironment(simulator)
