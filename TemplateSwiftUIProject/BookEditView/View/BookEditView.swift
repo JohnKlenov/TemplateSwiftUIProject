@@ -149,7 +149,7 @@ struct BookEditView: View {
                 print("Did tap Image")
             }, label: {
                 Image(systemName: "swift")
-                    .foregroundStyle(.pink)
+                    .foregroundStyle(AppColors.pink)
                     .frame(width: 30, height: 30)
                     .padding(.leading, -10)
             })

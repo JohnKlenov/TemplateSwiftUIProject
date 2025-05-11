@@ -15,18 +15,18 @@ struct NavigationCellView: View {
     var body: some View {
         HStack {
             Image(systemName: iconName(for: title))
-                .foregroundColor(.blue) // можно настроить цвет под стиль приложения
+                .foregroundColor(AppColors.blue) // можно настроить цвет под стиль приложения
                 .frame(width: 24, height: 24)
             
             Text(title)
-                .foregroundColor(.primary)
+                .foregroundColor(AppColors.primary)
                 .padding(.leading, 8)
             
             Spacer()
             
             // Стандартная стрелочка, сигнализирующая о переходе
             Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+                .foregroundColor(AppColors.gray)
                 .imageScale(.small)
         }
         .padding(.vertical, 0)

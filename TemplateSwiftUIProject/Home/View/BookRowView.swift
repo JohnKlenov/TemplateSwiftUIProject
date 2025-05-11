@@ -20,7 +20,7 @@ struct BookRowView: View {
         HStack(spacing: 10) {
             WebImageView(
                 url: URL(string: book.urlImage),
-                placeholderColor: AppColors.secondaryBackground,
+                placeholderColor: AppColors.secondarySystemBackground,
                 displayStyle: .fixedFrame(width: 50, height: 50)
             )
             VStack(alignment: .leading) {
@@ -38,7 +38,7 @@ struct BookRowView: View {
             Spacer() // Добавление Spacer для заполнения оставшегося пространства
         }
         .frame(minHeight: 60) // Минимальная высота
-        .background(Color.clear) // Прозрачный фон для расширения области нажатия
+        .background(AppColors.clear) // Прозрачный фон для расширения области нажатия
         .contentShape(Rectangle()) // Задает форму области для захвата событий жестов
         .onTapGesture {
             homeCoordinator.navigateTo(page: .bookDetails(book))

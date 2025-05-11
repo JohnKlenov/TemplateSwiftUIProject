@@ -18,10 +18,10 @@ struct MallCell: View {
         ZStack(alignment: .topLeading) { // Устанавливаем выравнивание ZStack
             WebImageView(
                 url: URL(string: item.urlImage),
-                placeholderColor: AppColors.secondaryBackground,
+                placeholderColor: AppColors.secondarySystemBackground,
                 displayStyle: .fixedFrame(width: width, height: height)
             )
-            Color.black.opacity(0.6)
+            AppColors.black.opacity(0.6)
                 .frame(width: width, height: height)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10) // Формируем границы
@@ -36,7 +36,7 @@ struct MallCell: View {
                 )
             Text(item.title.value())
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.primary)
                 .multilineTextAlignment(.leading) // Текст остаётся выровненным по левому краю
                 .padding(EdgeInsets(top: 10, leading: 10, bottom: 0, trailing: 0)) // Отступы сверху и слева
         }

@@ -19,7 +19,7 @@ struct ProductCell: View {
         VStack(alignment: .center, spacing: 4) {
                 WebImageView(
                     url: URL(string: item.urlImage),
-                    placeholderColor: AppColors.secondaryBackground,
+                    placeholderColor: AppColors.secondarySystemBackground,
                     displayStyle: .aspectRatio(2/3, contentMode: .fit)
                 )
             ///Да, если вы добавите .frame(height: 200) к WebImageView с модификатором .aspectRatio(2/3, contentMode: .fit), то ширина будет автоматически подбираться так, чтобы соблюдалось соотношение 2:3 (то есть около 133 pt для высоты 200 pt), при условии отсутствия других ограничений по ширине.
@@ -55,7 +55,7 @@ struct ProductCell: View {
         .padding([.top, .bottom], 8)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
+                .fill(AppColors.secondarySystemBackground)
         )
 //        .background(GeometryReader { geometry in
 //            Color.clear

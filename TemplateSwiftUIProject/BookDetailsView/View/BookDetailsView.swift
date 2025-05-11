@@ -28,7 +28,8 @@ struct BookDetailsView: View {
     
     private func content(book:BookCloud) -> some View {
         ZStack {
-            Color(UIColor.systemGroupedBackground)
+//            Color(UIColor.systemGroupedBackground)
+            AppColors.systemGroupedBackground
                 .ignoresSafeArea()
             
             ScrollView {
@@ -36,35 +37,35 @@ struct BookDetailsView: View {
                     // Title Section
                     Text(Localized.BookDetailsView.title.localized())
                         .font(.headline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(AppColors.secondary)
                     
                     Text(book.title)
                         .font(.system(.title, design: .rounded, weight: .bold))
-                        .foregroundColor(.primary)
+                        .foregroundColor(AppColors.primary)
                     
                     // Description Section
                     Text(Localized.BookDetailsView.description.localized())
                         .font(.headline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(AppColors.secondary)
                     
                     Text(book.description)
                         .font(.system(.body, design: .rounded, weight: .regular))
-                        .foregroundColor(.primary)
+                        .foregroundColor(AppColors.primary)
                         .multilineTextAlignment(.leading)
                     
                     // Author Section
                     Text(Localized.BookDetailsView.author.localized())
                         .font(.headline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(AppColors.secondary)
                     
                     Text(book.author)
                         .font(.system(.body, design: .rounded, weight: .regular))
-                        .foregroundColor(.primary)
+                        .foregroundColor(AppColors.primary)
                     
                     // Image Section
                     WebImageView(
                         url: URL(string: book.urlImage),
-                        placeholderColor: AppColors.secondaryBackground,
+                        placeholderColor: AppColors.secondarySystemBackground,
                         displayStyle: .fixedFrame(width: 300, height: 300)
                     )
                         .aspectRatio(contentMode: .fill)
@@ -82,7 +83,7 @@ struct BookDetailsView: View {
                     .padding(.top, 16)
                 }
                 .padding()
-                .background(Color.clear) // Удален белый фон карточки
+                .background(AppColors.clear) // Удален белый фон карточки
             }
         }
         .navigationBarTitleDisplayMode(.inline)

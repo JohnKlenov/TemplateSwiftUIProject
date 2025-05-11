@@ -53,7 +53,7 @@ struct OnboardingView: View {
                 }
                 .padding()
             }
-            .background(Color.orange)
+            .background(AppColors.orange)
             .onAppear {
                 // Устанавливаем блокировку только на портрет
                 // AppDelegate.orientationLock = .portrait

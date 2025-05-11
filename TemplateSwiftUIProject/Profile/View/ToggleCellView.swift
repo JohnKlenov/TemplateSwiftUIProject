@@ -15,11 +15,11 @@ struct ToggleCellView: View {
     var body: some View {
         HStack {
             Image(systemName: iconName(for: title))
-                .foregroundColor(.blue)
+                .foregroundColor(AppColors.blue)
                 .frame(width: 24, height: 24)
             
             Text(title)
-                .foregroundColor(.primary)
+                .foregroundColor(AppColors.primary)
                 .padding(.leading, 8)
             
             Spacer()

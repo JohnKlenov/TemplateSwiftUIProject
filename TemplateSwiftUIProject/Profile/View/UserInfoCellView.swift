@@ -27,14 +27,14 @@ struct UserInfoCellView: View {
 
                 Text("example@example.com")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(AppColors.gray)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
             Spacer()
             // Chevron справа
             Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+                .foregroundColor(AppColors.gray)
                 .imageScale(.small)
         }
         .padding(.vertical, 8)

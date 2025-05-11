@@ -19,10 +19,10 @@ struct EmptyStateView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 80, height: 80)
-                .foregroundColor(.gray)
+                .foregroundColor(AppColors.gray)
             Text(Localized.Home.EmptyStateView.title.localized())
                 .font(.headline)
-                .foregroundColor(.gray)
+                .foregroundColor(AppColors.gray)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.background)
