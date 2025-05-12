@@ -17,18 +17,14 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="TemplateProject" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HRl-OT-05P">
-                                <rect key="frame" x="82.333333333333329" y="408" width="228.66666666666669" height="36"/>
+                                <rect key="frame" x="82" y="408" width="229" height="36"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="30"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="books.vertical.circle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="wid-cv-1Ek">
-                                <rect key="frame" x="121.66666666666669" y="239" width="150" height="148.66666666666669"/>
+                                <rect key="frame" x="131" y="258" width="131" height="129.66666666666669"/>
                                 <color key="tintColor" systemColor="labelColor"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="150" id="bis-ex-zxX"/>
-                                    <constraint firstAttribute="width" constant="150" id="z9a-Nt-DQW"/>
-                                </constraints>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
@@ -36,6 +32,8 @@
                         <constraints>
                             <constraint firstItem="wid-cv-1Ek" firstAttribute="centerX" secondItem="HRl-OT-05P" secondAttribute="centerX" id="9L9-EX-ot4"/>
                             <constraint firstItem="HRl-OT-05P" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="DLg-3Q-6N1"/>
+                            <constraint firstItem="wid-cv-1Ek" firstAttribute="width" secondItem="Ze5-6b-2t3" secondAttribute="width" multiplier="1:3" id="Fu3-ZU-DPM"/>
+                            <constraint firstItem="wid-cv-1Ek" firstAttribute="height" secondItem="Ze5-6b-2t3" secondAttribute="width" multiplier="1:3" id="Rd3-HU-Y5l"/>
                             <constraint firstItem="HRl-OT-05P" firstAttribute="top" secondItem="wid-cv-1Ek" secondAttribute="bottom" constant="20" id="aeR-Vu-Rpe"/>
                             <constraint firstItem="HRl-OT-05P" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="fbL-Nw-VYG"/>
                         </constraints>
@@ -43,7 +41,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-300" y="385"/>
+            <point key="canvasLocation" x="-468" y="396"/>
         </scene>
     </scenes>
     <resources>

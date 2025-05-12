@@ -49,6 +49,7 @@ struct AccountView: View {
 
 
 
+
 // MARK: - old implemintation with var isViewVisible: Bool
 
 

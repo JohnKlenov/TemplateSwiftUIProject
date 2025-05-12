@@ -14,3 +14,4 @@ class AccountViewModel:ObservableObject {
         self.alertManager = alertManager
     }
 }
+

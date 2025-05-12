@@ -82,6 +82,7 @@
 		5EC88EEE2DBF92A600A95224 /* NetworkStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EED2DBF92A600A95224 /* NetworkStatusBanner.swift */; };
 		5EC88EF12DCE234D00A95224 /* HapticFeedbackModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EF02DCE234D00A95224 /* HapticFeedbackModifier.swift */; };
 		5EC88EF62DD0BC6800A95224 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5EC88EF52DD0BC6700A95224 /* Launch Screen.storyboard */; };
+		5EC88EF82DD1D37800A95224 /* SettingLaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88EF72DD1D37800A95224 /* SettingLaunchScreen.swift */; };
 		5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */; };
 		5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC949D12CB526E5003736A9 /* ContentView.swift */; };
 		5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5EC949D32CB526E9003736A9 /* Assets.xcassets */; };
@@ -173,6 +174,7 @@
 		5EC88EED2DBF92A600A95224 /* NetworkStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStatusBanner.swift; sourceTree = "<group>"; };
 		5EC88EF02DCE234D00A95224 /* HapticFeedbackModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticFeedbackModifier.swift; sourceTree = "<group>"; };
 		5EC88EF52DD0BC6700A95224 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		5EC88EF72DD1D37800A95224 /* SettingLaunchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingLaunchScreen.swift; sourceTree = "<group>"; };
 		5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TemplateSwiftUIProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSwiftUIProjectApp.swift; sourceTree = "<group>"; };
 		5EC949D12CB526E5003736A9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -527,6 +529,7 @@
 			isa = PBXGroup;
 			children = (
 				5EC88EF52DD0BC6700A95224 /* Launch Screen.storyboard */,
+				5EC88EF72DD1D37800A95224 /* SettingLaunchScreen.swift */,
 			);
 			path = LaunchScreen;
 			sourceTree = "<group>";
@@ -867,6 +870,7 @@
 				5EC94A122CC59585003736A9 /* HomeContentViewModel.swift in Sources */,
 				5E8F9CC32D81A4A7004036F6 /* MallCell.swift in Sources */,
 				5E8F9CBD2D81A401004036F6 /* MallsSectionView.swift in Sources */,
+				5EC88EF82DD1D37800A95224 /* SettingLaunchScreen.swift in Sources */,
 				5E8F9CB32D819F21004036F6 /* GalleryViewModel.swift in Sources */,
 				5E8F9CBF2D81A451004036F6 /* ShopsSectionView.swift in Sources */,
 				5EC88EDC2DB136F500A95224 /* AccountView.swift in Sources */,
