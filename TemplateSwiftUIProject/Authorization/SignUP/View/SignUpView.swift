@@ -5,7 +5,33 @@
 //  Created by Evgenyi on 14.05.25.
 //
 
+// TextField magic
+///https://habr.com/ru/articles/815685/
+///https://github.com/C5FR7Q/x-text-field/blob/main/x-text-field/Playground/FocusHolderView.swift
+
+
+//VStack "Password"
+///Приведённое решение с использованием HStack, где мы рядом размещаем текстовое поле (или SecureField) и кнопку-переключатель, — лишь один из вариантов реализации. Можно также использовать ZStack или модификатор .overlay, чтобы наложить кнопку на текстовое поле. Такой подход позволяет визуально разместить кнопку "eye" непосредственно поверх поля ввода, что может выглядеть более компактно или органично с точки зрения дизайна.
+/////в данной реализации фокус при нажатии на кнопку eye пропадает с TextField Password! Мы пока опустили эту реализацию! часть работы есть в CustomSecureField.swift
+
+//Intrinsic Content Size у TextField и SecureField немного отличается, и при переключении видно изменение высоты.
+
+//keyboard
+
+///Это стандартное поведение iOS/SwiftUI. Когда клавиатура появляется, система автоматически сдвигает содержимое, чтобы активное поле ввода (например, TextField) оставалось видимым и не оказалось скрытым за клавиатурой. Этот механизм помогает пользователю видеть то, что он вводит, без необходимости вручную прокручивать или нажимать на экран.
+///Если тебе не нравится такое поведение, можно попытаться отключить автоматическую адаптацию safe area для клавиатуры, используя, например, модификатор:
+///.ignoresSafeArea(.keyboard, edges: .bottom)
+///Но будь осторожен — это может привести к тому, что поле ввода окажется скрытым клавиатурой на некоторых устройствах.
+///Form + keyboard
+///Когда ты размещаешь TextField внутри контейнера Form, SwiftUI оборачивает его в scrollable контейнер (основанный на UIKit‑таблице или scroll view), который автоматически корректирует отступы и скроллит содержимое так, чтобы активное поле всегда оставалось видимым, без резкого "подъёма" всего контента.
+///То есть, в отличие от простой вёрстки с использованием VStack (где открытие клавиатуры сдвигает весь view наверх), Form обеспечивает более «умное» поведение: он автоматически скроллит нужное поле, сохраняя общую структуру интерфейса. Это делает работу с клавиатурой более естественной и позволяет избежать визуальных сдвигов всей вёрстки.
+
+
 import SwiftUI
+
+enum FieldToFocus: Hashable , CaseIterable {
+    case nameField, emailField, securePasswordField, passwordField
+}
 
 struct CreateAccountView: View {
     @State private var username: String = ""
@@ -13,9 +39,10 @@ struct CreateAccountView: View {
     @State private var password: String = ""
     // Новое состояние для переключения видимости пароля
     @State private var isPasswordVisible: Bool = false
+    @FocusState var isFieldFocus: FieldToFocus?
     
     var body: some View {
-        NavigationStack {
+        ScrollView {
             VStack(spacing: 20) {
                 // Заголовок экрана
                 Text("Создать аккаунт")
@@ -31,6 +58,9 @@ struct CreateAccountView: View {
                             .font(.subheadline)
                             .foregroundColor(AppColors.primary)
                         TextField("Введите имя", text: $username)
+                            .submitLabel(.next)
+                            .focused($isFieldFocus, equals: .nameField)
+                            .onSubmit { focusNextField() }
                             .padding()
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(8)
@@ -43,6 +73,9 @@ struct CreateAccountView: View {
                             .font(.subheadline)
                             .foregroundColor(AppColors.primary)
                         TextField("Введите email", text: $email)
+                            .submitLabel(.next)
+                            .focused($isFieldFocus, equals: .emailField)
+                            .onSubmit { focusNextField() }
                             .padding()
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(8)
@@ -59,13 +92,22 @@ struct CreateAccountView: View {
                             Group {
                                 if isPasswordVisible {
                                     TextField("Введите пароль", text: $password)
+                                        .submitLabel(.done)
+                                        .focused($isFieldFocus, equals: .passwordField)
+                                        .textContentType(.password)
+                                        .onSubmit { focusNextField() }
                                 } else {
                                     SecureField("Введите пароль", text: $password)
+                                        .submitLabel(.done)
+                                        .focused($isFieldFocus, equals: .securePasswordField)
+                                        .textContentType(.password)
+                                        .onSubmit { focusNextField() }
                                 }
                             }
                             // Кнопка-переключатель
                             Button(action: {
                                 isPasswordVisible.toggle()
+                                isFieldFocus = isPasswordVisible ? .passwordField : .securePasswordField
                             }) {
                                 Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
                                     .foregroundColor(.gray)
@@ -150,19 +192,31 @@ struct CreateAccountView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
-}
-
-struct CreateAccountView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            CreateAccountView()
-                .previewDevice("iPhone 12")
-            CreateAccountView()
-                .previewDevice("iPhone SE (2nd generation)")
+    
+    private func focusNextField() {
+        switch isFieldFocus {
+        case .nameField:
+            isFieldFocus = .emailField
+        case .emailField:
+            isFieldFocus = isPasswordVisible ? .passwordField : .securePasswordField
+        case .securePasswordField, .passwordField:
+            isFieldFocus = nil
+        default:
+            isFieldFocus = nil
         }
     }
 }
 
+//struct CreateAccountView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        Group {
+//            CreateAccountView()
+//                .previewDevice("iPhone 15 Pro")
+//            CreateAccountView()
+//                .previewDevice("iPhone SE 3rd generation")
+//        }
+//    }
+//}
 
 
 

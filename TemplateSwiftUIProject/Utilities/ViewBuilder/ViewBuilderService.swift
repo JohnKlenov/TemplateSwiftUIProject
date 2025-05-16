@@ -26,7 +26,8 @@ class ViewBuilderService: ObservableObject {
         case .bookDetails(let book):
             BookDetailsView(managerCRUDS: crudManager, book: book)
         case .someHomeView:
-            SomeView()
+//            SomeView()
+            CreateAccountView()
         }
     }
     
