@@ -17,7 +17,6 @@
 //Intrinsic Content Size у TextField и SecureField немного отличается, и при переключении видно изменение высоты.
 
 //keyboard
-
 ///Это стандартное поведение iOS/SwiftUI. Когда клавиатура появляется, система автоматически сдвигает содержимое, чтобы активное поле ввода (например, TextField) оставалось видимым и не оказалось скрытым за клавиатурой. Этот механизм помогает пользователю видеть то, что он вводит, без необходимости вручную прокручивать или нажимать на экран.
 ///Если тебе не нравится такое поведение, можно попытаться отключить автоматическую адаптацию safe area для клавиатуры, используя, например, модификатор:
 ///.ignoresSafeArea(.keyboard, edges: .bottom)
@@ -29,6 +28,14 @@
 //ScrollView(.vertical, showsIndicators: false) {..}.ignoresSafeArea(.keyboard)
 /// если мы оставим такую запись то при появлении keyboard мы не сможем проскролить все содержимое из под keyboard то есть все что под keyboard будет не видимо для нас!
 /// без ignoresSafeArea(.keyboard) мы можем проскролить все что осталось под keyboard и увидеть его над keyboard.
+
+//side effects
+///Побочные эффекты (side effects) в iOS-разработке – это изменения состояния, происходящие в результате выполнения функции или метода, которые не отражаются напрямую в её возвращаемом значении. Другими словами, функция с побочным эффектом делает что-то большее, чем просто вычисление и возврат результата; она может изменять глобальную или внешнюю переменную, обновлять UI, сохранять данные, отправлять сетевой запрос и так далее.
+///Чистые функции vs. функции с побочными эффектами: Чистая функция вычисляет результат строго на основе входных данных и не изменяет никаких внешних состояний. Функции с побочными эффектами делают что-то дополнительно – изменяют состояние приложения, общаются с сетью, записывают данные в базу, обновляют пользовательский интерфейс и так далее.
+///Почему это важно: В iOS-разработке, особенно при использовании SwiftUI, управление состоянием является ключевым аспектом. Когда изменения состояния (например, изменение значений @State или @Published) происходят не в ожидаемый момент или во время расчёта представления, система может выдавать предупреждения (например, «Publishing changes from within view updates is not allowed») и непредсказуемо обновлять UI.
+///Разделение чистых функций и побочных эффектов: Хорошей практикой является использование чистых функций для вычислений, а изменение состояния выносить в отдельные обработчики, которые запускаются, например, с помощью модификаторов .onAppear, .onChange или через обработчики событий.
+///В iOS-разработке побочные эффекты являются неотъемлемой частью, поскольку практически любое взаимодействие с внешним миром (UI, сеть, хранилище) вызывает изменения состояния. Главное – управлять ими разумно: отделять чистые вычисления от побочных эффектов, обеспечивать предсказуемость и тестируемость кода, особенно в контексте SwiftUI, где порядок и момент обновления состояния критичны для стабильности приложения.
+
 
 
 import SwiftUI
@@ -64,6 +71,7 @@ struct CreateAccountView: View {
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(8)
                             .keyboardType(.emailAddress)
+                            .disableAutocorrection(true)
                             .autocapitalization(.none)
                             // При тапе очищается ошибка
                             .onTapGesture {
@@ -88,6 +96,8 @@ struct CreateAccountView: View {
                                         .submitLabel(.done)
                                         .focused($isFieldFocus, equals: .passwordField)
                                         .textContentType(.password)
+                                        .autocapitalization(.none)
+                                        .disableAutocorrection(true)
                                         .onSubmit { focusNextField() }
                                         .onChange(of: viewModel.password) { _ , _ in
                                             viewModel.updateValidationPassword()
@@ -100,6 +110,8 @@ struct CreateAccountView: View {
                                         .submitLabel(.done)
                                         .focused($isFieldFocus, equals: .securePasswordField)
                                         .textContentType(.password)
+                                        .autocapitalization(.none)
+                                        .disableAutocorrection(true)
                                         .onSubmit { focusNextField() }
                                         .onChange(of: viewModel.password) { _ , _ in
                                             viewModel.updateValidationPassword()
@@ -152,6 +164,8 @@ struct CreateAccountView: View {
                         .cornerRadius(8)
                 }
                 .padding(.horizontal)
+                ///Этот модификатор просто отключает возможность клика (или «хита») на элементе, но не меняет его внешнего вида.
+//                .allowsHitTesting(false)
                 
                 // Разделитель между регистрацией и альтернативными способами входа
                 HStack {
@@ -265,7 +279,11 @@ enum ValidationResult: Equatable {
     case failure(String)
 }
 
+///Если пользователь вводит «обычный» корректный email, вероятность того, что метод вернет false, крайне мала.
+///Для повышения надежности можно использовать более сложное регулярное выражение или специализированные библиотеки, учитывающие все крайние случаи, если требуется абсолютная точность.
+///Под «более мощным методом» я подразумеваю подход, который надёжнее охватывает все корректные варианты формата email, согласно стандартам (RFC 5322, например), а не только типичные варианты вроде "user@example.com".
 extension String {
+    
     var isValidEmail: Bool {
         // Простое регулярное выражение для проверки email.
         // В продакшене можно использовать и более сложное выражение или NSDataDetector.
@@ -291,6 +309,14 @@ extension String {
         }
         return .success
     }
+    
+    // Проверка email с использованием NSDataDetector
+//        var isValidEmail: Bool {
+//            let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+//            let range = NSRange(location: 0, length: self.utf16.count)
+//            let matches = detector?.matches(in: self, options: [], range: range) ?? []
+//            return matches.count == 1 && matches.first?.url?.scheme == "mailto"
+//        }
 }
 
 
