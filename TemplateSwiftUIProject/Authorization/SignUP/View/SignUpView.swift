@@ -39,6 +39,7 @@
 
 
 import SwiftUI
+import UIKit
 
 // MARK: - Фокусируемые поля
 enum FieldToFocus: Hashable, CaseIterable {
@@ -46,12 +47,13 @@ enum FieldToFocus: Hashable, CaseIterable {
 }
 
 // MARK: - Основное представление регистрации
-struct CreateAccountView: View {
+struct SignUpView: View {
     // Состояние для переключения видимости пароля
     @State private var isPasswordVisible = false
     @FocusState var isFieldFocus: FieldToFocus?
     
     @StateObject private var viewModel = CreateAccountViewModel()
+    @EnvironmentObject var localization: LocalizationService
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -60,10 +62,10 @@ struct CreateAccountView: View {
                 VStack(spacing: 15) {
                     // Поле "Email"
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("Email")
+                        Text(Localized.SignUpView.email.localized())
                             .font(.subheadline)
                             .foregroundColor(AppColors.primary)
-                        TextField("Введите email", text: $viewModel.email)
+                        TextField(Localized.SignUpView.emailPlaceholder.localized(), text: $viewModel.email)
                             .submitLabel(.next)
                             .focused($isFieldFocus, equals: .emailField)
                             .onSubmit { focusNextField() }
@@ -73,12 +75,13 @@ struct CreateAccountView: View {
                             .keyboardType(.emailAddress)
                             .disableAutocorrection(true)
                             .autocapitalization(.none)
-                            // При тапе очищается ошибка
+                        // При тапе очищается ошибка
                             .onTapGesture {
+                                print("did tap TextField email")
                                 viewModel.emailError = nil
                             }
                         if let error = viewModel.emailError {
-                            Text(error)
+                            Text(error.localized())
                                 .font(.caption)
                                 .foregroundColor(.red)
                         }
@@ -86,13 +89,13 @@ struct CreateAccountView: View {
                     
                     // Поле "Пароль" с кнопкой-переключателем "eye"
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("Пароль")
+                        Text(Localized.SignUpView.password.localized())
                             .font(.subheadline)
                             .foregroundColor(AppColors.primary)
                         HStack {
                             Group {
                                 if isPasswordVisible {
-                                    TextField("Введите пароль", text: $viewModel.password)
+                                    TextField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
                                         .submitLabel(.done)
                                         .focused($isFieldFocus, equals: .passwordField)
                                         .textContentType(.password)
@@ -106,7 +109,7 @@ struct CreateAccountView: View {
                                             viewModel.passwordError = nil
                                         }
                                 } else {
-                                    SecureField("Введите пароль", text: $viewModel.password)
+                                    SecureField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
                                         .submitLabel(.done)
                                         .focused($isFieldFocus, equals: .securePasswordField)
                                         .textContentType(.password)
@@ -134,7 +137,7 @@ struct CreateAccountView: View {
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
                         if let error = viewModel.passwordError {
-                            Text(error)
+                            Text(error.localized())
                                 .font(.caption)
                                 .foregroundColor(.red)
                         }
@@ -145,6 +148,7 @@ struct CreateAccountView: View {
                 
                 // Кнопка регистрации (всегда активна)
                 Button(action: {
+                    print("did tap SignUpButton")
                     // При нажатии проверяем оба поля
                     viewModel.updateValidationEmail()
                     viewModel.updateValidationPassword()
@@ -155,7 +159,7 @@ struct CreateAccountView: View {
                         print("Некоторые поля заполнены неверно.")
                     }
                 }) {
-                    Text("Зарегистрироваться")
+                    Text(Localized.SignUpView.register.localized())
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -165,12 +169,12 @@ struct CreateAccountView: View {
                 }
                 .padding(.horizontal)
                 ///Этот модификатор просто отключает возможность клика (или «хита») на элементе, но не меняет его внешнего вида.
-//                .allowsHitTesting(false)
+                //                .allowsHitTesting(false)
                 
                 // Разделитель между регистрацией и альтернативными способами входа
                 HStack {
                     VStack { Divider().frame(height: 1).background(Color.primary) }
-                    Text("ИЛИ")
+                    Text(Localized.SignUpView.or.localized())
                         .font(.footnote)
                         .foregroundColor(.primary)
                     VStack { Divider().frame(height: 1).background(Color.primary) }
@@ -212,11 +216,11 @@ struct CreateAccountView: View {
                 
                 // Ссылка для входа
                 HStack {
-                    Text("Уже есть аккаунт?")
+                    Text(Localized.SignUpView.alreadyHaveAccount.localized())
                     Button(action: {
                         // Переход на экран входа
                     }) {
-                        Text("Войти")
+                        Text(Localized.SignUpView.signIn.localized())
                             .foregroundColor(.blue)
                             .fontWeight(.semibold)
                     }
@@ -224,8 +228,17 @@ struct CreateAccountView: View {
                 .padding(.bottom, 20)
             }
             .navigationBarTitleDisplayMode(.inline)
-            .navigationTitle("Создать аккаунт")
+            .navigationTitle(Localized.SignUpView.navigationTitle.localized())
         }
+        // Применяем жест, который срабатывает одновременно с другими
+        ///первым отрабатывает simultaneousGesture затем все другие обработчики
+        ///поэтому при нажатии на TextField с открытой keyboard клавиатура пропадает а затем снова открывается
+        .simultaneousGesture(
+            TapGesture().onEnded {
+                print("Tap on ScrollView")
+                hideKeyboard()
+            }
+        )
     }
     
     private func focusNextField() {
@@ -255,9 +268,9 @@ class CreateAccountViewModel: ObservableObject {
     
     func updateValidationEmail() {
         if email.isEmpty {
-            emailError = "Email обязательно для заполнения."
+            emailError = Localized.ValidSignUp.emailEmpty
         } else if !email.isValidEmail {
-            emailError = "Введите корректный адрес электронной почты."
+            emailError = Localized.ValidSignUp.emailInvalid
         } else {
             emailError = nil
         }
@@ -293,19 +306,19 @@ extension String {
     
     func validatePassword() -> ValidationResult {
         if self.isEmpty {
-            return .failure("Пароль обязательно для заполнения.")
+            return .failure(Localized.ValidSignUp.passwordEmpty)
         }
         if self.count < 8 {
-            return .failure("Пароль должен содержать не менее 8 символов.")
+            return .failure(Localized.ValidSignUp.passwordTooShort)
         }
         if self.rangeOfCharacter(from: .decimalDigits) == nil {
-            return .failure("Пароль должен содержать хотя бы одну цифру.")
+            return .failure(Localized.ValidSignUp.passwordNoDigit)
         }
         if self.rangeOfCharacter(from: .lowercaseLetters) == nil {
-            return .failure("Пароль должен содержать хотя бы одну строчную букву.")
+            return .failure(Localized.ValidSignUp.passwordNoLowercase)
         }
         if self.rangeOfCharacter(from: .uppercaseLetters) == nil {
-            return .failure("Пароль должен содержать хотя бы одну заглавную букву.")
+            return .failure(Localized.ValidSignUp.passwordNoUppercase)
         }
         return .success
     }
@@ -318,6 +331,16 @@ extension String {
 //            return matches.count == 1 && matches.first?.url?.scheme == "mailto"
 //        }
 }
+
+//Скрытие клавиатуры по тапу на фон.
+///Обычно для этого оборачивают всё содержимое в контейнер (например, ZStack) и добавляют к нему onTapGesture, который вызывает команду для скрытия клавиатуры.
+extension View {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                        to: nil, from: nil, for: nil)
+    }
+}
+
 
 
 

@@ -9,6 +9,8 @@
 import Foundation
 
 enum Localized {
+
+    
     // MARK: - Onboarding
     enum Onboarding {
         static let backButton = "onboarding.back_button"
@@ -217,6 +219,36 @@ enum Localized {
         static let authenticationCancelled = "error.realtime_database.authentication_cancelled"
         static let authenticationRequired = "error.realtime_database.authentication_required"
         static let generic = "error.realtime_database.generic"
+    }
+    
+    
+    
+    // MARK: - Auth View -
+    
+    
+    // MARK: - SignUpView
+    enum SignUpView {
+        static let email = "signup.email"
+        static let emailPlaceholder = "signup.email_placeholder"
+        static let password = "signup.password"
+        static let passwordPlaceholder = "signup.password_placeholder"
+        static let register = "signup.register"
+        static let or = "signup.or"
+        static let alreadyHaveAccount = "signup.already_have_account"
+        static let signIn = "signup.sign_in"
+        static let navigationTitle = "signup.navigation_title"
+    }
+    
+    
+    // MARK: - Validation string
+    enum ValidSignUp {
+        static let emailEmpty = "signup.email_empty"
+        static let emailInvalid = "signup.email_invalid"
+        static let passwordEmpty = "signup.password_empty"
+        static let passwordTooShort = "signup.password_too_short"
+        static let passwordNoDigit = "signup.password_no_digit"
+        static let passwordNoLowercase = "signup.password_no_lowercase"
+        static let passwordNoUppercase = "signup.password_no_uppercase"
     }
 }
 //

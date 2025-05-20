@@ -27,7 +27,7 @@ class ViewBuilderService: ObservableObject {
             BookDetailsView(managerCRUDS: crudManager, book: book)
         case .someHomeView:
 //            SomeView()
-            CreateAccountView()
+            SignUpView()
         }
     }
     

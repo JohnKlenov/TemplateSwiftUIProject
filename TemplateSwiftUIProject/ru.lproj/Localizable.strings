@@ -79,6 +79,21 @@
 "onboarding.page_get_started.title" = "Начать";
 "onboarding.page_get_started.description" = "Давайте начнем!";
 
+/* Auth View */
+
+/* SignUpView */
+"signup.email" = "Email";
+"signup.email_placeholder" = "Введите email";
+"signup.password" = "Пароль";
+"signup.password_placeholder" = "Введите пароль";
+"signup.register" = "Зарегистрироваться";
+"signup.or" = "ИЛИ";
+"signup.already_have_account" = "Уже есть аккаунт?";
+"signup.sign_in" = "Войти";
+"signup.navigation_title" = "Создать аккаунт";
+
+
+
 
 /* Alerts - Global */
 "alert.title" = "Ошибка";
@@ -186,4 +201,15 @@
 
 /* System error */
 
+
+/* Validation string */
+
+/* Валидация при регистрации */
+"signup.email_empty" = "Email обязательно для заполнения.";
+"signup.email_invalid" = "Введите корректный адрес электронной почты.";
+"signup.password_empty" = "Пароль обязательно для заполнения.";
+"signup.password_too_short" = "Пароль должен содержать не менее 8 символов.";
+"signup.password_no_digit" = "Пароль должен содержать хотя бы одну цифру.";
+"signup.password_no_lowercase" = "Пароль должен содержать хотя бы одну строчную букву.";
+"signup.password_no_uppercase" = "Пароль должен содержать хотя бы одну заглавную букву.";
 

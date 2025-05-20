@@ -80,6 +80,20 @@
 "onboarding.page_get_started.title" = "Comenzar";
 "onboarding.page_get_started.description" = "¡Vamos a empezar!";
 
+/* Auth View */
+
+/* SignUpView */
+"signup.email" = "Correo electrónico";
+"signup.email_placeholder" = "Ingrese correo electrónico";
+"signup.password" = "Contraseña";
+"signup.password_placeholder" = "Ingrese contraseña";
+"signup.register" = "Registrarse";
+"signup.or" = "O";
+"signup.already_have_account" = "¿Ya tienes una cuenta?";
+"signup.sign_in" = "Iniciar sesión";
+"signup.navigation_title" = "Crear cuenta";
+
+
 
 /* Alerts - Global */
 "alert.title" = "Error";
@@ -183,3 +197,16 @@
 "error.realtime_database.authentication_cancelled" = "El usuario canceló la autenticación. Por favor, inténtelo de nuevo.";
 "error.realtime_database.authentication_required" = "Se requiere autenticación del usuario. Por favor, inicie sesión e inténtelo de nuevo.";
 "error.realtime_database.generic" = "Ocurrió un error en la base de datos en tiempo real. Por favor, inténtelo de nuevo.";
+
+
+/* Validation string */
+
+/* Validación de registro */
+"signup.email_empty" = "El correo electrónico es obligatorio.";
+"signup.email_invalid" = "Por favor, introduzca una dirección de correo electrónico válida.";
+"signup.password_empty" = "La contraseña es obligatoria.";
+"signup.password_too_short" = "La contraseña debe tener al menos 8 caracteres.";
+"signup.password_no_digit" = "La contraseña debe contener al menos un número.";
+"signup.password_no_lowercase" = "La contraseña debe contener al menos una letra minúscula.";
+"signup.password_no_uppercase" = "La contraseña debe contener al menos una letra mayúscula.";
+

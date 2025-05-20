@@ -83,6 +83,18 @@
 "onboarding.page_get_started.title" = "Get started";
 "onboarding.page_get_started.description" = "Let's get started!";
 
+/* Auth View */
+
+/* SignUpView */
+"signup.email" = "Email";
+"signup.email_placeholder" = "Enter email";
+"signup.password" = "Password";
+"signup.password_placeholder" = "Enter password";
+"signup.register" = "Register";
+"signup.or" = "OR";
+"signup.already_have_account" = "Already have an account?";
+"signup.sign_in" = "Sign In";
+"signup.navigation_title" = "Create Account";
 
 
 /* Alerts - Global */
@@ -188,3 +200,16 @@
 
 
 /* System error */
+
+
+/* Validation string */
+
+/* Sign Up Validation */
+"signup.email_empty" = "Email is required.";
+"signup.email_invalid" = "Please enter a valid email address.";
+"signup.password_empty" = "Password is required.";
+"signup.password_too_short" = "Password must be at least 8 characters.";
+"signup.password_no_digit" = "Password must contain at least one number.";
+"signup.password_no_lowercase" = "Password must contain at least one lowercase letter.";
+"signup.password_no_uppercase" = "Password must contain at least one uppercase letter.";
+
