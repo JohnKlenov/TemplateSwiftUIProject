@@ -43,9 +43,9 @@
 		5E8F9CCC2D81AF68004036F6 /* GalleryContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CCB2D81AF68004036F6 /* GalleryContentViewModel.swift */; };
 		5E8F9CCF2D99777A004036F6 /* ImageCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */; };
 		5E8F9CD12D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */; };
-		5EA2E5ED2DD5F3EB00C53E52 /* CustomSecureField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5EC2DD5F3EB00C53E52 /* CustomSecureField.swift */; };
-		5EA2E5EF2DD7312000C53E52 /* SecureTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5EE2DD7312000C53E52 /* SecureTextField.swift */; };
 		5EA2E5F32DDC8A5D00C53E52 /* ValidationString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F22DDC8A5D00C53E52 /* ValidationString.swift */; };
+		5EA2E5F52DDCB1CC00C53E52 /* HideKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */; };
+		5EA2E5F82DDCB28D00C53E52 /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */; };
 		5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */; };
 		5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDBA2CD51037001CA401 /* AppColors.swift */; };
 		5EA4FDC52CD79747001CA401 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA4FDC42CD79747001CA401 /* Book.swift */; };
@@ -146,9 +146,9 @@
 		5E8F9CCB2D81AF68004036F6 /* GalleryContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryContentViewModel.swift; sourceTree = "<group>"; };
 		5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManager.swift; sourceTree = "<group>"; };
 		5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+DynamicTypeMetrics.swift"; sourceTree = "<group>"; };
-		5EA2E5EC2DD5F3EB00C53E52 /* CustomSecureField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSecureField.swift; sourceTree = "<group>"; };
-		5EA2E5EE2DD7312000C53E52 /* SecureTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTextField.swift; sourceTree = "<group>"; };
 		5EA2E5F22DDC8A5D00C53E52 /* ValidationString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationString.swift; sourceTree = "<group>"; };
+		5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HideKeyboard.swift; sourceTree = "<group>"; };
+		5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
 		5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedErrorHandler.swift; sourceTree = "<group>"; };
 		5EA4FDBA2CD51037001CA401 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		5EA4FDC42CD79747001CA401 /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
@@ -329,6 +329,14 @@
 				5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */,
 			);
 			path = ImageCacheManager;
+			sourceTree = "<group>";
+		};
+		5EA2E5F62DDCB26000C53E52 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */,
+			);
+			path = ViewModel;
 			sourceTree = "<group>";
 		};
 		5EA4FDB92CD51013001CA401 /* Resources */ = {
@@ -553,6 +561,7 @@
 		5EC88EFA2DD4A53100A95224 /* SignUP */ = {
 			isa = PBXGroup;
 			children = (
+				5EA2E5F62DDCB26000C53E52 /* ViewModel */,
 				5EC88EFB2DD4A54300A95224 /* View */,
 			);
 			path = SignUP;
@@ -562,8 +571,6 @@
 			isa = PBXGroup;
 			children = (
 				5EC88EFC2DD4A58D00A95224 /* SignUpView.swift */,
-				5EA2E5EC2DD5F3EB00C53E52 /* CustomSecureField.swift */,
-				5EA2E5EE2DD7312000C53E52 /* SecureTextField.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -798,6 +805,7 @@
 				5EAF5B0D2D2FF96000D96FD6 /* FirstAppear.swift */,
 				5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */,
 				5EA2E5F22DDC8A5D00C53E52 /* ValidationString.swift */,
+				5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */,
 			);
 			path = Extension;
 			sourceTree = "<group>";
@@ -919,7 +927,6 @@
 				5EA4FDC92CD8E91A001CA401 /* BookViewModel.swift in Sources */,
 				5EA4FE262CE756EE001CA401 /* AuthService.swift in Sources */,
 				5E8F9C8A2D5CC8D8004036F6 /* WebImageView.swift in Sources */,
-				5EA2E5ED2DD5F3EB00C53E52 /* CustomSecureField.swift in Sources */,
 				5E8F9CA72D7EC9F6004036F6 /* GalleryRowView(test).swift in Sources */,
 				5E8F9C9D2D6F53E3004036F6 /* LocalizationService.swift in Sources */,
 				5EC88EE32DB2347800A95224 /* NavigationCellView.swift in Sources */,
@@ -944,6 +951,7 @@
 				5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */,
 				5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */,
 				5EC88EFD2DD4A58D00A95224 /* SignUpView.swift in Sources */,
+				5EA2E5F82DDCB28D00C53E52 /* SignUpViewModel.swift in Sources */,
 				5E8F9CCA2D81AC47004036F6 /* FirestoreGetService.swift in Sources */,
 				5EC949E52CBA8FC5003736A9 /* OnboardingViewModel.swift in Sources */,
 				5E8F9C712D537AA1004036F6 /* SomeView.swift in Sources */,
@@ -952,7 +960,6 @@
 				5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
 				5E8F9CA92D7ED71D004036F6 /* GalleryCoordinator.swift in Sources */,
-				5EA2E5EF2DD7312000C53E52 /* SecureTextField.swift in Sources */,
 				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
 				5E8F9CA32D7CDFCF004036F6 /* GalleryModel.swift in Sources */,
 				5E8F9CB52D819F68004036F6 /* GalleryContentView.swift in Sources */,
@@ -961,6 +968,7 @@
 				5EA2E5F32DDC8A5D00C53E52 /* ValidationString.swift in Sources */,
 				5E8F9CA52D7EC973004036F6 /* GalleryListView(test).swift in Sources */,
 				5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */,
+				5EA2E5F52DDCB1CC00C53E52 /* HideKeyboard.swift in Sources */,
 				5EC88EDA2DB128F100A95224 /* AccountCoordinator.swift in Sources */,
 				5EC88EE52DB234CF00A95224 /* ToggleCellView.swift in Sources */,
 				5EA4FDC52CD79747001CA401 /* Book.swift in Sources */,

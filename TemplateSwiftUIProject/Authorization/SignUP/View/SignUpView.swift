@@ -36,7 +36,9 @@
 ///Разделение чистых функций и побочных эффектов: Хорошей практикой является использование чистых функций для вычислений, а изменение состояния выносить в отдельные обработчики, которые запускаются, например, с помощью модификаторов .onAppear, .onChange или через обработчики событий.
 ///В iOS-разработке побочные эффекты являются неотъемлемой частью, поскольку практически любое взаимодействие с внешним миром (UI, сеть, хранилище) вызывает изменения состояния. Главное – управлять ими разумно: отделять чистые вычисления от побочных эффектов, обеспечивать предсказуемость и тестируемость кода, особенно в контексте SwiftUI, где порядок и момент обновления состояния критичны для стабильности приложения.
 
-
+//Button.allowsHitTesting(false)
+///Этот модификатор просто отключает возможность клика (или «хита») на элементе, но не меняет его внешнего вида.
+              
 
 import SwiftUI
 import UIKit
@@ -52,7 +54,7 @@ struct SignUpView: View {
     @State private var isPasswordVisible = false
     @FocusState var isFieldFocus: FieldToFocus?
     
-    @StateObject private var viewModel = CreateAccountViewModel()
+    @StateObject private var viewModel = SignUpViewModel()
     @EnvironmentObject var localization: LocalizationService
     
     var body: some View {
@@ -77,7 +79,6 @@ struct SignUpView: View {
                             .autocapitalization(.none)
                         // При тапе очищается ошибка
                             .onTapGesture {
-                                print("did tap TextField email")
                                 viewModel.emailError = nil
                             }
                         if let error = viewModel.emailError {
@@ -148,28 +149,26 @@ struct SignUpView: View {
                 
                 // Кнопка регистрации (всегда активна)
                 Button(action: {
-                    print("did tap SignUpButton")
-                    // При нажатии проверяем оба поля
-                    viewModel.updateValidationEmail()
-                    viewModel.updateValidationPassword()
-                    if viewModel.isValid {
-                        // Здесь можно передать данные дальше (например, вызвать регистрацию)
-                        print("Данные валидны. Начинаем регистрацию.")
-                    } else {
-                        print("Некоторые поля заполнены неверно.")
-                    }
+                    register()
                 }) {
-                    Text(Localized.SignUpView.register.localized())
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(AppColors.activeColor)
-                        .foregroundColor(AppColors.primary)
-                        .cornerRadius(8)
+                    // Если процесс регистрации идёт, показываем спиннер,
+                    // иначе — текст кнопки регистрации.
+                    if viewModel.isRegistering {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                    } else {
+                        Text(Localized.SignUpView.register.localized())
+                    }
                 }
+                .fontWeight(.semibold)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(AppColors.activeColor)
+                .foregroundColor(AppColors.primary)
+                .cornerRadius(8)
                 .padding(.horizontal)
-                ///Этот модификатор просто отключает возможность клика (или «хита») на элементе, но не меняет его внешнего вида.
-                //                .allowsHitTesting(false)
+                // Делаем кнопку неактивной во время регистрации
+                .disabled(viewModel.isRegistering)
                 
                 // Разделитель между регистрацией и альтернативными способами входа
                 HStack {
@@ -235,7 +234,6 @@ struct SignUpView: View {
         ///поэтому при нажатии на TextField с открытой keyboard клавиатура пропадает а затем снова открывается
         .simultaneousGesture(
             TapGesture().onEnded {
-                print("Tap on ScrollView")
                 hideKeyboard()
             }
         )
@@ -251,93 +249,29 @@ struct SignUpView: View {
             isFieldFocus = nil
         }
     }
-}
-
-// MARK: - ViewModel и валидация
-class CreateAccountViewModel: ObservableObject {
-    @Published var email: String = ""
-    @Published var password: String = ""
     
-    @Published var emailError: String?
-    @Published var passwordError: String?
-    
-    // Вычисляемое свойство для проверки валидности данных (без side‑эффектов)
-    var isValid: Bool {
-        email.isValidEmail && (password.validatePassword() == ValidationResult.success)
-    }
-    
-    func updateValidationEmail() {
-        if email.isEmpty {
-            emailError = Localized.ValidSignUp.emailEmpty
-        } else if !email.isValidEmail {
-            emailError = Localized.ValidSignUp.emailInvalid
+    private func register() {
+        // Защита от повторного срабатывания
+        guard !viewModel.isRegistering else { return }
+        
+        // Обновляем валидацию полей
+        viewModel.updateValidationEmail()
+        viewModel.updateValidationPassword()
+        
+        if viewModel.isValid {
+            viewModel.isRegistering = true
+            print("Данные валидны. Начинаем регистрацию.")
+            
+            // Симуляция асинхронного процесса регистрации, который может быть заменён реальным API-вызовом
+            viewModel.registerUser { success in
+                // Выключаем спиннер после завершения регистрации
+                DispatchQueue.main.async {
+                    viewModel.isRegistering = false
+                }
+            }
         } else {
-            emailError = nil
+            print("Некоторые поля заполнены неверно.")
         }
-    }
-    
-    func updateValidationPassword() {
-        switch password.validatePassword() {
-        case .failure(let message):
-            passwordError = message
-        case .success:
-            passwordError = nil
-        }
-    }
-}
-
-// MARK: - Validation
-enum ValidationResult: Equatable {
-    case success
-    case failure(String)
-}
-
-///Если пользователь вводит «обычный» корректный email, вероятность того, что метод вернет false, крайне мала.
-///Для повышения надежности можно использовать более сложное регулярное выражение или специализированные библиотеки, учитывающие все крайние случаи, если требуется абсолютная точность.
-///Под «более мощным методом» я подразумеваю подход, который надёжнее охватывает все корректные варианты формата email, согласно стандартам (RFC 5322, например), а не только типичные варианты вроде "user@example.com".
-extension String {
-    
-    var isValidEmail: Bool {
-        // Простое регулярное выражение для проверки email.
-        // В продакшене можно использовать и более сложное выражение или NSDataDetector.
-        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
-        return NSPredicate(format:"SELF MATCHES %@", emailRegex).evaluate(with: self)
-    }
-    
-    func validatePassword() -> ValidationResult {
-        if self.isEmpty {
-            return .failure(Localized.ValidSignUp.passwordEmpty)
-        }
-        if self.count < 8 {
-            return .failure(Localized.ValidSignUp.passwordTooShort)
-        }
-        if self.rangeOfCharacter(from: .decimalDigits) == nil {
-            return .failure(Localized.ValidSignUp.passwordNoDigit)
-        }
-        if self.rangeOfCharacter(from: .lowercaseLetters) == nil {
-            return .failure(Localized.ValidSignUp.passwordNoLowercase)
-        }
-        if self.rangeOfCharacter(from: .uppercaseLetters) == nil {
-            return .failure(Localized.ValidSignUp.passwordNoUppercase)
-        }
-        return .success
-    }
-    
-    // Проверка email с использованием NSDataDetector
-//        var isValidEmail: Bool {
-//            let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
-//            let range = NSRange(location: 0, length: self.utf16.count)
-//            let matches = detector?.matches(in: self, options: [], range: range) ?? []
-//            return matches.count == 1 && matches.first?.url?.scheme == "mailto"
-//        }
-}
-
-//Скрытие клавиатуры по тапу на фон.
-///Обычно для этого оборачивают всё содержимое в контейнер (например, ZStack) и добавляют к нему onTapGesture, который вызывает команду для скрытия клавиатуры.
-extension View {
-    func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                        to: nil, from: nil, for: nil)
     }
 }
 
