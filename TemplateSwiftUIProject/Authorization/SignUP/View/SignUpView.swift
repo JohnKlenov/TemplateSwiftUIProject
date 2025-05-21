@@ -148,26 +148,25 @@ struct SignUpView: View {
                 .padding(.top, 20)
                 
                 // Кнопка регистрации (всегда активна)
-                Button(action: {
-                    register()
-                }) {
-                    // Если процесс регистрации идёт, показываем спиннер,
-                    // иначе — текст кнопки регистрации.
-                    if viewModel.isRegistering {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                    } else {
-                        Text(Localized.SignUpView.register.localized())
+                
+                Button(action: register) {
+                    Group {
+                        if viewModel.isRegistering {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                        } else {
+                            Text(Localized.SignUpView.register.localized())
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }
                 .fontWeight(.semibold)
-                .frame(maxWidth: .infinity)
                 .padding()
                 .background(AppColors.activeColor)
                 .foregroundColor(AppColors.primary)
                 .cornerRadius(8)
                 .padding(.horizontal)
-                // Делаем кнопку неактивной во время регистрации
                 .disabled(viewModel.isRegistering)
                 
                 // Разделитель между регистрацией и альтернативными способами входа
@@ -185,6 +184,8 @@ struct SignUpView: View {
                     // Кнопка регистрации через Apple
                     Button(action: {
                         // Реализуйте регистрацию через Apple
+                        guard !viewModel.isRegistering else { return }
+                        print("applelogo")
                     }) {
                         Image(systemName: "applelogo")
                             .resizable()
@@ -200,6 +201,8 @@ struct SignUpView: View {
                     // Кнопка регистрации через Google
                     Button(action: {
                         // Реализуйте регистрацию через Google
+                        guard !viewModel.isRegistering else { return }
+                        print("googlelogo")
                     }) {
                         Image("googlelogo")
                             .resizable()
@@ -218,6 +221,7 @@ struct SignUpView: View {
                     Text(Localized.SignUpView.alreadyHaveAccount.localized())
                     Button(action: {
                         // Переход на экран входа
+                        guard !viewModel.isRegistering else { return }
                     }) {
                         Text(Localized.SignUpView.signIn.localized())
                             .foregroundColor(.blue)
@@ -249,6 +253,7 @@ struct SignUpView: View {
             isFieldFocus = nil
         }
     }
+    
     
     private func register() {
         // Защита от повторного срабатывания

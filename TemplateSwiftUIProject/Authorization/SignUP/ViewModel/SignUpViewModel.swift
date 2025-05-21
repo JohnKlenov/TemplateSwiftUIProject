@@ -41,7 +41,9 @@ class SignUpViewModel: ObservableObject {
             passwordError = nil
         }
     }
-    
+    /// этот метод должен обращаться к сервису(Auth.createAccount) который существует в памяти независимо от SignUpViewModel
+    /// то есть существует в памяти на протяжении всего life cycle App
+    /// и из этого сервиса он должен дерагть GlobalAllert с оповещение success/failed
     func registerUser(completion: @escaping (Bool) -> Void) {
         DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
             completion(true)
