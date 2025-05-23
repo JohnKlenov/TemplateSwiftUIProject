@@ -1,25 +1,24 @@
 //
-//  SignUpViewModel.swift
+//  SignInViewModel.swift
 //  TemplateSwiftUIProject
 //
-//  Created by Evgenyi on 20.05.25.
+//  Created by Evgenyi on 22.05.25.
 //
-
 
 import SwiftUI
 
-class SignUpViewModel: ObservableObject {
+class SignInViewModel: ObservableObject {
     @Published var email: String = ""
     @Published var password: String = ""
     
     @Published var emailError: String?
     @Published var passwordError: String?
     
-    @Published var isRegistering: Bool = false
+    @Published var isSignIn: Bool = false
     
-    // Вычисляемое свойство для проверки валидности данных (без side‑эффектов)
+    // Вычисляемое свойство для проверки валидности данных
     var isValid: Bool {
-        email.isValidEmail && (password.validatePassword() == ValidationResult.success)
+        !email.isEmpty && !password.isEmpty
     }
     
     func updateValidationEmail() {
@@ -33,19 +32,19 @@ class SignUpViewModel: ObservableObject {
     }
     
     func updateValidationPassword() {
-        switch password.validatePassword() {
-        case .failure(let message):
-            passwordError = message
-        case .success:
+        if password.isEmpty {
+            passwordError = Localized.ValidSignUp.passwordEmpty
+        } else {
             passwordError = nil
         }
     }
     /// этот метод должен обращаться к сервису(Auth.createAccount) который существует в памяти независимо от SignUpViewModel
     /// то есть существует в памяти на протяжении всего life cycle App
     /// и из этого сервиса он должен дерагть GlobalAllert с оповещение success/failed
-    func registerUser(completion: @escaping (Bool) -> Void) {
+    func signInUser(completion: @escaping (Bool) -> Void) {
         DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
             completion(true)
         }
     }
 }
+

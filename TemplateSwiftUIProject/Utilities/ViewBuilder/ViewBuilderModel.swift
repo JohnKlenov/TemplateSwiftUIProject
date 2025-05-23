@@ -79,6 +79,7 @@ enum AccountFlow: Hashable {
     case language
     case aboutUs
     case createAccount
+    case login
 
     static func == (lhs: AccountFlow, rhs: AccountFlow) -> Bool {
         switch (lhs, rhs) {
@@ -86,13 +87,15 @@ enum AccountFlow: Hashable {
             (.userInfo, .userInfo),
             (.language, .language),
             (.aboutUs, .aboutUs),
-            (.createAccount, .createAccount):
+            (.createAccount, .createAccount),
+            (.login, .login):
             return true
         default:
             return false
         }
     }
 
+    
     func hash(into hasher: inout Hasher) {
         switch self {
         case .userInfo:
@@ -105,6 +108,8 @@ enum AccountFlow: Hashable {
             hasher.combine("createAccount")
         case .account:
             hasher.combine("account")
+        case .login:
+            hasher.combine("login")
         }
     }
 }

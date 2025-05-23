@@ -10,6 +10,7 @@ import Combine
 
 struct AccountView: View {
     
+    
     @StateObject private var viewModel:AccountViewModel
     
     @EnvironmentObject var accountCoordinator:AccountCoordinator

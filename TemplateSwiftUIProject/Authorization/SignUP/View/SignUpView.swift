@@ -56,6 +56,7 @@ struct SignUpView: View {
     
     @StateObject private var viewModel = SignUpViewModel()
     @EnvironmentObject var localization: LocalizationService
+    @EnvironmentObject var accountCoordinator:AccountCoordinator
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -180,41 +181,93 @@ struct SignUpView: View {
                 .padding([.horizontal, .vertical])
                 
                 // Блок альтернативной регистрации
+                
+                // Блок альтернативной регистрации
                 HStack(spacing: 40) {
                     // Кнопка регистрации через Apple
                     Button(action: {
-                        // Реализуйте регистрацию через Apple
                         guard !viewModel.isRegistering else { return }
                         print("applelogo")
                     }) {
                         Image(systemName: "applelogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: UIScreen.main.bounds.width * 0.08,
-                                   height: UIScreen.main.bounds.width * 0.08)
                             .padding()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .aspectRatio(1, contentMode: .fit)
+                            .background(
+                                Circle()
+                                    .stroke(Color.gray, lineWidth: 1)
+                            )
                             .tint(AppColors.primary)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.gray, lineWidth: 1))
                     }
+                    .frame(maxWidth: 70, maxHeight: 70)
+                    .aspectRatio(1, contentMode: .fit)
                     
                     // Кнопка регистрации через Google
                     Button(action: {
-                        // Реализуйте регистрацию через Google
                         guard !viewModel.isRegistering else { return }
                         print("googlelogo")
                     }) {
                         Image("googlelogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: UIScreen.main.bounds.width * 0.08,
-                                   height: UIScreen.main.bounds.width * 0.08)
                             .padding()
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .aspectRatio(1, contentMode: .fit)
+                            .background(
+                                Circle()
+                                    .stroke(Color.gray, lineWidth: 1)
+                            )
                     }
+                    .frame(maxWidth: 70, maxHeight: 70)
+                    .aspectRatio(1, contentMode: .fit)
                 }
+                .frame(maxWidth: .infinity)
+                .background(Color.green)
                 .padding(.vertical, 10)
+//                    GeometryReader { geometry in
+//                        HStack(spacing: 40) {
+//                            // Кнопка регистрации через Apple
+//                            Button(action: {
+//                                // Реализуйте регистрацию через Apple
+//                                guard !viewModel.isRegistering else { return }
+//                                print("applelogo")
+//                            }) {
+//                                Image(systemName: "applelogo")
+//                                    .resizable()
+//                                    .scaledToFit()
+//                                //                            UIScreen.main.bounds.width * 0.08
+//                                    .frame(width: geometry.size.width * 0.08,
+//                                           height: geometry.size.width * 0.08)
+//                                    .padding()
+//                                    .tint(AppColors.primary)
+//                                    .clipShape(Circle())
+//                                    .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+//                            }
+//                            
+//                            // Кнопка регистрации через Google
+//                            Button(action: {
+//                                // Реализуйте регистрацию через Google
+//                                guard !viewModel.isRegistering else { return }
+//                                print("googlelogo")
+//                            }) {
+//                                Image("googlelogo")
+//                                    .resizable()
+//                                    .scaledToFit()
+//                                    .frame(width: geometry.size.width * 0.08,
+//                                           height: geometry.size.width * 0.08)
+//                                    .padding()
+//                                    .clipShape(Circle())
+//                                    .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+//                            }
+//                        }
+//                        .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
+//                        .padding(.vertical, 10)
+//                    }
+//                    .frame(height: 100)
+//                    .background(Color.green)
+                
                 
                 // Ссылка для входа
                 HStack {
@@ -222,6 +275,7 @@ struct SignUpView: View {
                     Button(action: {
                         // Переход на экран входа
                         guard !viewModel.isRegistering else { return }
+                        accountCoordinator.navigateTo(page: .login)
                     }) {
                         Text(Localized.SignUpView.signIn.localized())
                             .foregroundColor(.blue)
