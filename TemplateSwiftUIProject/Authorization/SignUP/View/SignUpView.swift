@@ -181,30 +181,23 @@ struct SignUpView: View {
                 .padding([.horizontal, .vertical])
                 
                 // Блок альтернативной регистрации
-                
-                // Блок альтернативной регистрации
+    
                 HStack(spacing: 40) {
-                    // Кнопка регистрации через Apple
+                    // Кнопка Apple
                     Button(action: {
                         guard !viewModel.isRegistering else { return }
                         print("applelogo")
-                    }) {
+                    })  {
                         Image(systemName: "applelogo")
                             .resizable()
                             .scaledToFit()
                             .padding()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .aspectRatio(1, contentMode: .fit)
-                            .background(
-                                Circle()
-                                    .stroke(Color.gray, lineWidth: 1)
-                            )
+                            .frame(width: 60, height: 60) // ← Жёсткий размер
                             .tint(AppColors.primary)
+                            .background(Circle().stroke(Color.gray, lineWidth: 1))
                     }
-                    .frame(maxWidth: 70, maxHeight: 70)
-                    .aspectRatio(1, contentMode: .fit)
                     
-                    // Кнопка регистрации через Google
+                    // Кнопка Google
                     Button(action: {
                         guard !viewModel.isRegistering else { return }
                         print("googlelogo")
@@ -213,61 +206,12 @@ struct SignUpView: View {
                             .resizable()
                             .scaledToFit()
                             .padding()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .aspectRatio(1, contentMode: .fit)
-                            .background(
-                                Circle()
-                                    .stroke(Color.gray, lineWidth: 1)
-                            )
+                            .frame(width: 60, height: 60) // ← Жёсткий размер
+                            .background(Circle().stroke(Color.gray, lineWidth: 1))
                     }
-                    .frame(maxWidth: 70, maxHeight: 70)
-                    .aspectRatio(1, contentMode: .fit)
                 }
-                .frame(maxWidth: .infinity)
-                .background(Color.green)
                 .padding(.vertical, 10)
-//                    GeometryReader { geometry in
-//                        HStack(spacing: 40) {
-//                            // Кнопка регистрации через Apple
-//                            Button(action: {
-//                                // Реализуйте регистрацию через Apple
-//                                guard !viewModel.isRegistering else { return }
-//                                print("applelogo")
-//                            }) {
-//                                Image(systemName: "applelogo")
-//                                    .resizable()
-//                                    .scaledToFit()
-//                                //                            UIScreen.main.bounds.width * 0.08
-//                                    .frame(width: geometry.size.width * 0.08,
-//                                           height: geometry.size.width * 0.08)
-//                                    .padding()
-//                                    .tint(AppColors.primary)
-//                                    .clipShape(Circle())
-//                                    .overlay(Circle().stroke(Color.gray, lineWidth: 1))
-//                            }
-//                            
-//                            // Кнопка регистрации через Google
-//                            Button(action: {
-//                                // Реализуйте регистрацию через Google
-//                                guard !viewModel.isRegistering else { return }
-//                                print("googlelogo")
-//                            }) {
-//                                Image("googlelogo")
-//                                    .resizable()
-//                                    .scaledToFit()
-//                                    .frame(width: geometry.size.width * 0.08,
-//                                           height: geometry.size.width * 0.08)
-//                                    .padding()
-//                                    .clipShape(Circle())
-//                                    .overlay(Circle().stroke(Color.gray, lineWidth: 1))
-//                            }
-//                        }
-//                        .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
-//                        .padding(.vertical, 10)
-//                    }
-//                    .frame(height: 100)
-//                    .background(Color.green)
-                
+
                 
                 // Ссылка для входа
                 HStack {
@@ -336,7 +280,163 @@ struct SignUpView: View {
 
 
 
+// MARK: - Version alternative autentification
 
+// zero version
+/// адаптивный - если у нас ширина меньше 160pt(60 + 40 + 60) то кнопка будет ужиматься
+/// но у нас Даже iPhone SE (3rd) имеет ширину 375pt → 160pt < 375pt
+/// то есть такой подход избыточен
+
+//HStack(spacing: 40) {
+//    // Кнопка регистрации через Apple
+//    Button(action: {
+//        guard !viewModel.isRegistering else { return }
+//        print("applelogo")
+//    }) {
+//        Image(systemName: "applelogo")
+//            .resizable()
+//            .scaledToFit()
+//            .padding()
+//            .frame(maxWidth: .infinity, maxHeight: .infinity)
+//            .aspectRatio(1, contentMode: .fit)
+//            .background(
+//                Circle()
+//                    .stroke(Color.gray, lineWidth: 1)
+//            )
+//            .tint(AppColors.primary)
+//    }
+//    .frame(maxWidth: 60, maxHeight: 60)
+//    .aspectRatio(1, contentMode: .fit)
+//    .background(
+//           GeometryReader { geometry in
+//               Color.clear
+//                   .onAppear {
+//                       print("Apple Button size: \(geometry.size)")
+//                   }
+//                   .onChange(of: geometry.size) { _, newSize in
+//                       print("Apple Button new size: \(newSize)")
+//                   }
+//           }
+//       )
+//    
+//    // Кнопка регистрации через Google
+//    Button(action: {
+//        guard !viewModel.isRegistering else { return }
+//        print("googlelogo")
+//    }) {
+//        Image("googlelogo")
+//            .resizable()
+//            .scaledToFit()
+//            .padding()
+//            .frame(maxWidth: .infinity, maxHeight: .infinity)
+//            .aspectRatio(1, contentMode: .fit)
+//            .background(
+//                Circle()
+//                    .stroke(Color.gray, lineWidth: 1)
+//            )
+//    }
+//    .frame(maxWidth: 60, maxHeight: 60)
+//    .aspectRatio(1, contentMode: .fit)
+//    .background(
+//         GeometryReader { geometry in
+//             Color.clear
+//                 .onAppear {
+//                     print("Google Button size: \(geometry.size)")
+//                 }
+//                 .onChange(of: geometry.size) { _, newSize in
+//                     print("Google Button new size: \(newSize)")
+//                 }
+//         }
+//     )
+//}
+//.frame(maxWidth: .infinity)
+//.padding(.vertical, 10)
+
+
+// first verssion
+///проблема в том что нам приходится жестко фиксировать frame для GeometryReader
+///в большинстве случаев использование GeometryReader внутри ScrollView — не лучшая практика.
+
+//                    GeometryReader { geometry in
+//                        HStack(spacing: 40) {
+//                            // Кнопка регистрации через Apple
+//                            Button(action: {
+//                                // Реализуйте регистрацию через Apple
+//                                guard !viewModel.isRegistering else { return }
+//                                print("applelogo")
+//                            }) {
+//                                Image(systemName: "applelogo")
+//                                    .resizable()
+//                                    .scaledToFit()
+//                                //                            UIScreen.main.bounds.width * 0.08
+//                                    .frame(width: geometry.size.width * 0.08,
+//                                           height: geometry.size.width * 0.08)
+//                                    .padding()
+//                                    .tint(AppColors.primary)
+//                                    .clipShape(Circle())
+//                                    .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+//                            }
+//
+//                            // Кнопка регистрации через Google
+//                            Button(action: {
+//                                // Реализуйте регистрацию через Google
+//                                guard !viewModel.isRegistering else { return }
+//                                print("googlelogo")
+//                            }) {
+//                                Image("googlelogo")
+//                                    .resizable()
+//                                    .scaledToFit()
+//                                    .frame(width: geometry.size.width * 0.08,
+//                                           height: geometry.size.width * 0.08)
+//                                    .padding()
+//                                    .clipShape(Circle())
+//                                    .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+//                            }
+//                        }
+//                        .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
+//                        .padding(.vertical, 10)
+//                    }
+//                    .frame(height: 100)
+//                    .background(Color.green)
+
+//second version
+// при изменении ориентации и срабатывании state размер резко менялся до больших размеров
+
+//HStack(spacing: 40) {
+//    // Кнопка регистрации через Apple
+//    Button(action: {
+//        // Реализуйте регистрацию через Apple
+//        guard !viewModel.isSignIn else { return }
+//        print("applelogo")
+//    }) {
+//        Image(systemName: "applelogo")
+//            .resizable()
+//            .scaledToFit()
+//            .frame(width: UIScreen.main.bounds.width * 0.08,
+//                   height: UIScreen.main.bounds.width * 0.08)
+//            .padding()
+//            .tint(AppColors.primary)
+//            .clipShape(Circle())
+//            .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+//    }
+//    
+//    // Кнопка регистрации через Google
+//    Button(action: {
+//        // Реализуйте регистрацию через Google
+//        guard !viewModel.isSignIn else { return }
+//        print("googlelogo")
+//    }) {
+//        Image("googlelogo")
+//            .resizable()
+//            .scaledToFit()
+//            .frame(width: UIScreen.main.bounds.width * 0.08,
+//                   height: UIScreen.main.bounds.width * 0.08)
+//            .padding()
+//            .clipShape(Circle())
+//            .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+//    }
+//}
+//.padding(.vertical, 10)
 
 
 

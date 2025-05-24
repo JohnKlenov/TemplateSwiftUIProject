@@ -157,38 +157,33 @@ struct SignInView: View {
                 .padding([.horizontal, .vertical])
                 
                 // Блок альтернативной регистрации
+                
                 HStack(spacing: 40) {
-                    // Кнопка регистрации через Apple
+                    // Кнопка Apple
                     Button(action: {
-                        // Реализуйте регистрацию через Apple
                         guard !viewModel.isSignIn else { return }
                         print("applelogo")
-                    }) {
+                    })  {
                         Image(systemName: "applelogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: UIScreen.main.bounds.width * 0.08,
-                                   height: UIScreen.main.bounds.width * 0.08)
                             .padding()
+                            .frame(width: 60, height: 60) // ← Жёсткий размер
                             .tint(AppColors.primary)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+                            .background(Circle().stroke(Color.gray, lineWidth: 1))
                     }
                     
-                    // Кнопка регистрации через Google
+                    // Кнопка Google
                     Button(action: {
-                        // Реализуйте регистрацию через Google
                         guard !viewModel.isSignIn else { return }
                         print("googlelogo")
                     }) {
                         Image("googlelogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: UIScreen.main.bounds.width * 0.08,
-                                   height: UIScreen.main.bounds.width * 0.08)
                             .padding()
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+                            .frame(width: 60, height: 60) // ← Жёсткий размер
+                            .background(Circle().stroke(Color.gray, lineWidth: 1))
                     }
                 }
                 .padding(.vertical, 10)
