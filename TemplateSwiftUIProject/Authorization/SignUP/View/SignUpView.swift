@@ -38,7 +38,9 @@
 
 //Button.allowsHitTesting(false)
 ///Этот модификатор просто отключает возможность клика (или «хита») на элементе, но не меняет его внешнего вида.
-              
+
+
+//.frame(minWidth: 100, idealWidth: 300, maxWidth: 450)
 
 import SwiftUI
 import UIKit
@@ -57,6 +59,7 @@ struct SignUpView: View {
     @StateObject private var viewModel = SignUpViewModel()
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var accountCoordinator:AccountCoordinator
+    @Environment(\.horizontalSizeClass) var sizeClass
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -149,7 +152,6 @@ struct SignUpView: View {
                 .padding(.top, 20)
                 
                 // Кнопка регистрации (всегда активна)
-                
                 Button(action: register) {
                     Group {
                         if viewModel.isRegistering {
@@ -160,6 +162,7 @@ struct SignUpView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
+//                    .frame(maxWidth: UIDevice.current.orientation.isLandscape ? 300 : .infinity)
                     .contentShape(Rectangle())
                 }
                 .fontWeight(.semibold)
@@ -181,7 +184,6 @@ struct SignUpView: View {
                 .padding([.horizontal, .vertical])
                 
                 // Блок альтернативной регистрации
-    
                 HStack(spacing: 40) {
                     // Кнопка Apple
                     Button(action: {
@@ -213,7 +215,7 @@ struct SignUpView: View {
                 .padding(.vertical, 10)
 
                 
-                // Ссылка для входа
+                // Ссылка для SignIn
                 HStack {
                     Text(Localized.SignUpView.alreadyHaveAccount.localized())
                     Button(action: {

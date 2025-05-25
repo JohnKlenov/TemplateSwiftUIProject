@@ -112,7 +112,6 @@ struct SignInView: View {
                 // HStack с кнопкой "Forgot Password?"
                 HStack {
                     Spacer()
-                    
                     Button(action: {
                         guard !viewModel.isSignIn else { return }
                         // Обработка нажатия "Forgot Password?"
@@ -125,7 +124,7 @@ struct SignInView: View {
                 }
                 .padding(.horizontal)
 
-                
+                // button LogIn
                 Button(action: login) {
                     Group {
                         if viewModel.isSignIn {
@@ -157,7 +156,6 @@ struct SignInView: View {
                 .padding([.horizontal, .vertical])
                 
                 // Блок альтернативной регистрации
-                
                 HStack(spacing: 40) {
                     // Кнопка Apple
                     Button(action: {
