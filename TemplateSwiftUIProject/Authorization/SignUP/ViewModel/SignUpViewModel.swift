@@ -16,6 +16,7 @@ class SignUpViewModel: ObservableObject {
     @Published var passwordError: String?
     
     @Published var isRegistering: Bool = false
+    @Published var isLandscape = false
     
     // Вычисляемое свойство для проверки валидности данных (без side‑эффектов)
     var isValid: Bool {

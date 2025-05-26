@@ -40,7 +40,10 @@
 ///Этот модификатор просто отключает возможность клика (или «хита») на элементе, но не меняет его внешнего вида.
 
 
-//.frame(minWidth: 100, idealWidth: 300, maxWidth: 450)
+// GeometryReader
+///Если мы хотим вычислять текущий размер View то можем поместить GeometryReader в его View.background
+/// ScrollView.background { GeometryReader { geometry in Color.clear.onAppear{}.onChange{} .. } }
+
 
 import SwiftUI
 import UIKit
@@ -62,186 +65,236 @@ struct SignUpView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 20) {
-                // Форма регистрации
-                VStack(spacing: 15) {
-                    // Поле "Email"
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(Localized.SignUpView.email.localized())
-                            .font(.subheadline)
-                            .foregroundColor(AppColors.primary)
-                        TextField(Localized.SignUpView.emailPlaceholder.localized(), text: $viewModel.email)
-                            .submitLabel(.next)
-                            .focused($isFieldFocus, equals: .emailField)
-                            .onSubmit { focusNextField() }
+        ZStack {
+            // Слой для измерения (он невидимый, занимает всё пространство)
+            GeometryReader { geometry in
+                Color.clear
+                    .onAppear{
+                        print("geometry.size.width  - \(geometry.size.width)")
+                        print("geometry.size.height  - \(geometry.size.height)")
+                        let isLandscape = geometry.size.width > geometry.size.height
+                        viewModel.isLandscape = isLandscape
+                    }
+                    .onChange(of: geometry.frame(in: .global)) { oldSize, newSize in
+                        print("oldSize - \(oldSize), newSize - \(newSize)")
+//                        print("oldValue - \(oldSize.width), newValue - \(newSize.width)")
+                        let isLandscape = newSize.width > newSize.height
+                        viewModel.isLandscape = isLandscape
+                    }
+            }
+            .ignoresSafeArea(.all)
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 20) {
+                    // Форма регистрации
+                    VStack(spacing: 15) {
+                        // Поле "Email"
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(Localized.SignUpView.email.localized())
+                                .font(.subheadline)
+                                .foregroundColor(AppColors.primary)
+                            TextField(Localized.SignUpView.emailPlaceholder.localized(), text: $viewModel.email)
+                                .submitLabel(.next)
+                                .focused($isFieldFocus, equals: .emailField)
+                                .onSubmit { focusNextField() }
+                                .padding()
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(8)
+                                .keyboardType(.emailAddress)
+                                .disableAutocorrection(true)
+                                .autocapitalization(.none)
+                            // При тапе очищается ошибка
+                                .onTapGesture {
+                                    viewModel.emailError = nil
+                                }
+                            if let error = viewModel.emailError {
+                                Text(error.localized())
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+                        }
+                        
+                        // Поле "Пароль" с кнопкой-переключателем "eye"
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(Localized.SignUpView.password.localized())
+                                .font(.subheadline)
+                                .foregroundColor(AppColors.primary)
+                            HStack {
+                                Group {
+                                    if isPasswordVisible {
+                                        TextField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
+                                            .submitLabel(.done)
+                                            .focused($isFieldFocus, equals: .passwordField)
+                                            .textContentType(.password)
+                                            .autocapitalization(.none)
+                                            .disableAutocorrection(true)
+                                            .onSubmit { focusNextField() }
+                                            .onChange(of: viewModel.password) { _ , _ in
+                                                viewModel.updateValidationPassword()
+                                            }
+                                            .onTapGesture {
+                                                viewModel.passwordError = nil
+                                            }
+                                    } else {
+                                        SecureField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
+                                            .submitLabel(.done)
+                                            .focused($isFieldFocus, equals: .securePasswordField)
+                                            .textContentType(.password)
+                                            .autocapitalization(.none)
+                                            .disableAutocorrection(true)
+                                            .onSubmit { focusNextField() }
+                                            .onChange(of: viewModel.password) { _ , _ in
+                                                viewModel.updateValidationPassword()
+                                            }
+                                            .onTapGesture {
+                                                viewModel.passwordError = nil
+                                            }
+                                    }
+                                }
+                                // Кнопка-переключатель видимости пароля
+                                Button(action: {
+                                    isPasswordVisible.toggle()
+                                    isFieldFocus = isPasswordVisible ? .passwordField : .securePasswordField
+                                }) {
+                                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                                        .foregroundColor(.gray)
+                                }
+                            }
                             .padding()
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(8)
-                            .keyboardType(.emailAddress)
-                            .disableAutocorrection(true)
-                            .autocapitalization(.none)
-                        // При тапе очищается ошибка
-                            .onTapGesture {
-                                viewModel.emailError = nil
+                            if let error = viewModel.passwordError {
+                                Text(error.localized())
+                                    .font(.caption)
+                                    .foregroundColor(.red)
                             }
-                        if let error = viewModel.emailError {
-                            Text(error.localized())
-                                .font(.caption)
-                                .foregroundColor(.red)
                         }
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 20)
                     
-                    // Поле "Пароль" с кнопкой-переключателем "eye"
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(Localized.SignUpView.password.localized())
-                            .font(.subheadline)
-                            .foregroundColor(AppColors.primary)
-                        HStack {
-                            Group {
-                                if isPasswordVisible {
-                                    TextField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
-                                        .submitLabel(.done)
-                                        .focused($isFieldFocus, equals: .passwordField)
-                                        .textContentType(.password)
-                                        .autocapitalization(.none)
-                                        .disableAutocorrection(true)
-                                        .onSubmit { focusNextField() }
-                                        .onChange(of: viewModel.password) { _ , _ in
-                                            viewModel.updateValidationPassword()
-                                        }
-                                        .onTapGesture {
-                                            viewModel.passwordError = nil
-                                        }
-                                } else {
-                                    SecureField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
-                                        .submitLabel(.done)
-                                        .focused($isFieldFocus, equals: .securePasswordField)
-                                        .textContentType(.password)
-                                        .autocapitalization(.none)
-                                        .disableAutocorrection(true)
-                                        .onSubmit { focusNextField() }
-                                        .onChange(of: viewModel.password) { _ , _ in
-                                            viewModel.updateValidationPassword()
-                                        }
-                                        .onTapGesture {
-                                            viewModel.passwordError = nil
-                                        }
-                                }
-                            }
-                            // Кнопка-переключатель видимости пароля
-                            Button(action: {
-                                isPasswordVisible.toggle()
-                                isFieldFocus = isPasswordVisible ? .passwordField : .securePasswordField
-                            }) {
-                                Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                                    .foregroundColor(.gray)
+                    // Кнопка регистрации (всегда активна)
+                    Button(action: register) {
+                        Group {
+                            if viewModel.isRegistering {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                            } else {
+                                Text(Localized.SignUpView.register.localized())
                             }
                         }
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(8)
-                        if let error = viewModel.passwordError {
-                            Text(error.localized())
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        }
+                        .frame(maxWidth: viewModel.isLandscape ? 300 : .infinity)
+                        .contentShape(Rectangle())
                     }
-                }
-                .padding(.horizontal)
-                .padding(.top, 20)
-                
-                // Кнопка регистрации (всегда активна)
-                Button(action: register) {
-                    Group {
-                        if viewModel.isRegistering {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                        } else {
-                            Text(Localized.SignUpView.register.localized())
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-//                    .frame(maxWidth: UIDevice.current.orientation.isLandscape ? 300 : .infinity)
-                    .contentShape(Rectangle())
-                }
-                .fontWeight(.semibold)
-                .padding()
-                .background(AppColors.activeColor)
-                .foregroundColor(AppColors.primary)
-                .cornerRadius(8)
-                .padding(.horizontal)
-                .disabled(viewModel.isRegistering)
-                
-                // Разделитель между регистрацией и альтернативными способами входа
-                HStack {
-                    VStack { Divider().frame(height: 1).background(Color.primary) }
-                    Text(Localized.SignUpView.or.localized())
-                        .font(.footnote)
-                        .foregroundColor(.primary)
-                    VStack { Divider().frame(height: 1).background(Color.primary) }
-                }
-                .padding([.horizontal, .vertical])
-                
-                // Блок альтернативной регистрации
-                HStack(spacing: 40) {
-                    // Кнопка Apple
-                    Button(action: {
-                        guard !viewModel.isRegistering else { return }
-                        print("applelogo")
-                    })  {
-                        Image(systemName: "applelogo")
-                            .resizable()
-                            .scaledToFit()
-                            .padding()
-                            .frame(width: 60, height: 60) // ← Жёсткий размер
-                            .tint(AppColors.primary)
-                            .background(Circle().stroke(Color.gray, lineWidth: 1))
-                    }
+                    .fontWeight(.semibold)
+                    .padding()
+                    .background(AppColors.activeColor)
+                    .foregroundColor(AppColors.primary)
+                    .cornerRadius(8)
+                    .padding(.horizontal)
+                    .disabled(viewModel.isRegistering)
                     
-                    // Кнопка Google
-                    Button(action: {
-                        guard !viewModel.isRegistering else { return }
-                        print("googlelogo")
-                    }) {
-                        Image("googlelogo")
-                            .resizable()
-                            .scaledToFit()
-                            .padding()
-                            .frame(width: 60, height: 60) // ← Жёсткий размер
-                            .background(Circle().stroke(Color.gray, lineWidth: 1))
+                    // Разделитель между регистрацией и альтернативными способами входа
+                    HStack {
+                        VStack { Divider().frame(height: 1).background(Color.primary) }
+                        Text(Localized.SignUpView.or.localized())
+                            .font(.footnote)
+                            .foregroundColor(.primary)
+                        VStack { Divider().frame(height: 1).background(Color.primary) }
                     }
-                }
-                .padding(.vertical, 10)
-
-                
-                // Ссылка для SignIn
-                HStack {
-                    Text(Localized.SignUpView.alreadyHaveAccount.localized())
-                    Button(action: {
-                        // Переход на экран входа
-                        guard !viewModel.isRegistering else { return }
-                        accountCoordinator.navigateTo(page: .login)
-                    }) {
-                        Text(Localized.SignUpView.signIn.localized())
-                            .foregroundColor(.blue)
-                            .fontWeight(.semibold)
+                    .padding([.horizontal, .vertical])
+                    
+                    // Блок альтернативной регистрации
+                    HStack(spacing: 40) {
+                        // Кнопка Apple
+                        Button(action: {
+                            guard !viewModel.isRegistering else { return }
+                            print("applelogo")
+                        })  {
+                            Image(systemName: "applelogo")
+                                .resizable()
+                                .scaledToFit()
+                                .padding()
+                                .frame(width: 60, height: 60) // ← Жёсткий размер
+                                .tint(AppColors.primary)
+                                .background(Circle().stroke(Color.gray, lineWidth: 1))
+                        }
+                        
+                        // Кнопка Google
+                        Button(action: {
+                            guard !viewModel.isRegistering else { return }
+                            print("googlelogo")
+                        }) {
+                            Image("googlelogo")
+                                .resizable()
+                                .scaledToFit()
+                                .padding()
+                                .frame(width: 60, height: 60) // ← Жёсткий размер
+                                .background(Circle().stroke(Color.gray, lineWidth: 1))
+                        }
                     }
+                    .padding(.vertical, 10)
+                    
+                    
+                    // Ссылка для SignIn
+                    HStack {
+                        Text(Localized.SignUpView.alreadyHaveAccount.localized())
+                        Button(action: {
+                            // Переход на экран входа
+                            guard !viewModel.isRegistering else { return }
+                            accountCoordinator.navigateTo(page: .login)
+                        }) {
+                            Text(Localized.SignUpView.signIn.localized())
+                                .foregroundColor(.blue)
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .padding(.bottom, 20)
                 }
-                .padding(.bottom, 20)
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationTitle(Localized.SignUpView.navigationTitle.localized())
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationTitle(Localized.SignUpView.navigationTitle.localized())
+            // Применяем жест, который срабатывает одновременно с другими
+            ///первым отрабатывает simultaneousGesture затем все другие обработчики
+            ///поэтому при нажатии на TextField с открытой keyboard клавиатура пропадает а затем снова открывается
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    hideKeyboard()
+                }
+            )
         }
-        // Применяем жест, который срабатывает одновременно с другими
-        ///первым отрабатывает simultaneousGesture затем все другие обработчики
-        ///поэтому при нажатии на TextField с открытой keyboard клавиатура пропадает а затем снова открывается
-        .simultaneousGesture(
-            TapGesture().onEnded {
-                hideKeyboard()
-            }
-        )
     }
+    
+//    // Слушаем изменения размеров корневого представления.
+//    .onAppear {
+//        let fullSize = rootGeometry.frame(in: .global).size
+//        print("Full size onAppear: \(fullSize)")
+//        let isLandscape = fullSize.width > fullSize.height
+//        viewModel.isLandscape = isLandscape
+//        //                print("Root size: \(rootGeometry.size)")
+//        //                viewModel.isLandscape = rootGeometry.size.width > rootGeometry.size.height
+//    }
+//    .onChange(of: rootGeometry.frame(in: .global)) { oldSize, newSize in
+//        print("oldSize: \(oldSize), newSize: \(newSize)")
+//        let isLandscape = newSize.width > newSize.height
+//        viewModel.isLandscape = isLandscape
+//    }
+    
+    //                .background {
+//                        GeometryReader { geometry in
+//                            Color.clear
+//                                .onAppear{
+//                                    print("geometry.size.width  - \(geometry.size.width)")
+//                                    print("geometry.size.height  - \(geometry.size.height)")
+//                                    let isLandscape = geometry.size.width > geometry.size.height
+//                                    viewModel.isLandscape = isLandscape
+//                                }
+//                                .onChange(of: geometry.size) { oldSize, newSize in
+//                                    print("oldValue - \(oldSize.width), newValue - \(newSize.width)")
+//                                    let isLandscape = newSize.width > newSize.height
+//                                    viewModel.isLandscape = isLandscape
+//                                }
+//                        }
+    //                }
     
     private func focusNextField() {
         switch isFieldFocus {
