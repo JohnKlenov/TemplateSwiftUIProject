@@ -62,24 +62,23 @@ struct SignUpView: View {
     @StateObject private var viewModel = SignUpViewModel()
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var accountCoordinator:AccountCoordinator
-    @Environment(\.horizontalSizeClass) var sizeClass
+    @EnvironmentObject private var orientationService: DeviceOrientationService
     
     var body: some View {
         ZStack {
-            // Слой для измерения (он невидимый, занимает всё пространство)
+            // Слушаем изменения размеров корневого представления.
             GeometryReader { geometry in
                 Color.clear
                     .onAppear{
                         print("geometry.size.width  - \(geometry.size.width)")
                         print("geometry.size.height  - \(geometry.size.height)")
                         let isLandscape = geometry.size.width > geometry.size.height
-                        viewModel.isLandscape = isLandscape
+//                        viewModel.isLandscape = isLandscape
                     }
                     .onChange(of: geometry.frame(in: .global)) { oldSize, newSize in
                         print("oldSize - \(oldSize), newSize - \(newSize)")
-//                        print("oldValue - \(oldSize.width), newValue - \(newSize.width)")
                         let isLandscape = newSize.width > newSize.height
-                        viewModel.isLandscape = isLandscape
+//                        viewModel.isLandscape = isLandscape
                     }
             }
             .ignoresSafeArea(.all)
@@ -182,7 +181,8 @@ struct SignUpView: View {
                                 Text(Localized.SignUpView.register.localized())
                             }
                         }
-                        .frame(maxWidth: viewModel.isLandscape ? 300 : .infinity)
+//                        .frame(maxWidth: viewModel.isLandscape ? 300 : .infinity)
+                        .frame(maxWidth: orientationService.orientation == .landscape  ? 300 : .infinity)
                         .contentShape(Rectangle())
                     }
                     .fontWeight(.semibold)
@@ -263,38 +263,6 @@ struct SignUpView: View {
             )
         }
     }
-    
-//    // Слушаем изменения размеров корневого представления.
-//    .onAppear {
-//        let fullSize = rootGeometry.frame(in: .global).size
-//        print("Full size onAppear: \(fullSize)")
-//        let isLandscape = fullSize.width > fullSize.height
-//        viewModel.isLandscape = isLandscape
-//        //                print("Root size: \(rootGeometry.size)")
-//        //                viewModel.isLandscape = rootGeometry.size.width > rootGeometry.size.height
-//    }
-//    .onChange(of: rootGeometry.frame(in: .global)) { oldSize, newSize in
-//        print("oldSize: \(oldSize), newSize: \(newSize)")
-//        let isLandscape = newSize.width > newSize.height
-//        viewModel.isLandscape = isLandscape
-//    }
-    
-    //                .background {
-//                        GeometryReader { geometry in
-//                            Color.clear
-//                                .onAppear{
-//                                    print("geometry.size.width  - \(geometry.size.width)")
-//                                    print("geometry.size.height  - \(geometry.size.height)")
-//                                    let isLandscape = geometry.size.width > geometry.size.height
-//                                    viewModel.isLandscape = isLandscape
-//                                }
-//                                .onChange(of: geometry.size) { oldSize, newSize in
-//                                    print("oldValue - \(oldSize.width), newValue - \(newSize.width)")
-//                                    let isLandscape = newSize.width > newSize.height
-//                                    viewModel.isLandscape = isLandscape
-//                                }
-//                        }
-    //                }
     
     private func focusNextField() {
         switch isFieldFocus {

@@ -62,3 +62,263 @@ extension UIDeviceOrientation {
 
 //@EnvironmentObject var orientationInfo: OrientationInfo
 //.frame(maxWidth: orientationInfo.isLandscape ? 300 : .infinity)
+
+
+
+
+// MARK: - Combined service
+// MARK: - методами определения ориентации устройства в пространстве
+
+//Физическая ориентация устройства (через UIDevice.orientation)
+///Даже если приложение заблокировано в портретном режиме, физическое поворот устройства может изменять значение UIDevice.current.orientation
+
+//Фактический layout интерфейса (через PreferenceKey, GeometryReader)
+///Если ориентация приложения заблокирована (например, только портретная компоновка), то размеры контейнера не изменятся даже при физическом повороте устройства.
+///если контент заблокирован и не вращается, то вариант на основе измерения контейнера (GeometryReader с PreferenceKey) будет отражать актуальные размеры UI, потому что они будут зафиксированы в выбранной ориентации.
+
+//Как запретить изменение ориентации на устройстве
+///Настройка в Info.plist: Задайте поддерживаемые ориентации для вашего приложения. Например, чтобы разрешить только портрет, в Info.plist  добавьте ключ UISupportedInterfaceOrientations со значением UIInterfaceOrientationPortrait (а для iPad – при необходимости, либо отдельно определить портретные ориентации).
+///Переопределение поведения контроллера: Если вам нужно программно запретить авто-поворот, можно в вашем UIViewController
+///Для SwiftUI: Хотя SwiftUI напрямую не предоставляет API для блокировки ориентации, обычно это делается через настройку Info.plist  или через UIKit-обёртку в AppDelegate/SceneDelegate.
+
+///Если вы запрещаете поворот UI, то для определения текущего интерфейсного состояния используйте измерение контейнера (GeometryReader / PreferenceKey), так как реальный размер экрана для UI не меняется.
+
+///Объединённый сервис, который выбирает источник в зависимости от устройства, может, например, для iPad полагаться на размеры контейнера, а для iPhone – на системные уведомления. Но учтите, если вы блокируете ротейшн в обоих случаях (через Info.plist  или переопределяя shouldAutorotate), то размеры контейнера всегда будут соответствовать зафиксированной ориентации, а системные уведомления могут всё равно меняться, отражая только физическое положение устройства, а не интерфейс.
+
+
+//Когда точно нужен GeometryReader (iPad):
+
+///Если приложение поддерживает iPad
+///Если нужна поддержка Split View/Slide Over
+///Если есть кастомные контроллеры представления
+///Если важна точность при запрете ориентаций
+
+///Для простого iPhone-приложения можно использовать только UIDevice.orientation, но для production-решения лучше комбинированный подход.
+
+//Когда достаточно только UIDevice.orientation:
+
+///Приложение только для iPhone
+///На iPad заблокированы все ориентации кроме портретной
+///Не требуется поддержка Split View или Slide Over
+
+
+// MARK: - Полный исходный код
+
+import Combine
+import UIKit
+
+class DeviceOrientationService: ObservableObject {
+    enum Orientation { case portrait, landscape }
+    
+    @Published private(set) var orientation: Orientation = .portrait
+    private var cancellables = Set<AnyCancellable>()
+    private var lastContainerSize: CGSize = .zero
+    
+    init() {
+        setupOrientationTracking()
+    }
+    
+    private func setupOrientationTracking() {
+        // Системные уведомления об изменении ориентации
+        NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)
+            .sink { [weak self] _ in
+                self?.handleDeviceOrientationChange()
+            }
+            .store(in: &cancellables)
+        
+        // Первоначальное обновление
+        updateOrientation()
+    }
+    
+    // Обработчик изменений от GeometryReader
+    func updateContainerSize(_ size: CGSize) {
+        lastContainerSize = size
+        updateOrientation()
+    }
+    
+    private func handleDeviceOrientationChange() {
+        guard UIDevice.current.orientation.isValidInterfaceOrientation else { return }
+        updateOrientation()
+    }
+    
+    private func updateOrientation() {
+        let newOrientation = calculateOrientation()
+        
+        DispatchQueue.main.async {
+            if self.orientation != newOrientation {
+                self.orientation = newOrientation
+            }
+        }
+    }
+    
+    private func calculateOrientation() -> Orientation {
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            // Для iPhone доверяем физической ориентации
+            return UIDevice.current.orientation.isLandscape ? .landscape : .portrait
+        } else {
+            // Для iPad/Mac используем комбинированный подход
+            let isDeviceLandscape = UIDevice.current.orientation.isLandscape
+            let isContainerLandscape = lastContainerSize.width > lastContainerSize.height
+            
+            // Разрешение конфликтов
+            if isDeviceLandscape == isContainerLandscape {
+                return isDeviceLandscape ? .landscape : .portrait
+            } else {
+                // Приоритет данным контейнера для iPad
+                return isContainerLandscape ? .landscape : .portrait
+            }
+        }
+    }
+}
+
+
+
+///DeviceOrientationModifier измеряет размер того контейнера, к которому он применён, а не всего экрана устройства.
+///Что влияет на размер: Safe Area (вырез, индикатор дома) + NavigationBar/Toolbar + TabBar + Любые другие padding'и
+///TabView { .. } .modifier(DeviceOrientationModifier()) // ← Будет учитывать высоту TabBar
+
+//Как получить реальные размеры экрана
+///Если вам нужны полные размеры экрана (без учета safe area и других элементов):
+///ContentView().ignoresSafeArea() // ← Игнорируем safe area .modifier(DeviceOrientationModifier()) // ← Теперь получим полный экран
+
+//он учитывает реальное доступное пространство.
+//struct DeviceOrientationModifier: ViewModifier {
+//    @EnvironmentObject private var orientationService: DeviceOrientationService
+//    
+//    func body(content: Content) -> some View {
+//        content
+//            .background(
+//                GeometryReader { geometry in
+//                    Color.clear
+//                        .preference(
+//                            key: ContainerSizeKey.self,
+//                            value: geometry.size
+//                        )
+//                }
+//            )
+//            .onPreferenceChange(ContainerSizeKey.self) { size in
+//                orientationService.updateContainerSize(size)
+//            }
+//    }
+//}
+
+struct DeviceOrientationModifier: ViewModifier {
+    let orientationService: DeviceOrientationService
+    
+    func body(content: Content) -> some View {
+        content
+            .background(
+                GeometryReader { geometry in
+                    Color.clear
+                        .preference(
+                            key: ContainerSizeKey.self,
+                            value: geometry.size
+                        )
+                }
+            )
+            .onPreferenceChange(ContainerSizeKey.self) { size in
+                orientationService.updateContainerSize(size)
+            }
+    }
+}
+
+    
+struct ContainerSizeKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        value = nextValue()
+    }
+}
+
+//Для точных измерений экрана (игнорирует safe area:)
+struct ScreenSizeModifier: ViewModifier {
+    @Binding var screenSize: CGSize
+    
+    func body(content: Content) -> some View {
+        content
+            .ignoresSafeArea()
+            .background(
+                GeometryReader { proxy in
+                    Color.clear
+                        .preference(
+                            key: ScreenSizeKey.self,
+                            value: proxy.size
+                        )
+                }
+            )
+            .onPreferenceChange(ScreenSizeKey.self) { size in
+                screenSize = size
+                //                if screenSize != newSize {
+                //                                    screenSize = newSize
+                //                                }
+
+            }
+    }
+}
+
+//Определяем ключ для отслеживания размеров экрана
+struct ScreenSizeKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        value = nextValue()
+    }
+}
+
+
+
+//Setting
+
+//@main
+//struct MyApp: App {
+//    @StateObject private var orientationService = DeviceOrientationService()
+//    
+//    var body: some Scene {
+//        WindowGroup {
+//            ContentView()
+//                .environmentObject(orientationService)
+//                .modifier(DeviceOrientationModifier())
+//                .onAppear {
+//                    // Активируем генерацию уведомлений
+//                    UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+//                }
+//                .onDisappear {
+//                    UIDevice.current.endGeneratingDeviceOrientationNotifications()
+//                }
+//        }
+//    }
+//}
+
+
+//Example
+
+//struct ContentView: View {
+//    @EnvironmentObject private var orientationService: DeviceOrientationService
+//    
+//    var body: some View {
+//        ZStack {
+//            Color(.systemBackground)
+//            
+//            VStack {
+//                Text(currentOrientationText)
+//                    .font(.largeTitle)
+//                
+//                Button("Check Orientation") {
+//                    print("Current: \(orientationService.orientation)")
+//                }
+//                .padding()
+//                .background(Color.blue)
+//                .foregroundColor(.white)
+//                .cornerRadius(10)
+//            }
+//        }
+//        .ignoresSafeArea()
+//    }
+//    
+//    private var currentOrientationText: String {
+//        switch orientationService.orientation {
+//        case .portrait: return "Portrait 📱"
+//        case .landscape: return "Landscape 🌄"
+//        }
+//    }
+//}

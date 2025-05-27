@@ -73,6 +73,7 @@ struct TemplateSwiftUIProjectApp: App {
     @StateObject private var localizationService = LocalizationService.shared
     @StateObject private var retryHandler = GlobalRetryHandler()
     @StateObject private var networkMonitor = NetworkMonitor()
+    @StateObject private var orientationService = DeviceOrientationService()
     
     @Environment(\.scenePhase) private var scenePhase
     
@@ -90,6 +91,16 @@ struct TemplateSwiftUIProjectApp: App {
                     ContentView()
                         .environmentObject(retryHandler)
                         .environmentObject(localizationService)
+                        .environmentObject(orientationService)
+//                        .modifier(DeviceOrientationModifier())
+                        .modifier(DeviceOrientationModifier(orientationService: orientationService))
+                        .onAppear {
+                            // Активируем генерацию уведомлений
+                            UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+                        }
+                        .onDisappear {
+                            UIDevice.current.endGeneratingDeviceOrientationNotifications()
+                        }
                 } else {
                     OnboardingView()
                 }
