@@ -20,49 +20,6 @@
 ///Если вы запретили переход в landscape (Info.plist или supportedInterfaceOrientations), но пользователь наклонил устройство в сторону, тогда:
 ///UIDevice.current.orientation.isLandscape будет true, потому что физически устройство в landscape.
 
-import SwiftUI
-import Combine
-
-class OrientationInfo: ObservableObject {
-    @Published var isLandscape: Bool = UIDevice.current.orientation.isLandscape
-
-    private var cancellable: AnyCancellable?
-
-    init() {
-        // Подписываемся на уведомления о перемене ориентации
-        cancellable = NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)
-            .sink { _ in
-                // Пересчитываем состояние на основе текущей ориентации.
-                let orientation = UIDevice.current.orientation
-                if orientation.isValidInterfaceOrientation {
-                    DispatchQueue.main.async {
-                        self.isLandscape = orientation.isLandscape
-                    }
-                }
-            }
-    }
-}
-
-///Проверить, что текущая ориентация устройства относится к "действительным" для интерфейса, то есть к тем, которые обычно используются для компоновки UI: .portrait, .portraitUpsideDown, .landscapeLeft и .landscapeRight.
-///Почему это нужно: Когда вы запрашиваете текущую ориентацию через UIDevice.current.orientation, система может вернуть и другие значения, например, .faceUp, .faceDown или .unknown, которые не подходят для корректного размещения элементов интерфейса. Это расширение фильтрует такие состояния, гарантируя, что используются только те ориентации, которые реально влияют на расположение интерфейса.
-///Свойство isValidInterfaceOrientation возвращает true, если значение UIDeviceOrientation равно одному из «валидных» вариантов. Иначе — false.
-extension UIDeviceOrientation {
-    var isValidInterfaceOrientation: Bool {
-        // Исключаем неизвестное, лицевое вниз и вверх
-        return self == .portrait || self == .portraitUpsideDown || self == .landscapeLeft || self == .landscapeRight
-    }
-}
-
-
-
-// MARK: - View
-// Создаём объект ориентации один раз и передаём его через environment
-//@StateObject var orientationInfo = OrientationInfo()
-//.environmentObject(orientationInfo)
-
-//@EnvironmentObject var orientationInfo: OrientationInfo
-//.frame(maxWidth: orientationInfo.isLandscape ? 300 : .infinity)
-
 
 
 
@@ -105,7 +62,7 @@ extension UIDeviceOrientation {
 // MARK: - Полный исходный код
 
 import Combine
-import UIKit
+import SwiftUI
 
 class DeviceOrientationService: ObservableObject {
     enum Orientation { case portrait, landscape }
@@ -132,6 +89,7 @@ class DeviceOrientationService: ObservableObject {
     
     // Обработчик изменений от GeometryReader
     func updateContainerSize(_ size: CGSize) {
+        print("geometry.size - \(size)")
         lastContainerSize = size
         updateOrientation()
     }
@@ -172,6 +130,58 @@ class DeviceOrientationService: ObservableObject {
 }
 
 
+///Проверить, что текущая ориентация устройства относится к "действительным" для интерфейса, то есть к тем, которые обычно используются для компоновки UI: .portrait, .portraitUpsideDown, .landscapeLeft и .landscapeRight.
+///Почему это нужно: Когда вы запрашиваете текущую ориентацию через UIDevice.current.orientation, система может вернуть и другие значения, например, .faceUp, .faceDown или .unknown, которые не подходят для корректного размещения элементов интерфейса. Это расширение фильтрует такие состояния, гарантируя, что используются только те ориентации, которые реально влияют на расположение интерфейса.
+///Свойство isValidInterfaceOrientation возвращает true, если значение UIDeviceOrientation равно одному из «валидных» вариантов. Иначе — false.
+extension UIDeviceOrientation {
+    var isValidInterfaceOrientation: Bool {
+        // Исключаем неизвестное, лицевое вниз и вверх
+        return self == .portrait || self == .portraitUpsideDown || self == .landscapeLeft || self == .landscapeRight
+    }
+}
+
+
+
+
+
+// MARK: - Модификатор без PreferenceKey
+struct RootSizeReader: ViewModifier {
+    
+    let onChange: (CGSize) -> Void
+    
+    func body(content: Content) -> some View {
+        content
+            .background(
+                GeometryReader { geo in
+                    Color.clear
+                        .ignoresSafeArea()
+                        .onAppear {
+                            onChange(geo.frame(in: .global).size)       // первое измерение
+                        }
+                    //UIScreen.main.bounds.size
+                        .onChange(of: geo.frame(in: .global).size) { oldSize, newSize in           // любое изменение
+                            onChange(newSize)
+                        }
+                }
+                    .ignoresSafeArea()
+            )
+    }
+}
+
+extension View {
+    func readRootSize(_ onChange: @escaping (CGSize) -> Void) -> some View {
+        self.modifier(RootSizeReader(onChange: onChange))
+    }
+}
+
+
+
+
+
+
+
+// MARK: - PreferenceKey
+
 
 ///DeviceOrientationModifier измеряет размер того контейнера, к которому он применён, а не всего экрана устройства.
 ///Что влияет на размер: Safe Area (вырез, индикатор дома) + NavigationBar/Toolbar + TabBar + Любые другие padding'и
@@ -184,7 +194,7 @@ class DeviceOrientationService: ObservableObject {
 //он учитывает реальное доступное пространство.
 //struct DeviceOrientationModifier: ViewModifier {
 //    @EnvironmentObject private var orientationService: DeviceOrientationService
-//    
+//
 //    func body(content: Content) -> some View {
 //        content
 //            .background(
@@ -202,123 +212,16 @@ class DeviceOrientationService: ObservableObject {
 //    }
 //}
 
-struct DeviceOrientationModifier: ViewModifier {
-    let orientationService: DeviceOrientationService
-    
-    func body(content: Content) -> some View {
-        content
-            .background(
-                GeometryReader { geometry in
-                    Color.clear
-                        .preference(
-                            key: ContainerSizeKey.self,
-                            value: geometry.size
-                        )
-                }
-            )
-            .onPreferenceChange(ContainerSizeKey.self) { size in
-                orientationService.updateContainerSize(size)
-            }
-    }
-}
-
-    
-struct ContainerSizeKey: PreferenceKey {
-    static var defaultValue: CGSize = .zero
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        value = nextValue()
-    }
-}
-
-//Для точных измерений экрана (игнорирует safe area:)
-struct ScreenSizeModifier: ViewModifier {
-    @Binding var screenSize: CGSize
-    
-    func body(content: Content) -> some View {
-        content
-            .ignoresSafeArea()
-            .background(
-                GeometryReader { proxy in
-                    Color.clear
-                        .preference(
-                            key: ScreenSizeKey.self,
-                            value: proxy.size
-                        )
-                }
-            )
-            .onPreferenceChange(ScreenSizeKey.self) { size in
-                screenSize = size
-                //                if screenSize != newSize {
-                //                                    screenSize = newSize
-                //                                }
-
-            }
-    }
-}
-
-//Определяем ключ для отслеживания размеров экрана
-struct ScreenSizeKey: PreferenceKey {
-    static var defaultValue: CGSize = .zero
-    
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        value = nextValue()
-    }
-}
-
-
-
-//Setting
-
-//@main
-//struct MyApp: App {
-//    @StateObject private var orientationService = DeviceOrientationService()
-//    
-//    var body: some Scene {
-//        WindowGroup {
-//            ContentView()
-//                .environmentObject(orientationService)
-//                .modifier(DeviceOrientationModifier())
-//                .onAppear {
-//                    // Активируем генерацию уведомлений
-//                    UIDevice.current.beginGeneratingDeviceOrientationNotifications()
-//                }
-//                .onDisappear {
-//                    UIDevice.current.endGeneratingDeviceOrientationNotifications()
-//                }
-//        }
+///// Удобное расширение для применения модификатора
+//extension View {
+//    func trackContainerSize() -> some View {
+//        modifier(DeviceOrientationModifier())
 //    }
 //}
 
-
-//Example
-
-//struct ContentView: View {
-//    @EnvironmentObject private var orientationService: DeviceOrientationService
-//    
-//    var body: some View {
-//        ZStack {
-//            Color(.systemBackground)
-//            
-//            VStack {
-//                Text(currentOrientationText)
-//                    .font(.largeTitle)
-//                
-//                Button("Check Orientation") {
-//                    print("Current: \(orientationService.orientation)")
-//                }
-//                .padding()
-//                .background(Color.blue)
-//                .foregroundColor(.white)
-//                .cornerRadius(10)
-//            }
-//        }
-//        .ignoresSafeArea()
-//    }
-//    
-//    private var currentOrientationText: String {
-//        switch orientationService.orientation {
-//        case .portrait: return "Portrait 📱"
-//        case .landscape: return "Landscape 🌄"
-//        }
+//struct ContainerSizeKey: PreferenceKey {
+//    static var defaultValue: CGSize = .zero
+//    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+//        value = nextValue()
 //    }
 //}

@@ -61,115 +61,243 @@
 /// в struct нам не нужно передавать зависимость через конструктор просто используем @EnvironmentObject var managerCRUDS: CRUDSManager а в классах нужно передавать через конструктор - HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
 
 
+//    geometry.size - (393.0, 759.0)
+//                        .modifier(DeviceOrientationModifier())
+//                        .modifier(DeviceOrientationModifier(orientationService: orientationService))
+
+//                        .readRootSize { size in
+//                            orientationService.updateContainerSize(size)
+//                        }
+
+
+
+// MARK: - first version
+
+//import SwiftUI
+//import UIKit
+//
+//@main
+//struct TemplateSwiftUIProjectApp: App {
+//    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+//    @AppStorage("hasSeenOnboarding") var tiedOnboarding: Bool = false
+//    
+//    @StateObject private var localizationService = LocalizationService.shared
+//    @StateObject private var retryHandler = GlobalRetryHandler()
+//    @StateObject private var networkMonitor = NetworkMonitor()
+//    @StateObject private var orientationService = DeviceOrientationService()
+//    @Environment(\.scenePhase) private var scenePhase
+//    
+//    init() {
+//#if DEBUG
+//        UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
+//        self.setupCache()
+//#endif
+//    }
+//    
+//    var body: some Scene {
+//        WindowGroup {
+//                Group {
+//                    if tiedOnboarding {
+//                        ContentView()
+//                            .environmentObject(retryHandler)
+//                            .environmentObject(localizationService)
+//                            .environmentObject(orientationService)
+//                            .readRootSize { size in            // теперь вернётся 393 × 852
+//                                    orientationService.updateContainerSize(size)
+//                                }
+//                            .onAppear {
+//                                // Активируем генерацию уведомлений
+//                                UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+//                            }
+//                            .onDisappear {
+//                                UIDevice.current.endGeneratingDeviceOrientationNotifications()
+//                            }
+//                    } else {
+//                        OnboardingView()
+//                    }
+//                }
+//                .environment(\.sizeCategory, .medium)
+//                .overlay {
+//                    GeometryReader { geometry in
+//                        VStack {
+//                            Spacer()
+//                            NetworkStatusBanner()
+//                                .environmentObject(networkMonitor)
+//                                .environmentObject(localizationService)
+//                            //                        dynamic .padding
+//                            //                        geometry.safeAreaInsets.bottom: динамически рассчитывает безопасный отступ внизу (например, на iPhone с Face ID это 34 pt от самого низа экрана до конца нижней safeArea)
+//                            //                        iPhone с кнопкой "Домой" (например, iPhone SE, 8) → safeAreaInsets.bottom = 0.
+//                            //                        Отсчёт высоты TabBar (49 pt) начинается с самой нижней точки экрана, а не от safeAreaInsets.bottom.
+//                            //                        поэтому если safeAreaInsets.bottom == 0 то высоту 49 + 5 иначе 34 + 20 / можно сделать 10/15 пунктов вместо 5 для надежнности (59 : 25, 64:30)
+//                                .padding(.bottom, geometry.safeAreaInsets.bottom == 0 ? 64 : geometry.safeAreaInsets.bottom + 30)
+//                        }
+//                    }
+//                }
+//        }
+////        так как при работе с симулятором у нас инвертное поведение мы в handleScenePhaseChange(oldPhase) передаем oldPhase
+////        на реальном устройстве мы должны передавать handleScenePhaseChange(newPhase)
+////        first scenePhase: TemplateSwiftUIProjectApp - oldPhase: inactive, newPhase: active)
+////        change  scenePhase: TemplateSwiftUIProjectApp - oldPhase: active, newPhase: inactive)
+////        поэтому если мы передаем в handleScenePhaseChange(newPhase) при первом старте мы имеем networkMonitor.stopMonitoring()
+//        .onChange(of: scenePhase) { oldPhase, newPhase in
+////            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
+//            handleScenePhaseChange(oldPhase)
+//        }
+//    }
+//    
+//    private func setupCache() {
+//        ImageCacheManager.shared.deleteOldFiles()
+//    }
+//    
+//    private func handleScenePhaseChange(_ oldPhase: ScenePhase) {
+//        #if targetEnvironment(simulator)
+//        switch oldPhase {
+//        case .active:
+//            networkMonitor.stopMonitoring()
+//        case .inactive, .background:
+//            networkMonitor.startMonitoring()
+//        @unknown default:
+//            break
+//        }
+//        #else
+//        switch oldPhase {
+//        case .active:
+//            networkMonitor.startMonitoring()
+//        case .inactive, .background:
+//            networkMonitor.stopMonitoring()
+//        @unknown default:
+//            break
+//        }
+//        #endif
+//    }
+//}
+
+
+
+
+// MARK: - new implement
+
 
 import SwiftUI
 import UIKit
 
 @main
 struct TemplateSwiftUIProjectApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @AppStorage("hasSeenOnboarding") var tiedOnboarding: Bool = false
-    
+
+    // MARK: UIKit hooks
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
+    // MARK: – Persistent flags
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+
+    // MARK: – Global services
     @StateObject private var localizationService = LocalizationService.shared
-    @StateObject private var retryHandler = GlobalRetryHandler()
-    @StateObject private var networkMonitor = NetworkMonitor()
-    @StateObject private var orientationService = DeviceOrientationService()
-    
+    @StateObject private var retryHandler        = GlobalRetryHandler()
+    @StateObject private var networkMonitor      = NetworkMonitor()
+    @StateObject private var orientationService  = DeviceOrientationService()
+
+    // MARK: – Scene phase
     @Environment(\.scenePhase) private var scenePhase
-    
+
+    // MARK: – init (DEBUG helpers)
     init() {
-#if DEBUG
+        #if DEBUG
         UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
-        self.setupCache()
-#endif
+        ImageCacheManager.shared.deleteOldFiles()
+        #endif
     }
-    
+
+    // MARK: – Body
     var body: some Scene {
         WindowGroup {
-            Group {
-                if tiedOnboarding {
-                    ContentView()
-                        .environmentObject(retryHandler)
-                        .environmentObject(localizationService)
-                        .environmentObject(orientationService)
-//                        .modifier(DeviceOrientationModifier())
-                        .modifier(DeviceOrientationModifier(orientationService: orientationService))
-                        .onAppear {
-                            // Активируем генерацию уведомлений
-                            UIDevice.current.beginGeneratingDeviceOrientationNotifications()
-                        }
-                        .onDisappear {
-                            UIDevice.current.endGeneratingDeviceOrientationNotifications()
-                        }
-                } else {
-                    OnboardingView()
+            AppRootView(hasSeenOnboarding: hasSeenOnboarding)
+                .environmentObject(localizationService)
+                .environmentObject(retryHandler)
+                .environmentObject(networkMonitor)
+                .environmentObject(orientationService)
+                .readRootSize { size in            // теперь вернётся 393 × 852
+                    orientationService.updateContainerSize(size)
                 }
-            }
-            .environment(\.sizeCategory, .medium)
-            .overlay {
-                GeometryReader { geometry in
-                    VStack {
-                        Spacer()
-                        NetworkStatusBanner()
-                            .environmentObject(networkMonitor)
-                            .environmentObject(localizationService)
-                        /// dynamic .padding
-                        ///geometry.safeAreaInsets.bottom: динамически рассчитывает безопасный отступ внизу (например, на iPhone с Face ID это 34 pt от самого низа экрана до конца нижней safeArea)
-                        ///iPhone с кнопкой "Домой" (например, iPhone SE, 8) → safeAreaInsets.bottom = 0.
-                        ///Отсчёт высоты TabBar (49 pt) начинается с самой нижней точки экрана, а не от safeAreaInsets.bottom.
-                        ///поэтому если safeAreaInsets.bottom == 0 то высоту 49 + 5 иначе 34 + 20 / можно сделать 10/15 пунктов вместо 5 для надежнности (59 : 25, 64:30)
-                            .padding(.bottom, geometry.safeAreaInsets.bottom == 0 ? 64 : geometry.safeAreaInsets.bottom + 30)
-                    }
+                .environment(\.sizeCategory, .medium)
+                .onChange(of: scenePhase) { oldPhase, newPhase in
+                    //            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
+                    handleScenePhase(oldPhase)
                 }
-            }
-        }
-        // так как при работе с симулятором у нас инвертное поведение мы в handleScenePhaseChange(oldPhase) передаем oldPhase
-        /// на реальном устройстве мы должны передавать handleScenePhaseChange(newPhase)
-        /// first scenePhase: TemplateSwiftUIProjectApp - oldPhase: inactive, newPhase: active)
-        /// change  scenePhase: TemplateSwiftUIProjectApp - oldPhase: active, newPhase: inactive)
-        /// поэтому если мы передаем в handleScenePhaseChange(newPhase) при первом старте мы имеем networkMonitor.stopMonitoring()
-        .onChange(of: scenePhase) { oldPhase, newPhase in
-//            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
-            handleScenePhaseChange(oldPhase)
         }
     }
-    
-    private func setupCache() {
-        ImageCacheManager.shared.deleteOldFiles()
+}
+
+// ──────────────────────────────────────────────────────────────
+// MARK: - Root View
+// ──────────────────────────────────────────────────────────────
+
+private struct AppRootView: View {
+
+    let hasSeenOnboarding: Bool
+
+    @EnvironmentObject private var networkMonitor: NetworkMonitor
+    @EnvironmentObject private var orientationService: DeviceOrientationService
+
+    var body: some View {
+        GeometryReader { windowGeo in
+            ZStack {                               // Один контейнер для всего
+                mainContent
+
+                // Banner
+                VStack {
+                    Spacer()
+                    NetworkStatusBanner()
+                        .environmentObject(networkMonitor)
+                        .padding(.bottom, Self.bottomPadding(for: windowGeo))
+                }
+            }
+            .onAppear {
+                UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+            }
+            .onDisappear {
+                UIDevice.current.endGeneratingDeviceOrientationNotifications()
+            }
+        }
     }
-    
-    private func handleScenePhaseChange(_ oldPhase: ScenePhase) {
+
+    // MARK: helpers
+    @ViewBuilder
+    private var mainContent: some View {
+        if hasSeenOnboarding {
+            ContentView()
+        } else {
+            OnboardingView()
+        }
+    }
+
+    private static func bottomPadding(for geo: GeometryProxy) -> CGFloat {
+        let inset = geo.safeAreaInsets.bottom
+        return inset == 0 ? 64 : inset + 30        // 64 для устройств c кнопкой, иначе 30-pt над home-indicator
+    }
+}
+
+// ──────────────────────────────────────────────────────────────
+// MARK: - Scene-phase logic
+// ──────────────────────────────────────────────────────────────
+
+private extension TemplateSwiftUIProjectApp {
+
+    func handleScenePhase(_ phase: ScenePhase) {
         #if targetEnvironment(simulator)
-        switch oldPhase {
-        case .active:
-            networkMonitor.stopMonitoring()
-        case .inactive, .background:
-            networkMonitor.startMonitoring()
-        @unknown default:
-            break
+        // Симулятор ведёт себя “зеркально”, поэтому меняем логику
+        switch phase {
+        case .active:      networkMonitor.stopMonitoring()
+        case .inactive,
+             .background:  networkMonitor.startMonitoring()
+        default:           break
         }
         #else
-        switch oldPhase {
-        case .active:
-            networkMonitor.startMonitoring()
-        case .inactive, .background:
-            networkMonitor.stopMonitoring()
-        @unknown default:
-            break
+        switch phase {
+        case .active:      networkMonitor.startMonitoring()
+        case .inactive,
+             .background:  networkMonitor.stopMonitoring()
+        default:           break
         }
         #endif
     }
 }
-
-//                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-
-//            .overlay {
-//                VStack {
-//                    Spacer()
-//                    NetworkStatusBanner()
-//                        .environmentObject(networkMonitor)
-//                        .padding(.bottom, 54)  // 49 (типичная высота TabBar) + 5 пунктов
-//
-//                }
-//                .edgesIgnoringSafeArea(.bottom)
-//            }
