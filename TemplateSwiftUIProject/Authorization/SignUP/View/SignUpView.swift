@@ -65,23 +65,7 @@ struct SignUpView: View {
     @EnvironmentObject private var orientationService: DeviceOrientationService
     
     var body: some View {
-        ZStack {
-            // Слушаем изменения размеров корневого представления.
-            GeometryReader { geometry in
-                Color.clear
-                    .onAppear{
-                        print("geometry.size.width  - \(geometry.size.width)")
-                        print("geometry.size.height  - \(geometry.size.height)")
-                        let isLandscape = geometry.size.width > geometry.size.height
-//                        viewModel.isLandscape = isLandscape
-                    }
-                    .onChange(of: geometry.frame(in: .global)) { oldSize, newSize in
-                        print("oldSize - \(oldSize), newSize - \(newSize)")
-                        let isLandscape = newSize.width > newSize.height
-//                        viewModel.isLandscape = isLandscape
-                    }
-            }
-            .ignoresSafeArea(.all)
+ 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
                     // Форма регистрации
@@ -261,7 +245,6 @@ struct SignUpView: View {
                     hideKeyboard()
                 }
             )
-        }
     }
     
     private func focusNextField() {
