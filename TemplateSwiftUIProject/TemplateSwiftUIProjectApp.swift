@@ -215,9 +215,6 @@ struct TemplateSwiftUIProjectApp: App {
                 .environmentObject(retryHandler)
                 .environmentObject(networkMonitor)
                 .environmentObject(orientationService)
-                .readRootSize { size in            // теперь вернётся 393 × 852
-                    orientationService.updateContainerSize(size)
-                }
                 .environment(\.sizeCategory, .medium)
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     //            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
