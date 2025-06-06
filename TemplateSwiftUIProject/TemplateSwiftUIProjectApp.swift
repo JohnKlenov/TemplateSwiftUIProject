@@ -238,8 +238,9 @@ private struct AppRootView: View {
     var body: some View {
         GeometryReader { windowGeo in
             ZStack {                               // Один контейнер для всего
+                RootSizeReader()
                 mainContent
-
+                
                 // Banner
                 VStack {
                     Spacer()

@@ -342,6 +342,7 @@
 /////SwiftUI сравнивает старое и новое значение (CGSize – Equatable). Если они различаются → вызывает ваше замыкание и кладёт туда (oldSize, newSize).
 //
 //// MARK: - Модификатор без PreferenceKey
+///если ты адаптируешь UI под Split View / Stage Manager, safe area всё равно полезна и лучше не .ignoresSafeArea()
 //struct RootSizeReader: ViewModifier {
 //    
 //    let onChange: (CGSize) -> Void

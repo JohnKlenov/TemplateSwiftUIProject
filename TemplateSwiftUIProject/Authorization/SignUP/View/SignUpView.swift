@@ -165,7 +165,6 @@ struct SignUpView: View {
                                 Text(Localized.SignUpView.register.localized())
                             }
                         }
-//                        .frame(maxWidth: viewModel.isLandscape ? 300 : .infinity)
                         .frame(maxWidth: orientationService.orientation == .landscape  ? 300 : .infinity)
                         .contentShape(Rectangle())
                     }
