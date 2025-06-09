@@ -6,6 +6,12 @@
 
 
 
+// MARK: - GeometryReader how main listener orientation
+
+// если мы хотим из DeviceOrientationService передавать текущий размер контейнера и ориентацию одновременно
+// мы можем сделать RootSizeReader основным для определения оринатции по принципц ширина больше высоты мы в ландшафте а после этого сравниить с UIDevice
+// и тогда как только мы определяем нашу ориентацию мы можем изменить состояние @Published private(set) var orientation и в DeviceOrientationService на текущий момент уже будет размер контейнера с которым можно будет раьотать.
+
 // MARK: - Adaptive UI (iPod + iOS)
 
 // оставим поддержку iPad но отключу режимы Split View, Slide Over, Stage Manager в info.plist
@@ -14,6 +20,7 @@
 ///В iPadOS 16+ Stage Manager позволяет пользователям масштабировать окна вручную, но ты можешь запретить поддержку внешнего экрана:
 ///Обеспечивает только полноэкранный запуск, без поддержки оконного режима.
 ///Stage Manager не будет работать, потому что приложение всегда занимает весь экран.
+
 
 // MARK: - Setting
 
@@ -105,9 +112,9 @@ class DeviceOrientationService: ObservableObject {
             let deviceOrientation = UIDevice.current.orientation
             
             switch deviceOrientation {
-            case .portrait:
+            case .portrait, .portraitUpsideDown:
                 newOrientation = .portrait
-            case .landscapeLeft, .landscapeRight, .portraitUpsideDown:
+            case .landscapeLeft, .landscapeRight:
                 newOrientation = .landscape
             default:
                 // Новый способ получения interfaceOrientation

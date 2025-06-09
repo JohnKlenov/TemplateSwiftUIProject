@@ -5,189 +5,62 @@
 //  Created by Evgenyi on 12.10.24.
 //
 
-// MARK: - version OnboardingView simple animation
-
-
-//import SwiftUI
-//import Combine
-//
-//struct OnboardingView: View {
-//    @StateObject private var viewModel: OnboardingViewModel
-//
-//    init() {
-//        _viewModel = StateObject(
-//            wrappedValue: OnboardingViewModel(onboardingService: OnboardingService())
-//        )
-//    }
-//
-//    var body: some View {
-//        ZStack {
-//            AppColors.orange
-//                .ignoresSafeArea()
-//                .transition(.opacity)
-//
-//            VStack {
-//                // ——— Страницы ——————————————————————————
-//                TabView(selection: $viewModel.currentPage) {
-//                    ForEach(viewModel.pages.indices, id: \.self) { index in
-//                        OnboardingPageView(page: viewModel.pages[index])
-//                            .tag(index)
-//                    }
-//                }
-//                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-//                .animation(.easeInOut(duration: 0.25),            // листание страниц
-//                           value: viewModel.currentPage)
-//
-//                // ——— Кнопки ————————————————————————————
-//                HStack {
-//                    if viewModel.currentPage > 0 {
-//                        Button(Localized.Onboarding.backButton.localized()) {
-//                            withAnimation(.easeInOut(duration: 0.25)) {
-//                                viewModel.previousPage()
-//                            }
-//                        }
-//                        .padding(.leading)
-//                    }
-//
-//                    Spacer()
-//
-//                    if viewModel.currentPage < viewModel.pages.count - 1 {
-//                        Button(Localized.Onboarding.nextButton.localized()) {
-//                            withAnimation(.easeInOut(duration: 0.25)) {
-//                                viewModel.nextPage()
-//                            }
-//                        }
-//                        .padding(.trailing)
-//                    } else {
-//                        Button(Localized.Onboarding.getStartedButton.localized()) {
-//                            withAnimation(.easeInOut(duration: 0.25)) {
-//                                viewModel.completeOnboarding()
-//                            }
-//                        }
-//                        .padding(.trailing)
-//                    }
-//                }
-//                .padding()
-//            }
-//        }
-//    }
-//}
-
 
 
 // MARK: - version OnboardingView  AnyLayout
-//import SwiftUI
-//import Combine
-//
-//struct OnboardingView: View {
-//    @StateObject private var viewModel: OnboardingViewModel
-//
-//    @Namespace private var ns  // Для анимации элементов при смене ориентации
-//
-//    init() {
-//        _viewModel = StateObject(wrappedValue: OnboardingViewModel(onboardingService: OnboardingService()))
-//    }
-//
-//    var body: some View {
-//        ZStack {
-//            AppColors.orange
-//                .ignoresSafeArea()
-//                .transition(.opacity)  // Плавная смена фона при изменениях
-//
-//            VStack {
-//                // Основной контейнер страниц
-//                TabView(selection: $viewModel.currentPage) {
-//                    ForEach(viewModel.pages.indices, id: \.self) { index in
-//                        OnboardingPageView(page: viewModel.pages[index], namespace: ns)
-//                            .tag(index)
-//                    }
-//                }
-//                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-//                .animation(.easeInOut(duration: 0.25), value: viewModel.currentPage)
-//
-//                // Кнопки управления страницами
-//                HStack {
-//                    if viewModel.currentPage > 0 {
-//                        Button(Localized.Onboarding.backButton.localized()) {
-//                            withAnimation(.easeInOut(duration: 0.25)) {
-//                                viewModel.previousPage()
-//                            }
-//                        }
-//                        .padding(.leading)
-//                    }
-//                    Spacer()
-//                    if viewModel.currentPage < viewModel.pages.count - 1 {
-//                        Button(Localized.Onboarding.nextButton.localized()) {
-//                            withAnimation(.easeInOut(duration: 0.25)) {
-//                                viewModel.nextPage()
-//                            }
-//                        }
-//                        .padding(.trailing)
-//                    } else {
-//                        Button(Localized.Onboarding.getStartedButton.localized()) {
-//                            withAnimation(.easeInOut(duration: 0.25)) {
-//                                viewModel.completeOnboarding()
-//                            }
-//                            // Здесь можно выполнить навигацию к основному экрану
-//                        }
-//                        .padding(.trailing)
-//                    }
-//                }
-//                .padding()
-//            }
-//        }
-//        .onAppear {
-//            // Устанавливаем блокировку только на портрет
-//            // AppDelegate.orientationLock = .portrait
-//        }
-//        .onDisappear {
-//            // Возвращаем стандартную ориентацию для остальных экранов
-//            // AppDelegate.orientationLock = .all
-//        }
-//    }
-//}
-
-// MARK: - version OnboardingView before private var layout: AnyLayout
 
 import SwiftUI
+import Combine
 
 struct OnboardingView: View {
     @StateObject private var viewModel: OnboardingViewModel
-    
+
+    @Namespace private var ns  // Для анимации элементов при смене ориентации
+
     init() {
         _viewModel = StateObject(wrappedValue: OnboardingViewModel(onboardingService: OnboardingService()))
     }
-    
+
     var body: some View {
         ZStack {
+            AppColors.orange
+                .ignoresSafeArea()
+                .transition(.opacity)  // Плавная смена фона при изменениях
+
             VStack {
                 // Основной контейнер страниц
                 TabView(selection: $viewModel.currentPage) {
                     ForEach(viewModel.pages.indices, id: \.self) { index in
-                        OnboardingPageView(page: viewModel.pages[index])
+                        OnboardingPageView(page: viewModel.pages[index], namespace: ns)
                             .tag(index)
                     }
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-                .animation(.easeInOut, value: viewModel.currentPage)
-                
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
+                .animation(.easeInOut(duration: 0.25), value: viewModel.currentPage)
+
                 // Кнопки управления страницами
                 HStack {
                     if viewModel.currentPage > 0 {
                         Button(Localized.Onboarding.backButton.localized()) {
-                            viewModel.previousPage()
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.previousPage()
+                            }
                         }
                         .padding(.leading)
                     }
                     Spacer()
                     if viewModel.currentPage < viewModel.pages.count - 1 {
                         Button(Localized.Onboarding.nextButton.localized()) {
-                            viewModel.nextPage()
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.nextPage()
+                            }
                         }
                         .padding(.trailing)
                     } else {
                         Button(Localized.Onboarding.getStartedButton.localized()) {
-                            viewModel.completeOnboarding()
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                viewModel.completeOnboarding()
+                            }
                             // Здесь можно выполнить навигацию к основному экрану
                         }
                         .padding(.trailing)
@@ -195,18 +68,78 @@ struct OnboardingView: View {
                 }
                 .padding()
             }
-            .background(AppColors.orange)
-            .onAppear {
-                // Устанавливаем блокировку только на портрет
-                // AppDelegate.orientationLock = .portrait
-            }
-            .onDisappear {
-                // При исчезновении возвращаем стандартную ориентацию для остальных экранов
-                // AppDelegate.orientationLock = .all
-            }
+        }
+        .onAppear {
+            // Устанавливаем блокировку только на портрет
+            // AppDelegate.orientationLock = .portrait
+        }
+        .onDisappear {
+            // Возвращаем стандартную ориентацию для остальных экранов
+            // AppDelegate.orientationLock = .all
         }
     }
 }
+
+// MARK: - version OnboardingView before private var layout: AnyLayout
+
+//import SwiftUI
+//
+//struct OnboardingView: View {
+//    @StateObject private var viewModel: OnboardingViewModel
+//    
+//    init() {
+//        _viewModel = StateObject(wrappedValue: OnboardingViewModel(onboardingService: OnboardingService()))
+//    }
+//    
+//    var body: some View {
+//        ZStack {
+//            VStack {
+//                // Основной контейнер страниц
+//                TabView(selection: $viewModel.currentPage) {
+//                    ForEach(viewModel.pages.indices, id: \.self) { index in
+//                        OnboardingPageView(page: viewModel.pages[index])
+//                            .tag(index)
+//                    }
+//                }
+//                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
+//                .animation(.easeInOut, value: viewModel.currentPage)
+//                
+//                // Кнопки управления страницами
+//                HStack {
+//                    if viewModel.currentPage > 0 {
+//                        Button(Localized.Onboarding.backButton.localized()) {
+//                            viewModel.previousPage()
+//                        }
+//                        .padding(.leading)
+//                    }
+//                    Spacer()
+//                    if viewModel.currentPage < viewModel.pages.count - 1 {
+//                        Button(Localized.Onboarding.nextButton.localized()) {
+//                            viewModel.nextPage()
+//                        }
+//                        .padding(.trailing)
+//                    } else {
+//                        Button(Localized.Onboarding.getStartedButton.localized()) {
+//                            viewModel.completeOnboarding()
+//                            // Здесь можно выполнить навигацию к основному экрану
+//                        }
+//                        .padding(.trailing)
+//                    }
+//                }
+//                .padding()
+//            }
+//            .background(AppColors.orange)
+//            .onAppear {
+//                // Устанавливаем блокировку только на портрет
+//                // AppDelegate.orientationLock = .portrait
+//            }
+//            .onDisappear {
+//                // При исчезновении возвращаем стандартную ориентацию для остальных экранов
+//                // AppDelegate.orientationLock = .all
+//            }
+//        }
+//    }
+//}
 
 
 // MARK: - before networkMonitor

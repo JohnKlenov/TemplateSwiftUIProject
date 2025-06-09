@@ -5,320 +5,173 @@
 //  Created by Evgenyi on 12.10.24.
 //
 
-//ViewThatFits
-
-///ViewThatFits — это мощный инструмент в SwiftUI, представленный в iOS 16, который помогает динамически выбирать лучшее представление из нескольких вариантов, основываясь на доступном пространстве. Он позволяет определить несколько представлений внутри контейнера, а затем автоматически отображает первое из них, которое умещается в предоставленной области.
-///ViewThatFits рендерит только первый из перечисленных вариантов, который полностью умещается в отведенное пространство.
-///Не нужно вручную рассчитывать размеры, ломать голову над конфигурациями — он делает всё это сам.
-///Он не «сжимает» представления. Вместо этого ищет первый вариант, который вписывается в выделенные рамки.
-///Если ни один из предоставленных вариантов в ViewThatFits не вписывается в доступное пространство, последний вариант из списка (ViewThatFits) будет выбран по умолчанию, даже если он не идеально подходит.
-///Чтобы гарантировать, что хотя бы одно представление всегда корректно отображается, можно предусмотреть «резервный» вариант, который будет занимать минимум пространства.
-///https://medium.com/nuances-of-programming/осваиваем-viewthatfits-часть-1-725cb277bd66
-
-//.fixedSize()
-///Модификатор .fixedSize() в SwiftUI используется для того, чтобы зафиксировать размер view на её "идеальном" (intrinsic) размере, игнорируя внешние ограничения (например, от родительского контейнера). Это полезно, когда система автоматической компоновки пытается растянуть или сжать view, а вы хотите сохранить её естественный размер.
-///https://swiftwithmajid.com/2020/04/29/the-magic-of-fixed-size-modifier-in-swiftui/
-
-//    private var size: CGSize { orientationService.containerSize }
-
-
-// MARK: - version OnboardingPageView simple animation
-
-
-
-//import SwiftUI
-//
-//struct OnboardingPageView: View {
-//    @EnvironmentObject private var orientationService: DeviceOrientationService
-//    let page: OnboardingPage                        // модель страницы
-//
-//    var body: some View {
-//        GeometryReader { geo in                     // нужен только размер окна
-//            ZStack {                                // кладём две компоновки «друг на друга»
-//                
-//                // ── ПОРТРЕТ ───────────────────────────────────────────────
-//                PortraitContent(page: page, maxHeight: geo.size.height)
-//                    .opacity(orientationService.orientation == .portrait ? 1 : 0)
-//                    .offset(x: 0,
-//                            y: orientationService.orientation == .portrait ? 0 : 40)
-//                
-//                // ── ЛАНДШАФТ ─────────────────────────────────────────────
-//                LandscapeContent(page: page, maxWidth: geo.size.width)
-//                    .opacity(orientationService.orientation == .landscape ? 1 : 0)
-//                    .offset(x: orientationService.orientation == .landscape ? 0 : 40,
-//                            y: 0)
-//            }
-//            .padding()
-//            .frame(maxWidth: .infinity, maxHeight: .infinity)
-//            .animation(.easeInOut(duration: 0.35),       // одна-единственная анимация
-//                       value: orientationService.orientation)
-//        }
-//    }
-//}
-//
-//// MARK: 2 «чистых» под-вью вместо AnyLayout / matchedGeometryEffect
-////       (их кадры просто «выплывают» или «уплывают» через opacity + offset)
-//
-//private struct PortraitContent: View {
-//    let page: OnboardingPage
-//    let maxHeight: CGFloat
-//
-//    var body: some View {
-//        VStack(spacing: 24) {
-//            Image(systemName: page.imageName)
-//                .resizable()
-//                .scaledToFit()
-//                .frame(height: maxHeight * 0.30)
-//
-//            Text(page.title)
-//                .font(.largeTitle).bold()
-//                .multilineTextAlignment(.center)
-//
-//            Text(page.description)
-//                .multilineTextAlignment(.center)
-//        }
-//    }
-//}
-//
-//private struct LandscapeContent: View {
-//    let page: OnboardingPage
-//    let maxWidth: CGFloat
-//
-//    var body: some View {
-//        HStack(spacing: 24) {
-//            Image(systemName: page.imageName)
-//                .resizable()
-//                .scaledToFit()
-//                .frame(width: maxWidth * 0.20)
-//
-//            VStack(alignment: .leading, spacing: 16) {
-//                Text(page.title)
-//                    .font(.title).bold()
-//                    .multilineTextAlignment(.leading)
-//
-//                Text(page.description)
-//                    .multilineTextAlignment(.leading)
-//            }
-//        }
-//    }
-//}
-
 
 
 // MARK: - version OnboardingPageView  AnyLayout
 
-// AnyLayout
+
+// MARK: -  AnyLayout
 
 // Как добиться «шёлковой» анимации при смене ориентации?
 ///Раздражающий «рывок» появляется, когда SwiftUI выкидывает один стек (HStack) и заново строит другой (VStack). Дадим системе шанс плавно «перераскладывать» те же субвью, а не пересоздавать их.
 ///AnyLayout (iOS 16+) умеет анимировать переход между любыми двумя Layout-типами. Меняем один-единственный объект layout вместо if/else с разными стеками.
 ///
+///До iOS 16, когда мы хотим переключаться между различными макетами, мы должны полагаться на оператор if.
+///SwiftUI рассматривает переключение макетов, подобное как удаление и добавление нового макета.
+///В результате вы увидите затухающий переход.
+///SwiftUI рассматривает переключение макета с if-else как замену старого макета на новый.
+
+///AnyLayout введен для сглаживания перехода между макетами.
+///Это экземпляр протокола Layout, стираемый по типу. Использование экземпляра AnyLayout позволяет нам изменять типы макетов, не разрушая состояние базовых подпросмотров.
+///Поскольку идентичность иерархии представлений всегда остается неизменной, SwiftUI рассматривает это как вид, который меняется, а не как новый вид, как if-else.
+///Обратите внимание, что типы, которые вы используете с AnyLayout, должны соответствовать протоколу Layout. SwiftUI создает четыре новые версии существующих макетов для использования с AnyLayout, HStackLayout, VStackLayout, ZStackLayout и GridLayout.
+///С помощью этого простого изменения SwiftUI может создать плавный переход между различными типами макета.
+///AnyLayoutработает с любым макетом, соответствующим протоколу Layout. Сюда входит пользовательский макет, который вы создали.
+///let layout = isHorizontal ? AnyLayout(HStackLayout()): AnyLayout(BackslashStack())
+
+
+// MARK: - matchedGeometryEffect
+
+//мы просто указали как должны распологаться эти view а swiftUI уже сам смог все это про анимировать.
+
+//@Namespace
+
+///В SwiftUI — @Namespaceэто оболочка свойств, используемая для создания пространства имен для координации анимаций между различными представлениями. Обычно используется, когда требуется создать плавные переходы между представлениями, особенно во время навигации или изменения состояния представления.
+///При использовании @Namespaceоболочки свойств SwiftUI может отслеживать идентичность представлений при переходах и применять анимацию более плавно. Это особенно полезно, когда у вас есть связанные представления, которые могут присутствовать в разных состояниях, например, в панели вкладок или представлении навигации.
 ///
+///В этом примере @Namespace свойство namespace используется для создания общего пространства имен для matchedGeometryEffect. matchedGeometryEffect Позволяет Image плавно поменяться местами с VStack  при переходе из HStackLayout в VStackLayout.
+///
+///Имейте в виду, что @Namespaceон часто используется в сочетании с другими функциями SwiftUI, такими как matchedGeometryEffect, и играет решающую роль в создании плавной и визуально привлекательной анимации между различными представлениями.
 
-//import SwiftUI
-//
-//struct OnboardingPageView: View {
-//    @EnvironmentObject private var orientationService: DeviceOrientationService
-//    let page: OnboardingPage
-//    let namespace: Namespace.ID   // Передаём идентификатор для `matchedGeometryEffect`
-//
-//    private var layout: AnyLayout {
-//        orientationService.orientation == .landscape
-//        ? AnyLayout(HStackLayout(spacing: 24))
-//        : AnyLayout(VStackLayout(spacing: 24))
-//    }
-//
-//    var body: some View {
-//        layout {
-//            Image(systemName: page.imageName)
-//                .resizable()
-//                .scaledToFit()
-//                .frame(maxWidth: 180, maxHeight: 240)
-//                .matchedGeometryEffect(id: "image\(page.id)", in: namespace)
-//
-//            VStack(alignment: .leading, spacing: 16) {
-//                Text(page.title)
-//                    .font(.title).bold()
-//                    .multilineTextAlignment(
-//                        orientationService.orientation == .landscape ? .leading : .center
-//                    )
-//                Text(page.description)
-//                    .font(.body)
-//                    .multilineTextAlignment(
-//                        orientationService.orientation == .landscape ? .leading : .center
-//                    )
-//            }
-//            .matchedGeometryEffect(id: "text\(page.id)", in: namespace)
-//        }
-//        .padding()
-//        .frame(maxWidth: .infinity, maxHeight: .infinity)
-//        .animation(.easeInOut(duration: 0.35), value: orientationService.orientation)
-//    }
-//}
+//MatchedGeometryEffect
 
-//struct OnboardingPageView: View {
-//    @EnvironmentObject private var orientationService: DeviceOrientationService
-//    let page: OnboardingPage
-//    @Namespace private var ns                       // для matchedGeometry
-//
-//    private var layout: AnyLayout {
-//        orientationService.orientation == .landscape
-//        ? AnyLayout(HStackLayout(spacing: 24))
-//        : AnyLayout(VStackLayout(spacing: 24))
-//    }
-//
-//    var body: some View {
-//        layout {
-//            Image(systemName: page.imageName)
-//                .resizable()
-//                .scaledToFit()
-//                .frame(maxWidth: 180, maxHeight: 240)   // обе ориентации сразу
-//                .matchedGeometryEffect(id: "image\(page.id)", in: ns)
-//
-//            VStack(alignment: .leading, spacing: 16) {
-//                Text(page.title)
-//                    .font(.title).bold()
-//                    .multilineTextAlignment(
-//                        orientationService.orientation == .landscape ? .leading : .center
-//                    )
-//                Text(page.description)
-//                    .font(.body)
-//                    .multilineTextAlignment(
-//                        orientationService.orientation == .landscape ? .leading : .center
-//                    )
-//            }
-//            .matchedGeometryEffect(id: "text\(page.id)", in: ns)
-//        }
-//        .padding()
-//        .frame(maxWidth: .infinity, maxHeight: .infinity)
-//        // ОДНА глобальная анимация для всех изменений
-//        .animation(.easeInOut(duration: 0.35), value: orientationService.orientation)
-//    }
-//}
+///Это модификатор который позволяет сопостовлять некоторые View между собой.
+///И с помощью магии под капотом SwiftUI она становится более простой для нас, для написания но и более красивой для пользователя.
+///Для того что бы использовать MatchedGeometryEffect мы объявляем @Namespace в котором будет происходить эта анимация.
+///И мы должны применить модификаторы на View.
+///И мы говорим что к определенным view мы должны относится как к одной
 
-// MARK: - version OnboardingPageView before private var layout: AnyLayout
+//@Namespace + matchedGeometryEffect связывают «до» и «после».
+//AnyLayout позволяет сменить горизонтальный ↔︎ вертикальный алгоритм, не разрушая дерево View.
+//Вся группа обёрнута одной animation(.easeInOut(duration: 0.35), value: orientationService.orientation), поэтому весь «переезд» работает одним синхронным тайм-лайном.
+//В результате картинка и текст «скользят» в нужные места, а не исчезают и появляются заново.
 
-//import SwiftUI
-//
-//struct OnboardingPageView: View {
-//
-//    @EnvironmentObject private var orientationService: DeviceOrientationService
-//    let page: OnboardingPage
-//
-//
-//    var body: some View {
-//        AdaptiveStack(orientationService.orientation)     // кастомный layout
-//
-//    }
-//
-//    // Простейший layout-переключатель
-//    @ViewBuilder
-//    private func AdaptiveStack(_ orientation: Orientation) -> some View {
-//        if orientation == .landscape {
-//            HStack(spacing: 24) {
-//                Image(systemName: page.imageName)
-//                    .resizable().scaledToFit()
-//                    .frame(maxWidth: 180)                     // жёсткий верхний предел
-//                VStack(alignment: .leading, spacing: 16) {
-//                    Text(page.title)
-//                        .font(.title)
-//                        .fontWeight(.bold)
-//                        .multilineTextAlignment(.leading)
-//                    Text(page.description)
-//                        .font(.body)
-//                        .multilineTextAlignment(.leading)
-//                }
-//                .padding()
-//            }
-//        } else {
-//            VStack(spacing: 24) {
-//                Image(systemName: page.imageName)
-//                    .resizable()
-//                ///Используя .scaledToFit без явного задания высоты(.frame(height: geometry.size.height * 0.3)), система гарантирует сохранение пропорций изображения, а высота подстроится автоматически под указанную ширину.
-//                    .scaledToFit()
-//                // Задаём высоту как долю от общей высоты экрана
-//                //                            .frame(height: size.height * 0.3)
-//                    .frame(maxHeight: 240)
-//                //                            .background(.red)
-//                Text(page.title)
-//                    .font(.largeTitle)
-//                    .fontWeight(.bold)
-//                    .multilineTextAlignment(.center)
-//                    .padding(.horizontal)
-//                Text(page.description)
-//                    .font(.body)
-//                    .multilineTextAlignment(.center)
-//                    .padding(.horizontal)
-//            }
-//            .padding(.horizontal)
-//        }
-//    }
-//
-//}
-//
-//
-// MARK: - version OnboardingPageView before @EnvironmentObject private var orientationService: DeviceOrientationService
-
+//тайм лайн
+///В контексте анимации синхронный тайм-лайн означает, что все связанные элементы двигаются по единому ритму, используя один временной диапазон.
+///Синхронный тайм-лайн создаёт ощущение естественности, когда все элементы UI изменяются как одно целое. 🟢 В SwiftUI для этого используются: ✔ Единое управляемое состояние (@State) для связанных объектов. ✔ Общий withAnimation, чтобы все анимации стартовали вместе. ✔ matchedGeometryEffect, чтобы создавать плавный переход форм и позиций.
 
 import SwiftUI
 
 struct OnboardingPageView: View {
+    @EnvironmentObject private var orientationService: DeviceOrientationService
     let page: OnboardingPage
-    
+    let namespace: Namespace.ID   // Передаём идентификатор для `matchedGeometryEffect`
+
+    private var layout: AnyLayout {
+        orientationService.orientation == .landscape
+        ? AnyLayout(HStackLayout(spacing: 24))
+        : AnyLayout(VStackLayout(spacing: 24))
+    }
+
     var body: some View {
-        GeometryReader { geometry in
-            // Определяем ориентацию: если ширина больше высоты – ландшафт.
-            let isLandscape = geometry.size.width > geometry.size.height
-            
-            Group {
-                if isLandscape {
-                    // Горизонтальная компоновка для ландшафтного режима:
-                    HStack {
-                        Image(systemName: page.imageName)
-                            .resizable()
-                            .scaledToFit()
-                            // Задаём ширину как долю от доступной ширины
-                            .frame(width: geometry.size.width * 0.2)
-//                            .background(.red)
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text(page.title)
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .multilineTextAlignment(.leading)
-                            Text(page.description)
-                                .font(.body)
-                                .multilineTextAlignment(.leading)
-                        }
-                        .padding()
-                    }
-                } else {
-                    // Вертикальная компоновка для портретного режима:
-                    VStack(spacing: 16) {
-                        Image(systemName: page.imageName)
-                            .resizable()
-                        ///Используя .scaledToFit без явного задания высоты(.frame(height: geometry.size.height * 0.3)), система гарантирует сохранение пропорций изображения, а высота подстроится автоматически под указанную ширину.
-                            .scaledToFit()
-                            // Задаём высоту как долю от общей высоты экрана
-                            .frame(height: geometry.size.height * 0.3)
-//                            .background(.red)
-                        Text(page.title)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        Text(page.description)
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                    }
-                }
+        layout {
+            Image(systemName: page.imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 180, maxHeight: 240)
+                .matchedGeometryEffect(id: "image\(page.id)", in: namespace)
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text(page.title)
+                    .font(.title).bold()
+                    .multilineTextAlignment(
+                        orientationService.orientation == .landscape ? .leading : .center
+                    )
+                Text(page.description)
+                    .font(.body)
+                    .multilineTextAlignment(
+                        orientationService.orientation == .landscape ? .leading : .center
+                    )
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-            // Анимация сглаживает переход при изменении ориентации
-            .animation(.easeInOut, value: isLandscape)
+            .matchedGeometryEffect(id: "text\(page.id)", in: namespace)
         }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .animation(.easeInOut(duration: 0.35), value: orientationService.orientation)
     }
 }
+
+
+
+// MARK: - version OnboardingPageView before private var layout: AnyLayout with GeometryReader
+
+
+
+//import SwiftUI
+//
+//struct OnboardingPageView: View {
+//    let page: OnboardingPage
+//    
+//    var body: some View {
+//        GeometryReader { geometry in
+//            // Определяем ориентацию: если ширина больше высоты – ландшафт.
+//            let isLandscape = geometry.size.width > geometry.size.height
+//            
+//            Group {
+//                if isLandscape {
+//                    // Горизонтальная компоновка для ландшафтного режима:
+//                    HStack {
+//                        Image(systemName: page.imageName)
+//                            .resizable()
+//                            .scaledToFit()
+//                            // Задаём ширину как долю от доступной ширины
+//                            .frame(width: geometry.size.width * 0.2)
+////                            .background(.red)
+//                        VStack(alignment: .leading, spacing: 16) {
+//                            Text(page.title)
+//                                .font(.title)
+//                                .fontWeight(.bold)
+//                                .multilineTextAlignment(.leading)
+//                            Text(page.description)
+//                                .font(.body)
+//                                .multilineTextAlignment(.leading)
+//                        }
+//                        .padding()
+//                    }
+//                } else {
+//                    // Вертикальная компоновка для портретного режима:
+//                    VStack(spacing: 16) {
+//                        Image(systemName: page.imageName)
+//                            .resizable()
+//                        ///Используя .scaledToFit без явного задания высоты(.frame(height: geometry.size.height * 0.3)), система гарантирует сохранение пропорций изображения, а высота подстроится автоматически под указанную ширину.
+//                            .scaledToFit()
+//                            // Задаём высоту как долю от общей высоты экрана
+//                            .frame(height: geometry.size.height * 0.3)
+////                            .background(.red)
+//                        Text(page.title)
+//                            .font(.largeTitle)
+//                            .fontWeight(.bold)
+//                            .multilineTextAlignment(.center)
+//                            .padding(.horizontal)
+//                        Text(page.description)
+//                            .font(.body)
+//                            .multilineTextAlignment(.center)
+//                            .padding(.horizontal)
+//                    }
+//                }
+//            }
+//            .frame(width: geometry.size.width, height: geometry.size.height)
+//            // Анимация сглаживает переход при изменении ориентации
+//            .animation(.easeInOut, value: isLandscape)
+////            .onAppear {
+////                print("Initial size: \(geometry.size)")
+////            }
+////            .onChange(of: geometry.size) { olodSize, newSize in
+////                print("Updated size: \(newSize)")
+////            }
+//        }
+//    }
+//}
 
 
 
