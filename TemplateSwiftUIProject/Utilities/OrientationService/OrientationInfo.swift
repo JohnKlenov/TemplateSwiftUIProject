@@ -5,12 +5,25 @@
 //  Created by Evgenyi on 25.05.25.
 
 
+// MARK: - DeviceOrientationService
+
+// будем синхронизировать данные из сервиса ориентации с локальными размерами GeometryReader.
+
+
+
+
 
 // MARK: - GeometryReader how main listener orientation
 
 // если мы хотим из DeviceOrientationService передавать текущий размер контейнера и ориентацию одновременно
 // мы можем сделать RootSizeReader основным для определения оринатции по принципц ширина больше высоты мы в ландшафте а после этого сравниить с UIDevice
 // и тогда как только мы определяем нашу ориентацию мы можем изменить состояние @Published private(set) var orientation и в DeviceOrientationService на текущий момент уже будет размер контейнера с которым можно будет раьотать.
+
+//Подход A. Не морочиться — оставить как есть или Подход B. Свести источники в один сервис (рекомендуемый) / Подход C. Комбинировать прямо в View (CombineLatest)
+//Когда вы используете и DeviceOrientationService и GeometryReader в одном View, могут возникать:
+///Конфликты данных - Системная ориентация и размеры контейнера могут временно не совпадать
+///Разная скорость обновления - UIDevice.orientation обновляется быстрее, чем GeometryReader
+///Дребезг значений - Особенно при анимациях поворота
 
 // MARK: - Adaptive UI (iPod + iOS)
 
@@ -163,13 +176,214 @@ struct RootSizeReader: View {
         GeometryReader { geo in
             Color.clear
                 .onAppear {
-                    print("RootSizeReader onAppear geo.size - \(geo.size)")
+//                    print("RootSizeReader onAppear geo.size - \(geo.size)")
 //                    orientation.update(raw: geo.size)
                 }
                 .onChange(of: geo.size) { _, newSize in
-                    print("RootSizeReader onChange geo.size - \(geo.size)")
+//                    print("RootSizeReader onChange geo.size - \(geo.size)")
 //                    orientation.update(raw: newSize)
                 }
         }
     }
 }
+
+
+// MARK: - синхронизируем данные из сервиса ориентации с локальными размерами GeometryReader.
+
+
+// MARK: AdaptiveView
+
+// Оборачиваем любой контент, которому нужны и размер, и ориентация.
+// Универсальная обёртка: кладёшь внутрь любой контент
+// builder(size, orientation) → View, где уже можно верстать.
+
+// MARK: AdaptiveView – локальный size + ориентация в одном «пакете»
+import SwiftUI
+import Combine
+
+struct AdaptiveView<Content: View>: View {
+
+    // внешняя ориентация
+    @EnvironmentObject private var orient: DeviceOrientationService
+    // локальный размер
+    @State private var containerSize = CGSize.zero
+
+    // Subject, чтобы сделать из size полноценный Publisher
+    private let sizeSubject = CurrentValueSubject<CGSize, Never>(.zero)
+
+    // Builder-замыкание, возвращающее любой View
+    private let builder: (CGSize, Orientation) -> Content
+    init(@ViewBuilder _ builder: @escaping (CGSize, Orientation) -> Content) {
+        self.builder = builder
+    }
+
+    // CombineLatest двух «настоящих» Publisher-ов
+    private var combined: AnyPublisher<(CGSize, Orientation), Never> {
+        Publishers.CombineLatest(
+            sizeSubject.removeDuplicates(),
+            orient.$orientation.removeDuplicates()
+        )
+        .eraseToAnyPublisher()
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            builder(containerSize, orient.orientation)          // ← сам контент
+                .onAppear { updateSize(geo.size) }
+                .onChange(of: geo.size) { old, new in  updateSize(new) }
+        }
+        .animation(.easeInOut(duration: 0.35), value: orient.orientation)
+        .onReceive(combined) { (size, orient) in                // кортеж в скобках!
+            debugPrint("⇢ sync  size:", size, "orient:", orient)
+            // здесь можно запускать побочные эффекты или кастомные анимации
+        }
+    }
+
+    private func updateSize(_ newSize: CGSize) {
+        guard newSize != containerSize else { return }
+        containerSize = newSize        // для SwiftUI-перерисовки
+        sizeSubject.send(newSize)      // для CombineLatest
+    }
+}
+
+
+struct Onboarding: View {
+    let page: OnboardingPage
+
+    var body: some View {
+        AdaptiveView { size, orient in
+            if orient == .landscape {
+                HStack(spacing: 24) {
+                    Image(systemName: page.imageName)
+                        .resizable().scaledToFit()
+                        .frame(width: size.width * 0.20)
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text(page.title).font(.title).bold()
+                        Text(page.description)
+                    }
+                }
+                .padding()
+            } else {
+                VStack(spacing: 24) {
+                    Image(systemName: page.imageName)
+                        .resizable().scaledToFit()
+                        .frame(height: size.height * 0.30)
+                    Text(page.title).font(.largeTitle).bold()
+                    Text(page.description)
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+}
+
+
+// MARK: - Если хочется иметь и ориентацию и размер контейнера одновременно
+
+
+//Подход B. Свести источники в один сервис (рекомендуемый)
+
+
+
+
+///Сервис хранит и размер, и ориентацию, вычисляя последнюю из «чистой» геометрии.
+///View слушает ТОЛЬКО сервис → гарантированно получает синхронные данные.
+
+
+
+
+//@MainActor
+//final class DeviceOrientationService: ObservableObject {
+//
+//    enum Orientation { case portrait, landscape }
+//
+//    @Published private(set) var orientation  : Orientation = .portrait
+//    @Published private(set) var containerSize: CGSize      = .zero
+//
+//    private var cancellables = Set<AnyCancellable>()
+//    private let sizeSubject  = PassthroughSubject<CGSize, Never>()
+//
+//    init() {
+//
+//        // ❶ Сырой датчик (UIDevice) — только fallback
+//        NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)
+//            .sink { [weak self] _ in self?.fallbackFromDevice() }
+//            .store(in: &cancellables)
+//
+//        // ❷ Истинный «мастер-таймлайн» — размер окна
+//        sizeSubject
+//            .removeDuplicates()
+//            .debounce(for: .milliseconds(40), scheduler: RunLoop.main) // ждать, пока юзер отпустит палец
+//            .sink { [weak self] size in self?.apply(size) }
+//            .store(in: &cancellables)
+//    }
+//
+//    func updateSize(_ size: CGSize) { sizeSubject.send(size) }
+//
+//    // MARK: - private
+//
+//    private func apply(_ size: CGSize) {
+//        containerSize = size
+//        orientation   = size.width > size.height ? .landscape : .portrait
+//    }
+//
+//    private func fallbackFromDevice() {
+//        guard containerSize == .zero else { return } // уже пришёл geo.size—фалбек не нужен
+//        let device = UIDevice.current.orientation
+//        orientation = (device == .landscapeLeft || device == .landscapeRight) ? .landscape : .portrait
+//    }
+//}
+
+//struct RootSizeReader: View {
+//    @EnvironmentObject var orient: DeviceOrientationService
+//    var body: some View {
+//        GeometryReader { geo in
+//            Color.clear
+//                .ignoresSafeArea()
+//                .onAppear                     { orient.updateSize(geo.frame(in: .global).size) }
+//                .onChange(of: geo.frame(in: .global).size) { new in
+//                    orient.updateSize(new)
+//                }
+//        }
+//    }
+//}
+
+//struct OnboardingPageView: View {
+//    @EnvironmentObject private var orient: DeviceOrientationService
+//    var body: some View {
+//        if orient.orientation == .landscape {
+//            LandscapeLayout(size: orient.containerSize)
+//        } else {
+//            PortraitLayout(size: orient.containerSize)
+//        }
+//        .animation(.easeInOut(duration: 0.35), value: orient.orientation)
+//    }
+//}
+
+
+
+
+
+//Подход C. Комбинировать прямо в View (CombineLatest)
+
+
+///Если не хочется переписывать сервис, можно «скрестить» два Publisher прямо в конкретной вьюхе:
+
+
+//struct AdaptiveView: View {
+//    @EnvironmentObject private var orient: DeviceOrientationService
+//    @State private var size: CGSize = .zero
+//
+//    var body: some View {
+//        GeometryReader { geo in
+//            Color.clear
+//                .onAppear { size = geo.size }
+//                .onChange(of: geo.size) { size = $0 }
+//        }
+//        .overlay(content)
+//        .onReceive(Publishers.CombineLatest($size, orient.$orientation)) { newSize, newOrient in
+//            // здесь у вас гарантированно «одновременный» кадр и ориентация
+//            // можно, например, запускать анимацию вручную
+//        }
+//    }
+
