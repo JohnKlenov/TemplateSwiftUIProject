@@ -9,21 +9,53 @@
 
 // будем синхронизировать данные из сервиса ориентации с локальными размерами GeometryReader.
 
+//я боялся что изменение ориентации в Environment произойдет раньше чем размер придет в GeometrySize или на оборот. Но на сколько я понял этого не стоит боятся , ведь SwiftUI обработает это?
+///Да, вы правы: бояться порядка «кто первым придёт – ориентация или geometry» в SwiftUI обычно не стоит. SwiftUI в декларативном body просто смотрит на текущее значение всех @State/@EnvironmentObject/@Binding и выстраивает UI под них. Если ориентация приедет раньше размера или наоборот – будет два прохода body, но в итоге вьюшки отрисуются уже в корректном состоянии.
+///
+///Самый простой рецепт:
+///1.Читаем ориентацию через @EnvironmentObject
+///2.Читаем размер через GeometryReader
+///3.Вставляем одну–единственную анимацию на orientation (она плавно покроет и geometry-смену).
+///4.Больше никаких CombineLatest, CurrentValueSubject и прочих «прокладок».
+///Вот минимальный пример, как это выглядит в OnboardingPageView:
+///struct OnboardingPageView: View { @EnvironmentObject private var orientationService: DeviceOrientationService var body: some View { GeometryReader { geo in Group { } .frame(width: geo.size.width, height: geo.size.height) .animation(.easeInOut(duration: 0.35), value: orientationService.orientation) }}}
+///SwiftUI автоматически перерисует OnboardingPageView и пересчитает GeometryReader каждый раз, когда меняется orientationService.orientation или geo.size. • .animation(..., value: orientationService.orientation) «накладывает» плавное изменение и на layout, и на geometry. • Даже если приходят два отдельных события (сначала размер, потом ориентация, или наоборот) – вью перерисуется дважды, но оба раза с анимацией, и конечный результат будет правильным.
+///
+///Когда всё же может понадобиться «склейка» size+orient?
+///У вас есть сложные смены нескольких state-переменных, и вы действительно хотите запустить один-единственный обработчик, когда они оба поменялись.
+///Вам нужно точно отловить «момент», когда и геометрия, и ориентация обновились, чтобы запустить кастомную логику.
+
+//В подавляющем большинстве случаев для адаптивного лэйаута это избыточно. Доверьтесь реактивному потоку SwiftUI – он честно пересчитает body под любые сочетания @State и @EnvironmentObject.
+
+//То есть в боевых приложениях если у нас есть пара или тройка State или Environment которые при изменении перерисовывают View и делают это почти одновременно это абсолютно нормально?
+///Да, это совершенно нормально и даже ожидаемо. SwiftUI построен так, чтобы
+///при любом изменении любого @State/@Binding/@EnvironmentObject заново вызывать body
+///сверять старое и новое дерево вью (diff) и вносить только необходимые патчи
+///всё это происходит очень быстро (в пределах одного кадра), так что глаз почти не заметит «двойной» ререндер.
+///
+///1. «SwiftUI сверяет старое и новое дерево вью (diff) и вносит только необходимые патчи»:
+///Каждый раз, когда вы меняете @State/@Binding/@EnvironmentObject и SwiftUI вызывает ваш body, фреймворк не перерисовывает весь экран заново.
+///Вместо этого он строит «новое» виртуальное дерево вью (некие лёгковесные структуры, описывающие: “здесь VStack, там Text c таким-то текстом, здесь у него этот модификатор…”).
+///Затем SwiftUI сравнивает старое и новое виртуальные деревья (операция diff).
+///И только для тех узлов, где обнаружились изменения в типе вьюшки, её идентификаторе или параметрах, делает низкоуровневые вызовы в UIKit/AppKit для вставки/показа/анимации/обновления.
+///Даже если вы перепишите 10 Text подряд, но меняется только у одного текстовое содержимое — SwiftUI увидит, что остальные десять идентичны, и не тронет их.
+///
+///2.«Если изменения приводят к тяжёлым расчётам в body и вы хотите минимизировать число пересборок — можно сгруппировать их в одном @StateObject или в одном withTransaction.»
+///Когда в вашем body лежат сложные вычисления (например, итерации по большим коллекциям, сложная логика .map/.reduce, тяжёлые свойства .onAppear и т. д.), каждый проход body может стоить дорого. Чтобы уменьшить число таких проходов, есть два приёма:
+///A) Группировка стейтов в один ObservableObject (@StateObject)
+///struct ProfileView: View { @State private var name: String = "" @State private var avatarData: Data? @State private var isPremium: Bool = false var body: some View { // читать три разных @State // каждый апдейт пробуждает body }}
+///class ProfileModel: ObservableObject { @Published var name: String = "" @Published var avatarData: Data? @Published var isPremium: Bool = false // здесь же можно спрятать тяжёлую логику загрузки/парсинга }
+///Плюс такого подхода:
+///Вы не разбросали логику по трём отдельных @State, а сконцентрировали в одном классе.
+///Внутри ProfileModel можно кешировать результаты и делать objectWillChange.send() только тогда, когда действительно нужно, тем самым снижая число апдейтов body.
+///
+///Если логика разбросана по разным @State и вы видите в профилировщике слишком много ререндеров, склейте эти состояния в один @StateObject/ObservableObject.
+///Если у вас несколько связанных visual-эффектов (движение, изменение прозрачности, масштаб) и вы хотите их атомарно анимировать, — оберните все изменения в один withAnimation или в withTransaction.
+///В остальном — полагайтесь на то, что SwiftUI диффит дерево и экономит на обновлениях автоматически.
 
 
 
 
-// MARK: - GeometryReader how main listener orientation
-
-// если мы хотим из DeviceOrientationService передавать текущий размер контейнера и ориентацию одновременно
-// мы можем сделать RootSizeReader основным для определения оринатции по принципц ширина больше высоты мы в ландшафте а после этого сравниить с UIDevice
-// и тогда как только мы определяем нашу ориентацию мы можем изменить состояние @Published private(set) var orientation и в DeviceOrientationService на текущий момент уже будет размер контейнера с которым можно будет раьотать.
-
-//Подход A. Не морочиться — оставить как есть или Подход B. Свести источники в один сервис (рекомендуемый) / Подход C. Комбинировать прямо в View (CombineLatest)
-//Когда вы используете и DeviceOrientationService и GeometryReader в одном View, могут возникать:
-///Конфликты данных - Системная ориентация и размеры контейнера могут временно не совпадать
-///Разная скорость обновления - UIDevice.orientation обновляется быстрее, чем GeometryReader
-///Дребезг значений - Особенно при анимациях поворота
 
 // MARK: - Adaptive UI (iPod + iOS)
 
@@ -193,90 +225,93 @@ struct RootSizeReader: View {
 
 // MARK: AdaptiveView
 
+// это чтука работает как обертка но  .onReceive(combined) происходит многократные вызовы, нужно дорабатывать
+
 // Оборачиваем любой контент, которому нужны и размер, и ориентация.
 // Универсальная обёртка: кладёшь внутрь любой контент
 // builder(size, orientation) → View, где уже можно верстать.
 
 // MARK: AdaptiveView – локальный size + ориентация в одном «пакете»
-import SwiftUI
-import Combine
 
-struct AdaptiveView<Content: View>: View {
-
-    // внешняя ориентация
-    @EnvironmentObject private var orient: DeviceOrientationService
-    // локальный размер
-    @State private var containerSize = CGSize.zero
-
-    // Subject, чтобы сделать из size полноценный Publisher
-    private let sizeSubject = CurrentValueSubject<CGSize, Never>(.zero)
-
-    // Builder-замыкание, возвращающее любой View
-    private let builder: (CGSize, Orientation) -> Content
-    init(@ViewBuilder _ builder: @escaping (CGSize, Orientation) -> Content) {
-        self.builder = builder
-    }
-
-    // CombineLatest двух «настоящих» Publisher-ов
-    private var combined: AnyPublisher<(CGSize, Orientation), Never> {
-        Publishers.CombineLatest(
-            sizeSubject.removeDuplicates(),
-            orient.$orientation.removeDuplicates()
-        )
-        .eraseToAnyPublisher()
-    }
-
-    var body: some View {
-        GeometryReader { geo in
-            builder(containerSize, orient.orientation)          // ← сам контент
-                .onAppear { updateSize(geo.size) }
-                .onChange(of: geo.size) { old, new in  updateSize(new) }
-        }
-        .animation(.easeInOut(duration: 0.35), value: orient.orientation)
-        .onReceive(combined) { (size, orient) in                // кортеж в скобках!
-            debugPrint("⇢ sync  size:", size, "orient:", orient)
-            // здесь можно запускать побочные эффекты или кастомные анимации
-        }
-    }
-
-    private func updateSize(_ newSize: CGSize) {
-        guard newSize != containerSize else { return }
-        containerSize = newSize        // для SwiftUI-перерисовки
-        sizeSubject.send(newSize)      // для CombineLatest
-    }
-}
-
-
-struct Onboarding: View {
-    let page: OnboardingPage
-
-    var body: some View {
-        AdaptiveView { size, orient in
-            if orient == .landscape {
-                HStack(spacing: 24) {
-                    Image(systemName: page.imageName)
-                        .resizable().scaledToFit()
-                        .frame(width: size.width * 0.20)
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text(page.title).font(.title).bold()
-                        Text(page.description)
-                    }
-                }
-                .padding()
-            } else {
-                VStack(spacing: 24) {
-                    Image(systemName: page.imageName)
-                        .resizable().scaledToFit()
-                        .frame(height: size.height * 0.30)
-                    Text(page.title).font(.largeTitle).bold()
-                    Text(page.description)
-                }
-                .padding(.horizontal)
-            }
-        }
-    }
-}
-
+//import SwiftUI
+//import Combine
+//
+//struct AdaptiveView<Content: View>: View {
+//
+//    // внешняя ориентация
+//    @EnvironmentObject private var orient: DeviceOrientationService
+//    // локальный размер
+//    @State private var containerSize = CGSize.zero
+//
+////     Subject, чтобы сделать из size полноценный Publisher
+//    private let sizeSubject = CurrentValueSubject<CGSize, Never>(.zero)
+//
+//    // Builder-замыкание, возвращающее любой View
+//    private let builder: (CGSize, Orientation) -> Content
+//    init(@ViewBuilder _ builder: @escaping (CGSize, Orientation) -> Content) {
+//        self.builder = builder
+//    }
+//
+//    // CombineLatest двух «настоящих» Publisher-ов
+//    private var combined: AnyPublisher<(CGSize, Orientation), Never> {
+//        Publishers.CombineLatest(
+//            sizeSubject.removeDuplicates(),
+//            orient.$orientation.removeDuplicates()
+//        )
+//        .eraseToAnyPublisher()
+//    }
+//
+//    var body: some View {
+//        GeometryReader { geo in
+//            builder(containerSize, orient.orientation)          // ← сам контент
+//                .onAppear { updateSize(geo.size) }
+//                .onChange(of: geo.size) { old, new in  updateSize(new) }
+//        }
+//        .animation(.easeInOut(duration: 0.35), value: orient.orientation)
+//        .onReceive(combined) { (size, orient) in                // кортеж в скобках!
+//            debugPrint("⇢ sync  size:", size, "orient:", orient)
+//            // здесь можно запускать побочные эффекты или кастомные анимации
+//        }
+//    }
+//
+//    private func updateSize(_ newSize: CGSize) {
+//        guard newSize != containerSize else { return }
+//        containerSize = newSize        // для SwiftUI-перерисовки
+//        sizeSubject.send(newSize)      // для CombineLatest
+//    }
+//}
+//
+//
+//struct Onboarding: View {
+//    let page: OnboardingPage
+//
+//    var body: some View {
+//        AdaptiveView { size, orient in
+//            if orient == .landscape {
+//                HStack(spacing: 24) {
+//                    Image(systemName: page.imageName)
+//                        .resizable().scaledToFit()
+//                        .frame(width: size.width * 0.20)
+//                    VStack(alignment: .leading, spacing: 16) {
+//                        Text(page.title).font(.title).bold()
+//                        Text(page.description)
+//                    }
+//                }
+//                .padding()
+//            } else {
+//                VStack(spacing: 24) {
+//                    Image(systemName: page.imageName)
+//                        .resizable().scaledToFit()
+//                        .frame(height: size.height * 0.30)
+//                    Text(page.title).font(.largeTitle).bold()
+//                    Text(page.description)
+//                }
+//                .padding(.horizontal)
+//            }
+//        }
+//    }
+//}
+//
 
 // MARK: - Если хочется иметь и ориентацию и размер контейнера одновременно
 
