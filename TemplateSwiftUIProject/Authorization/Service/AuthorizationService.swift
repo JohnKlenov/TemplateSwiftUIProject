@@ -1,0 +1,193 @@
+//
+//  AuthorizationService.swift
+//  TemplateSwiftUIProject
+//
+//  Created by Evgenyi on 16.06.25.
+//
+
+
+
+// AuthorizationService.swift
+import FirebaseAuth
+import Combine
+
+
+enum AuthError: LocalizedError {
+  case notAuthorized
+  case firebase(Error)
+  case unknown
+
+  var errorDescription: String? {
+    switch self {
+    case .notAuthorized:       return "Пользователь не авторизован."
+    case .firebase(let error): return error.localizedDescription
+    case .unknown:             return "Неизвестная ошибка."
+    }
+  }
+}
+
+
+/// Чистый сервис — регистрирует/линкует пользователя, обновляет профиль.
+final class AuthorizationService {
+  
+    // Шаг 1: регистрация или линковка анонимного пользователя → возвращает userId
+  func signUpBasic(email: String, password: String) -> AnyPublisher<String, AuthError> {
+    currentUserPublisher()
+      .flatMap { user -> AnyPublisher<AuthDataResult, AuthError> in
+        if user.isAnonymous {
+          let cred = EmailAuthProvider.credential(
+            withEmail: email,
+            password: password
+          )
+          return self.linkPublisher(user: user, credential: cred)
+        } else {
+          return self.createUserPublisher(email: email, password: password)
+        }
+      }
+      .map { $0.user.uid }
+      .eraseToAnyPublisher()
+  }
+
+  // Шаг 2: создаём/обновляем профиль → Void
+  func createProfile(name: String) -> AnyPublisher<Void, AuthError> {
+    Deferred {
+      Future { promise in
+        guard let req = Auth.auth().currentUser?.createProfileChangeRequest() else {
+          return promise(.failure(.notAuthorized))
+        }
+        req.displayName = name
+        req.commitChanges { error in
+          if let e = error {
+            promise(.failure(.firebase(e)))
+          } else {
+            promise(.success(()))
+          }
+        }
+      }
+    }
+    .eraseToAnyPublisher()
+  }
+
+  // MARK: — Helpers
+
+    private func currentUserPublisher() -> AnyPublisher<User, AuthError> {
+        guard let user = Auth.auth().currentUser else {
+            return Fail(error: .notAuthorized).eraseToAnyPublisher()
+        }
+        return Just(user)
+            .setFailureType(to: AuthError.self)
+            .eraseToAnyPublisher()
+    }
+
+    private func createUserPublisher(email: String, password: String)
+    -> AnyPublisher<AuthDataResult, AuthError>
+    {
+        Future { promise in
+            Auth.auth().createUser(withEmail: email, password: password) { res, err in
+                if let e = err          { promise(.failure(.firebase(e))) }
+                else if let success = res { promise(.success(success)) }
+                else                     { promise(.failure(.unknown)) }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+
+    private func linkPublisher(user: User, credential: AuthCredential)
+    -> AnyPublisher<AuthDataResult, AuthError>
+    {
+        Future { promise in
+            user.link(with: credential) { res, err in
+                if let e = err          { promise(.failure(.firebase(e))) }
+                else if let success = res { promise(.success(success)) }
+                else                     { promise(.failure(.unknown)) }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+
+  func sendVerificationEmail() {
+    Auth.auth().currentUser?.sendEmailVerification(completion: nil)
+  }
+}
+
+
+
+// MARK: - legacy implementation
+
+//import SwiftUI
+//import FirebaseAuth
+//
+//class AuthorizationManager {
+//    
+//    var currentUser = Auth.auth().currentUser
+//    
+//    func signUp(email: String, password: String, name: String, completion: @escaping (Error?, Bool) -> Void) {
+//        
+//        let errorAuth = NSError(domain: "com.yourapp.error", code: 401, userInfo: [NSLocalizedDescriptionKey: "User is not authorized."])
+//        
+//            guard let _ = currentUser else {
+//                
+//                completion(errorAuth, false)
+//                return
+//            }
+//        
+//            if currentUser?.isAnonymous == true {
+//                let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+//                currentUser?.link(with: credential) { [weak self] (result, error) in
+//                    // Обработайте результат
+//                    if let error = error {
+//                        completion(error, false)
+//                    } else {
+//                        self?.createProfileAndHandleError(name: name, isAnonymous: true, completion: completion)
+//                    }
+//                }
+//            } else {
+//                Auth.auth().createUser(withEmail: email, password: password) { [weak self] (result, error) in
+//                    if let error = error  {
+//                        completion(error,false)
+//                    } else {
+//                        self?.createProfileAndHandleError(name: name, isAnonymous: false, completion: completion)
+//                    }
+//                }
+//            }
+//        }
+//    
+//    func createProfileAndHandleError(name: String, isAnonymous: Bool, completion: @escaping (Error?, Bool) -> Void) {
+//        createProfileChangeRequest(name: name, { error in
+//            if let error = error {
+//                completion(error, false)
+//            } else {
+//                self.verificationEmail()
+//                completion(error, true)
+//            }
+//        })
+//    }
+//        
+//        // Отправить пользователю электронное письмо с подтверждением регистрации
+//        func verificationEmail() {
+//            currentUser?.sendEmailVerification()
+//        }
+//        
+//        // если callback: ((StateProfileInfo, Error?) -> ())? = nil) closure не пометить как @escaping (зачем он нам не обязательный?)
+//        // if error == nil этот callBack не будет вызван(вызов проигнорируется) - callBack: ((Error?) -> Void)? = nil // callBack?(error)
+//        func createProfileChangeRequest(name: String? = nil, photoURL: URL? = nil,_ completion: @escaping (Error?) -> Void) {
+//
+//            if let request = currentUser?.createProfileChangeRequest() {
+//                if let name = name {
+//                    request.displayName = name
+//                }
+//
+//                if let photoURL = photoURL {
+//                    request.photoURL = photoURL
+//                }
+//                
+//                request.commitChanges { error in
+//                    completion(error)
+//                }
+//            } else {
+//                ///need created build Error
+//                let error = NSError(domain: "com.yourapp.error", code: 401, userInfo: [NSLocalizedDescriptionKey: "User is not authorized."])
+//                completion(error)
+//            }
+//        }
+//}

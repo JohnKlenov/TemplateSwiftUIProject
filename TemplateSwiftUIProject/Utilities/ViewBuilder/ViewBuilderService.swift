@@ -50,7 +50,8 @@ class ViewBuilderService: ObservableObject {
         case .aboutUs:
             SomeView()
         case .createAccount:
-            SignUpView()
+//            SignUpView()
+            SignUpEntryView()
         case .account:
             ContentAccountView()
         case .login:

@@ -7,6 +7,10 @@
 
 import Foundation
 
+//Вашу Static LaunchScreen нельзя «повернуть» в другую ориентацию(laundscape, portret) после старта, и это сделано специально.
+//Если вам нужен адаптивный(и динамически живой) сплэш, делайте его в своем коде (SplashViewController) с программным Auto Layout или SwiftUI View, а не в LaunchScreen.storyboard..
+
+
 // Создание LaunchScreen для SwiftUI
 
 /// Создание LaunchScreen для SwiftUI-проекта происходит через добавление storyboard-файла (LaunchScreen.storyboard), в котором вы статически настраиваете внешний вид экрана (обычно логотип и/или фон).

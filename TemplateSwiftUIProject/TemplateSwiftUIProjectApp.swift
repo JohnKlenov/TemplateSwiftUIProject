@@ -61,6 +61,135 @@
 /// в struct нам не нужно передавать зависимость через конструктор просто используем @EnvironmentObject var managerCRUDS: CRUDSManager а в классах нужно передавать через конструктор - HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
 
 
+// MARK: - new implement
+
+
+import SwiftUI
+import UIKit
+
+@main
+struct TemplateSwiftUIProjectApp: App {
+
+    // MARK: UIKit hooks
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
+    // MARK: – Persistent flags
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+
+    // MARK: – Global services
+    @StateObject private var localizationService = LocalizationService.shared
+    @StateObject private var retryHandler        = GlobalRetryHandler()
+    @StateObject private var networkMonitor      = NetworkMonitor()
+    @StateObject private var orientationService  = DeviceOrientationService()
+    @StateObject private var authorizationManager = AuthorizationManager(service: AuthorizationService())
+
+    // MARK: – Scene phase
+    @Environment(\.scenePhase) private var scenePhase
+
+    // MARK: – init (DEBUG helpers)
+    init() {
+        #if DEBUG
+        UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
+        ImageCacheManager.shared.deleteOldFiles()
+        #endif
+    }
+
+    // MARK: – Body
+    var body: some Scene {
+        WindowGroup {
+            AppRootView(hasSeenOnboarding: hasSeenOnboarding)
+                .environmentObject(authorizationManager)
+                .environmentObject(localizationService)
+                .environmentObject(retryHandler)
+                .environmentObject(networkMonitor)
+                .environmentObject(orientationService)
+                .environment(\.sizeCategory, .medium)
+                .onChange(of: scenePhase) { oldPhase, newPhase in
+                    //            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
+                    handleScenePhase(oldPhase)
+                }
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────
+// MARK: - Root View
+// ──────────────────────────────────────────────────────────────
+
+private struct AppRootView: View {
+
+    let hasSeenOnboarding: Bool
+
+    @EnvironmentObject private var networkMonitor: NetworkMonitor
+    @EnvironmentObject private var orientationService: DeviceOrientationService
+
+    var body: some View {
+        GeometryReader { windowGeo in
+            ZStack {                               // Один контейнер для всего
+//                RootSizeReader()
+                mainContent
+                
+                // Banner
+                VStack {
+                    Spacer()
+                    NetworkStatusBanner()
+                        .environmentObject(networkMonitor)
+                        .padding(.bottom, Self.bottomPadding(for: windowGeo))
+                }
+            }
+            .onAppear {
+                UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+            }
+            .onDisappear {
+                UIDevice.current.endGeneratingDeviceOrientationNotifications()
+            }
+        }
+    }
+
+    // MARK: helpers
+    @ViewBuilder
+    private var mainContent: some View {
+        if hasSeenOnboarding {
+            ContentView()
+        } else {
+            OnboardingView()
+        }
+    }
+
+    private static func bottomPadding(for geo: GeometryProxy) -> CGFloat {
+        let inset = geo.safeAreaInsets.bottom
+        return inset == 0 ? 64 : inset + 30        // 64 для устройств c кнопкой, иначе 30-pt над home-indicator
+    }
+}
+
+// ──────────────────────────────────────────────────────────────
+// MARK: - Scene-phase logic
+// ──────────────────────────────────────────────────────────────
+
+private extension TemplateSwiftUIProjectApp {
+
+    func handleScenePhase(_ phase: ScenePhase) {
+        #if targetEnvironment(simulator)
+        // Симулятор ведёт себя “зеркально”, поэтому меняем логику
+        switch phase {
+        case .active:      networkMonitor.stopMonitoring()
+        case .inactive,
+             .background:  networkMonitor.startMonitoring()
+        default:           break
+        }
+        #else
+        switch phase {
+        case .active:      networkMonitor.startMonitoring()
+        case .inactive,
+             .background:  networkMonitor.stopMonitoring()
+        default:           break
+        }
+        #endif
+    }
+}
+
+
+
 //    geometry.size - (393.0, 759.0)
 //                        .modifier(DeviceOrientationModifier())
 //                        .modifier(DeviceOrientationModifier(orientationService: orientationService))
@@ -175,127 +304,3 @@
 
 
 
-// MARK: - new implement
-
-
-import SwiftUI
-import UIKit
-
-@main
-struct TemplateSwiftUIProjectApp: App {
-
-    // MARK: UIKit hooks
-    @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-
-    // MARK: – Persistent flags
-    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
-
-    // MARK: – Global services
-    @StateObject private var localizationService = LocalizationService.shared
-    @StateObject private var retryHandler        = GlobalRetryHandler()
-    @StateObject private var networkMonitor      = NetworkMonitor()
-    @StateObject private var orientationService  = DeviceOrientationService()
-
-    // MARK: – Scene phase
-    @Environment(\.scenePhase) private var scenePhase
-
-    // MARK: – init (DEBUG helpers)
-    init() {
-        #if DEBUG
-        UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
-        ImageCacheManager.shared.deleteOldFiles()
-        #endif
-    }
-
-    // MARK: – Body
-    var body: some Scene {
-        WindowGroup {
-            AppRootView(hasSeenOnboarding: hasSeenOnboarding)
-                .environmentObject(localizationService)
-                .environmentObject(retryHandler)
-                .environmentObject(networkMonitor)
-                .environmentObject(orientationService)
-                .environment(\.sizeCategory, .medium)
-                .onChange(of: scenePhase) { oldPhase, newPhase in
-                    //            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
-                    handleScenePhase(oldPhase)
-                }
-        }
-    }
-}
-
-// ──────────────────────────────────────────────────────────────
-// MARK: - Root View
-// ──────────────────────────────────────────────────────────────
-
-private struct AppRootView: View {
-
-    let hasSeenOnboarding: Bool
-
-    @EnvironmentObject private var networkMonitor: NetworkMonitor
-    @EnvironmentObject private var orientationService: DeviceOrientationService
-
-    var body: some View {
-        GeometryReader { windowGeo in
-            ZStack {                               // Один контейнер для всего
-//                RootSizeReader()
-                mainContent
-                
-                // Banner
-                VStack {
-                    Spacer()
-                    NetworkStatusBanner()
-                        .environmentObject(networkMonitor)
-                        .padding(.bottom, Self.bottomPadding(for: windowGeo))
-                }
-            }
-            .onAppear {
-                UIDevice.current.beginGeneratingDeviceOrientationNotifications()
-            }
-            .onDisappear {
-                UIDevice.current.endGeneratingDeviceOrientationNotifications()
-            }
-        }
-    }
-
-    // MARK: helpers
-    @ViewBuilder
-    private var mainContent: some View {
-        if hasSeenOnboarding {
-            ContentView()
-        } else {
-            OnboardingView()
-        }
-    }
-
-    private static func bottomPadding(for geo: GeometryProxy) -> CGFloat {
-        let inset = geo.safeAreaInsets.bottom
-        return inset == 0 ? 64 : inset + 30        // 64 для устройств c кнопкой, иначе 30-pt над home-indicator
-    }
-}
-
-// ──────────────────────────────────────────────────────────────
-// MARK: - Scene-phase logic
-// ──────────────────────────────────────────────────────────────
-
-private extension TemplateSwiftUIProjectApp {
-
-    func handleScenePhase(_ phase: ScenePhase) {
-        #if targetEnvironment(simulator)
-        // Симулятор ведёт себя “зеркально”, поэтому меняем логику
-        switch phase {
-        case .active:      networkMonitor.stopMonitoring()
-        case .inactive,
-             .background:  networkMonitor.startMonitoring()
-        default:           break
-        }
-        #else
-        switch phase {
-        case .active:      networkMonitor.startMonitoring()
-        case .inactive,
-             .background:  networkMonitor.stopMonitoring()
-        default:           break
-        }
-        #endif
-    }
-}

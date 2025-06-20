@@ -61,66 +61,71 @@
 ///Синхронный тайм-лайн создаёт ощущение естественности, когда все элементы UI изменяются как одно целое. 🟢 В SwiftUI для этого используются: ✔ Единое управляемое состояние (@State) для связанных объектов. ✔ Общий withAnimation, чтобы все анимации стартовали вместе. ✔ matchedGeometryEffect, чтобы создавать плавный переход форм и позиций.
 
 
-//import SwiftUI
-//
-//struct OnboardingPageView: View {
-//    @EnvironmentObject private var orientationService: DeviceOrientationService
-//    let page: OnboardingPage
-//    let namespace: Namespace.ID   // Передаём идентификатор для `matchedGeometryEffect`
-//
-//    private var layout: AnyLayout {
-//        orientationService.orientation == .landscape
-//        ? AnyLayout(HStackLayout(spacing: 24))
-//        : AnyLayout(VStackLayout(spacing: 24))
-//    }
-//
-//    var body: some View {
-//        layout {
-//            Image(systemName: page.imageName)
-//                .resizable()
-//                .scaledToFit()
-//                .frame(maxWidth: 180, maxHeight: 240)
-//                .matchedGeometryEffect(id: "image\(page.id)", in: namespace)
-//
-//            VStack(alignment: .leading, spacing: 16) {
-//                Text(page.title)
-//                    .font(.title).bold()
-//                    .multilineTextAlignment(
-//                        orientationService.orientation == .landscape ? .leading : .center
-//                    )
-//                Text(page.description)
-//                    .font(.body)
-//                    .multilineTextAlignment(
-//                        orientationService.orientation == .landscape ? .leading : .center
-//                    )
-//            }
-//            .matchedGeometryEffect(id: "text\(page.id)", in: namespace)
-//        }
-//        .padding()
-//        .frame(maxWidth: .infinity, maxHeight: .infinity)
-//        .animation(.easeInOut(duration: 0.35), value: orientationService.orientation)
-//    }
-//}
+import SwiftUI
+
+struct OnboardingPageView: View {
+    @EnvironmentObject private var orientationService: DeviceOrientationService
+    let page: OnboardingPage
+    let namespace: Namespace.ID   // Передаём идентификатор для `matchedGeometryEffect`
+
+    private var layout: AnyLayout {
+        orientationService.orientation == .landscape
+        ? AnyLayout(HStackLayout(spacing: 24))
+        : AnyLayout(VStackLayout(spacing: 24))
+    }
+
+    var body: some View {
+        layout {
+            Image(systemName: page.imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 180, maxHeight: 240)
+                .matchedGeometryEffect(id: "image\(page.id)", in: namespace)
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text(page.title)
+                    .font(.title).bold()
+                    .multilineTextAlignment(
+                        orientationService.orientation == .landscape ? .leading : .center
+                    )
+                Text(page.description)
+                    .font(.body)
+                    .multilineTextAlignment(
+                        orientationService.orientation == .landscape ? .leading : .center
+                    )
+            }
+            .matchedGeometryEffect(id: "text\(page.id)", in: namespace)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .animation(.easeInOut(duration: 0.35), value: orientationService.orientation)
+    }
+}
 
 // MARK: - version OnboardingPageView before private var layout: AnyLayout with GeometryReader
 
+
 //import SwiftUI
 //
 //struct OnboardingPageView: View {
 //    let page: OnboardingPage
+//    @EnvironmentObject private var orientationService: DeviceOrientationService
 //    
 //    var body: some View {
-//        AdaptiveView { size, orient in
+//        GeometryReader { geometry in
+//            // Определяем ориентацию: если ширина больше высоты – ландшафт.
+//            
+//            
 //            Group {
-//                if orient == .landscape {
+//                if orientationService.orientation == .landscape  {
 //                    // Горизонтальная компоновка для ландшафтного режима:
 //                    HStack {
 //                        Image(systemName: page.imageName)
 //                            .resizable()
 //                            .scaledToFit()
-//                        // Задаём ширину как долю от доступной ширины
-//                            .frame(width: size.width * 0.2)
-//                        //                            .background(.red)
+//                            // Задаём ширину как долю от доступной ширины
+//                            .frame(width: geometry.size.width * 0.2)
+////                            .background(.red)
 //                        VStack(alignment: .leading, spacing: 16) {
 //                            Text(page.title)
 //                                .font(.title)
@@ -139,9 +144,9 @@
 //                            .resizable()
 //                        ///Используя .scaledToFit без явного задания высоты(.frame(height: geometry.size.height * 0.3)), система гарантирует сохранение пропорций изображения, а высота подстроится автоматически под указанную ширину.
 //                            .scaledToFit()
-//                        // Задаём высоту как долю от общей высоты экрана
-//                            .frame(height: size.height * 0.3)
-//                        //                            .background(.red)
+//                            // Задаём высоту как долю от общей высоты экрана
+//                            .frame(height: geometry.size.height * 0.3)
+////                            .background(.red)
 //                        Text(page.title)
 //                            .font(.largeTitle)
 //                            .fontWeight(.bold)
@@ -154,86 +159,18 @@
 //                    }
 //                }
 //            }
-//            .frame(width: size.width, height: size.height)
+//            .frame(width: geometry.size.width, height: geometry.size.height)
 //            // Анимация сглаживает переход при изменении ориентации
-//            .animation(.easeInOut, value: orient)
-//            //            .onAppear {
-//            //                print("Initial size: \(geometry.size)")
-//            //            }
-//            //            .onChange(of: geometry.size) { olodSize, newSize in
-//            //                print("Updated size: \(newSize)")
-//            //            }
+//            .animation(.easeInOut, value: orientationService.orientation)
+////            .onAppear {
+////                print("Initial size: \(geometry.size)")
+////            }
+////            .onChange(of: geometry.size) { olodSize, newSize in
+////                print("Updated size: \(newSize)")
+////            }
 //        }
 //    }
 //}
-
-
-import SwiftUI
-
-struct OnboardingPageView: View {
-    let page: OnboardingPage
-    @EnvironmentObject private var orientationService: DeviceOrientationService
-    
-    var body: some View {
-        GeometryReader { geometry in
-            // Определяем ориентацию: если ширина больше высоты – ландшафт.
-            
-            
-            Group {
-                if orientationService.orientation == .landscape  {
-                    // Горизонтальная компоновка для ландшафтного режима:
-                    HStack {
-                        Image(systemName: page.imageName)
-                            .resizable()
-                            .scaledToFit()
-                            // Задаём ширину как долю от доступной ширины
-                            .frame(width: geometry.size.width * 0.2)
-//                            .background(.red)
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text(page.title)
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .multilineTextAlignment(.leading)
-                            Text(page.description)
-                                .font(.body)
-                                .multilineTextAlignment(.leading)
-                        }
-                        .padding()
-                    }
-                } else {
-                    // Вертикальная компоновка для портретного режима:
-                    VStack(spacing: 16) {
-                        Image(systemName: page.imageName)
-                            .resizable()
-                        ///Используя .scaledToFit без явного задания высоты(.frame(height: geometry.size.height * 0.3)), система гарантирует сохранение пропорций изображения, а высота подстроится автоматически под указанную ширину.
-                            .scaledToFit()
-                            // Задаём высоту как долю от общей высоты экрана
-                            .frame(height: geometry.size.height * 0.3)
-//                            .background(.red)
-                        Text(page.title)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        Text(page.description)
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                    }
-                }
-            }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-            // Анимация сглаживает переход при изменении ориентации
-            .animation(.easeInOut, value: orientationService.orientation)
-//            .onAppear {
-//                print("Initial size: \(geometry.size)")
-//            }
-//            .onChange(of: geometry.size) { olodSize, newSize in
-//                print("Updated size: \(newSize)")
-//            }
-        }
-    }
-}
 
 
 //import SwiftUI

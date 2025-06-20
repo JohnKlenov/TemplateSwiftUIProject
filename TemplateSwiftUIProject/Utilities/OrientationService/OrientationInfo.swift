@@ -9,6 +9,9 @@
 
 // будем синхронизировать данные из сервиса ориентации с локальными размерами GeometryReader.
 
+///вот так все работает без визуальных багов
+///struct OnboardingPageView: View { @EnvironmentObject private var orientationService: DeviceOrientationService var body: some View { GeometryReader { geo in Group { if orientationService.orientation == .landscape  { Горизонтальная компоновка для ландшафтного режима } else { Вертикальная компоновка для портретного режима } } .frame(width: geo.size.width, height: geo.size.height) .animation(.easeInOut(duration: 0.35), value: orientationService.orientation) }}}
+
 //я боялся что изменение ориентации в Environment произойдет раньше чем размер придет в GeometrySize или на оборот. Но на сколько я понял этого не стоит боятся , ведь SwiftUI обработает это?
 ///Да, вы правы: бояться порядка «кто первым придёт – ориентация или geometry» в SwiftUI обычно не стоит. SwiftUI в декларативном body просто смотрит на текущее значение всех @State/@EnvironmentObject/@Binding и выстраивает UI под них. Если ориентация приедет раньше размера или наоборот – будет два прохода body, но в итоге вьюшки отрисуются уже в корректном состоянии.
 ///

@@ -6,16 +6,11 @@
 //
 
 
-///Когда выполнится return Empty().eraseToAnyPublisher(), flatMap не отправит никаких значений дальше по цепочке.
-///Последующие операторы (receive, sink) не получат никаких данных и обработка завершится.
-///Если вам нужно, чтобы sink срабатывал даже в случае отсутствия данных, можно использовать Just.
+// MARK: - firestorColletionObserverService.observeCollection
+/// не все ошибки которые приходят из addSnapshotListener критичные, есть временные ошибки котороые не останавливают работу слушателя. (можно для некоторых ошибок блокировать вызов viewState = .error(errorMessage) что бы улучшить пользовательский опыт)
 
 ///Firebase не предоставляет явного значения для таймаута по умолчанию, вы можете управлять таймаутами вручную.
 ///Контроль таймаутов в Firebase не является абсолютно необходимым и может усложнить ваш код, особенно если у вас нет строгих требований к времени ожидания. В большинстве случаев, можно доверить Firebase управлять соединением и ждать ответ от сервера столько, сколько необходимо.
-
-
-// MARK: - firestorColletionObserverService.observeCollection
-/// не все ошибки которые приходят из addSnapshotListener критичные, есть временные ошибки котороые не останавливают работу слушателя. (можно для некоторых ошибок блокировать вызов viewState = .error(errorMessage) что бы улучшить пользовательский опыт)
 
 
 
@@ -51,6 +46,7 @@ protocol HomeViewModelProtocol: ObservableObject {
     func removeBook(book: BookCloud, forView:String, operationDescription: String)
     func retry()
 }
+
 
 
 class HomeContentViewModel: HomeViewModelProtocol {

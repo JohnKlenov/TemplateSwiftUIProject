@@ -27,6 +27,7 @@ struct HomeContentView:View {
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var retryHandler: GlobalRetryHandler
     
+    
     init(managerCRUDS: CRUDSManager) {
         _viewModel = StateObject(wrappedValue: HomeContentViewModel(
             authenticationService: AuthenticationService(),
