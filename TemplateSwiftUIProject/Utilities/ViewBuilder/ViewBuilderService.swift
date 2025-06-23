@@ -7,15 +7,26 @@
 
 import SwiftUI
 
+//@MainActor
 class ViewBuilderService: ObservableObject {
-    var crudManager: CRUDSManager
+    let crudManager: CRUDSManager
+    let authorizationManager: AuthorizationManager
     
     init() {
+        let service = AuthorizationService()
+        self.authorizationManager = AuthorizationManager(service: service)
+        
         self.crudManager = CRUDSManager(
             authService: AuthService(),
             errorHandler: SharedErrorHandler(),
             databaseService: FirestoreDatabaseCRUDService()
         )
+    }
+    
+    func makeSignUpView() -> some View {
+        // VM создаётся один раз, и в SignUpView — через StateObject
+        let viewModel = SignUpViewModel(authorizationManager: authorizationManager)
+        return SignUpViewInjected(viewModel: viewModel)
     }
     
     @ViewBuilder 
@@ -50,14 +61,16 @@ class ViewBuilderService: ObservableObject {
         case .aboutUs:
             SomeView()
         case .createAccount:
-//            SignUpView()
-            SignUpEntryView()
+            makeSignUpView()
+            //            SignUpView()
+//            SignUpEntryView()
         case .account:
             ContentAccountView()
         case .login:
             SignInView()
         }
     }
+    
     
     /// будут ли у нас проблемы если у нас ViewBuilderService работает на двух стеках и на одгом мы дерним buildSheet что произойдет на втором стеке он тоже дернится?
     @ViewBuilder

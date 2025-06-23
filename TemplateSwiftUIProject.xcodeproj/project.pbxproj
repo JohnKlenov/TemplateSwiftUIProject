@@ -79,7 +79,7 @@
 		5EAF5B0E2D2FF96000D96FD6 /* FirstAppear.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B0D2D2FF96000D96FD6 /* FirstAppear.swift */; };
 		5EAF5B132D367E7E00D96FD6 /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B122D367E7E00D96FD6 /* ContentViewModel.swift */; };
 		5EAF5B1B2D4B863B00D96FD6 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */; };
-		5EBFD5C22E055CBC00A3C74C /* SignUpEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C12E055CBC00A3C74C /* SignUpEntryView.swift */; };
+		5EBFD5C22E055CBC00A3C74C /* SignUpViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -184,7 +184,7 @@
 		5EAF5B0D2D2FF96000D96FD6 /* FirstAppear.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstAppear.swift; sourceTree = "<group>"; };
 		5EAF5B122D367E7E00D96FD6 /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
 		5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
-		5EBFD5C12E055CBC00A3C74C /* SignUpEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpEntryView.swift; sourceTree = "<group>"; };
+		5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewInjected.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLoggingService.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -651,7 +651,7 @@
 			isa = PBXGroup;
 			children = (
 				5EC88EFC2DD4A58D00A95224 /* SignUpView.swift */,
-				5EBFD5C12E055CBC00A3C74C /* SignUpEntryView.swift */,
+				5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1054,7 +1054,7 @@
 				5E8F9CAB2D7ED7DE004036F6 /* GalleryContentView(test).swift in Sources */,
 				5E8F9C8E2D6348D8004036F6 /* BookRowView.swift in Sources */,
 				5EA2E60E2E0007CB00C53E52 /* AuthorizationManager.swift in Sources */,
-				5EBFD5C22E055CBC00A3C74C /* SignUpEntryView.swift in Sources */,
+				5EBFD5C22E055CBC00A3C74C /* SignUpViewInjected.swift in Sources */,
 				5EA2E5FF2DDF35AD00C53E52 /* SignInView.swift in Sources */,
 				5EA2E5F32DDC8A5D00C53E52 /* ValidationString.swift in Sources */,
 				5E8F9CA52D7EC973004036F6 /* GalleryListView(test).swift in Sources */,

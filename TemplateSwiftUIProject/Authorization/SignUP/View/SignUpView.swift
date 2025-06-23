@@ -47,7 +47,7 @@
 import SwiftUI
 import UIKit
 
-// MARK: - Фокусируемые поля
+//// MARK: - Фокусируемые поля
 enum FieldToFocus: Hashable, CaseIterable {
     case emailField, securePasswordField, passwordField
 }
@@ -60,13 +60,13 @@ struct SignUpView: View {
     
 //    @StateObject private var viewModel = SignUpViewModel()
     @ObservedObject var viewModel: SignUpViewModel
-    @EnvironmentObject private var authManager: AuthorizationManager
+//    @EnvironmentObject private var authManager: AuthorizationManager
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var accountCoordinator:AccountCoordinator
     @EnvironmentObject private var orientationService: DeviceOrientationService
     
     var body: some View {
- 
+        let _ = Self._printChanges()
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
                     // Форма регистрации
@@ -267,31 +267,33 @@ struct SignUpView: View {
         viewModel.updateValidationEmail()
         viewModel.updateValidationPassword()
         
+        
         if viewModel.isValid {
-            viewModel.isRegistering = true
             print("Данные валидны. Начинаем регистрацию.")
-            
-            // Симуляция асинхронного процесса регистрации, который может быть заменён реальным API-вызовом
-            viewModel.registerUser { success in
-                // Выключаем спиннер после завершения регистрации
-                DispatchQueue.main.async {
-                    viewModel.isRegistering = false
-                }
-            }
+            viewModel.signUp()
         } else {
             print("Некоторые поля заполнены неверно.")
         }
     }
 }
+//
+
+//            viewModel.isRegistering = true
+//            // Симуляция асинхронного процесса регистрации, который может быть заменён реальным API-вызовом
+//            viewModel.registerUser { success in
+//                // Выключаем спиннер после завершения регистрации
+//                DispatchQueue.main.async {
+//                    viewModel.isRegistering = false
+//                }
+//            }
 
 
-
-// MARK: - before .environmentObject(authorizationManager)
+// MARK: - before DI AuthorizationManager in ViewBuilderService
 
 //import SwiftUI
 //import UIKit
 //
-//// MARK: - Фокусируемые поля
+// MARK: - Фокусируемые поля
 //enum FieldToFocus: Hashable, CaseIterable {
 //    case emailField, securePasswordField, passwordField
 //}

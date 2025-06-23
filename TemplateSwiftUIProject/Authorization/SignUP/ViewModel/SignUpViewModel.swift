@@ -6,7 +6,9 @@
 //
 
 import SwiftUI
+import Combine
 
+//@MainActor
 class SignUpViewModel: ObservableObject {
     @Published var email: String = ""
     @Published var password: String = ""
@@ -23,10 +25,18 @@ class SignUpViewModel: ObservableObject {
     }
     
     private let authorizationManager: AuthorizationManager
-
-      init(authorizationManager: AuthorizationManager) {
+    private var cancellables = Set<AnyCancellable>()
+    
+    init(authorizationManager: AuthorizationManager) {
         self.authorizationManager = authorizationManager
-      }
+        
+//         Подписываемся на state менеджера
+        self.authorizationManager.$state
+            .map { $0 == .loading }
+            .removeDuplicates()
+            .assign(to: \.isRegistering, on: self)
+            .store(in: &cancellables)
+    }
     
     func updateValidationEmail() {
         if email.isEmpty {
@@ -46,17 +56,27 @@ class SignUpViewModel: ObservableObject {
             passwordError = nil
         }
     }
-    /// этот метод должен обращаться к сервису(Auth.createAccount) который существует в памяти независимо от SignUpViewModel
-    /// то есть существует в памяти на протяжении всего life cycle App
-    /// и из этого сервиса он должен дерагть GlobalAllert с оповещение success/failed
-    func registerUser(completion: @escaping (Bool) -> Void) {
-        DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
-            completion(true)
+    
+    func signUp() {
+
+        authorizationManager.state = .loading
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            self.authorizationManager.state = .success
         }
     }
 }
+//        authorizationManager.signUp(email: email, password: password)
 
-// MARK: - before .environmentObject(authorizationManager)
+//    /// этот метод должен обращаться к сервису(Auth.createAccount) который существует в памяти независимо от SignUpViewModel
+//    /// то есть существует в памяти на протяжении всего life cycle App
+//    /// и из этого сервиса он должен дерагть GlobalAllert с оповещение success/failed
+//    func registerUser(completion: @escaping (Bool) -> Void) {
+//        DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
+//            completion(true)
+//        }
+//    }
+
+// MARK: - before DI AuthorizationManager in ViewBuilderService
 
 //import SwiftUI
 //

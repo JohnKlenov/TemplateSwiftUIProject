@@ -11,7 +11,7 @@
 import FirebaseAuth
 import Combine
 
-
+///case .unknown:  Баг или нестабильность в SDK Firebase — крайне редкий случай, но иногда можно словить такой "undefined" результат при сетевых сбоях или конфликтах версий SDK.
 enum AuthError: LocalizedError {
   case notAuthorized
   case firebase(Error)
@@ -26,27 +26,23 @@ enum AuthError: LocalizedError {
   }
 }
 
-
 /// Чистый сервис — регистрирует/линкует пользователя, обновляет профиль.
 final class AuthorizationService {
   
-    // Шаг 1: регистрация или линковка анонимного пользователя → возвращает userId
-  func signUpBasic(email: String, password: String) -> AnyPublisher<String, AuthError> {
-    currentUserPublisher()
-      .flatMap { user -> AnyPublisher<AuthDataResult, AuthError> in
-        if user.isAnonymous {
-          let cred = EmailAuthProvider.credential(
-            withEmail: email,
-            password: password
-          )
-          return self.linkPublisher(user: user, credential: cred)
-        } else {
-          return self.createUserPublisher(email: email, password: password)
+    // Шаг 1: регистрация или линковка анонимного пользователя → возвращает Void
+    func signUpBasic(email: String, password: String) -> AnyPublisher<Void, AuthError> {
+      currentUserPublisher()
+        .flatMap { user -> AnyPublisher<AuthDataResult, AuthError> in
+          if user.isAnonymous {
+            let cred = EmailAuthProvider.credential(withEmail: email, password: password)
+            return self.linkPublisher(user: user, credential: cred)
+          } else {
+            return self.createUserPublisher(email: email, password: password)
+          }
         }
-      }
-      .map { $0.user.uid }
-      .eraseToAnyPublisher()
-  }
+        .map { _ in () } // или .voidMap() если есть такое расширение
+        .eraseToAnyPublisher()
+    }
 
   // Шаг 2: создаём/обновляем профиль → Void
   func createProfile(name: String) -> AnyPublisher<Void, AuthError> {
@@ -109,6 +105,92 @@ final class AuthorizationService {
     Auth.auth().currentUser?.sendEmailVerification(completion: nil)
   }
 }
+
+
+// MARK: - func signUp(email: String, password: String, name: String) - create user and create profile user
+
+///// Чистый сервис — регистрирует/линкует пользователя, обновляет профиль.
+//final class AuthorizationService {
+//  
+//    // Шаг 1: регистрация или линковка анонимного пользователя → возвращает userId
+//  func signUpBasic(email: String, password: String) -> AnyPublisher<String, AuthError> {
+//    currentUserPublisher()
+//      .flatMap { user -> AnyPublisher<AuthDataResult, AuthError> in
+//        if user.isAnonymous {
+//          let cred = EmailAuthProvider.credential(
+//            withEmail: email,
+//            password: password
+//          )
+//          return self.linkPublisher(user: user, credential: cred)
+//        } else {
+//          return self.createUserPublisher(email: email, password: password)
+//        }
+//      }
+//      .map { $0.user.uid }
+//      .eraseToAnyPublisher()
+//  }
+//
+//  // Шаг 2: создаём/обновляем профиль → Void
+//  func createProfile(name: String) -> AnyPublisher<Void, AuthError> {
+//    Deferred {
+//      Future { promise in
+//        guard let req = Auth.auth().currentUser?.createProfileChangeRequest() else {
+//          return promise(.failure(.notAuthorized))
+//        }
+//        req.displayName = name
+//        req.commitChanges { error in
+//          if let e = error {
+//            promise(.failure(.firebase(e)))
+//          } else {
+//            promise(.success(()))
+//          }
+//        }
+//      }
+//    }
+//    .eraseToAnyPublisher()
+//  }
+//
+//  // MARK: — Helpers
+//
+//    private func currentUserPublisher() -> AnyPublisher<User, AuthError> {
+//        guard let user = Auth.auth().currentUser else {
+//            return Fail(error: .notAuthorized).eraseToAnyPublisher()
+//        }
+//        return Just(user)
+//            .setFailureType(to: AuthError.self)
+//            .eraseToAnyPublisher()
+//    }
+//
+//    private func createUserPublisher(email: String, password: String)
+//    -> AnyPublisher<AuthDataResult, AuthError>
+//    {
+//        Future { promise in
+//            Auth.auth().createUser(withEmail: email, password: password) { res, err in
+//                if let e = err          { promise(.failure(.firebase(e))) }
+//                else if let success = res { promise(.success(success)) }
+//                else                     { promise(.failure(.unknown)) }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//
+//    private func linkPublisher(user: User, credential: AuthCredential)
+//    -> AnyPublisher<AuthDataResult, AuthError>
+//    {
+//        Future { promise in
+//            user.link(with: credential) { res, err in
+//                if let e = err          { promise(.failure(.firebase(e))) }
+//                else if let success = res { promise(.success(success)) }
+//                else                     { promise(.failure(.unknown)) }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//
+//  func sendVerificationEmail() {
+//    Auth.auth().currentUser?.sendEmailVerification(completion: nil)
+//  }
+//}
 
 
 

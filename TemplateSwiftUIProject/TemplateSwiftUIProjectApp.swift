@@ -81,7 +81,7 @@ struct TemplateSwiftUIProjectApp: App {
     @StateObject private var retryHandler        = GlobalRetryHandler()
     @StateObject private var networkMonitor      = NetworkMonitor()
     @StateObject private var orientationService  = DeviceOrientationService()
-    @StateObject private var authorizationManager = AuthorizationManager(service: AuthorizationService())
+//    @StateObject private var authorizationManager = AuthorizationManager(service: AuthorizationService())
 
     // MARK: – Scene phase
     @Environment(\.scenePhase) private var scenePhase
@@ -98,7 +98,7 @@ struct TemplateSwiftUIProjectApp: App {
     var body: some Scene {
         WindowGroup {
             AppRootView(hasSeenOnboarding: hasSeenOnboarding)
-                .environmentObject(authorizationManager)
+//                .environmentObject(authorizationManager)
                 .environmentObject(localizationService)
                 .environmentObject(retryHandler)
                 .environmentObject(networkMonitor)
