@@ -26,6 +26,7 @@ struct SignInView: View {
     @EnvironmentObject var accountCoordinator:AccountCoordinator
     
     var body: some View {
+        let _ = Self._printChanges()
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 20) {
                 // Форма регистрации

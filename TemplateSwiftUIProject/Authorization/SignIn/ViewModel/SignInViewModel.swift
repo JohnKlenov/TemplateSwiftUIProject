@@ -46,5 +46,8 @@ class SignInViewModel: ObservableObject {
             completion(true)
         }
     }
+    deinit {
+        print("deinit SignInViewModel")
+    }
 }
 

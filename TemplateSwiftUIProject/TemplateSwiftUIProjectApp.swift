@@ -147,12 +147,14 @@ private struct AppRootView: View {
     }
 
     // MARK: helpers
+    ///ContentView().id("ContentView")  - Гарантированно один экземпляр
+    ///ContentView().id("ContentView") - SwiftUI использует идентификатор для определения, нужно ли пересоздавать View или можно обойтись перерисовкой существующей.
     @ViewBuilder
     private var mainContent: some View {
         if hasSeenOnboarding {
-            ContentView()
+            ContentView().id("ContentView")
         } else {
-            OnboardingView()
+            OnboardingView().id("Onboarding")
         }
     }
 

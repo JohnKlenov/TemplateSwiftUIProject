@@ -58,14 +58,13 @@ struct SignUpView: View {
     @State private var isPasswordVisible = false
     @FocusState var isFieldFocus: FieldToFocus?
     
-//    @StateObject private var viewModel = SignUpViewModel()
     @ObservedObject var viewModel: SignUpViewModel
-//    @EnvironmentObject private var authManager: AuthorizationManager
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var accountCoordinator:AccountCoordinator
     @EnvironmentObject private var orientationService: DeviceOrientationService
     
     var body: some View {
+        let _ = print("🔄 SignUpView body update")
         let _ = Self._printChanges()
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
@@ -159,7 +158,7 @@ struct SignUpView: View {
                     // Кнопка регистрации (всегда активна)
                     Button(action: register) {
                         Group {
-                            if viewModel.isRegistering {
+                            if viewModel.registeringState == .loading {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle())
                             } else {
@@ -175,7 +174,7 @@ struct SignUpView: View {
                     .foregroundColor(AppColors.primary)
                     .cornerRadius(8)
                     .padding(.horizontal)
-                    .disabled(viewModel.isRegistering)
+                    .disabled(viewModel.registeringState == .loading)
                     
                     // Разделитель между регистрацией и альтернативными способами входа
                     HStack {
@@ -191,7 +190,7 @@ struct SignUpView: View {
                     HStack(spacing: 40) {
                         // Кнопка Apple
                         Button(action: {
-                            guard !viewModel.isRegistering else { return }
+                            guard viewModel.registeringState != .loading else { return }
                             print("applelogo")
                         })  {
                             Image(systemName: "applelogo")
@@ -205,7 +204,7 @@ struct SignUpView: View {
                         
                         // Кнопка Google
                         Button(action: {
-                            guard !viewModel.isRegistering else { return }
+                            guard viewModel.registeringState != .loading else { return }
                             print("googlelogo")
                         }) {
                             Image("googlelogo")
@@ -224,7 +223,7 @@ struct SignUpView: View {
                         Text(Localized.SignUpView.alreadyHaveAccount.localized())
                         Button(action: {
                             // Переход на экран входа
-                            guard !viewModel.isRegistering else { return }
+                            guard viewModel.registeringState != .loading else { return }
                             accountCoordinator.navigateTo(page: .login)
                         }) {
                             Text(Localized.SignUpView.signIn.localized())
@@ -245,6 +244,18 @@ struct SignUpView: View {
                     hideKeyboard()
                 }
             )
+            .onChange(of: viewModel.registeringState) { oldState, newState in
+                switch newState {
+                case .success:
+                    print(".onChange success")
+                    break
+                case .failure:
+                    print(".onChange failure")
+                    break
+                default:
+                    break
+                }
+            }
     }
     
     private func focusNextField() {
@@ -261,7 +272,7 @@ struct SignUpView: View {
     
     private func register() {
         // Защита от повторного срабатывания
-        guard !viewModel.isRegistering else { return }
+        guard viewModel.registeringState != .loading else { return }
         
         // Обновляем валидацию полей
         viewModel.updateValidationEmail()
@@ -276,6 +287,8 @@ struct SignUpView: View {
         }
     }
 }
+
+
 //
 
 //            viewModel.isRegistering = true
@@ -293,7 +306,7 @@ struct SignUpView: View {
 //import SwiftUI
 //import UIKit
 //
-// MARK: - Фокусируемые поля
+// //MARK: - Фокусируемые поля
 //enum FieldToFocus: Hashable, CaseIterable {
 //    case emailField, securePasswordField, passwordField
 //}

@@ -38,17 +38,26 @@
 
 import SwiftUI
 
+
 struct SignUpViewInjected: View {
     @StateObject private var viewModel: SignUpViewModel
-
-    init(viewModel: SignUpViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+    
+    init(authorizationManager: AuthorizationManager) {
+        // Создаем ViewModel внутри View
+        print("init SignUpViewInjected")
+        let _ = Self._printChanges()
+        _viewModel = StateObject(
+            wrappedValue: SignUpViewModel(
+                authorizationManager: authorizationManager
+            )
+        )
     }
-
+    
     var body: some View {
         SignUpView(viewModel: viewModel)
     }
 }
+
 
 
 

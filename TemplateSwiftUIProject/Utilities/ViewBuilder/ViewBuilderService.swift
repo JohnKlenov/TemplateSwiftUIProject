@@ -23,12 +23,6 @@ class ViewBuilderService: ObservableObject {
         )
     }
     
-    func makeSignUpView() -> some View {
-        // VM создаётся один раз, и в SignUpView — через StateObject
-        let viewModel = SignUpViewModel(authorizationManager: authorizationManager)
-        return SignUpViewInjected(viewModel: viewModel)
-    }
-    
     @ViewBuilder 
     func homeViewBuild(page: HomeFlow) -> some View {
         switch page {
@@ -61,9 +55,7 @@ class ViewBuilderService: ObservableObject {
         case .aboutUs:
             SomeView()
         case .createAccount:
-            makeSignUpView()
-            //            SignUpView()
-//            SignUpEntryView()
+            SignUpViewInjected(authorizationManager: authorizationManager)
         case .account:
             ContentAccountView()
         case .login:
@@ -83,8 +75,3 @@ class ViewBuilderService: ObservableObject {
         cover.content
     }
 }
-
-
-
-//        case .bookDetails(let bookID):
-//            BookDetailsView(managerCRUDS: crudManager, bookID: bookID)
