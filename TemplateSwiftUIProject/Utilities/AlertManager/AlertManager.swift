@@ -115,8 +115,8 @@ import Combine
 // MARK: - Enum для типа алерта
 
 enum AlertType {
-    case authentication
-    case common
+    case tryAgain
+    case ok
 }
 
 // MARK: - Модель данных алерта

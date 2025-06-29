@@ -5,6 +5,17 @@
 //  Created by Evgenyi on 20.05.25.
 //
 
+//        //         Подписываемся на state менеджера
+//        self.authorizationManager.$state
+//            .map { $0 == .loading }
+//            .removeDuplicates()
+//            .assign(to: \.isRegistering, on: self)
+//            .store(in: &cancellables)
+
+//    @Published var isRegistering: Bool = false
+    // вместо isRegistering
+
+
 import SwiftUI
 import Combine
 
@@ -16,10 +27,7 @@ class SignUpViewModel: ObservableObject {
     @Published var emailError: String?
     @Published var passwordError: String?
     
-//    @Published var isRegistering: Bool = false
-    // вместо isRegistering
-      @Published var registeringState: AuthorizationManager.State = .idle
-//    @Published var isLandscape = false
+    @Published var registeringState: AuthorizationManager.State = .idle
     
     // Вычисляемое свойство для проверки валидности данных (без side‑эффектов)
     var isValid: Bool {
@@ -32,19 +40,14 @@ class SignUpViewModel: ObservableObject {
     init(authorizationManager: AuthorizationManager) {
         self.authorizationManager = authorizationManager
         print("init SignUpViewModel")
-//        //         Подписываемся на state менеджера
-//        self.authorizationManager.$state
-//            .map { $0 == .loading }
-//            .removeDuplicates()
-//            .assign(to: \.isRegistering, on: self)
-//            .store(in: &cancellables)
         
-        // 1) Слушаем state-обновления менеджера
-//        authorizationManager.$state
-//            .handleEvents(receiveOutput: { print("→ подписка получила:", $0) })
-//            .receive(on: DispatchQueue.main)      // убедимся, что в UI-потоке
-//            .assign(to: \.registeringState, on: self)
-//            .store(in: &cancellables)
+        authorizationManager.$state
+            .handleEvents(receiveOutput: { print("→ подписка получила:", $0) })
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                self?.registeringState = state
+            }
+            .store(in: &cancellables)
     }
     
     func updateValidationEmail() {
@@ -75,6 +78,7 @@ class SignUpViewModel: ObservableObject {
     }
     
     deinit {
+        cancellables.removeAll()
         print("deinit SignUpViewModel")
     }
 }

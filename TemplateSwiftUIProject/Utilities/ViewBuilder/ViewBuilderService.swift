@@ -11,10 +11,10 @@ import SwiftUI
 class ViewBuilderService: ObservableObject {
     let crudManager: CRUDSManager
     let authorizationManager: AuthorizationManager
-    
+
     init() {
         let service = AuthorizationService()
-        self.authorizationManager = AuthorizationManager(service: service)
+        self.authorizationManager = AuthorizationManager(service: service, errorHandler: SharedErrorHandler())
         
         self.crudManager = CRUDSManager(
             authService: AuthService(),

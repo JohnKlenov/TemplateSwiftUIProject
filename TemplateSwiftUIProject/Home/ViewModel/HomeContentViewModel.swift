@@ -147,7 +147,7 @@ class HomeContentViewModel: HomeViewModelProtocol {
         globalRetryHandler?.setAuthenticationRetryHandler { [weak self] in
             self?.retry()
         }
-        alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.DescriptionOfOperationError.authentication, alertType: .authentication)
+        alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.DescriptionOfOperationError.authentication, alertType: .tryAgain)
         viewState = .error(errorMessage)
     }
     

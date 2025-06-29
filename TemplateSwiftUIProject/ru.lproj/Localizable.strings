@@ -108,6 +108,9 @@
 "error.authentication" = "Ошибка аутентификации";
 "error.database" = "Ошибка базы данных";
 "error.adding_or_changing_book" = "Ошибка при добавлении или изменении книги";
+"error.sign_up" = "Ошибка при регистрации";
+"error.sign_in" = "Ошибка при входе в аккаунт";
+"error.forgot_password" = "Ошибка при восстановлении пароля";
 
 
 /* Custom Firebase Errors */

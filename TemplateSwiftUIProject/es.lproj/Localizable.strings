@@ -107,6 +107,9 @@
 "error.authentication" = "Error de autenticación";
 "error.database" = "Error de la base de datos";
 "error.adding_or_changing_book" = "Error al agregar o cambiar el libro";
+"error.sign_up" = "Error al registrarse";
+"error.sign_in" = "Error al iniciar sesión";
+"error.forgot_password" = "Error al restablecer la contraseña";
 
 
 /* Custom Firebase Errors */

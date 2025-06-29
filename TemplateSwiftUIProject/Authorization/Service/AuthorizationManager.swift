@@ -5,6 +5,11 @@
 //  Created by Evgenyi on 16.06.25.
 //
 
+// AuthorizationManager мы будем использовать в нескольких View из разных навигационных стеков
+// у нас есть возможность не дождавшись ответа от сервера покинуть View (и если бы не было единого AuthorizationManager мы не смогли бы дождаться ответа) если есть ошибка она будет выбрашена через глобальный алерт если success то мы будем оповещены алертом глобальным
+// если мы введем данные в SignUp и нажмем кнопку регистрации и не дождавшись ответа перейдем на экран SignIn то так как AuthorizationManager общий с общей state машиной мы и на экране SignIn увидим что идет загрузка и не сможем перегруждать сервер различными операциями авторизации пока не дождемся последовательного выполнения каждого из них
+
+
 import Combine
 
 //@MainActor
@@ -19,12 +24,21 @@ final class AuthorizationManager: ObservableObject {
 
 //  @Published private(set) var state: State = .idle
     @Published var state: State = .idle
-  private let authService: AuthorizationService
-  private var cancellables = Set<AnyCancellable>()
+    var alertManager:AlertManager
+    private let authService: AuthorizationService
+    private let errorHandler: ErrorHandlerProtocol
+    private var cancellables = Set<AnyCancellable>()
 
-  init(service: AuthorizationService) {
-    self.authService = service
-  }
+    init(service: AuthorizationService, errorHandler: ErrorHandlerProtocol, alertManager: AlertManager = AlertManager.shared) {
+        self.authService = service
+        self.errorHandler = errorHandler
+        self.alertManager = alertManager
+    }
+//    Localized.DescriptionOfOperationError.authentication
+    private func handleAuthenticationError(_ error: Error, operationDescription:String) {
+        let errorMessage = errorHandler.handle(error: error)
+        alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
+    }
 
     func signUp(email: String, password: String) {
         state = .loading

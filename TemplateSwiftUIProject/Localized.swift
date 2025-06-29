@@ -124,6 +124,9 @@ enum Localized {
         static let deletingBook = "error.deleting_book"
         static let authentication = "error.authentication"
         static let database = "error.database"
+        static let signUp = "error.sign_up"
+        static let signIn = "error.sign_in"
+        static let forgotPassword = "error.forgot_password"
     }
     
     // MARK: - Custom Firebase Error -

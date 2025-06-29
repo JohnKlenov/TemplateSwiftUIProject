@@ -38,9 +38,9 @@ struct AlertViewGlobal: View {
     // Вычисляемое свойство для определения текста кнопки в зависимости от типа ошибки
     var alertButtonText: String {
         switch alertType {
-        case .authentication:
+        case .tryAgain:
             return "Try again"
-        case .common:
+        case .ok:
             return "Ok"
         }
     }
@@ -62,7 +62,7 @@ struct AlertViewGlobal: View {
     }
     
     private func handleRetryAction(for alertType: AlertType) {
-        if alertType == .authentication {
+        if alertType == .tryAgain {
             retryHandler.triggerRetry()
         }
     }

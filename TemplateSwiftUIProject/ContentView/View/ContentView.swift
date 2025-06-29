@@ -63,7 +63,7 @@ struct ContentView: View {
     @State private var isShowAlert: Bool = false
     @State private var alertMessage: String = ""
     @State private var alertTitle: String = ""
-    @State private var alertType: AlertType = .common
+    @State private var alertType: AlertType = .ok
     @State private var cancellables = Set<AnyCancellable>()
     
     @EnvironmentObject var localization: LocalizationService
