@@ -11,7 +11,7 @@
 
 
 import Combine
-
+import SwiftUI
 //@MainActor
 final class AuthorizationManager: ObservableObject {
   
@@ -22,8 +22,8 @@ final class AuthorizationManager: ObservableObject {
         case failure
     }
 
-//  @Published private(set) var state: State = .idle
-    @Published var state: State = .idle
+  @Published private(set) var state: State = .idle
+//    @Published var state: State = .idle
     var alertManager:AlertManager
     private let authService: AuthorizationService
     private let errorHandler: ErrorHandlerProtocol
@@ -34,7 +34,7 @@ final class AuthorizationManager: ObservableObject {
         self.errorHandler = errorHandler
         self.alertManager = alertManager
     }
-//    Localized.DescriptionOfOperationError.authentication
+
     private func handleAuthenticationError(_ error: Error, operationDescription:String) {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
@@ -47,15 +47,38 @@ final class AuthorizationManager: ObservableObject {
             .sink { [weak self] completion in
                 switch completion {
                 case .failure(let err):
-                    self?.state = .failure
+                    self?.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
+                    self?.state = .idle
                 case .finished:
-                    // всё прошло хорошо
+                    self?.state = .idle
+                    NotificationCenter.default.post(
+                                    name: .authDidSucceed,
+                                    object: AuthNotificationPayload(authType: .emailSignUp)
+                                )
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                            self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signUp, operationDescription:Localized.TitleOfSuccessOperationFirebase.signUp, alertType: .ok)
+                        }
                     self?.authService.sendVerificationEmail()
-                    self?.state = .success
+                    
                 }
             } receiveValue: { _ in }
             .store(in: &cancellables)
     }
+    
+    // test func signUp
+//    func signUp(email: String, password: String) {
+//        state = .loading
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+//            self?.state = .idle
+//            NotificationCenter.default.post(
+//                name: .authDidSucceed,
+//                object: AuthNotificationPayload(authType: .emailSignUp)
+//            )
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+//                self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signUp, operationDescription:Localized.TitleOfSuccessOperationFirebase.signUp, alertType: .ok)
+//            }
+//        }
+//    }
 
   // Повторный апдейт профиля без повторной регистрации
   func createProfile(name: String) {

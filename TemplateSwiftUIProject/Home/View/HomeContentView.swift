@@ -52,7 +52,7 @@ struct HomeContentView:View {
                     BooksListView(data: data) { book in
                         viewModel.removeBook(book: book,
                                              forView: "HomeView",
-                                             operationDescription: Localized.DescriptionOfOperationError.deletingBook)
+                                             operationDescription: Localized.TitleOfFailedOperationFirebase.deletingBook)
                     }
                 }
             case .error(let error):

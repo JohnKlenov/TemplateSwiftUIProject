@@ -223,7 +223,7 @@ struct SignUpView: View {
                         Text(Localized.SignUpView.alreadyHaveAccount.localized())
                         Button(action: {
                             // Переход на экран входа
-                            guard viewModel.registeringState != .loading else { return }
+//                            guard viewModel.registeringState != .loading else { return }
                             accountCoordinator.navigateTo(page: .login)
                         }) {
                             Text(Localized.SignUpView.signIn.localized())
@@ -244,18 +244,21 @@ struct SignUpView: View {
                     hideKeyboard()
                 }
             )
-            .onChange(of: viewModel.registeringState) { oldState, newState in
-                switch newState {
-                case .success:
-                    print(".onChange success")
-                    break
-                case .failure:
-                    print(".onChange failure")
-                    break
-                default:
-                    break
-                }
-            }
+//        //он отрабатывает только когда экран isVisible
+//            .onChange(of: viewModel.registeringState) { oldState, newState in
+//                switch newState {
+//                case .success:
+//                    print(".onChange success")
+////                    accountCoordinator.popToRoot()
+////                    viewModel.authorizationManager.state = .idle
+//                    break
+//                case .failure:
+//                    print(".onChange failure")
+//                    break
+//                default:
+//                    break
+//                }
+//            }
     }
     
     private func focusNextField() {

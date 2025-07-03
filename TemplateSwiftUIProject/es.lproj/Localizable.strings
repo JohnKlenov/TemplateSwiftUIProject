@@ -102,7 +102,7 @@
 
 /* Firebase error */
 
-/* Description Of Operation Error */
+/* Title Of Failed Operation Firebase */
 "error.deleting_book" = "Error al eliminar el libro";
 "error.authentication" = "Error de autenticación";
 "error.database" = "Error de la base de datos";
@@ -110,6 +110,16 @@
 "error.sign_up" = "Error al registrarse";
 "error.sign_in" = "Error al iniciar sesión";
 "error.forgot_password" = "Error al restablecer la contraseña";
+
+/* Title Of Success Operation Firebase */
+
+"title.success.sign_up" = "Registro";
+"title.success.sign_in" = "Inicio de sesión";
+
+/* Message Of Success Operation Firebase */
+
+"message.success.sign_up" = "¡Registro exitoso!";
+"message.success.sign_in" = "¡Has iniciado sesión con éxito!";
 
 
 /* Custom Firebase Errors */

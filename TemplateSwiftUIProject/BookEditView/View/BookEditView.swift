@@ -162,14 +162,14 @@ struct BookEditView: View {
     }
     
     private func handleDoneTapped() {
-        viewModel.updateOrAddBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.addingOrChangingBook)
+        viewModel.updateOrAddBook(forView: presentEditView, operationDescription: Localized.TitleOfFailedOperationFirebase.addingOrChangingBook)
         // Передаем ассоциированный параметр с текущей книгой
         self.completionHandler?(.success(.done(viewModel.book)))
         dismiss()
     }
     
     private func handleDeleteTapped() {
-        viewModel.removeBook(forView: presentEditView, operationDescription: Localized.DescriptionOfOperationError.deletingBook)
+        viewModel.removeBook(forView: presentEditView, operationDescription: Localized.TitleOfFailedOperationFirebase.deletingBook)
         self.completionHandler?(.success((.delete)))
         dismiss()
     }

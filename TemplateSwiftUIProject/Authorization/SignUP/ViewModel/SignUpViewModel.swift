@@ -33,7 +33,7 @@ class SignUpViewModel: ObservableObject {
     var isValid: Bool {
         email.isValidEmail && (password.validatePassword() == ValidationResult.success)
     }
-    
+
     private let authorizationManager: AuthorizationManager
     private var cancellables = Set<AnyCancellable>()
     
@@ -70,11 +70,8 @@ class SignUpViewModel: ObservableObject {
     }
     
     func signUp() {
-        //        authorizationManager.signUp(email: email, password: password)
-        authorizationManager.state = .loading
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            self?.authorizationManager.state = .success
-        }
+        authorizationManager.signUp(email: email, password: password)
+        
     }
     
     deinit {
@@ -82,7 +79,10 @@ class SignUpViewModel: ObservableObject {
         print("deinit SignUpViewModel")
     }
 }
-
+//        authorizationManager.state = .loading
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+//            self?.authorizationManager.state = .success
+//        }
 
 //    /// этот метод должен обращаться к сервису(Auth.createAccount) который существует в памяти независимо от SignUpViewModel
 //    /// то есть существует в памяти на протяжении всего life cycle App

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import Combine
 
 class AccountCoordinator:ObservableObject {
     
@@ -21,6 +21,12 @@ class AccountCoordinator:ObservableObject {
         }
     }
     @Published var fullScreenItem:FullScreenItem?
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        setupNotifications()
+    }
     
     func navigateTo(page:AccountFlow) {
         path.append(page)
@@ -49,4 +55,43 @@ class AccountCoordinator:ObservableObject {
     func dismissCover() {
         self.fullScreenItem = nil
     }
+    
+    private func setupNotifications() {
+        NotificationCenter.default.publisher(for: .authDidSucceed)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                guard let payload = notification.object as? AuthNotificationPayload else { return }
+                self?.handleAuthSuccess(payload.authType)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func handleAuthSuccess(_ type: AuthType) {
+        print("handleAuthSuccess type - \(type)")
+        popToRoot()
+    }
+    
+    deinit {
+        cancellables.forEach { NotificationCenter.default.removeObserver($0) }
+    }
+}
+
+
+enum AuthType {
+    // Основные сценарии
+    case emailSignIn
+    case emailSignUp
+    case appleSignIn
+    case googleSignIn
+    case appleSignUp
+    case googleSignUp
+}
+
+extension Notification.Name {
+    static let authDidSucceed = Notification.Name("AuthDidSucceedNotification")
+}
+
+// Для типизированной передачи данных
+struct AuthNotificationPayload {
+    let authType: AuthType
 }

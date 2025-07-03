@@ -103,7 +103,7 @@
 
 /* Firebase error */
 
-/* Description Of Operation Error */
+/* Title Of Failed Operation Firebase */
 "error.deleting_book" = "Ошибка при удалении книги";
 "error.authentication" = "Ошибка аутентификации";
 "error.database" = "Ошибка базы данных";
@@ -112,6 +112,15 @@
 "error.sign_in" = "Ошибка при входе в аккаунт";
 "error.forgot_password" = "Ошибка при восстановлении пароля";
 
+/* Title Of Success Operation Firebase */
+
+"title.success.sign_up" = "Регистрация";
+"title.success.sign_in" = "Вход";
+
+/* Message Of Success Operation Firebase */
+
+"message.success.sign_up" = "Регистрация прошла успешно!";
+"message.success.sign_in" = "Вы успешно вошли в аккаунт!";
 
 /* Custom Firebase Errors */
 "error.custom_firebase.default_error" = "Что-то пошло не так. Пожалуйста, попробуйте еще раз.";
