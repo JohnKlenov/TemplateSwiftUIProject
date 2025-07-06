@@ -42,7 +42,7 @@ class SignUpViewModel: ObservableObject {
         print("init SignUpViewModel")
         
         authorizationManager.$state
-            .handleEvents(receiveOutput: { print("→ подписка получила:", $0) })
+            .handleEvents(receiveOutput: { print("→ SignUpViewModel подписка получила:", $0) })
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 self?.registeringState = state

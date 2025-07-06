@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 class SignInViewModel: ObservableObject {
     @Published var email: String = ""
@@ -14,11 +15,28 @@ class SignInViewModel: ObservableObject {
     @Published var emailError: String?
     @Published var passwordError: String?
     
-    @Published var isSignIn: Bool = false
+//    @Published var isSignIn: Bool = false
+    @Published var signInState: AuthorizationManager.State = .idle
+    
+    private let authorizationManager: AuthorizationManager
+    private var cancellables = Set<AnyCancellable>()
     
     // Вычисляемое свойство для проверки валидности данных
     var isValid: Bool {
         !email.isEmpty && !password.isEmpty
+    }
+    
+    init(authorizationManager: AuthorizationManager) {
+        self.authorizationManager = authorizationManager
+        print("init SignInViewModel")
+        
+        authorizationManager.$state
+            .handleEvents(receiveOutput: { print("→ SignInViewModel подписка получила:", $0) })
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                self?.signInState = state
+            }
+            .store(in: &cancellables)
     }
     
     func updateValidationEmail() {
@@ -38,15 +56,13 @@ class SignInViewModel: ObservableObject {
             passwordError = nil
         }
     }
-    /// этот метод должен обращаться к сервису(Auth.createAccount) который существует в памяти независимо от SignUpViewModel
-    /// то есть существует в памяти на протяжении всего life cycle App
-    /// и из этого сервиса он должен дерагть GlobalAllert с оповещение success/failed
-    func signInUser(completion: @escaping (Bool) -> Void) {
-        DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
-            completion(true)
-        }
+    
+    func signIn() {
+        print("did tap signIn for SignInViewModel")
     }
+    
     deinit {
+        cancellables.removeAll()
         print("deinit SignInViewModel")
     }
 }

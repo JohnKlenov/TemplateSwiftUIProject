@@ -5,6 +5,8 @@
 //  Created by Evgenyi on 17.04.25.
 //
 
+// func setupNotifications() была необходима потому что в SignUpView .onChange(of: viewModel.registeringState) отрабатывает только когда view isVisible и когда мы уходим на другой экран он не отработывает
+
 import SwiftUI
 import Combine
 

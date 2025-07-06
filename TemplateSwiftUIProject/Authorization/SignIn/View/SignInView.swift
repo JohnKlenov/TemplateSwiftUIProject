@@ -21,7 +21,7 @@ struct SignInView: View {
     @State private var isPasswordVisible = false
     @FocusState var isFieldFocus: FieldToFocus?
     
-    @StateObject private var viewModel = SignInViewModel()
+    @ObservedObject var viewModel: SignInViewModel
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var accountCoordinator:AccountCoordinator
     
@@ -114,7 +114,7 @@ struct SignInView: View {
                 HStack {
                     Spacer()
                     Button(action: {
-                        guard !viewModel.isSignIn else { return }
+                        guard viewModel.signInState != .loading else { return }
                         // Обработка нажатия "Forgot Password?"
                         print("Forgot Password tapped")
                     }) {
@@ -128,7 +128,7 @@ struct SignInView: View {
                 // button LogIn
                 Button(action: login) {
                     Group {
-                        if viewModel.isSignIn {
+                        if viewModel.signInState == .loading {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle())
                         } else {
@@ -144,7 +144,7 @@ struct SignInView: View {
                 .foregroundColor(AppColors.primary)
                 .cornerRadius(8)
                 .padding(.horizontal)
-                .disabled(viewModel.isSignIn)
+                .disabled(viewModel.signInState == .loading)
                 
                 // Разделитель между регистрацией и альтернативными способами входа
                 HStack {
@@ -160,7 +160,7 @@ struct SignInView: View {
                 HStack(spacing: 40) {
                     // Кнопка Apple
                     Button(action: {
-                        guard !viewModel.isSignIn else { return }
+                        guard viewModel.signInState != .loading else { return }
                         print("applelogo")
                     })  {
                         Image(systemName: "applelogo")
@@ -174,7 +174,7 @@ struct SignInView: View {
                     
                     // Кнопка Google
                     Button(action: {
-                        guard !viewModel.isSignIn else { return }
+                        guard viewModel.signInState != .loading else { return }
                         print("googlelogo")
                     }) {
                         Image("googlelogo")
@@ -192,7 +192,7 @@ struct SignInView: View {
                     Text("Don't have an account?")
                     Button(action: {
                         // Переход на экран регистрации
-                        guard !viewModel.isSignIn else { return }
+                        guard viewModel.signInState != .loading else { return }
                         accountCoordinator.pop()
                     }) {
                         Text("SignUp")
@@ -229,23 +229,23 @@ struct SignInView: View {
     
     private func login() {
         // Защита от повторного срабатывания
-        guard !viewModel.isSignIn else { return }
+        guard viewModel.signInState != .loading else { return }
         
         // Обновляем валидацию полей
         viewModel.updateValidationEmail()
         viewModel.updateValidationPassword()
         
         if viewModel.isValid {
-            viewModel.isSignIn = true
             print("Данные валидны. Начинаем регистрацию.")
-            
+            viewModel.signIn()
+            //            viewModel.isSignIn = true
             // Симуляция асинхронного процесса регистрации, который может быть заменён реальным API-вызовом
-            viewModel.signInUser { success in
-                // Выключаем спиннер после завершения регистрации
-                DispatchQueue.main.async {
-                    viewModel.isSignIn = false
-                }
-            }
+            //            viewModel.signInUser { success in
+            //                // Выключаем спиннер после завершения регистрации
+            //                DispatchQueue.main.async {
+            ////                    viewModel.isSignIn = false
+            //                }
+            //            }
         } else {
             print("Некоторые поля заполнены неверно.")
         }

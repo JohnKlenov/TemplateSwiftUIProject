@@ -81,6 +81,8 @@
 		5EAF5B1B2D4B863B00D96FD6 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */; };
 		5EBFD5C22E055CBC00A3C74C /* SignUpViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */; };
 		5EBFD5C42E1008C000A3C74C /* LifeCycleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */; };
+		5EBFD5C62E1A868E00A3C74C /* RunLoopSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */; };
+		5EBFD5C82E1AA15400A3C74C /* SignInViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C72E1AA15400A3C74C /* SignInViewInjected.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -187,6 +189,8 @@
 		5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewInjected.swift; sourceTree = "<group>"; };
 		5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeCycleView.swift; sourceTree = "<group>"; };
+		5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLoopSetting.swift; sourceTree = "<group>"; };
+		5EBFD5C72E1AA15400A3C74C /* SignInViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInViewInjected.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLoggingService.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -372,6 +376,7 @@
 			isa = PBXGroup;
 			children = (
 				5EA2E5FE2DDF35AD00C53E52 /* SignInView.swift */,
+				5EBFD5C72E1AA15400A3C74C /* SignInViewInjected.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -415,6 +420,7 @@
 				5EA2E60D2E0007CB00C53E52 /* AuthorizationManager.swift */,
 				5EA2E60F2E00093F00C53E52 /* AuthorizationService.swift */,
 				5EA2E6112E03FFBF00C53E52 /* CombineSetting.swift */,
+				5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -1017,6 +1023,7 @@
 				5E8F9C8A2D5CC8D8004036F6 /* WebImageView.swift in Sources */,
 				5E8F9CA72D7EC9F6004036F6 /* GalleryRowView(test).swift in Sources */,
 				5E8F9C9D2D6F53E3004036F6 /* LocalizationService.swift in Sources */,
+				5EBFD5C82E1AA15400A3C74C /* SignInViewInjected.swift in Sources */,
 				5EC88EE32DB2347800A95224 /* NavigationCellView.swift in Sources */,
 				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,
 				5E8F9C8C2D6348BF004036F6 /* BooksListView.swift in Sources */,
@@ -1058,6 +1065,7 @@
 				5E8F9C8E2D6348D8004036F6 /* BookRowView.swift in Sources */,
 				5EA2E60E2E0007CB00C53E52 /* AuthorizationManager.swift in Sources */,
 				5EBFD5C22E055CBC00A3C74C /* SignUpViewInjected.swift in Sources */,
+				5EBFD5C62E1A868E00A3C74C /* RunLoopSetting.swift in Sources */,
 				5EA2E5FF2DDF35AD00C53E52 /* SignInView.swift in Sources */,
 				5EA2E5F32DDC8A5D00C53E52 /* ValidationString.swift in Sources */,
 				5E8F9CA52D7EC973004036F6 /* GalleryListView(test).swift in Sources */,

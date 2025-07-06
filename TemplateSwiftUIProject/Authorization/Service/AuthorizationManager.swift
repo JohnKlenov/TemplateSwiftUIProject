@@ -10,6 +10,43 @@
 // если мы введем данные в SignUp и нажмем кнопку регистрации и не дождавшись ответа перейдем на экран SignIn то так как AuthorizationManager общий с общей state машиной мы и на экране SignIn увидим что идет загрузка и не сможем перегруждать сервер различными операциями авторизации пока не дождемся последовательного выполнения каждого из них
 
 
+// почему в  func signUp(email: String, password: String) при .finished вызов alert оборачиваем в DispatchQueue.main.async?
+
+/// потому что операции NotificationCenter.default.post + alert + .. будут вызваны последовательно (Система начинает обработку цепочки синхронно в текущем run loop)
+/// когда начинутся Навигационные изменения (popToRoot) они не успеют завершится как вызовется алерт - Навигационные изменения (popToRoot) ставятся в очередь, но не могут выполниться, пока не завершится показ алерта.
+/// DispatchQueue.main.async добавляет задачу в конец текущего цикла RunLoop
+/// Навигационные изменения успевают обработаться до показа алерта
+/// Даже с задержкой 0 это работает, потому что это уже следующий "тик" системы
+
+// Без async:
+/// Один "тик" RunLoop
+//┌──────────────┐
+//│ 1. Навигация │
+//│ 2. Алерт     │ ← блокирует завершение 1
+//└──────────────┘
+
+//С async:
+/// Первый "тик"
+//┌──────────────┐
+//│ 1. Навигация │ ← выполняется полностью
+//└──────────────┘
+/// Второй "тик"
+//┌──────────────┐
+//│ 2. Алерт     │
+//└──────────────┘
+
+
+//Всегда используйте DispatchQueue.main.async для:Показа алертов после навигации + Любых UI-изменений, которые должны произойти после системных анимаций
+
+//DispatchQueue.main.async vs DispatchQueue.main.asyncAfter
+// почему можно без DispatchQueue.main.asyncAfter?
+
+/// Задача в DispatchQueue.main.async добавляется в очередь текущего или следующего тика RunLoop.
+/// Если навигационная анимация уже началась, алерт покажется после её завершения.
+/// SwiftUI/UIKit автоматически управляют очередями: Анимации навигации имеют высший приоритет. + DispatchQueue.main.async не прерывает их, а ставит задачи в очередь.
+/// Добавляйте asyncAfter только если: Замечаете "конфликты" анимаций. + Нужна гарантированная задержка (например, для кастомных переходов).
+
+
 import Combine
 import SwiftUI
 //@MainActor
@@ -21,9 +58,8 @@ final class AuthorizationManager: ObservableObject {
         case success
         case failure
     }
-
-  @Published private(set) var state: State = .idle
-//    @Published var state: State = .idle
+    
+    @Published private(set) var state: State = .idle
     var alertManager:AlertManager
     private let authService: AuthorizationService
     private let errorHandler: ErrorHandlerProtocol
@@ -40,45 +76,45 @@ final class AuthorizationManager: ObservableObject {
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
 
-    func signUp(email: String, password: String) {
-        state = .loading
-        
-        authService.signUpBasic(email: email, password: password)
-            .sink { [weak self] completion in
-                switch completion {
-                case .failure(let err):
-                    self?.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
-                    self?.state = .idle
-                case .finished:
-                    self?.state = .idle
-                    NotificationCenter.default.post(
-                                    name: .authDidSucceed,
-                                    object: AuthNotificationPayload(authType: .emailSignUp)
-                                )
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                            self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signUp, operationDescription:Localized.TitleOfSuccessOperationFirebase.signUp, alertType: .ok)
-                        }
-                    self?.authService.sendVerificationEmail()
-                    
-                }
-            } receiveValue: { _ in }
-            .store(in: &cancellables)
-    }
-    
-    // test func signUp
 //    func signUp(email: String, password: String) {
 //        state = .loading
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-//            self?.state = .idle
-//            NotificationCenter.default.post(
-//                name: .authDidSucceed,
-//                object: AuthNotificationPayload(authType: .emailSignUp)
-//            )
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-//                self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signUp, operationDescription:Localized.TitleOfSuccessOperationFirebase.signUp, alertType: .ok)
-//            }
-//        }
+//        
+//        authService.signUpBasic(email: email, password: password)
+//            .sink { [weak self] completion in
+//                switch completion {
+//                case .failure(let err):
+//                    self?.state = .idle
+//                    self?.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
+//                case .finished:
+//                    self?.state = .idle
+//                    NotificationCenter.default.post(
+//                                    name: .authDidSucceed,
+//                                    object: AuthNotificationPayload(authType: .emailSignUp)
+//                                )
+//                    DispatchQueue.main.async { [weak self] in
+//                        self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signUp, operationDescription:Localized.TitleOfSuccessOperationFirebase.signUp, alertType: .ok)
+//                    }
+//                    self?.authService.sendVerificationEmail()
+//                    
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
 //    }
+    
+    // test func signUp
+    func signUp(email: String, password: String) {
+        state = .loading
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            self?.state = .idle
+            NotificationCenter.default.post(
+                name: .authDidSucceed,
+                object: AuthNotificationPayload(authType: .emailSignUp)
+            )
+            DispatchQueue.main.async { [weak self] in
+                self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signUp, operationDescription:Localized.TitleOfSuccessOperationFirebase.signUp, alertType: .ok)
+            }
+        }
+    }
 
   // Повторный апдейт профиля без повторной регистрации
   func createProfile(name: String) {
