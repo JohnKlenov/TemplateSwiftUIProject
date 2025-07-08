@@ -37,10 +37,11 @@ class SignUpViewModel: ObservableObject {
     private let authorizationManager: AuthorizationManager
     private var cancellables = Set<AnyCancellable>()
     
+
     init(authorizationManager: AuthorizationManager) {
         self.authorizationManager = authorizationManager
         print("init SignUpViewModel")
-        
+       
         authorizationManager.$state
             .handleEvents(receiveOutput: { print("→ SignUpViewModel подписка получила:", $0) })
             .receive(on: DispatchQueue.main)

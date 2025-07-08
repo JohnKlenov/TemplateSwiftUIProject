@@ -10,7 +10,7 @@ import Combine
 
 final class AuthorizationService {
     
-    // Шаг 1: регистрация или линковка анонимного пользователя
+    // регистрация или линковка анонимного пользователя
     func signUpBasic(email: String, password: String) -> AnyPublisher<Void, Error> {
         currentUserPublisher()
             .flatMap { user -> AnyPublisher<AuthDataResult, Error> in
@@ -25,7 +25,7 @@ final class AuthorizationService {
             .eraseToAnyPublisher()
     }
 
-    // Шаг 2: создаём/обновляем профиль
+    // создаём/обновляем профиль
     func createProfile(name: String) -> AnyPublisher<Void, Error> {
         Deferred {
             Future { promise in
@@ -39,6 +39,24 @@ final class AuthorizationService {
                     } else {
                         promise(.success(()))
                     }
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    // удаляем аккаунт
+    func deleteAccount() -> AnyPublisher<Void, Error> {
+        Future { promise in
+            guard let user = Auth.auth().currentUser else {
+                return promise(.failure(FirebaseEnternalError.notSignedIn))
+            }
+            
+            user.delete { error in
+                if let error = error {
+                    promise(.failure(error))
+                } else {
+                    promise(.success(()))
                 }
             }
         }

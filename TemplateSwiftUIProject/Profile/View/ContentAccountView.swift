@@ -10,6 +10,12 @@
 /// С Create Account мы переходим в навигационном стеке на SignIn с него можем перейти на SignUp так же в навигационном стеке. C SignUp можем вернуться на SignIn нажав на back или на кнопку signIn и это будет тот же back.
 /// На cartProduct если пользователь анонимный то при отсутствии товара в корзине мы сможем видить кнопку Create Account перейдя на которую мы попадаем на стек SignIn + SignUp (или SignUp + SignIn)
 
+
+// MARK: - delete account
+
+// delete account API in AuthorizationManager
+// inject AuthorizationManager in ContentAccountView use wrapping ContentAccountViewInjected
+// создаем новый case для deleteAccountButoon в AccountRow и в это View передаем viewModel ContentAccountView для того что бы при нажатии на эту кнопку дернуть API AuthorizationManager deleteAccount 
 import SwiftUI
 
 // MARK: - Основной экран профиля (AccountView)
@@ -17,6 +23,7 @@ import SwiftUI
 enum AccountRow: Identifiable {
     case toggle(title: String, binding: Binding<Bool>)
     case navigation(title: String, destination: AccountFlow)
+    case deleteAccount(AuthorizationManager.State)
 
     var id: String {
         switch self {
@@ -24,6 +31,7 @@ enum AccountRow: Identifiable {
             return title + "_toggle"
         case .navigation(let title, _):
             return title + "_nav"
+        case .deleteAccount: return "delete_account"
         }
     }
 }
@@ -36,11 +44,14 @@ extension AccountRow {
             ToggleCellView(title: title, isOn: binding)
         case .navigation(let title, let destination):
             NavigationCellView(title: title, destination: destination)
+        case .deleteAccount(let state):
+            DeleteAccountCellView(accountDeletionState: state)
         }
     }
 }
 
 struct ContentAccountView: View {
+    @ObservedObject var viewModel: ContentAccountViewModel
     @State private var notificationsEnabled: Bool = true
     @State private var darkModeEnabled: Bool = false
     
@@ -51,7 +62,8 @@ struct ContentAccountView: View {
             .navigation(title: "Change language", destination: .language),
             .toggle(title: "Dark mode", binding: $darkModeEnabled),
             .navigation(title: "About Us", destination: .aboutUs),
-            .navigation(title: "Create Account", destination: .createAccount)
+            .navigation(title: "Create Account", destination: .createAccount),
+            .deleteAccount(viewModel.accountDeletionState)
         ]
     }
     
@@ -61,20 +73,56 @@ struct ContentAccountView: View {
             UserInfoCellView()
             Section {
                 ForEach(rows) { row in
-                    row.rowView
+                    if case .deleteAccount = row {
+                        row.rowView
+                            .onTapGesture {
+                                if viewModel.accountDeletionState != .loading {
+                                    viewModel.showDeleteConfirmation = true
+                                }
+                            }
+                    } else {
+                        row.rowView
+                    }
                 }
             }
         }
         .listStyle(InsetGroupedListStyle())
         .navigationTitle("Account")
         .navigationBarTitleDisplayMode(.inline)
+        .confirmationDialog(
+            "Delete Account",
+            isPresented: $viewModel.showDeleteConfirmation
+        ) {
+            Button("Delete Account", role: .destructive) {
+                viewModel.deleteAccount()
+            }
+            .disabled(viewModel.accountDeletionState == .loading)
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete your account? This action cannot be undone.")
+        }
     }
 }
 
 
 
 
-
+//        List {
+//            UserInfoCellView()
+//            Section {
+//                ForEach(rows) { row in
+//                    if case .deleteAccount = row {
+//                        row.rowView
+//                            .contentShape(Rectangle())
+//                            .onTapGesture {
+//                                viewModel.showDeleteConfirmation = true
+//                            }
+//                    } else {
+//                        row.rowView
+//                    }
+//                }
+//            }
+//        }
 
 
 

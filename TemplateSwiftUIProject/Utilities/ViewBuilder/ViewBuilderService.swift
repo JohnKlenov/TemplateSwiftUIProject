@@ -57,10 +57,9 @@ class ViewBuilderService: ObservableObject {
         case .createAccount:
             SignUpViewInjected(authorizationManager: authorizationManager)
         case .account:
-            ContentAccountView()
+            ContentAccountViewInjected(authorizationManager: authorizationManager)
         case .login:
             SignInViewInjected(authorizationManager: authorizationManager)
-//            SignInView()
         }
     }
     

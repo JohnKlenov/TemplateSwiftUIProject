@@ -110,16 +110,20 @@
 "error.sign_up" = "Error al registrarse";
 "error.sign_in" = "Error al iniciar sesión";
 "error.forgot_password" = "Error al restablecer la contraseña";
+"error.account_deletion" = "Error al eliminar la cuenta";
+
 
 /* Title Of Success Operation Firebase */
 
 "title.success.sign_up" = "Registro";
 "title.success.sign_in" = "Inicio de sesión";
+"title.success.account_deletion" = "Eliminación de cuenta";
 
 /* Message Of Success Operation Firebase */
 
 "message.success.sign_up" = "¡Registro exitoso!";
 "message.success.sign_in" = "¡Has iniciado sesión con éxito!";
+"message.success.account_deletion" = "Tu cuenta ha sido eliminada con éxito.";
 
 
 /* Custom Firebase Errors */

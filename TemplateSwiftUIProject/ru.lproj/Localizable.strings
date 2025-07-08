@@ -111,16 +111,22 @@
 "error.sign_up" = "Ошибка при регистрации";
 "error.sign_in" = "Ошибка при входе в аккаунт";
 "error.forgot_password" = "Ошибка при восстановлении пароля";
+"error.account_deletion" = "Ошибка при удалении аккаунта";
+
 
 /* Title Of Success Operation Firebase */
 
 "title.success.sign_up" = "Регистрация";
 "title.success.sign_in" = "Вход";
+"title.success.account_deletion" = "Удаление аккаунта";
+
 
 /* Message Of Success Operation Firebase */
 
 "message.success.sign_up" = "Регистрация прошла успешно!";
 "message.success.sign_in" = "Вы успешно вошли в аккаунт!";
+"message.success.account_deletion" = "Ваш аккаунт был успешно удалён.";
+
 
 /* Custom Firebase Errors */
 "error.custom_firebase.default_error" = "Что-то пошло не так. Пожалуйста, попробуйте еще раз.";

@@ -132,11 +132,13 @@ enum Localized {
         static let signUp = "error.sign_up"
         static let signIn = "error.sign_in"
         static let forgotPassword = "error.forgot_password"
+        static let accountDeletion = "error.account_deletion"
     }
     
     enum TitleOfSuccessOperationFirebase {
         static let signUp = "title.success.sign_up"
         static let signIn = "title.success.sign_in"
+        static let accountDeletion = "title.success.account_deletion"
     }
 
     // MARK: - Message Alert
@@ -144,6 +146,7 @@ enum Localized {
     enum MessageOfSuccessOperationFirebase {
         static let signUp = "message.success.sign_up"
         static let signIn = "message.success.sign_in"
+        static let accountDeletion = "message.success.account_deletion"
     }
 
     

@@ -114,16 +114,22 @@
 "error.sign_up" = "Error during sign up";
 "error.sign_in" = "Error during sign in";
 "error.forgot_password" = "Error during password reset";
+"error.account_deletion" = "Error deleting account";
+
 
 /* Title Of Success Operation Firebase */
 
 "title.success.sign_up" = "Sign Up";
 "title.success.sign_in" = "Sign In";
+"title.success.account_deletion" = "Account Deletion";
+
 
 /* Message Of Success Operation Firebase */
 
 "message.success.sign_up" = "You have successfully signed up!";
 "message.success.sign_in" = "You have successfully signed in!";
+"message.success.account_deletion" = "Your account has been successfully deleted.";
+
 
 
 /* Custom Firebase Errors */
