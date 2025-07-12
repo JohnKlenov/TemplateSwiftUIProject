@@ -8,7 +8,40 @@
 import FirebaseAuth
 import Combine
 
+struct AuthUser {
+    let uid: String
+    let isAnonymous: Bool
+}
+
 final class AuthorizationService {
+    
+    private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
+    private let authStateSubject = PassthroughSubject<AuthUser?, Never>()
+    
+    var authStatePublisher: AnyPublisher<AuthUser?, Never> {
+        authStateSubject.eraseToAnyPublisher()
+    }
+    
+    init() {
+        
+        print("AuthorizationService init")
+        if let handle = aythenticalSateHandler {
+            Auth.auth().removeStateDidChangeListener(handle)
+        }
+        /// при удалении узера нам сначало должен прийти nil а потм уже объект user anon
+        aythenticalSateHandler = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
+            guard let user = user else {
+                self?.authStateSubject.send(nil)
+                return
+            }
+            let authUser = AuthUser(uid: user.uid, isAnonymous: user.isAnonymous)
+            self?.authStateSubject.send(authUser)
+        }
+    }
+    //        aythenticalSateHandler = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
+    //            let authUser = user.map { AuthUser(isAnonymous: $0.isAnonymous) }
+    //            self?.authStateSubject.send(authUser)
+    //        }
     
     // регистрация или линковка анонимного пользователя
     func signUpBasic(email: String, password: String) -> AnyPublisher<Void, Error> {
@@ -107,6 +140,14 @@ final class AuthorizationService {
     func sendVerificationEmail() {
         Auth.auth().currentUser?.sendEmailVerification(completion: nil)
     }
+    
+    deinit {
+        print("AuthorizationService deinit")
+        if let handle = aythenticalSateHandler {
+            Auth.auth().removeStateDidChangeListener(handle)
+        }
+    }
+
 }
 
 // MARK: - before AnyPublisher<Void, Error>

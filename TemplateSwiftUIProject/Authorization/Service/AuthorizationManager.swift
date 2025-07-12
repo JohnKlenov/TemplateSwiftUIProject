@@ -60,6 +60,8 @@ final class AuthorizationManager: ObservableObject {
     }
     
     @Published private(set) var state: State = .idle
+    @Published private(set) var isUserAnonymous: Bool = true
+    @Published private(set) var currentAuthUser: AuthUser?
     var alertManager:AlertManager
     private let authService: AuthorizationService
     private let errorHandler: ErrorHandlerProtocol
@@ -69,7 +71,22 @@ final class AuthorizationManager: ObservableObject {
         self.authService = service
         self.errorHandler = errorHandler
         self.alertManager = alertManager
+        
+        authService.authStatePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] authUser in
+                self?.isUserAnonymous = authUser?.isAnonymous ?? true
+                self?.currentAuthUser = authUser // Сохраняем текущего пользователя
+            }
+            .store(in: &cancellables)
     }
+    
+    //        authService.authStatePublisher
+    //            .receive(on: DispatchQueue.main)
+    //            .sink { [weak self] authUser in
+    //                self?.isUserAnonymous = authUser?.isAnonymous ?? true
+    //            }
+    //            .store(in: &cancellables)
 
     private func handleAuthenticationError(_ error: Error, operationDescription:String) {
         let errorMessage = errorHandler.handle(error: error)
@@ -101,17 +118,7 @@ final class AuthorizationManager: ObservableObject {
             .store(in: &cancellables)
     }
     
-
-    //test
-    func deleteAccount() {
-        state = .loading
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            self?.state = .idle
-            DispatchQueue.main.async { [weak self] in
-                self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
-            }
-        }
-    }
+    
 //    func deleteAccount() {
 //        state = .loading
 //        
@@ -130,6 +137,16 @@ final class AuthorizationManager: ObservableObject {
 //            .store(in: &cancellables)
 //    }
     
+    //test
+    func deleteAccount() {
+        state = .loading
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            self?.state = .idle
+            DispatchQueue.main.async { [weak self] in
+                self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
+            }
+        }
+    }
     
   func createProfile(name: String) {
     state = .loading
@@ -158,6 +175,18 @@ final class AuthorizationManager: ObservableObject {
 //            )
 //            DispatchQueue.main.async { [weak self] in
 //                self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signUp, operationDescription:Localized.TitleOfSuccessOperationFirebase.signUp, alertType: .ok)
+//            }
+//        }
+//    }
+
+
+//test
+//    func deleteAccount() {
+//        state = .loading
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+//            self?.state = .idle
+//            DispatchQueue.main.async { [weak self] in
+//                self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
 //            }
 //        }
 //    }

@@ -8,7 +8,17 @@
 // MARK: - Combine -
 
 
+// subscriber and .store
 
+
+// Плохо: подписка живет вечно
+//somePublisher
+//    .sink { [weak self] _ in ... }
+    // Нет .store(in: &cancellables)
+
+
+// Плохо: подписка уничтожается сразу
+//somePublisher.sink { ... } // Нет .store
 
 // MARK: - life cycle Publisher
 

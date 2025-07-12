@@ -86,6 +86,7 @@
 		5EBFD5CA2E1CFF4A00A3C74C /* ContentAccountViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C92E1CFF4A00A3C74C /* ContentAccountViewInjected.swift */; };
 		5EBFD5CC2E1D004E00A3C74C /* ContentAccountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5CB2E1D004E00A3C74C /* ContentAccountViewModel.swift */; };
 		5EBFD5CE2E1D015000A3C74C /* DeleteAccountCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5CD2E1D015000A3C74C /* DeleteAccountCellView.swift */; };
+		5EBFD5D02E228D5200A3C74C /* FirestoreProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5CF2E228D5200A3C74C /* FirestoreProfileService.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -197,6 +198,7 @@
 		5EBFD5C92E1CFF4A00A3C74C /* ContentAccountViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentAccountViewInjected.swift; sourceTree = "<group>"; };
 		5EBFD5CB2E1D004E00A3C74C /* ContentAccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentAccountViewModel.swift; sourceTree = "<group>"; };
 		5EBFD5CD2E1D015000A3C74C /* DeleteAccountCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountCellView.swift; sourceTree = "<group>"; };
+		5EBFD5CF2E228D5200A3C74C /* FirestoreProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreProfileService.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLoggingService.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -427,6 +429,7 @@
 				5EA2E60F2E00093F00C53E52 /* AuthorizationService.swift */,
 				5EA2E6112E03FFBF00C53E52 /* CombineSetting.swift */,
 				5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */,
+				5EBFD5CF2E228D5200A3C74C /* FirestoreProfileService.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -1043,6 +1046,7 @@
 				5EC88EDF2DB1377B00A95224 /* AccountViewModel.swift in Sources */,
 				5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */,
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
+				5EBFD5D02E228D5200A3C74C /* FirestoreProfileService.swift in Sources */,
 				5EC88EEB2DBF8CEE00A95224 /* NetworkMonitor.swift in Sources */,
 				5E8F9CC12D81A476004036F6 /* PopularProductsSectionView.swift in Sources */,
 				5EA4FDC72CD8E780001CA401 /* BookEditView.swift in Sources */,

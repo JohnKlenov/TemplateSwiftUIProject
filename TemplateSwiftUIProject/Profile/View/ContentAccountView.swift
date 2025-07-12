@@ -56,21 +56,37 @@ struct ContentAccountView: View {
     @State private var darkModeEnabled: Bool = false
     
     // Формируем массив строк, где каждая строка описывает конкретный тип ячейки
+//    var rows: [AccountRow] {
+//        [
+//            .toggle(title: "Notification", binding: $notificationsEnabled),
+//            .navigation(title: "Change language", destination: .language),
+//            .toggle(title: "Dark mode", binding: $darkModeEnabled),
+//            .navigation(title: "About Us", destination: .aboutUs),
+//            .navigation(title: "Create Account", destination: .createAccount),
+//            .deleteAccount(viewModel.accountDeletionState)
+//        ]
+//    }
     var rows: [AccountRow] {
-        [
+        var rows: [AccountRow] = [
             .toggle(title: "Notification", binding: $notificationsEnabled),
             .navigation(title: "Change language", destination: .language),
             .toggle(title: "Dark mode", binding: $darkModeEnabled),
             .navigation(title: "About Us", destination: .aboutUs),
-            .navigation(title: "Create Account", destination: .createAccount),
-            .deleteAccount(viewModel.accountDeletionState)
+            .navigation(title: "Create Account", destination: .createAccount)
         ]
+        ///if viewModel.shouldShowDeleteButton
+        if !viewModel.isUserAnonymous {
+            rows.append(.deleteAccount(viewModel.accountDeletionState))
+        }
+        
+        return rows
     }
     
     var body: some View {
         let _ = Self._printChanges()
         List {
             UserInfoCellView()
+//            UserInfoCellView(viewModel: viewModel)
             Section {
                 ForEach(rows) { row in
                     if case .deleteAccount = row {

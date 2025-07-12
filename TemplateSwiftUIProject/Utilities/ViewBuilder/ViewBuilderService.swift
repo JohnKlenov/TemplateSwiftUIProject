@@ -9,13 +9,16 @@ import SwiftUI
 
 //@MainActor
 class ViewBuilderService: ObservableObject {
-    let crudManager: CRUDSManager
-    let authorizationManager: AuthorizationManager
+    
+    private let crudManager: CRUDSManager
+    private let authorizationManager: AuthorizationManager
+    private let profileService:FirestoreProfileService
 
     init() {
         let service = AuthorizationService()
         self.authorizationManager = AuthorizationManager(service: service, errorHandler: SharedErrorHandler())
         
+        self.profileService = FirestoreProfileService()
         self.crudManager = CRUDSManager(
             authService: AuthService(),
             errorHandler: SharedErrorHandler(),
@@ -57,7 +60,7 @@ class ViewBuilderService: ObservableObject {
         case .createAccount:
             SignUpViewInjected(authorizationManager: authorizationManager)
         case .account:
-            ContentAccountViewInjected(authorizationManager: authorizationManager)
+            ContentAccountViewInjected(authorizationManager: authorizationManager, profileService: profileService)
         case .login:
             SignInViewInjected(authorizationManager: authorizationManager)
         }

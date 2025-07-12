@@ -47,5 +47,65 @@ struct UserInfoCellView: View {
 }
 
 
-
+//struct UserInfoCellView: View {
+//    @EnvironmentObject var accountCoordinator: AccountCoordinator
+//    @ObservedObject var viewModel: ContentAccountViewModel // Передаем VM
+//    
+//    private var displayName: String {
+//        if viewModel.authorizationManager.isUserAnonymous {
+//            return "Гость"
+//        }
+//        return viewModel.userProfile?.name ?? "Без имени"
+//    }
+//    
+//    private var displayEmail: String {
+//        if viewModel.authorizationManager.isUserAnonymous {
+//            return "Анонимный режим"
+//        }
+//        return viewModel.userProfile?.email ?? "Email не указан"
+//    }
+//    
+//    private var photoURL: URL? {
+//        viewModel.authorizationManager.isUserAnonymous ?
+//        nil : viewModel.userProfile?.photoURL
+//    }
+//    
+//    var body: some View {
+//        HStack(spacing: 16) {
+//            // Аватарка
+//            if let url = photoURL {
+//                WebImageView(
+//                    url: url,
+//                    placeholderColor: .gray,
+//                    displayStyle: .fixedFrame(width: 60, height: 60)
+//                )
+//                .clipShape(Circle())
+//            } else {
+//                Image(systemName: "person.circle.fill")
+//                    .resizable()
+//                    .frame(width: 60, height: 60)
+//                    .foregroundColor(.gray)
+//            }
+//
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(displayName)
+//                    .font(.headline)
+//                
+//                Text(displayEmail)
+//                    .font(.subheadline)
+//                    .foregroundColor(AppColors.gray)
+//            }
+//            
+//            Spacer()
+//            
+//            Image(systemName: "chevron.right")
+//                .foregroundColor(AppColors.gray)
+//        }
+//        .padding(.vertical, 8)
+//        .contentShape(Rectangle())
+//        .onTapGesture {
+//            accountCoordinator.navigateTo(page: .userInfo)
+//        }
+//    }
+//}
 

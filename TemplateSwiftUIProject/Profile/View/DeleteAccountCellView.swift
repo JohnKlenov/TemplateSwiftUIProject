@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+/// как получается так что при изменение accountDeletionState извне DeleteAccountCellView перерисовывается?
+/// ведь let accountDeletionState не State не Binding?
 struct DeleteAccountCellView: View {
     let accountDeletionState: AuthorizationManager.State
     
