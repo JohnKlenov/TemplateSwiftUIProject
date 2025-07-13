@@ -61,6 +61,9 @@
 /// в struct нам не нужно передавать зависимость через конструктор просто используем @EnvironmentObject var managerCRUDS: CRUDSManager а в классах нужно передавать через конструктор - HomeViewModel(authenticationService: authenticationService, firestorColletionObserverService: firestoreCollectionObserver, managerCRUDS: managerCRUDS, errorHandler: errorHandler)
 
 
+
+// MARK: - проверить всех подписчиков на утечку памяти profileLoadCancellable?.cancel() (CombineSetting почитать тут)
+
 // MARK: - new implement
 
 

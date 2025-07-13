@@ -8,17 +8,140 @@
 // MARK: - Combine -
 
 
-// subscriber and .store
+
+// MARK: -  .store and AnyCancellable
 
 
-// Плохо: подписка живет вечно
-//somePublisher
-//    .sink { [weak self] _ in ... }
-    // Нет .store(in: &cancellables)
+//Шпаргалка: Управление подписками Combine в Swift (MVVM)
+
+///AnyCancellable – объект, хранящий подписку на Publisher. Отмена подписки происходит при его деинициализации.
+///cancel() – метод для принудительной отмены подписки до деинициализации.
+///store(in:) – сохраняет подписку в коллекции (Set<AnyCancellable>), чтобы она не уничтожалась сразу.
+
+/// если мы вызовим profileLoadCancellable?.cancel() где то руками до того как придут данные от паблишера наш подписчик не примет данные и  .handleEvents отработает сразу после вызова  profileLoadCancellable?.cancel()?
+///cancel() – принудительно завершает подписку: Немедленно вызывает receiveCancel в handleEvents. + Данные от Publisher не будут получены в sink.
+///handleEvents – хук для отслеживания жизненного цикла подписки (отмена, завершение, запрос данных).
+
+//пасные антипаттерны:
+
+//service.fetchData().sink { /* ... */ } // Уничтожится сразу!
+//.sink { self.handle($0) } // Утечка памяти!
+//func search() {
+//    service.search().sink { /* ... */ }.store(in: &cancellables)
+//    // При каждом вызове — новая подписка в памяти!
+//}
 
 
-// Плохо: подписка уничтожается сразу
-//somePublisher.sink { ... } // Нет .store
+
+
+// если мы многократно будем вызывать func loadUserProfile то это приведет к :
+
+///Создается новая подписка при каждом вызове func loadUserProfile(uid: String) в cancellables
+///и как только отрабаотает published то .sink вызовется многократно
+///Это приведет к многократному обновлению userProfile и profileLoadingState
+///Может вызвать "дергание" интерфейса
+///Утечки памяти
+
+//private func loadUserProfile(uid: String) {
+//    profileLoadingState = .loading
+//    profileService.fetchProfile(uid: uid)
+//        .receive(on: DispatchQueue.main)
+//        .sink { [weak self] completion in
+//            // Все ошибки уже обработаны в ProfileService
+//            self?.profileLoadingState = .idle
+//        } receiveValue: { [weak self] profile in
+//            self?.userProfile = profile
+//            self?.profileLoadingState = .idle
+//        }
+//        .store(in: &cancellables)
+//}
+
+//Отдельный AnyCancellable для управления жизненным циклом:
+
+//private var profileLoadCancellable: AnyCancellable?
+//
+//private func loadUserProfile(uid: String) {
+//    profileLoadCancellable?.cancel()
+//    
+//    profileLoadingState = .loading
+//    profileLoadCancellable = profileService.fetchProfile(uid: uid)
+//        .receive(on: DispatchQueue.main)
+//        .sink(
+//            receiveCompletion: { [weak self] _ in
+//                self?.profileLoadingState = .idle
+//            },
+//            receiveValue: { [weak self] profile in
+//                self?.userProfile = profile
+//                self?.profileLoadingState = .loaded
+//            }
+//        )
+//}
+
+//Вывод:
+
+///Всегда используйте отмену, если метод может вызываться многократно:
+///Когда можно НЕ использовать cancel(): Одноразовые подписки в init (если точно знаете, что метод не вызовется повторно)
+
+//в данном примере в множестве cancellables лежит подписки на двух паблишеров а в profileLoadCancellable на один
+
+//private var profileLoadCancellable: AnyCancellable?
+//private var cancellables = Set<AnyCancellable>()
+//
+//init(authorizationManager: AuthorizationManager, profileService: FirestoreProfileService) {
+//    self.authorizationManager = authorizationManager
+//    self.profileService = profileService
+//    
+//    /// можно в authorizationManager завести отдельный accountDeletionState?
+//    authorizationManager.$state
+//        .handleEvents(receiveOutput: { print("→ ContentAccountViewModel подписка получила:", $0) })
+//        .receive(on: DispatchQueue.main)
+//        .sink { [weak self] state in
+//            self?.accountDeletionState = state
+//        }
+//        .store(in: &cancellables)
+//    
+//    // Подписка на изменения авторизации
+//    authorizationManager.$isUserAnonymous
+//        .combineLatest(authorizationManager.$currentAuthUser)
+//        .sink { [weak self] (isAnonymous, authUser) in
+//            guard let self = self else { return }
+//            
+//            // 1. Обновление кнопки
+////                self.shouldShowDeleteButton = !isAnonymous
+//            self.isUserAnonymous = isAnonymous
+//            
+//            // 2. Загрузка профиля (если нужно)
+//            if !isAnonymous, let uid = authUser?.uid {
+//                self.loadUserProfile(uid: uid)
+//            } else {
+//                // 3. Сброс данных для анонимов
+//                self.userProfile = nil
+//                self.profileLoadingState = .idle
+//            }
+//        }
+//        .store(in: &cancellables)
+//}
+//
+//private func loadUserProfile(uid: String) {
+//    // 1. Отменяем предыдущую загрузку профиля
+//    profileLoadCancellable?.cancel()
+//    
+//    // 2. Устанавливаем состояние загрузки
+//    profileLoadingState = .loading
+//    
+//    // 3. Создаем новую подписку
+//    profileLoadCancellable = profileService.fetchProfile(uid: uid)
+//        .receive(on: DispatchQueue.main)
+//        .sink(
+//            receiveCompletion: { [weak self] _ in
+//                self?.profileLoadingState = .idle
+//            },
+//            receiveValue: { [weak self] profile in
+//                self?.userProfile = profile
+//                self?.profileLoadingState = .idle
+//            }
+//        )
+//}
 
 // MARK: - life cycle Publisher
 

@@ -38,10 +38,6 @@ final class AuthorizationService {
             self?.authStateSubject.send(authUser)
         }
     }
-    //        aythenticalSateHandler = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
-    //            let authUser = user.map { AuthUser(isAnonymous: $0.isAnonymous) }
-    //            self?.authStateSubject.send(authUser)
-    //        }
     
     // регистрация или линковка анонимного пользователя
     func signUpBasic(email: String, password: String) -> AnyPublisher<Void, Error> {
@@ -149,6 +145,12 @@ final class AuthorizationService {
     }
 
 }
+
+
+//        aythenticalSateHandler = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
+//            let authUser = user.map { AuthUser(isAnonymous: $0.isAnonymous) }
+//            self?.authStateSubject.send(authUser)
+//        }
 
 // MARK: - before AnyPublisher<Void, Error>
 

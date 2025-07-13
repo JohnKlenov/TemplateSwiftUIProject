@@ -12,15 +12,16 @@ import Combine
 class ContentAccountViewModel: ObservableObject {
     
     @Published var accountDeletionState: AuthorizationManager.State = .idle
+    @Published private(set) var profileLoadingState: AuthorizationManager.State = .idle
     @Published var showDeleteConfirmation = false
     /// можно сделать shouldShowDeleteButton как isUserAnonymous а в ContentAccountView изменить на  if !viewModel.isUserAnonymous
 //    @Published private(set) var shouldShowDeleteButton: Bool = false
-    @Published private(set) var isUserAnonymous: Bool = false
+    @Published private(set) var isUserAnonymous: Bool = true
     @Published private(set) var userProfile: UserProfile?
-    @Published private(set) var profileLoadingState: AuthorizationManager.State = .idle
     
     private let authorizationManager: AuthorizationManager
     private let profileService: FirestoreProfileService
+    private var profileLoadCancellable: AnyCancellable?
     private var cancellables = Set<AnyCancellable>()
     
     init(authorizationManager: AuthorizationManager, profileService: FirestoreProfileService) {
@@ -59,19 +60,27 @@ class ContentAccountViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    /// похоже придется добавить для profileLoadingState сase .error
+    /// для того что бы на UserInfoCellView добавить кнопку retryData - profileService.fetchProfile это get запрос
     private func loadUserProfile(uid: String) {
+        // 1. Отменяем предыдущую загрузку профиля
+        profileLoadCancellable?.cancel()
+        
+        // 2. Устанавливаем состояние загрузки
         profileLoadingState = .loading
-        profileService.fetchProfile(uid: uid)
+        
+        // 3. Создаем новую подписку
+        profileLoadCancellable = profileService.fetchProfile(uid: uid)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] completion in
-                if case .failure(_) = completion {
+            .sink(
+                receiveCompletion: { [weak self] _ in
+                    self?.profileLoadingState = .idle
+                },
+                receiveValue: { [weak self] profile in
+                    self?.userProfile = profile
                     self?.profileLoadingState = .idle
                 }
-            } receiveValue: { [weak self] profile in
-                self?.userProfile = profile
-                self?.profileLoadingState = .idle
-            }
-            .store(in: &cancellables)
+            )
     }
     
     func deleteAccount() {
@@ -92,3 +101,18 @@ class ContentAccountViewModel: ObservableObject {
 //                self?.shouldShowDeleteButton = shouldShow
 //            }
 //            .store(in: &cancellables)
+
+
+//private func loadUserProfile(uid: String) {
+//    profileLoadingState = .loading
+//    profileService.fetchProfile(uid: uid)
+//        .receive(on: DispatchQueue.main)
+//        .sink { [weak self] completion in
+//            // Все ошибки уже обработаны в ProfileService
+//            self?.profileLoadingState = .idle
+//        } receiveValue: { [weak self] profile in
+//            self?.userProfile = profile
+//            self?.profileLoadingState = .idle
+//        }
+//        .store(in: &cancellables)
+//}

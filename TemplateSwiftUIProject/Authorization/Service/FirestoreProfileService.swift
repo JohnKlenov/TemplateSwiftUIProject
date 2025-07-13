@@ -5,6 +5,69 @@
 //  Created by Evgenyi on 12.07.25.
 //
 
+// что мы ловим в блоке catch?
+
+/// Ошибку DecodingError — результат того, что snapshot.data(as:) не смог преобразовать данные Firestore в тип UserProfile. Это может быть:
+/// DecodingError.dataCorrupted
+/// DecodingError.keyNotFound
+/// DecodingError.typeMismatch
+/// DecodingError.valueNotFound
+/// DecodingError — это не NSError, но если ты приведёшь его к NSError, то получишь - NSCocoaErrorDomain
+// let nsError = error as NSError
+//print(nsError.domain)
+///Ошибка в catch — это DecodingError, с NSError.domain == NSCocoaErrorDomain
+
+// мы можем отлавить эту ошибку в блоке catch двумя способами:
+
+//if nsError.domain == NSCocoaErrorDomain {
+//    return handleDecodingError(nsError)
+//}
+
+//private func handleDecodingError(_ error: NSError) -> String {
+//    switch error.code {
+//    case 4864: // типичная ошибка расшифровки JSON
+//        return Localized.FirebaseEnternalError.decodingTypeMismatch
+//    case 4860:
+//        return Localized.FirebaseEnternalError.missingRequiredKey
+//    default:
+//        return Localized.FirebaseEnternalError.decodingError // fallback
+//    }
+//}
+
+//или:
+
+//if let decodingError = error as? DecodingError {
+//    return handleDecodingError(decodingError)
+//}
+
+//private func handleDecodingError(_ error: DecodingError) -> String {
+//    switch error {
+//    case .typeMismatch(let type, let context):
+//        let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+//        return "Тип данных не совпадает: ожидали \(type), путь: \(path)"
+//        
+//    case .valueNotFound(let type, let context):
+//        let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+//        return "Значение типа \(type) не найдено, путь: \(path)"
+//        
+//    case .keyNotFound(let key, let context):
+//        let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+//        return "Отсутствует ключ '\(key.stringValue)', путь: \(path)"
+//        
+//    case .dataCorrupted(let context):
+//        let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+//        return "Данные повреждены: \(context.debugDescription), путь: \(path)"
+//        
+//    @unknown default:
+//        return "Неизвестная ошибка расшифровки данных"
+//    }
+//}
+
+//as NSError + domain - Упрощённую классификацию через NSCocoaErrorDomain, но без деталей
+//as? DecodingError  - Доступ к case, codingPath, debugDescription и конкретному типу
+
+
+
 import FirebaseFirestore
 import Combine
 

@@ -23,12 +23,18 @@ class SharedErrorHandler: ErrorHandlerProtocol {
     private let RealtimeDatabaseErrorDomain = "com.firebase.database"
 
     func handle(error: (any Error)?) -> String {
-        print("error - \(String(describing: error?.localizedDescription))")
+        print("SharedErrorHandler shared error - \(String(describing: error?.localizedDescription))")
+        
         guard let error = error else {
             return Localized.FirebaseEnternalError.defaultError
         }
         
-        // Преобразуем ошибку в NSError для работы с кодами ошибок
+        // 🔍 Обработка ошибок декодирования до преобразования в NSError
+        if let decodingError = error as? DecodingError {
+            return handleDecodingError(decodingError)
+        }
+        
+        // Преобразуем ошибку в NSError для работы с кодами и доменами
         if let nsError = error as NSError? {
             if let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
                 return handleAuthError(authErrorCode)
@@ -51,7 +57,38 @@ class SharedErrorHandler: ErrorHandlerProtocol {
             return customError.errorDescription ?? Localized.FirebaseEnternalError.defaultError
         }
         
-        // Обработка неопознанных ошибок
+        return Localized.FirebaseEnternalError.defaultError
+    }
+    
+    private func handleDecodingError(_ error: DecodingError) -> String {
+        var logMessage: String
+
+        switch error {
+        case .typeMismatch(let type, let context):
+            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+            logMessage = "DecodingError.typeMismatch: expected type \(type), path: \(path)"
+
+        case .valueNotFound(let type, let context):
+            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+            logMessage = "DecodingError.valueNotFound: type \(type) not found at path: \(path)"
+
+        case .keyNotFound(let key, let context):
+            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+            logMessage = "DecodingError.keyNotFound: missing key '\(key.stringValue)', path: \(path)"
+
+        case .dataCorrupted(let context):
+            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+            logMessage = "DecodingError.dataCorrupted: \(context.debugDescription), path: \(path)"
+
+        @unknown default:
+            logMessage = "DecodingError.unknown"
+        }
+
+        // Логируем в Crashlytics (или консоль, если не используешь Crashlytics)
+        print("SharedErrorHandler ⚠️ Decoding error: \(logMessage)")
+        // Crashlytics.crashlytics().log(logMessage)
+
+        // Возвращаем пользователю нейтральное сообщение
         return Localized.FirebaseEnternalError.defaultError
     }
 
@@ -207,6 +244,41 @@ class SharedErrorHandler: ErrorHandlerProtocol {
         }
     }
 }
+
+
+//    func handle(error: (any Error)?) -> String {
+//        print("error - \(String(describing: error?.localizedDescription))")
+//        guard let error = error else {
+//            return Localized.FirebaseEnternalError.defaultError
+//        }
+//
+//        // Преобразуем ошибку в NSError для работы с кодами ошибок
+//        if let nsError = error as NSError? {
+//            if let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
+//                return handleAuthError(authErrorCode)
+//            }
+//            if nsError.domain == FirestoreErrorDomain {
+//                return handleFirestoreError(nsError)
+//            }
+//            if let storageErrorCode = StorageErrorCode(rawValue: nsError.code) {
+//                return handleStorageError(storageErrorCode)
+//            }
+//            if nsError.domain == RealtimeDatabaseErrorDomain {
+//                return handleRealtimeDatabaseError(nsError)
+//            }
+//            if nsError.domain == "Anonymous Auth" {
+//                return Localized.FirebaseEnternalError.anonymousAuthError
+//            }
+//        }
+//
+//        if let customError = error as? FirebaseEnternalError {
+//            return customError.errorDescription ?? Localized.FirebaseEnternalError.defaultError
+//        }
+//
+//        // Обработка неопознанных ошибок
+//        return Localized.FirebaseEnternalError.defaultError
+//    }
+
 
 // MARK: - before Localization -
 
