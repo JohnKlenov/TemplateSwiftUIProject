@@ -14,8 +14,6 @@ class ContentAccountViewModel: ObservableObject {
     @Published var accountDeletionState: AuthorizationManager.State = .idle
     @Published private(set) var profileLoadingState: AuthorizationManager.State = .idle
     @Published var showDeleteConfirmation = false
-    /// можно сделать shouldShowDeleteButton как isUserAnonymous а в ContentAccountView изменить на  if !viewModel.isUserAnonymous
-//    @Published private(set) var shouldShowDeleteButton: Bool = false
     @Published private(set) var isUserAnonymous: Bool = true
     @Published private(set) var userProfile: UserProfile?
     
@@ -28,7 +26,7 @@ class ContentAccountViewModel: ObservableObject {
         print("init ContentAccountViewModel")
         self.authorizationManager = authorizationManager
         self.profileService = profileService
-        
+        self.profileLoadingState = .failure
         /// можно в authorizationManager завести отдельный accountDeletionState?
         authorizationManager.$state
             .handleEvents(receiveOutput: { print("→ ContentAccountViewModel подписка получила:", $0) })
@@ -45,7 +43,6 @@ class ContentAccountViewModel: ObservableObject {
                 guard let self = self else { return }
                 
                 // 1. Обновление кнопки
-//                self.shouldShowDeleteButton = !isAnonymous
                 self.isUserAnonymous = isAnonymous
                 
                 // 2. Загрузка профиля (если нужно)
@@ -53,35 +50,47 @@ class ContentAccountViewModel: ObservableObject {
                     self.loadUserProfile(uid: uid)
                 } else {
                     // 3. Сброс данных для анонимов
+                    // если при удалении account у нас не получится создать анонимного то тут будет nil и глобальный алерт с ретрай
                     self.userProfile = nil
-                    self.profileLoadingState = .idle
+//                    self.profileLoadingState = .idle
                 }
             }
             .store(in: &cancellables)
     }
     
-    /// похоже придется добавить для profileLoadingState сase .error
-    /// для того что бы на UserInfoCellView добавить кнопку retryData - profileService.fetchProfile это get запрос
+    func retryUserProfile() {
+//        guard !isUserAnonymous, let uid = authorizationManager.currentAuthUser?.uid else { return }
+//        loadUserProfile(uid: uid)
+        self.profileLoadingState = .loading
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            self?.profileLoadingState = .failure
+        }
+    }
+    
     private func loadUserProfile(uid: String) {
+        
         // 1. Отменяем предыдущую загрузку профиля
         profileLoadCancellable?.cancel()
-        
-        // 2. Устанавливаем состояние загрузки
         profileLoadingState = .loading
         
-        // 3. Создаем новую подписку
+        // 2. Создаем новую подписку
         profileLoadCancellable = profileService.fetchProfile(uid: uid)
             .receive(on: DispatchQueue.main)
             .sink(
-                receiveCompletion: { [weak self] _ in
-                    self?.profileLoadingState = .idle
+                receiveCompletion: { [weak self] completion in
+                    switch completion {
+                    case .finished:
+                        self?.profileLoadingState = .idle
+                    case .failure(let error):
+                        self?.profileLoadingState = .failure
+                    }
                 },
                 receiveValue: { [weak self] profile in
                     self?.userProfile = profile
-                    self?.profileLoadingState = .idle
                 }
             )
     }
+
     
     func deleteAccount() {
         authorizationManager.deleteAccount()
@@ -93,6 +102,29 @@ class ContentAccountViewModel: ObservableObject {
         print("deinit ContentAccountViewModel")
     }
 }
+
+
+
+//private func loadUserProfile(uid: String) {
+//    // 1. Отменяем предыдущую загрузку профиля
+//    profileLoadCancellable?.cancel()
+//    
+//    // 2. Устанавливаем состояние загрузки
+//    profileLoadingState = .loading
+//    
+//    // 3. Создаем новую подписку
+//    profileLoadCancellable = profileService.fetchProfile(uid: uid)
+//        .receive(on: DispatchQueue.main)
+//        .sink(
+//            receiveCompletion: { [weak self] _ in
+//                self?.profileLoadingState = .idle
+//            },
+//            receiveValue: { [weak self] profile in
+//                self?.userProfile = profile
+//                self?.profileLoadingState = .idle
+//            }
+//        )
+//}
 
 //        authorizationManager.$isUserAnonymous
 //            .map { !$0 } // инвертируем полученные данные
