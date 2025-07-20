@@ -26,7 +26,7 @@ class ContentAccountViewModel: ObservableObject {
         print("init ContentAccountViewModel")
         self.authorizationManager = authorizationManager
         self.profileService = profileService
-        self.profileLoadingState = .failure
+        self.profileLoadingState = .loading
         /// можно в authorizationManager завести отдельный accountDeletionState?
         authorizationManager.$state
             .handleEvents(receiveOutput: { print("→ ContentAccountViewModel подписка получила:", $0) })
@@ -52,19 +52,20 @@ class ContentAccountViewModel: ObservableObject {
                     // 3. Сброс данных для анонимов
                     // если при удалении account у нас не получится создать анонимного то тут будет nil и глобальный алерт с ретрай
                     self.userProfile = nil
-//                    self.profileLoadingState = .idle
+                    self.profileLoadingState = .idle
                 }
             }
             .store(in: &cancellables)
     }
     
     func retryUserProfile() {
-//        guard !isUserAnonymous, let uid = authorizationManager.currentAuthUser?.uid else { return }
-//        loadUserProfile(uid: uid)
-        self.profileLoadingState = .loading
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
-            self?.profileLoadingState = .failure
-        }
+        /// такой return нужно логировать через crashListics
+        guard !isUserAnonymous, let uid = authorizationManager.currentAuthUser?.uid else { return }
+        loadUserProfile(uid: uid)
+//        self.profileLoadingState = .loading
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+//            self?.profileLoadingState = .failure
+//        }
     }
     
     private func loadUserProfile(uid: String) {
@@ -81,7 +82,7 @@ class ContentAccountViewModel: ObservableObject {
                     switch completion {
                     case .finished:
                         self?.profileLoadingState = .idle
-                    case .failure(let error):
+                    case .failure(_):
                         self?.profileLoadingState = .failure
                     }
                 },

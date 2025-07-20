@@ -85,7 +85,6 @@ struct ContentAccountView: View {
     var body: some View {
         let _ = Self._printChanges()
         List {
-//            UserInfoCellView()
             UserInfoCellView(viewModel: viewModel)
             Section {
                 ForEach(rows) { row in

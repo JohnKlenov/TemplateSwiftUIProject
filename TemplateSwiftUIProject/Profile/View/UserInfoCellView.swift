@@ -5,13 +5,15 @@
 //  Created by Evgenyi on 18.04.25.
 //
 
-// если не удалось получить данные без ошибки из loadUserProfile(uid: uid) нужно как то изменить текст в полях?
+
+// локализовать весь текст + inject AppColors
 
 //удаляем все лишние аккаунты с Firebase + делаем signUp + подставляем signOut(активируем) вместо deleteAccount + снова делаем signUp + теперь делаем SignIn на первый account - тестируем
 
-// на входе: viewModel.isUserAnonymous + viewModel.userProfile
-// viewModel.userProfile == nil если пользователь анонимный или если при addStateDidChangeListener user == nil
-// добавить кнопку retry для для profileLoadingState сase .error
+// сейчас мы анон у которого есть личные данные в users/id/document
+// когда мы signUp данные anon станут permanent
+// когда мы удалим permanentUser то мы не можем сначала удалить личные данные пользователя а потом самого user, это не совсем логично!
+// по этому сначала нужно удалить user account и лиш потом на стороне сервера Firebase через Firebase Functions удалить уже и данные только что удаленного users по пути users/id/
 
 import SwiftUI
 
@@ -35,11 +37,14 @@ struct UserInfoCellView: View {
         HStack(spacing: 16) {
             // Аватарка
             avatarView
-            
+               
             // Текстовые данные
             VStack(alignment: .leading, spacing: 4) {
-                Text(displayName)
-                    .font(.headline)
+                if let name = displayName {
+                    Text(name)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                }
                 
                 Text(displayEmail)
                     .font(.subheadline)
@@ -101,20 +106,61 @@ struct UserInfoCellView: View {
     
     // MARK: - Computed Properties
     
-    private var displayName: String {
+    private var displayName: String? {
         if viewModel.isUserAnonymous {
             return "Гость"
+        }
+        if case .failure = viewModel.profileLoadingState {
+            return nil // В случае ошибки скроем displayName
+        }
+        
+        if case .loading = viewModel.profileLoadingState {
+            return nil // В случае первой или retry загрузки
         }
         return viewModel.userProfile?.name ?? "Без имени"
     }
     
-    private var displayEmail: String {
+    private var displayEmail: String {  // Делаем опциональным
         if viewModel.isUserAnonymous {
             return "Анонимный режим"
+        }
+        if case .failure = viewModel.profileLoadingState {
+            return "Ошибка загрузки профиля"
+        }
+        if viewModel.profileLoadingState == .loading {
+            return "Загрузка..."
         }
         return viewModel.userProfile?.email ?? "Email не указан"
     }
 }
+
+
+
+
+//    .foregroundColor(isError ? .red : .primary)
+
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text(displayName)
+//                    .font(.headline)
+//
+//                Text(displayEmail)
+//                    .font(.subheadline)
+//                    .foregroundColor(AppColors.gray)
+//            }
+
+//    private var displayName: String {
+//        if viewModel.isUserAnonymous {
+//            return "Гость"
+//        }
+//        return viewModel.userProfile?.name ?? "Без имени"
+//    }
+//
+//    private var displayEmail: String {
+//        if viewModel.isUserAnonymous {
+//            return "Анонимный режим"
+//        }
+//        return viewModel.userProfile?.email ?? "Email не указан"
+//    }
 
 //    @ViewBuilder
 //    private var stateIndicatorView: some View {
