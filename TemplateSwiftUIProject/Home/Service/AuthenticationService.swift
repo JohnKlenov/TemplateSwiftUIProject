@@ -48,7 +48,7 @@ class AuthenticationService: AuthenticationServiceProtocol {
         }
         
         aythenticalSateHandler = Auth.auth().addStateDidChangeListener({ [weak self]  _, user in
-            print("user.uid - \(user!.uid)")
+            print("AuthenticationService user.uid - \(user!.uid)")
             guard let self = self else { return }
             
             if let user = user {

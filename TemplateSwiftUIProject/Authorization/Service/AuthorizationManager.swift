@@ -51,7 +51,7 @@ import Combine
 import SwiftUI
 //@MainActor
 final class AuthorizationManager: ObservableObject {
-  
+    
     enum State {
         case idle
         case loading
@@ -66,7 +66,7 @@ final class AuthorizationManager: ObservableObject {
     private let authService: AuthorizationService
     private let errorHandler: ErrorHandlerProtocol
     private var cancellables = Set<AnyCancellable>()
-
+    
     init(service: AuthorizationService, errorHandler: ErrorHandlerProtocol, alertManager: AlertManager = AlertManager.shared) {
         self.authService = service
         self.errorHandler = errorHandler
@@ -81,18 +81,11 @@ final class AuthorizationManager: ObservableObject {
             .store(in: &cancellables)
     }
     
-    //        authService.authStatePublisher
-    //            .receive(on: DispatchQueue.main)
-    //            .sink { [weak self] authUser in
-    //                self?.isUserAnonymous = authUser?.isAnonymous ?? true
-    //            }
-    //            .store(in: &cancellables)
-
     private func handleAuthenticationError(_ error: Error, operationDescription:String) {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
-
+    
     func signUp(email: String, password: String) {
         state = .loading
         
@@ -105,9 +98,9 @@ final class AuthorizationManager: ObservableObject {
                 case .finished:
                     self?.state = .idle
                     NotificationCenter.default.post(
-                                    name: .authDidSucceed,
-                                    object: AuthNotificationPayload(authType: .emailSignUp)
-                                )
+                        name: .authDidSucceed,
+                        object: AuthNotificationPayload(authType: .emailSignUp)
+                    )
                     DispatchQueue.main.async { [weak self] in
                         self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signUp, operationDescription:Localized.TitleOfSuccessOperationFirebase.signUp, alertType: .ok)
                     }
@@ -119,50 +112,51 @@ final class AuthorizationManager: ObservableObject {
     }
     
     
-//    func deleteAccount() {
-//        state = .loading
-//        
-//        authService.deleteAccount()
-//            .sink { [weak self] completion in
-//                self?.state = .idle
-//                switch completion {
-//                case .failure(let error):
-//                    self?.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
-//                case .finished:
-//                    DispatchQueue.main.async { [weak self] in
-//                        self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
-//                    }
-//                }
-//            } receiveValue: { _ in }
-//            .store(in: &cancellables)
-//    }
-    
-    //test
     func deleteAccount() {
         state = .loading
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            self?.state = .idle
-            DispatchQueue.main.async { [weak self] in
-                self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
-            }
-        }
+        
+        authService.deleteAccount()
+            .sink { [weak self] completion in
+                self?.state = .idle
+                switch completion {
+                case .failure(let error):
+                    self?.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
+                case .finished:
+                    DispatchQueue.main.async { [weak self] in
+                        self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
+                    }
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
     }
     
-  func createProfile(name: String) {
-    state = .loading
-
-    authService.createProfile(name: name)
-      .sink { [weak self] completion in
-        switch completion {
-        case .failure(_):
-          self?.state = .failure
-        case .finished:
-          self?.state = .success
-        }
-      } receiveValue: { _ in }
-      .store(in: &cancellables)
-  }
+    
+    func createProfile(name: String) {
+        state = .loading
+        
+        authService.createProfile(name: name)
+            .sink { [weak self] completion in
+                switch completion {
+                case .failure(_):
+                    self?.state = .failure
+                case .finished:
+                    self?.state = .success
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
 }
+
+//test
+//    func deleteAccount() {
+//        state = .loading
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+//            self?.state = .idle
+//            DispatchQueue.main.async { [weak self] in
+//                self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
+//            }
+//        }
+//    }
 
 //    // test func signUp
 //    func signUp(email: String, password: String) {
@@ -190,6 +184,17 @@ final class AuthorizationManager: ObservableObject {
 //            }
 //        }
 //    }
+
+
+
+//        authService.authStatePublisher
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] authUser in
+//                self?.isUserAnonymous = authUser?.isAnonymous ?? true
+//            }
+//            .store(in: &cancellables)
+
+
 
 // MARK: - func signUp(email: String, password: String, name: String) - create user and create profile user
 

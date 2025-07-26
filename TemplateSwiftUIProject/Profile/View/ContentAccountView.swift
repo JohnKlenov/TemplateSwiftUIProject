@@ -56,16 +56,6 @@ struct ContentAccountView: View {
     @State private var darkModeEnabled: Bool = false
     
     // Формируем массив строк, где каждая строка описывает конкретный тип ячейки
-//    var rows: [AccountRow] {
-//        [
-//            .toggle(title: "Notification", binding: $notificationsEnabled),
-//            .navigation(title: "Change language", destination: .language),
-//            .toggle(title: "Dark mode", binding: $darkModeEnabled),
-//            .navigation(title: "About Us", destination: .aboutUs),
-//            .navigation(title: "Create Account", destination: .createAccount),
-//            .deleteAccount(viewModel.accountDeletionState)
-//        ]
-//    }
     var rows: [AccountRow] {
         var rows: [AccountRow] = [
             .toggle(title: "Notification", binding: $notificationsEnabled),
@@ -120,6 +110,17 @@ struct ContentAccountView: View {
 }
 
 
+
+//    var rows: [AccountRow] {
+//        [
+//            .toggle(title: "Notification", binding: $notificationsEnabled),
+//            .navigation(title: "Change language", destination: .language),
+//            .toggle(title: "Dark mode", binding: $darkModeEnabled),
+//            .navigation(title: "About Us", destination: .aboutUs),
+//            .navigation(title: "Create Account", destination: .createAccount),
+//            .deleteAccount(viewModel.accountDeletionState)
+//        ]
+//    }
 
 
 //        List {

@@ -87,6 +87,7 @@ class ContentAccountViewModel: ObservableObject {
                     }
                 },
                 receiveValue: { [weak self] profile in
+                    print("loadUserProfile/receiveValue -  \(profile)")
                     self?.userProfile = profile
                 }
             )

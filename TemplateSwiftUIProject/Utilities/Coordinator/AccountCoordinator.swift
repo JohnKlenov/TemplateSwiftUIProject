@@ -27,6 +27,7 @@ class AccountCoordinator:ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     init() {
+        print("init AccountCoordinator")
         setupNotifications()
     }
     
@@ -69,7 +70,7 @@ class AccountCoordinator:ObservableObject {
     }
     
     private func handleAuthSuccess(_ type: AuthType) {
-        print("handleAuthSuccess type - \(type)")
+        print("AccountCoordinator handleAuthSuccess type - \(type)")
         popToRoot()
     }
     
