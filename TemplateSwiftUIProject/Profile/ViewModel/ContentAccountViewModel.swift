@@ -95,7 +95,8 @@ class ContentAccountViewModel: ObservableObject {
 
     
     func deleteAccount() {
-        authorizationManager.deleteAccount()
+//        authorizationManager.deleteAccount()
+        authorizationManager.signOutAccount()
     }
     
     deinit {

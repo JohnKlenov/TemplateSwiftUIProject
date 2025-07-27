@@ -47,6 +47,9 @@ protocol HomeViewModelProtocol: ObservableObject {
     func retry()
 }
 
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+//            self?.handleAuthenticationError(NSError(domain: "Anonymous Auth", code: 111, userInfo: [NSLocalizedDescriptionKey: "This is a test global alert."]))
+//        }
 
 
 class HomeContentViewModel: HomeViewModelProtocol {
@@ -70,9 +73,7 @@ class HomeContentViewModel: HomeViewModelProtocol {
         self.errorHandler = errorHandler
         self.managerCRUDS = managerCRUDS
         print("init HomeContentViewModel")
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
-//            self?.handleAuthenticationError(NSError(domain: "Anonymous Auth", code: 111, userInfo: [NSLocalizedDescriptionKey: "This is a test global alert."]))
-//        }
+
     }
 
     func setRetryHandler(_ handler: GlobalRetryHandler) {
@@ -151,6 +152,8 @@ class HomeContentViewModel: HomeViewModelProtocol {
         viewState = .error(errorMessage)
     }
     
+    /// когда мы signOut в момент когда user == nil отрабатывает firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
+    /// и выбрасывает [FirebaseFirestore][I-FST000001] Listen for query at users/Sni6ad3yp4U3bnkamD1SpevQiVs2/data failed: Missing or insufficient permissions.
     private func handleFirestoreError(_ error: Error) {
         let errorMessage = errorHandler.handle(error: error)
         viewState = .error(errorMessage)

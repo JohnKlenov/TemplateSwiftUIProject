@@ -130,6 +130,24 @@ final class AuthorizationManager: ObservableObject {
             .store(in: &cancellables)
     }
     
+    func signOutAccount() {
+        state = .loading
+        
+        authService.signOut()
+            .sink { [weak self] completion in
+                self?.state = .idle
+                switch completion {
+                case .failure(let error):
+                    self?.handleAuthenticationError(error, operationDescription: "SignOut")
+                case .finished:
+                    DispatchQueue.main.async { [weak self] in
+                        self?.alertManager.showGlobalAlert(message:"Success signOut user!", operationDescription:"SignOut", alertType: .ok)
+                    }
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
+    
     
     func createProfile(name: String) {
         state = .loading

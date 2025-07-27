@@ -30,7 +30,7 @@ final class AuthorizationService {
         }
         /// при удалении узера нам сначало должен прийти nil а потм уже объект user anon
         aythenticalSateHandler = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
-            print("AuthenticationService/AuthorizationManager user.uid - \(user!.uid)")
+            print("AuthenticationService/AuthorizationManager user.uid - \(String(describing: user?.uid))")
             guard let user = user else {
                 self?.authStateSubject.send(nil)
                 return
@@ -92,6 +92,20 @@ final class AuthorizationService {
         }
         .eraseToAnyPublisher()
     }
+    
+    // сбрасываем локального юзера
+    func signOut() -> AnyPublisher<Void, Error> {
+        Future { promise in
+            do {
+                try Auth.auth().signOut()
+                promise(.success(()))
+            } catch {
+                promise(.failure(error))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+
 
     // MARK: - Helpers
 
@@ -120,12 +134,14 @@ final class AuthorizationService {
     }
 
     private func linkPublisher(user: User, credential: AuthCredential) -> AnyPublisher<AuthDataResult, Error> {
-        Future { promise in
+        Future { [weak self] promise in
             user.link(with: credential) { res, err in
                 print("linkPublisher res - \(String(describing: res)), error - \(String(describing: err))")
                 if let error = err {
                     promise(.failure(error))
                 } else if let result = res {
+                    // 💡 Обновляем authState сразу так как при успешной линковки addStateDidChangeListener не отработает
+                    self?.updateAuthState(from: result.user)
                     promise(.success(result))
                 } else {
                     promise(.failure(FirebaseEnternalError.defaultError))
@@ -135,42 +151,11 @@ final class AuthorizationService {
         .eraseToAnyPublisher()
     }
     
-    /// Линкуем анонимного, делаем reload и шлём новый AuthUser
-    private func linkAndReload(
-        user: User,
-        credential: AuthCredential
-    ) -> AnyPublisher<Void, Error> {
-        linkPublisher(user: user, credential: credential)
-            .flatMap { [weak self] _ -> AnyPublisher<AuthUser, Error> in
-                guard let self = self else {
-                    return Fail(error: FirebaseEnternalError.defaultError)
-                        .eraseToAnyPublisher()
-                }
-                return self.reloadCurrentUser()
-            }
-            .handleEvents(receiveOutput: { [weak self] updated in
-                self?.authStateSubject.send(updated)
-            })
-            .map { _ in () }
-            .eraseToAnyPublisher()
+    private func updateAuthState(from user: FirebaseAuth.User) {
+        let authUser = AuthUser(uid: user.uid, isAnonymous: user.isAnonymous)
+        authStateSubject.send(authUser)
     }
-    
-    /// Перезагружает текущего пользователя и выдаёт обновлённый AuthUser
-    private func reloadCurrentUser() -> AnyPublisher<AuthUser, Error> {
-        Future<AuthUser, Error> { promise in
-            Auth.auth().currentUser?.reload(completion: { err in
-                if let err = err {
-                    return promise(.failure(err))
-                }
-                guard let u = Auth.auth().currentUser else {
-                    return promise(.failure(FirebaseEnternalError.defaultError))
-                }
-                let au = AuthUser(uid: u.uid, isAnonymous: u.isAnonymous)
-                promise(.success(au))
-            })
-        }
-        .eraseToAnyPublisher()
-    }
+
 
     func sendVerificationEmail() {
         Auth.auth().currentUser?.sendEmailVerification(completion: nil)
@@ -190,6 +175,43 @@ final class AuthorizationService {
 //            let authUser = user.map { AuthUser(isAnonymous: $0.isAnonymous) }
 //            self?.authStateSubject.send(authUser)
 //        }
+
+/// Линкуем анонимного, делаем reload и шлём новый AuthUser
+//    private func linkAndReload(
+//        user: User,
+//        credential: AuthCredential
+//    ) -> AnyPublisher<Void, Error> {
+//        linkPublisher(user: user, credential: credential)
+//            .flatMap { [weak self] _ -> AnyPublisher<AuthUser, Error> in
+//                guard let self = self else {
+//                    return Fail(error: FirebaseEnternalError.defaultError)
+//                        .eraseToAnyPublisher()
+//                }
+//                return self.reloadCurrentUser()
+//            }
+//            .handleEvents(receiveOutput: { [weak self] updated in
+//                self?.authStateSubject.send(updated)
+//            })
+//            .map { _ in () }
+//            .eraseToAnyPublisher()
+//    }
+//
+//    /// Перезагружает текущего пользователя и выдаёт обновлённый AuthUser
+//    private func reloadCurrentUser() -> AnyPublisher<AuthUser, Error> {
+//        Future<AuthUser, Error> { promise in
+//            Auth.auth().currentUser?.reload(completion: { err in
+//                if let err = err {
+//                    return promise(.failure(err))
+//                }
+//                guard let u = Auth.auth().currentUser else {
+//                    return promise(.failure(FirebaseEnternalError.defaultError))
+//                }
+//                let au = AuthUser(uid: u.uid, isAnonymous: u.isAnonymous)
+//                promise(.success(au))
+//            })
+//        }
+//        .eraseToAnyPublisher()
+//    }
 
 // MARK: - before AnyPublisher<Void, Error>
 
