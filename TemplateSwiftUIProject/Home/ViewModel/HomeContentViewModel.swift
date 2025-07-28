@@ -7,6 +7,50 @@
 
 
 // MARK: - firestorColletionObserverService.observeCollection
+
+//failed: Missing or insufficient permissions.
+
+//rules_version = '2';
+//service cloud.firestore {
+//  match /databases/{database}/documents {
+//    match /users/{userId} {
+//      allow read, write: if request.auth != null && request.auth.uid == userId;
+//      
+//      match /data/{document=**} {
+//        allow read, write: if request.auth != null && request.auth.uid == userId;
+//      }
+//    }
+//  }
+//}
+
+// контекст
+
+/// case - когда мы удаляем аккаунт постоянного user в addStateDidChangeListener приходит user == nil
+/// мы не удаляем listener?.remove() в  firestorColletionObserverService.observeCollection(at: "users/\(userId)/data") перед тем как удалять userAccount (есть риск что удаление аккаунта  произойдет с ошибкой и востановление Firestore Listener будет весьма сложным с точки зрения кода что может порадить новые баги)
+/// поэтому  firestorColletionObserverService.observeCollection(at: "users/\(userId)/data") возвращает ошибку - [FirebaseFirestore][I-FST000001] Listen for query at users/Sni6ad3yp4U3bnkamD1SpevQiVs2/data failed: Missing or insufficient permissions.
+/// при переходе между пользователями, когда Firestore Listener  пытается получить доступ к данным старого пользователя после выхода, но до завершения перехода к анонимному аккаунту. Это вызывает ошибку прав доступа, так как в момент перехода request.auth == null.
+/// варианты решения:
+/// Добавьте метод для отписки от слушателей при выходе(listener?.remove()) можно это сделать даже через NotificationCenter.default.post
+/// в func handleFirestoreError(_ error: Error) можно добавить guard Auth.auth().currentUser != nil || !isPermissionError(error) else { print("Игнорируем ошибку прав доступа при переходе между пользователями") return }
+
+//Рекомендуемый подход (оставить текущую логику)
+
+/// Кратковременность состояния: Период между user == nil и появлением анонимного пользователя крайне короткий, Ошибка доступа в этот момент — ожидаемое поведение Firestore
+/// Автоматическое восстановление: Как вы верно заметили, система сама перейдёт в корректное состояние + Новый слушатель создастся для анонимного пользователя
+/// Минимальный overhead: Любые дополнительные механизмы усложнят код без реальной пользы + Ошибка не влияет на пользовательский опыт
+
+// сценарии использования
+
+/// когда мы удаляем аккаунт постоянного user в addStateDidChangeListener приходит user == nil и в этот момент срабатывает ошибка в Firestore Listener что приводит к появлению ContentErrorView(error: error) на короткое время изменяется viewState
+/// затем почти мгновенно если не возникла ошибка с созданием anonUser viewState измкеняется на .content(let data) и ContentErrorView исчезает
+/// с точки зрения пользовательского опыта кратковременное появление ContentErrorView может быть не очень но если по каким то причинам система не сможет вернуть viewState в .content(let data) у нас будет возможность из ContentErrorView вызвать retry и обновить user и Firestore Listener
+/// в нашем случае удаление происходит из ProfileView и в на HomeView  мы не увидем этого кратковременного ContentErrorView а если проблема реальная он останится
+/// если бы мы делали удаление аккаунта из HomeView тогда для того что бы избавится от этого кратковременного появления ContentErrorView пришлось бы использовать вышеупомянутые костыли или вообще уходить от Firestore Listener в пользу get запроса.
+
+
+
+
+
 /// не все ошибки которые приходят из addSnapshotListener критичные, есть временные ошибки котороые не останавливают работу слушателя. (можно для некоторых ошибок блокировать вызов viewState = .error(errorMessage) что бы улучшить пользовательский опыт)
 
 ///Firebase не предоставляет явного значения для таймаута по умолчанию, вы можете управлять таймаутами вручную.
