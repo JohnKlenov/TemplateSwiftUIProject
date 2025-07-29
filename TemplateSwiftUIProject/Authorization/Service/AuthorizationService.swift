@@ -5,8 +5,14 @@
 //  Created by Evgenyi on 16.06.25.
 //
 
+
+
+// func signInBasic в первой тестовой реализации будет реализован без удаления anonUser и его данных в CloudFunction
+// мы будем это делать вручную + сначало мы потестим как отработает удаление личных данных пользователя из CloudFunction в след за удалением аккаунта пользователя 
+
 import FirebaseAuth
 import Combine
+//import FirebaseFunctions
 
 struct AuthUser {
     let uid: String
@@ -17,6 +23,7 @@ final class AuthorizationService {
     
     private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
     private let authStateSubject = PassthroughSubject<AuthUser?, Never>()
+//    private let functions = Functions.functions()
     
     var authStatePublisher: AnyPublisher<AuthUser?, Never> {
         authStateSubject.eraseToAnyPublisher()
@@ -54,26 +61,37 @@ final class AuthorizationService {
             .map { _ in () }
             .eraseToAnyPublisher()
     }
-
-    // создаём/обновляем профиль
-    func createProfile(name: String) -> AnyPublisher<Void, Error> {
-        Deferred {
-            Future { promise in
-                guard let req = Auth.auth().currentUser?.createProfileChangeRequest() else {
-                    return promise(.failure(FirebaseEnternalError.notSignedIn))
+    
+    // логирование и удаление анонимного пользователя
+    func signInBasic(email: String, password: String)
+    -> AnyPublisher<Void, Error>
+    {
+        currentUserPublisher()
+            .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
+                guard let self = self else {
+                    return Fail(error: FirebaseEnternalError.defaultError)
+                        .eraseToAnyPublisher()
                 }
-                req.displayName = name
-                req.commitChanges { error in
-                    if let error = error {
-                        promise(.failure(error))
-                    } else {
-                        promise(.success(()))
-                    }
+                if user.isAnonymous {
+                    // Сохраняем UID анонима, чтобы потом удалить
+                    let anonUid = user.uid
+                    return self.signInPublisher(email: email, password: password)
+                    // после успешного входа — зовём Cloud Function
+//                        .flatMap { _ in
+//                            self.cleanupAnonymous(anonUid: anonUid)
+//                        }
+                        .map { _ in () }
+                        .eraseToAnyPublisher()
+                } else {
+                    // Обычный вход, просто мапим в Void
+                    return self.signInPublisher(email: email, password: password)
+                        .map { _ in () }
+                        .eraseToAnyPublisher()
                 }
             }
-        }
-        .eraseToAnyPublisher()
+            .eraseToAnyPublisher()
     }
+        
     
     // удаляем аккаунт
     func deleteAccount() -> AnyPublisher<Void, Error> {
@@ -93,18 +111,7 @@ final class AuthorizationService {
         .eraseToAnyPublisher()
     }
     
-    // сбрасываем локального юзера
-    func signOut() -> AnyPublisher<Void, Error> {
-        Future { promise in
-            do {
-                try Auth.auth().signOut()
-                promise(.success(()))
-            } catch {
-                promise(.failure(error))
-            }
-        }
-        .eraseToAnyPublisher()
-    }
+   
 
 
     // MARK: - Helpers
@@ -156,10 +163,78 @@ final class AuthorizationService {
         authStateSubject.send(authUser)
     }
 
+    private func signInPublisher(email: String, password: String)
+    -> AnyPublisher<AuthDataResult, Error>
+    {
+        Future { promise in
+            Auth.auth().signIn(withEmail: email, password: password) { res, err in
+                if let err = err {
+                    promise(.failure(err))
+                } else if let result = res {
+                    promise(.success(result))
+                } else {
+                    promise(.failure(FirebaseEnternalError.defaultError))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
 
     func sendVerificationEmail() {
         Auth.auth().currentUser?.sendEmailVerification(completion: nil)
     }
+    
+    // сбрасываем локального юзера
+    func signOut() -> AnyPublisher<Void, Error> {
+        Future { promise in
+            do {
+                try Auth.auth().signOut()
+                promise(.success(()))
+            } catch {
+                promise(.failure(error))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    /// 3) Вызываем HTTPS-функцию на удаление старого анонима
+//    private func cleanupAnonymous(anonUid: String)
+//    -> AnyPublisher<Void, Error>
+//    {
+//        let data: [String: Any] = ["uid": anonUid]
+//        return Future { [weak self] promise in
+//            self?.functions.httpsCallable("cleanupAnonymousUser")
+//                .call(data) { result, error in
+//                    if let error = error {
+//                        promise(.failure(error))
+//                    } else {
+//                        promise(.success(()))
+//                    }
+//                }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+    
+    // создаём/обновляем профиль
+//    func createProfile(name: String) -> AnyPublisher<Void, Error> {
+//        Deferred {
+//            Future { promise in
+//                guard let req = Auth.auth().currentUser?.createProfileChangeRequest() else {
+//                    return promise(.failure(FirebaseEnternalError.notSignedIn))
+//                }
+//                req.displayName = name
+//                req.commitChanges { error in
+//                    if let error = error {
+//                        promise(.failure(error))
+//                    } else {
+//                        promise(.success(()))
+//                    }
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+    
     
     deinit {
         print("AuthorizationService deinit")

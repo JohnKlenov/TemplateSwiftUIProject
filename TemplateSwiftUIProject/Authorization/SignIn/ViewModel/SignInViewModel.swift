@@ -59,6 +59,7 @@ class SignInViewModel: ObservableObject {
     
     func signIn() {
         print("did tap signIn for SignInViewModel")
+        authorizationManager.signIn(email: email, password: password)
     }
     
     deinit {

@@ -238,17 +238,20 @@ struct SignInView: View {
         if viewModel.isValid {
             print("Данные валидны. Начинаем регистрацию.")
             viewModel.signIn()
-            //            viewModel.isSignIn = true
-            // Симуляция асинхронного процесса регистрации, который может быть заменён реальным API-вызовом
-            //            viewModel.signInUser { success in
-            //                // Выключаем спиннер после завершения регистрации
-            //                DispatchQueue.main.async {
-            ////                    viewModel.isSignIn = false
-            //                }
-            //            }
         } else {
             print("Некоторые поля заполнены неверно.")
         }
     }
 }
 
+
+
+
+//            viewModel.isSignIn = true
+// Симуляция асинхронного процесса регистрации, который может быть заменён реальным API-вызовом
+//            viewModel.signInUser { success in
+//                // Выключаем спиннер после завершения регистрации
+//                DispatchQueue.main.async {
+////                    viewModel.isSignIn = false
+//                }
+//            }

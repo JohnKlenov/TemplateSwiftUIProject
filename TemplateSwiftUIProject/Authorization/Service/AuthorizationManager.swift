@@ -91,12 +91,13 @@ final class AuthorizationManager: ObservableObject {
         
         authService.signUpBasic(email: email, password: password)
             .sink { [weak self] completion in
+                guard let self = self else { return }
                 switch completion {
                 case .failure(let err):
-                    self?.state = .idle
-                    self?.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
+                    self.state = .idle
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
                 case .finished:
-                    self?.state = .idle
+                    self.state = .idle
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
                         object: AuthNotificationPayload(authType: .emailSignUp)
@@ -104,8 +105,32 @@ final class AuthorizationManager: ObservableObject {
                     DispatchQueue.main.async { [weak self] in
                         self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signUp, operationDescription:Localized.TitleOfSuccessOperationFirebase.signUp, alertType: .ok)
                     }
-                    self?.authService.sendVerificationEmail()
+                    self.authService.sendVerificationEmail()
                     
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
+    
+    func signIn(email: String, password: String) {
+        state = .loading
+        
+        authService.signInBasic(email: email, password: password)
+            .sink { [weak self] completion in
+                guard let self = self else { return }
+                switch completion {
+                case .failure(let err):
+                    self.state = .idle
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn)
+                case .finished:
+                    self.state = .idle
+                    NotificationCenter.default.post(
+                        name: .authDidSucceed,
+                        object: AuthNotificationPayload(authType: .emailSignIn)
+                    )
+                    DispatchQueue.main.async { [weak self] in
+                        self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.signIn, operationDescription:Localized.TitleOfSuccessOperationFirebase.signIn, alertType: .ok)
+                    }
                 }
             } receiveValue: { _ in }
             .store(in: &cancellables)
@@ -149,20 +174,20 @@ final class AuthorizationManager: ObservableObject {
     }
     
     
-    func createProfile(name: String) {
-        state = .loading
-        
-        authService.createProfile(name: name)
-            .sink { [weak self] completion in
-                switch completion {
-                case .failure(_):
-                    self?.state = .failure
-                case .finished:
-                    self?.state = .success
-                }
-            } receiveValue: { _ in }
-            .store(in: &cancellables)
-    }
+//    func createProfile(name: String) {
+//        state = .loading
+//        
+//        authService.createProfile(name: name)
+//            .sink { [weak self] completion in
+//                switch completion {
+//                case .failure(_):
+//                    self?.state = .failure
+//                case .finished:
+//                    self?.state = .success
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
 }
 
 //test
