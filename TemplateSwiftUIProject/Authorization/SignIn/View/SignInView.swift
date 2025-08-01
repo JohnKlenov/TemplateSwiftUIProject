@@ -72,6 +72,9 @@ struct SignInView: View {
                                         .autocapitalization(.none)
                                         .disableAutocorrection(true)
                                         .onSubmit { focusNextField() }
+                                        .onChange(of: viewModel.password) { _ , _ in
+                                            viewModel.updateValidationPassword()
+                                        }
                                         .onTapGesture {
                                             viewModel.passwordError = nil
                                         }
@@ -83,6 +86,9 @@ struct SignInView: View {
                                         .autocapitalization(.none)
                                         .disableAutocorrection(true)
                                         .onSubmit { focusNextField() }
+                                        .onChange(of: viewModel.password) { _ , _ in
+                                            viewModel.updateValidationPassword()
+                                        }
                                         .onTapGesture {
                                             viewModel.passwordError = nil
                                         }
@@ -213,6 +219,19 @@ struct SignInView: View {
                 hideKeyboard()
             }
         )
+        .confirmationDialog(
+            "Внимание",
+            isPresented: $viewModel.showAnonymousWarning,
+            titleVisibility: .visible
+        ) {
+            Button("Продолжить вход") {
+                viewModel.confirmAnonymousSignIn()
+            }
+            Button("Отмена", role: .cancel) {}
+        } message: {
+            Text("Вы вошли как гость. После входа с email/password все несохранённые данные будут утеряны. Чтобы сохранить их — сначала зарегистрируйтесь.")
+        }
+
     }
     
     private func focusNextField() {
@@ -237,7 +256,9 @@ struct SignInView: View {
         
         if viewModel.isValid {
             print("Данные валидны. Начинаем регистрацию.")
-            viewModel.signIn()
+            print("Данные валидны. Начинаем регистрацию.")
+            viewModel.trySignInWithWarningIfNeeded()
+//            viewModel.signIn()
         } else {
             print("Некоторые поля заполнены неверно.")
         }

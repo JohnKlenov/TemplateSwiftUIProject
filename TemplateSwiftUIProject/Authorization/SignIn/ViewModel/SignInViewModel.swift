@@ -17,6 +17,7 @@ class SignInViewModel: ObservableObject {
     
 //    @Published var isSignIn: Bool = false
     @Published var signInState: AuthorizationManager.State = .idle
+    @Published var showAnonymousWarning = false
     
     private let authorizationManager: AuthorizationManager
     private var cancellables = Set<AnyCancellable>()
@@ -60,6 +61,19 @@ class SignInViewModel: ObservableObject {
     func signIn() {
         print("did tap signIn for SignInViewModel")
         authorizationManager.signIn(email: email, password: password)
+    }
+    
+    func trySignInWithWarningIfNeeded() {
+        if authorizationManager.isUserAnonymous {
+            showAnonymousWarning = true
+        } else {
+            signIn()
+        }
+    }
+
+    func confirmAnonymousSignIn() {
+        showAnonymousWarning = false
+        signIn()
     }
     
     deinit {

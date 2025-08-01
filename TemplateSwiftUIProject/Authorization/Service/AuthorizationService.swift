@@ -75,6 +75,7 @@ final class AuthorizationService {
                 if user.isAnonymous {
                     // Сохраняем UID анонима, чтобы потом удалить
                     let anonUid = user.uid
+                    print("anonUid func signInBasic - \(anonUid)")
                     return self.signInPublisher(email: email, password: password)
                     // после успешного входа — зовём Cloud Function
 //                        .flatMap { _ in
@@ -84,6 +85,7 @@ final class AuthorizationService {
                         .eraseToAnyPublisher()
                 } else {
                     // Обычный вход, просто мапим в Void
+                    print("permanentUser func signInBasic - \(user.uid)")
                     return self.signInPublisher(email: email, password: password)
                         .map { _ in () }
                         .eraseToAnyPublisher()
@@ -133,6 +135,8 @@ final class AuthorizationService {
                 } else if let result = res {
                     promise(.success(result))
                 } else {
+                    /// вот эту ошибку нужно обязательно логировать
+                    /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
                     promise(.failure(FirebaseEnternalError.defaultError))
                 }
             }
@@ -151,6 +155,8 @@ final class AuthorizationService {
                     self?.updateAuthState(from: result.user)
                     promise(.success(result))
                 } else {
+                    /// вот эту ошибку нужно обязательно логировать
+                    /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
                     promise(.failure(FirebaseEnternalError.defaultError))
                 }
             }
@@ -173,6 +179,8 @@ final class AuthorizationService {
                 } else if let result = res {
                     promise(.success(result))
                 } else {
+                    /// вот эту ошибку нужно обязательно логировать
+                    /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
                     promise(.failure(FirebaseEnternalError.defaultError))
                 }
             }
