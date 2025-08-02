@@ -256,7 +256,6 @@ struct SignInView: View {
         
         if viewModel.isValid {
             print("Данные валидны. Начинаем регистрацию.")
-            print("Данные валидны. Начинаем регистрацию.")
             viewModel.trySignInWithWarningIfNeeded()
 //            viewModel.signIn()
         } else {

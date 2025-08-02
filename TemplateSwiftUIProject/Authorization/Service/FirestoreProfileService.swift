@@ -52,26 +52,30 @@ class FirestoreProfileService: ProfileServiceProtocol {
     
     func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error> {
         Future { [weak self] promise in
-            self?.db.collection("users").document(uid).getDocument { snapshot, error in
-                if let error = error {
-                    promise(.failure(error))
-                    self?.handleFirestoreError(error, operationDescription: "Error fetch profile")
-                    return
-                }
-                
-                do {
-                    if let snapshot = snapshot, snapshot.exists {
-                        let profile = try snapshot.data(as: UserProfile.self)
-                        promise(.success(profile))
-                    } else {
-                        // Чёткое разделение: документ есть, но пустой vs документ отсутствует
-                        promise(.success(UserProfile(uid: uid)))
+            self?.db
+                .collection("users")
+                .document(uid)
+                .collection("userProfileData")
+                .document(uid).getDocument { snapshot, error in
+                    if let error = error {
+                        promise(.failure(error))
+                        self?.handleFirestoreError(error, operationDescription: "Error fetch profile")
+                        return
                     }
-                } catch {
-                    promise(.failure(error)) // Чёткая ошибка декодирования
-                    self?.handleFirestoreError(error, operationDescription: "Error fetch profile")
+                    
+                    do {
+                        if let snapshot = snapshot, snapshot.exists {
+                            let profile = try snapshot.data(as: UserProfile.self)
+                            promise(.success(profile))
+                        } else {
+                            // Чёткое разделение: документ есть, но пустой vs документ отсутствует
+                            promise(.success(UserProfile(uid: uid)))
+                        }
+                    } catch {
+                        promise(.failure(error)) // Чёткая ошибка декодирования
+                        self?.handleFirestoreError(error, operationDescription: "Error fetch profile")
+                    }
                 }
-            }
         }.eraseToAnyPublisher()
     }
     

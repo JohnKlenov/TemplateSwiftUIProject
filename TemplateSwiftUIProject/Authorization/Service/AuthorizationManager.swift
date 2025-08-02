@@ -136,7 +136,71 @@ final class AuthorizationManager: ObservableObject {
             .store(in: &cancellables)
     }
     
+
+//    func deleteAccount() {
+//        state = .loading
+//        
+//        authService.deleteAccount()
+//            .sink { [weak self] completion in
+//                self?.handleDeleteAccountCompletion(completion)
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//
+//    // Private Methods for deleteAccount()
+//
+//    private func handleDeleteAccountCompletion(_ completion: Subscribers.Completion<DeleteAccountError>) {
+//        state = .idle
+//        
+//        switch completion {
+//        case .failure(let error):
+//            handleDeleteAccountError(error)
+//        case .finished:
+//            showAccountDeletionSuccess()
+//        }
+//    }
+//
+//    private func handleDeleteAccountError(_ error:  DeleteAccountError) {
+//        switch error {
+//        case .reauthenticationRequired:
+//            notifyReauthenticationNeeded()
+//            // Специальная обработка для навигационных переходов
+//            DispatchQueue.main.async { [weak self] in
+//                self?.showAccountDeletionError(
+//                    error,
+//                    operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
+//                )
+//            }
+//            
+//        case .underlying(let underlyingError):
+//            // Обычные ошибки уже на главном потоке благодаря receive(on:)
+//            showAccountDeletionError(
+//                underlyingError,
+//                operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
+//            )
+//        }
+//    }
+//
+//    private func notifyReauthenticationNeeded() {
+//            NotificationCenter.default.post(
+//                name: .needReauthenticate,
+//                object: AuthNotificationPayload(authType: .reauthenticate)
+//            )
+//    }
+//
+//    private func showAccountDeletionError(_ error: Error, operationDescription: String) {
+//        handleAuthenticationError(error, operationDescription: operationDescription)
+//    }
+//
+//    private func showAccountDeletionSuccess() {
+//        alertManager.showGlobalAlert(
+//            message: Localized.MessageOfSuccessOperationFirebase.accountDeletion,
+//            operationDescription: Localized.TitleOfSuccessOperationFirebase.accountDeletion,
+//            alertType: .ok
+//        )
+//    }
     
+    // но error распечатываем в алерте неизвестный так как сюда попадает DeleteAccountError.reauthenticationRequired 
     func deleteAccount() {
         state = .loading
         
@@ -145,7 +209,19 @@ final class AuthorizationManager: ObservableObject {
                 self?.state = .idle
                 switch completion {
                 case .failure(let error):
-                    self?.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
+                    switch error {
+                    case .reauthenticationRequired:
+                        NotificationCenter.default.post(
+                            name: .needReauthenticate,
+                            object: AuthNotificationPayload(authType: .reauthenticate)
+                        )
+                        DispatchQueue.main.async { [weak self] in
+                            self?.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
+                        }
+                    case .underlying(let underlyingError):
+                        self?.handleAuthenticationError(underlyingError, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
+                    }
+                    
                 case .finished:
                     DispatchQueue.main.async { [weak self] in
                         self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
@@ -154,6 +230,26 @@ final class AuthorizationManager: ObservableObject {
             } receiveValue: { _ in }
             .store(in: &cancellables)
     }
+    
+        
+// before DeleteAccountError
+//    func deleteAccount() {
+//        state = .loading
+//        
+//        authService.deleteAccount()
+//            .sink { [weak self] completion in
+//                self?.state = .idle
+//                switch completion {
+//                case .failure(let error):
+//                    self?.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
+//                case .finished:
+//                    DispatchQueue.main.async { [weak self] in
+//                        self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
+//                    }
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
     
     func signOutAccount() {
         state = .loading

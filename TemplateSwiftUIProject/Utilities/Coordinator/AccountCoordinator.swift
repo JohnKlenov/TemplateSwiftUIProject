@@ -10,6 +10,28 @@
 import SwiftUI
 import Combine
 
+// MARK: - Типы и уведомления
+
+enum AuthType {
+    case emailSignIn
+    case emailSignUp
+    case appleSignIn
+    case googleSignIn
+    case appleSignUp
+    case googleSignUp
+    case reauthenticate
+}
+
+struct AuthNotificationPayload {
+    let authType: AuthType
+}
+
+extension Notification.Name {
+    static let authDidSucceed       = Notification.Name("AuthDidSucceedNotification")
+    static let needReauthenticate   = Notification.Name("NeedReauthenticateNotification")
+}
+
+
 class AccountCoordinator:ObservableObject {
     
     @Published var path: NavigationPath = NavigationPath() {
@@ -36,6 +58,8 @@ class AccountCoordinator:ObservableObject {
     }
     
     func pop() {
+        /// ???
+        guard !path.isEmpty else { return }
         path.removeLast()
     }
     
@@ -59,19 +83,43 @@ class AccountCoordinator:ObservableObject {
         self.fullScreenItem = nil
     }
     
+    // MARK: - Слушатели уведомлений
+    
     private func setupNotifications() {
+        // При успешной аутентификации — возвращаемся на корневой экран
         NotificationCenter.default.publisher(for: .authDidSucceed)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] notification in
-                guard let payload = notification.object as? AuthNotificationPayload else { return }
+                guard
+                    let payload = notification.object as? AuthNotificationPayload
+                else { return }
                 self?.handleAuthSuccess(payload.authType)
+            }
+            .store(in: &cancellables)
+        
+        // При необходимости реаутентификации — пушим экран .reauthenticate
+        NotificationCenter.default.publisher(for: .needReauthenticate)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                guard
+                    let payload = notification.object as? AuthNotificationPayload,
+                    payload.authType == .reauthenticate
+                else { return }
+                self?.handleNeedReauthenticate()
             }
             .store(in: &cancellables)
     }
     
+    // MARK: - Обработчики событий
+    
     private func handleAuthSuccess(_ type: AuthType) {
         print("AccountCoordinator handleAuthSuccess type - \(type)")
         popToRoot()
+    }
+    
+    private func handleNeedReauthenticate() {
+        print("AccountCoordinator handleNeedReauthenticate")
+        navigateTo(page: .reauthenticate)
     }
     
     deinit {
@@ -80,21 +128,39 @@ class AccountCoordinator:ObservableObject {
 }
 
 
-enum AuthType {
-    // Основные сценарии
-    case emailSignIn
-    case emailSignUp
-    case appleSignIn
-    case googleSignIn
-    case appleSignUp
-    case googleSignUp
-}
 
-extension Notification.Name {
-    static let authDidSucceed = Notification.Name("AuthDidSucceedNotification")
-}
 
-// Для типизированной передачи данных
-struct AuthNotificationPayload {
-    let authType: AuthType
-}
+//enum AuthType {
+//    // Основные сценарии
+//    case emailSignIn
+//    case emailSignUp
+//    case appleSignIn
+//    case googleSignIn
+//    case appleSignUp
+//    case googleSignUp
+//    case reauthenticate
+//}
+//
+//extension Notification.Name {
+//    static let authDidSucceed = Notification.Name("AuthDidSucceedNotification")
+//}
+//
+//// Для типизированной передачи данных
+//struct AuthNotificationPayload {
+//    let authType: AuthType
+//}
+
+//    private func setupNotifications() {
+//        NotificationCenter.default.publisher(for: .authDidSucceed)
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] notification in
+//                guard let payload = notification.object as? AuthNotificationPayload else { return }
+//                self?.handleAuthSuccess(payload.authType)
+//            }
+//            .store(in: &cancellables)
+//    }
+
+
+//    private func handleReauthenticate (_ type: AuthType) {
+//        navigateTo(page: .reauthenticate)
+//    }

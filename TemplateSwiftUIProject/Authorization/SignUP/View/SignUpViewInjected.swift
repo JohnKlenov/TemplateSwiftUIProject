@@ -57,3 +57,64 @@ struct SignUpViewInjected: View {
 }
 
 
+//import SwiftUI
+//
+//struct ReauthenticateViewInjected: View {
+//    @StateObject private var viewModel: ReauthenticateViewModel
+//    
+//    init(authorizationManager: AuthorizationManager) {
+//        print("init SignUpViewInjected")
+//        let _ = Self._printChanges()
+//        _viewModel = StateObject(
+//            wrappedValue: ReauthenticateViewModel(
+//                authorizationManager: authorizationManager
+//            )
+//        )
+//    }
+//    
+//    var body: some View {
+//        ReauthenticateView(viewModel: viewModel)
+//    }
+//}
+//
+//import SwiftUI
+//import Combine
+//
+////@MainActor
+//class ReauthenticateViewModel: ObservableObject {
+//    @Published var email: String = ""
+//    @Published var password: String = ""
+//    
+//    @Published var emailError: String?
+//    @Published var passwordError: String?
+//    
+//    @Published var registeringState: AuthorizationManager.State = .idle
+//    
+//
+//    private let authorizationManager: AuthorizationManager
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//
+//    init(authorizationManager: AuthorizationManager) {
+//        self.authorizationManager = authorizationManager
+//        print("init SignUpViewModel")
+//       
+//        authorizationManager.$state
+//            .handleEvents(receiveOutput: { print("→ SignUpViewModel подписка получила:", $0) })
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.registeringState = state
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func reauthenticate() {
+//        authorizationManager.reauthenticate(email: email, password: password)
+//        
+//    }
+//    
+//    deinit {
+//        cancellables.removeAll()
+//        print("deinit SignUpViewModel")
+//    }
+//}

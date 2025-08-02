@@ -87,6 +87,9 @@
 		5EBFD5CC2E1D004E00A3C74C /* ContentAccountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5CB2E1D004E00A3C74C /* ContentAccountViewModel.swift */; };
 		5EBFD5CE2E1D015000A3C74C /* DeleteAccountCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5CD2E1D015000A3C74C /* DeleteAccountCellView.swift */; };
 		5EBFD5D02E228D5200A3C74C /* FirestoreProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5CF2E228D5200A3C74C /* FirestoreProfileService.swift */; };
+		5EC332D82E3E49F20051BE5B /* ReauthenticateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332D72E3E49F20051BE5B /* ReauthenticateViewModel.swift */; };
+		5EC332DA2E3E4A340051BE5B /* ReauthenticateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332D92E3E4A340051BE5B /* ReauthenticateView.swift */; };
+		5EC332DC2E3E4AF50051BE5B /* ReauthenticateViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332DB2E3E4AF50051BE5B /* ReauthenticateViewInjected.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -199,6 +202,9 @@
 		5EBFD5CB2E1D004E00A3C74C /* ContentAccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentAccountViewModel.swift; sourceTree = "<group>"; };
 		5EBFD5CD2E1D015000A3C74C /* DeleteAccountCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountCellView.swift; sourceTree = "<group>"; };
 		5EBFD5CF2E228D5200A3C74C /* FirestoreProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreProfileService.swift; sourceTree = "<group>"; };
+		5EC332D72E3E49F20051BE5B /* ReauthenticateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReauthenticateViewModel.swift; sourceTree = "<group>"; };
+		5EC332D92E3E4A340051BE5B /* ReauthenticateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReauthenticateView.swift; sourceTree = "<group>"; };
+		5EC332DB2E3E4AF50051BE5B /* ReauthenticateViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReauthenticateViewInjected.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLoggingService.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -596,6 +602,32 @@
 			path = Coordinator;
 			sourceTree = "<group>";
 		};
+		5EC332D42E3E49650051BE5B /* Reauthenticate */ = {
+			isa = PBXGroup;
+			children = (
+				5EC332D62E3E49850051BE5B /* ViewModel */,
+				5EC332D52E3E497C0051BE5B /* View */,
+			);
+			path = Reauthenticate;
+			sourceTree = "<group>";
+		};
+		5EC332D52E3E497C0051BE5B /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5EC332D92E3E4A340051BE5B /* ReauthenticateView.swift */,
+				5EC332DB2E3E4AF50051BE5B /* ReauthenticateViewInjected.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EC332D62E3E49850051BE5B /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5EC332D72E3E49F20051BE5B /* ReauthenticateViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		5EC88EDD2DB1375A00A95224 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
@@ -649,6 +681,7 @@
 		5EC88EF92DD4A51A00A95224 /* Authorization */ = {
 			isa = PBXGroup;
 			children = (
+				5EC332D42E3E49650051BE5B /* Reauthenticate */,
 				5EA2E60C2DFFF7A300C53E52 /* Service */,
 				5EA2E5F92DDF355700C53E52 /* SignIn */,
 				5EC88EFA2DD4A53100A95224 /* SignUP */,
@@ -1015,6 +1048,7 @@
 				5EA4FE322D09CF87001CA401 /* CRUDSManager.swift in Sources */,
 				5E8F9CB12D819EB6004036F6 /* GalleryView.swift in Sources */,
 				5EC94A0D2CC3CA4E003736A9 /* CustomErrorsFB.swift in Sources */,
+				5EC332DC2E3E4AF50051BE5B /* ReauthenticateViewInjected.swift in Sources */,
 				5EC94A122CC59585003736A9 /* HomeContentViewModel.swift in Sources */,
 				5E8F9CC32D81A4A7004036F6 /* MallCell.swift in Sources */,
 				5EA2E6052DE34EE000C53E52 /* OrientationInfo.swift in Sources */,
@@ -1040,6 +1074,7 @@
 				5EBFD5CA2E1CFF4A00A3C74C /* ContentAccountViewInjected.swift in Sources */,
 				5EC88EE32DB2347800A95224 /* NavigationCellView.swift in Sources */,
 				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,
+				5EC332D82E3E49F20051BE5B /* ReauthenticateViewModel.swift in Sources */,
 				5E8F9C8C2D6348BF004036F6 /* BooksListView.swift in Sources */,
 				5EA4FE292CF5B558001CA401 /* BookDetailsView.swift in Sources */,
 				5EC88EE12DB2342700A95224 /* UserInfoCellView.swift in Sources */,
@@ -1078,6 +1113,7 @@
 				5E8F9CB52D819F68004036F6 /* GalleryContentView.swift in Sources */,
 				5E8F9CAB2D7ED7DE004036F6 /* GalleryContentView(test).swift in Sources */,
 				5E8F9C8E2D6348D8004036F6 /* BookRowView.swift in Sources */,
+				5EC332DA2E3E4A340051BE5B /* ReauthenticateView.swift in Sources */,
 				5EA2E60E2E0007CB00C53E52 /* AuthorizationManager.swift in Sources */,
 				5EBFD5C22E055CBC00A3C74C /* SignUpViewInjected.swift in Sources */,
 				5EBFD5C62E1A868E00A3C74C /* RunLoopSetting.swift in Sources */,

@@ -14,6 +14,14 @@ import FirebaseAuth
 import Combine
 //import FirebaseFunctions
 
+// Ошибка, специфичная для deleteAccount()
+enum DeleteAccountError: Error {
+  /// Firebase вернул код .requiresRecentLogin
+  case reauthenticationRequired
+  /// Любая другая ошибка — оборачиваем оригинальный Error
+  case underlying(Error)
+}
+
 struct AuthUser {
     let uid: String
     let isAnonymous: Bool
@@ -37,7 +45,7 @@ final class AuthorizationService {
         }
         /// при удалении узера нам сначало должен прийти nil а потм уже объект user anon
         aythenticalSateHandler = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
-            print("AuthenticationService/AuthorizationManager user.uid - \(String(describing: user?.uid))")
+            print("AuthorizationService/AuthorizationManager user.uid - \(String(describing: user?.uid))")
             guard let user = user else {
                 self?.authStateSubject.send(nil)
                 return
@@ -96,15 +104,22 @@ final class AuthorizationService {
         
     
     // удаляем аккаунт
-    func deleteAccount() -> AnyPublisher<Void, Error> {
-        Future { promise in
+    func deleteAccount() -> AnyPublisher<Void, DeleteAccountError> {
+        Future<Void, DeleteAccountError> { promise in
             guard let user = Auth.auth().currentUser else {
-                return promise(.failure(FirebaseEnternalError.notSignedIn))
+                promise(.failure(.underlying(FirebaseEnternalError.notSignedIn)))
+                return
             }
             
             user.delete { error in
-                if let error = error {
-                    promise(.failure(error))
+                if let nsError = error as NSError? {
+                    // создаём AuthErrorCode по rawValue и сравниваем
+                    if let code = AuthErrorCode(rawValue: nsError.code),
+                       code == .requiresRecentLogin {
+                        promise(.failure(.reauthenticationRequired))
+                    } else {
+                        promise(.failure(.underlying(nsError)))
+                    }
                 } else {
                     promise(.success(()))
                 }
@@ -112,6 +127,25 @@ final class AuthorizationService {
         }
         .eraseToAnyPublisher()
     }
+    
+// before DeleteAccountError
+    
+//    func deleteAccount() -> AnyPublisher<Void, Error> {
+//        Future { promise in
+//            guard let user = Auth.auth().currentUser else {
+//                return promise(.failure(FirebaseEnternalError.notSignedIn))
+//            }
+//            
+//            user.delete { error in
+//                if let error = error {
+//                    promise(.failure(error))
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
     
    
 
