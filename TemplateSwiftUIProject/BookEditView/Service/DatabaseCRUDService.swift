@@ -139,6 +139,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
     
     private var db:Firestore
     
+    
     init(db: Firestore = Firestore.firestore()) {
         self.db = db
     }
@@ -148,7 +149,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
             
             do {
                 let _ = try self.db.collection(path).addDocument(from: book) { error in
-                    print("addDocument - \(String(describing: error))")
+                    print("func addBook addDocument - \(String(describing: error))")
                     if let error = error {
                         promise(.success(.failure(error)))
                     } else {

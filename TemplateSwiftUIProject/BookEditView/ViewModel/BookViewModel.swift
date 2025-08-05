@@ -48,6 +48,7 @@ class BookViewModel:ObservableObject {
         print("init BookViewModel")
     }
     
+    
     private func validateFields(for mode:Mode) {
         switch mode {
             

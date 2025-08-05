@@ -215,6 +215,7 @@ class HomeContentViewModel: HomeViewModelProtocol {
     /// когда мы signOut в момент когда user == nil отрабатывает firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
     /// и выбрасывает [FirebaseFirestore][I-FST000001] Listen for query at users/Sni6ad3yp4U3bnkamD1SpevQiVs2/data failed: Missing or insufficient permissions.
     private func handleFirestoreError(_ error: Error) {
+        print("HomeContentViewModel func handleFirestoreError - \(error.localizedDescription)")
         let errorMessage = errorHandler.handle(error: error)
         viewState = .error(errorMessage)
     }

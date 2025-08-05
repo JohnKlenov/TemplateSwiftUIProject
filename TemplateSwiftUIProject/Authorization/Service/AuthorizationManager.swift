@@ -91,13 +91,12 @@ final class AuthorizationManager: ObservableObject {
         
         authService.signUpBasic(email: email, password: password)
             .sink { [weak self] completion in
+                self?.state = .idle
                 guard let self = self else { return }
                 switch completion {
                 case .failure(let err):
-                    self.state = .idle
                     self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
                 case .finished:
-                    self.state = .idle
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
                         object: AuthNotificationPayload(authType: .emailSignUp)
@@ -117,13 +116,12 @@ final class AuthorizationManager: ObservableObject {
         
         authService.signInBasic(email: email, password: password)
             .sink { [weak self] completion in
+                self?.state = .idle
                 guard let self = self else { return }
                 switch completion {
                 case .failure(let err):
-                    self.state = .idle
                     self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn)
                 case .finished:
-                    self.state = .idle
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
                         object: AuthNotificationPayload(authType: .emailSignIn)
@@ -136,120 +134,93 @@ final class AuthorizationManager: ObservableObject {
             .store(in: &cancellables)
     }
     
-
-//    func deleteAccount() {
-//        state = .loading
-//        
-//        authService.deleteAccount()
-//            .sink { [weak self] completion in
-//                self?.handleDeleteAccountCompletion(completion)
-//            } receiveValue: { _ in }
-//            .store(in: &cancellables)
-//    }
-//
-//    // Private Methods for deleteAccount()
-//
-//    private func handleDeleteAccountCompletion(_ completion: Subscribers.Completion<DeleteAccountError>) {
-//        state = .idle
-//        
-//        switch completion {
-//        case .failure(let error):
-//            handleDeleteAccountError(error)
-//        case .finished:
-//            showAccountDeletionSuccess()
-//        }
-//    }
-//
-//    private func handleDeleteAccountError(_ error:  DeleteAccountError) {
-//        switch error {
-//        case .reauthenticationRequired:
-//            notifyReauthenticationNeeded()
-//            // Специальная обработка для навигационных переходов
-//            DispatchQueue.main.async { [weak self] in
-//                self?.showAccountDeletionError(
-//                    error,
-//                    operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
-//                )
-//            }
-//            
-//        case .underlying(let underlyingError):
-//            // Обычные ошибки уже на главном потоке благодаря receive(on:)
-//            showAccountDeletionError(
-//                underlyingError,
-//                operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
-//            )
-//        }
-//    }
-//
-//    private func notifyReauthenticationNeeded() {
-//            NotificationCenter.default.post(
-//                name: .needReauthenticate,
-//                object: AuthNotificationPayload(authType: .reauthenticate)
-//            )
-//    }
-//
-//    private func showAccountDeletionError(_ error: Error, operationDescription: String) {
-//        handleAuthenticationError(error, operationDescription: operationDescription)
-//    }
-//
-//    private func showAccountDeletionSuccess() {
-//        alertManager.showGlobalAlert(
-//            message: Localized.MessageOfSuccessOperationFirebase.accountDeletion,
-//            operationDescription: Localized.TitleOfSuccessOperationFirebase.accountDeletion,
-//            alertType: .ok
-//        )
-//    }
     
-    // но error распечатываем в алерте неизвестный так как сюда попадает DeleteAccountError.reauthenticationRequired 
     func deleteAccount() {
         state = .loading
         
         authService.deleteAccount()
             .sink { [weak self] completion in
-                self?.state = .idle
-                switch completion {
-                case .failure(let error):
-                    switch error {
-                    case .reauthenticationRequired:
-                        NotificationCenter.default.post(
-                            name: .needReauthenticate,
-                            object: AuthNotificationPayload(authType: .reauthenticate)
-                        )
-                        DispatchQueue.main.async { [weak self] in
-                            self?.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
-                        }
-                    case .underlying(let underlyingError):
-                        self?.handleAuthenticationError(underlyingError, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
-                    }
-                    
-                case .finished:
-                    DispatchQueue.main.async { [weak self] in
-                        self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
-                    }
-                }
+                self?.handleDeleteAccountCompletion(completion)
             } receiveValue: { _ in }
             .store(in: &cancellables)
     }
     
+    // Private Methods for deleteAccount()
+    
+    private func handleDeleteAccountCompletion(_ completion: Subscribers.Completion<DeleteAccountError>) {
+        state = .idle
         
-// before DeleteAccountError
-//    func deleteAccount() {
-//        state = .loading
-//        
-//        authService.deleteAccount()
-//            .sink { [weak self] completion in
-//                self?.state = .idle
-//                switch completion {
-//                case .failure(let error):
-//                    self?.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
-//                case .finished:
-//                    DispatchQueue.main.async { [weak self] in
-//                        self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
-//                    }
-//                }
-//            } receiveValue: { _ in }
-//            .store(in: &cancellables)
-//    }
+        switch completion {
+        case .failure(let error):
+            handleDeleteAccountError(error)
+        case .finished:
+            showAccountDeletionSuccess()
+        }
+    }
+    
+    private func handleDeleteAccountError(_ error:  DeleteAccountError) {
+        switch error {
+        case .reauthenticationRequired(let reauthError):
+            notifyReauthenticationNeeded()
+            // Специальная обработка для навигационных переходов
+            DispatchQueue.main.async { [weak self] in
+                self?.showAccountDeletionError(
+                    reauthError,
+                    operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
+                )
+            }
+            
+        case .underlying(let underlyingError):
+            // Обычные ошибки уже на главном потоке благодаря receive(on:)
+            showAccountDeletionError(
+                underlyingError,
+                operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
+            )
+        }
+    }
+    
+    private func notifyReauthenticationNeeded() {
+        NotificationCenter.default.post(
+            name: .needReauthenticate,
+            object: AuthNotificationPayload(authType: .reauthenticate)
+        )
+    }
+    
+    private func showAccountDeletionError(_ error: Error, operationDescription: String) {
+        handleAuthenticationError(error, operationDescription: operationDescription)
+    }
+    
+    private func showAccountDeletionSuccess() {
+        alertManager.showGlobalAlert(
+            message: Localized.MessageOfSuccessOperationFirebase.accountDeletion,
+            operationDescription: Localized.TitleOfSuccessOperationFirebase.accountDeletion,
+            alertType: .ok
+        )
+    }
+//    
+//    authService.reauthenticate(email: email, password: password)
+//        .receive(on: DispatchQueue.main)
+    
+    func confirmIdentity(email: String, password: String) {
+        state = .loading
+        authService.reauthenticate(email: email, password: password)
+            .sink { [weak self] completion in
+                self?.state = .idle
+                switch completion {
+                case .finished:
+                    NotificationCenter.default.post(
+                        name: .authDidSucceed,
+                        object: AuthNotificationPayload(authType: .reauthenticate)
+                    )
+                    DispatchQueue.main.async { [weak self] in
+                        self?.alertManager.showGlobalAlert(message:"Повторная аутентификация прошла успешно!", operationDescription: "Аутентификация", alertType: .ok)
+                    }
+                case .failure(let error):
+                    self?.handleAuthenticationError(error, operationDescription: "Аутентификация")
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
     
     func signOutAccount() {
         state = .loading
@@ -269,22 +240,77 @@ final class AuthorizationManager: ObservableObject {
             .store(in: &cancellables)
     }
     
-    
-//    func createProfile(name: String) {
-//        state = .loading
-//        
-//        authService.createProfile(name: name)
-//            .sink { [weak self] completion in
-//                switch completion {
-//                case .failure(_):
-//                    self?.state = .failure
-//                case .finished:
-//                    self?.state = .success
-//                }
-//            } receiveValue: { _ in }
-//            .store(in: &cancellables)
-//    }
 }
+    
+    
+    
+    //    func deleteAccount() {
+    //        state = .loading
+    //
+    //        authService.deleteAccount()
+    //            .sink { [weak self] completion in
+    //                self?.state = .idle
+    //                switch completion {
+    //                case .failure(let error):
+    //                    switch error {
+    //                    case .reauthenticationRequired(let reauthError):
+    //                        NotificationCenter.default.post(
+    //                            name: .needReauthenticate,
+    //                            object: AuthNotificationPayload(authType: .reauthenticate)
+    //                        )
+    //                        DispatchQueue.main.async { [weak self] in
+    //                            self?.handleAuthenticationError(reauthError, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
+    //                        }
+    //                    case .underlying(let underlyingError):
+    //                        self?.handleAuthenticationError(underlyingError, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
+    //                    }
+    //
+    //                case .finished:
+    //                    DispatchQueue.main.async { [weak self] in
+    //                        self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
+    //                    }
+    //                }
+    //            } receiveValue: { _ in }
+    //            .store(in: &cancellables)
+    //    }
+        
+            
+    // before DeleteAccountError
+    //    func deleteAccount() {
+    //        state = .loading
+    //
+    //        authService.deleteAccount()
+    //            .sink { [weak self] completion in
+    //                self?.state = .idle
+    //                switch completion {
+    //                case .failure(let error):
+    //                    self?.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion)
+    //                case .finished:
+    //                    DispatchQueue.main.async { [weak self] in
+    //                        self?.alertManager.showGlobalAlert(message:Localized.MessageOfSuccessOperationFirebase.accountDeletion, operationDescription:Localized.TitleOfSuccessOperationFirebase.accountDeletion, alertType: .ok)
+    //                    }
+    //                }
+    //            } receiveValue: { _ in }
+    //            .store(in: &cancellables)
+    //    }
+    
+    //    func createProfile(name: String) {
+    //        state = .loading
+    //
+    //        authService.createProfile(name: name)
+    //            .sink { [weak self] completion in
+    //                switch completion {
+    //                case .failure(_):
+    //                    self?.state = .failure
+    //                case .finished:
+    //                    self?.state = .success
+    //                }
+    //            } receiveValue: { _ in }
+    //            .store(in: &cancellables)
+    //    }
+    
+    // MARK: - Test methods
+    
 
 //test
 //    func deleteAccount() {

@@ -15,25 +15,15 @@ exports.deleteUserData = functions.auth.user().onDelete(async (user) => {
   const userRef = admin.firestore().doc(`users/${uid}`);
 
   try {
-    const snapshot = await userRef.get();
-
-    if (!snapshot.exists) {
-      logger.info(
-          `ℹ️ У пользователя ${uid} не найдено данных в Firestore`,
-          {uid},
-      );
-      return;
-    }
-
+    // Удаляем все данные пользователя, включая вложенные коллекции
     await admin.firestore().recursiveDelete(userRef);
-    logger.info(
-        `✅ Удалены данные пользователя: ${uid}`,
-        {uid},
-    );
+
+    logger.info(`✅ Удалены все данные пользователя: ${uid}`, {uid});
   } catch (error) {
-    logger.error(
-        `❌ Ошибка при удалении данных пользователя: ${uid}`,
-        {uid, error},
-    );
+    logger.error(`❌ Ошибка при удалении данных пользователя: ${uid}`, {
+      uid,
+      error,
+    });
   }
 });
+

@@ -32,6 +32,7 @@ class CRUDSManager {
         print("init CRUDSManager")
     }
     
+    
     /// во входных параметрах должны передовать из какого rootView происходит операция и какая эта операция
     func updateOrAddBook(book: BookCloud, forView:String, operationDescription: String) {
         authService.getCurrentUserID()
@@ -40,6 +41,7 @@ class CRUDSManager {
                     
                 case .success(let uid):
                     let path = "users/\(uid)/data"
+                    print("path path path - \(path)" )
                     if let _ = book.id {
                         self?.updateBook(path: path, book: book, forView: forView, operationDescription: operationDescription)
                     } else {
@@ -117,6 +119,7 @@ class CRUDSManager {
     /// мы не должны перезатерать ошибки?
     /// так же мы должны передавать имя того корневого view из которого пришла ошибка!
     private func handleError(_ error: Error, forView:String, operationDescription: String) {
+        print("CRUDSManager func handleError ")
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
