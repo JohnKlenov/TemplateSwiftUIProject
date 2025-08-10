@@ -41,7 +41,7 @@ class CRUDSManager {
                     
                 case .success(let uid):
                     let path = "users/\(uid)/data"
-                    print("path path path - \(path)" )
+                    print("path path path - \(path)")
                     if let _ = book.id {
                         self?.updateBook(path: path, book: book, forView: forView, operationDescription: operationDescription)
                     } else {

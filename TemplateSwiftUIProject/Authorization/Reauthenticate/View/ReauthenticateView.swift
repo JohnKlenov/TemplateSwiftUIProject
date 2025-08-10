@@ -5,8 +5,24 @@
 //  Created by Evgenyi on 2.08.25.
 //
 
+
+//когда мы выбрасываем пользователя на ReauthenticateView можем проверить через какой он провайдер входил в систему и именно такой интерфейс в ReauthenticateView сразу отобразить для пользователя!
+
+///Firebase предоставляет массив user.providerData, и ты можешь взять оттуда providerId. Пример на Swift:
+///if let provider = Auth.auth().currentUser?.providerData.first?.providerID {print("Пользователь вошёл через: \(provider)")}
+///Рекомендуемое поведение при повторной аутентификации:
+///providerId определён - Показывай только релевантный UI: например, форму пароля для password, Google-кнопку для google.com, и т.д.
+///providerData пуст или не содержит нужного - Показывай все возможные провайдеры: email+пароль, Google, Apple и т.д.
+///Почему providerData может быть пустым? - Если пользователь вошёл анонимно + Если ты очистил providerData вручную при миграции аккаунта + Если используется нестандартный провайдер или кастомный токен
+///Чтобы в будущем не полагаться на user.providerData, можно при регистрации сохранить providerId в Firestore или UserDefaults.
+///let providerID = Auth.auth().currentUser?.providerData.first?.providerID UserDefaults.standard.set(providerID, forKey: "authProvider")
+
+
+
 import SwiftUI
-/// делаем только с полем email and password and forgot password (Apple and Google это отдельные reauthenticateView)
+
+
+// это общий ReauthenticateView (со всеми провайдерами входа)
 struct ReauthenticateView: View {
     @ObservedObject var viewModel: ReauthenticateViewModel
     // Состояние для переключения видимости пароля

@@ -24,12 +24,28 @@
 import FirebaseFirestore
 import Combine
 
-struct UserProfile: Codable {
+// before case .userInfoEdit(let profile):
+
+//struct UserProfile: Codable {
+//    let uid: String
+//    var name: String?
+//    var email: String?
+//    var photoURL: URL?
+//    
+//    init(uid: String, name: String? = nil, email: String? = nil, photoURL: URL? = nil) {
+//        self.uid = uid
+//        self.name = name
+//        self.email = email
+//        self.photoURL = photoURL
+//    }
+//}
+
+struct UserProfile: Codable, Equatable, Hashable {
     let uid: String
     var name: String?
     var email: String?
     var photoURL: URL?
-    
+
     init(uid: String, name: String? = nil, email: String? = nil, photoURL: URL? = nil) {
         self.uid = uid
         self.name = name

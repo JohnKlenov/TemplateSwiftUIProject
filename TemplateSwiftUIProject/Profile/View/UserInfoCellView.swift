@@ -69,7 +69,14 @@ struct UserInfoCellView: View {
         .contentShape(Rectangle())
         .onTapGesture {
             guard !isLoading else { return }
-            accountCoordinator.navigateTo(page: .userInfo)
+            guard let profile = viewModel.userProfile else { return }
+            accountCoordinator.navigateTo(page: .userInfoEdit(profile))
+//            if !viewModel.isUserAnonymous {
+//                guard let profile = viewModel.userProfile else { return }
+//                accountCoordinator.navigateTo(page: .userInfoEdit(profile))
+//            } else {
+//                print("accountCoordinator.navigateTo(page: .userInfoAnon)")
+//            }
         }
     }
     
@@ -112,6 +119,7 @@ struct UserInfoCellView: View {
         }
     }
 
+    
     
     // MARK: - Computed Properties
     

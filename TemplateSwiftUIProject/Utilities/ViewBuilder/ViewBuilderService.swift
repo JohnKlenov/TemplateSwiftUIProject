@@ -65,6 +65,8 @@ class ViewBuilderService: ObservableObject {
             SignInViewInjected(authorizationManager: authorizationManager)
         case .reauthenticate:
             ReauthenticateViewInjected(authorizationManager: authorizationManager)
+        case .userInfoEdit(let profile):
+            UserInfoEditViewInjected(authorizationManager: authorizationManager, profile: profile)
         }
     }
     
