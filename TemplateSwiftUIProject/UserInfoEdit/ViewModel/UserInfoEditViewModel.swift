@@ -49,15 +49,18 @@ class UserInfoEditViewModel: ObservableObject {
         // Save активируется, когда поля непустые и изменились
         Publishers
             .CombineLatest($name, $email)
-            .map { [unowned self] name, email in
+            .map { [weak self] name, email in
+                guard let self else { return false }
                 let trimmedName = name.trimmingCharacters(in: .whitespaces)
                 let trimmedEmail = email.trimmingCharacters(in: .whitespaces)
                 let notEmpty = !trimmedName.isEmpty && !trimmedEmail.isEmpty
-                let changed = trimmedName != initialName || trimmedEmail != initialEmail
-                return notEmpty && changed && !isSaving
+                let changed = trimmedName != self.initialName || trimmedEmail != self.initialEmail
+                return notEmpty && changed && !self.isSaving
             }
             .receive(on: RunLoop.main)
-            .assign(to: \.canSave, on: self)
+            .sink { [weak self] canSave in
+                self?.canSave = canSave
+            }
             .store(in: &cancellables)
     }
 
@@ -88,6 +91,7 @@ class UserInfoEditViewModel: ObservableObject {
 
     deinit {
         cancellables.removeAll()
+        print("deinit UserInfoEditViewModel")
     }
 }
 

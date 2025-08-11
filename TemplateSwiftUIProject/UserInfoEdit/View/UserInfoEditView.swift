@@ -5,36 +5,42 @@
 //  Created by Evgenyi on 10.08.25.
 //
 
+
 import SwiftUI
 
 struct UserInfoEditView: View {
     @ObservedObject var viewModel: UserInfoEditViewModel
-    @Environment(\.dismiss) private var dismiss
-
+    
     var body: some View {
         let _ = Self._printChanges()
+        
         Form {
             // MARK: Avatar + Edit Button
             Section {
                 VStack(spacing: 12) {
-                    Button(action: { viewModel.showImageOptions = true }) {
+                    // 1) Аватар: кликается отдельно, вызывает print
+                    Button(action: {
+                        print("Avatar tapped")
+                    }) {
                         avatarContent
                             .scaledToFill()
                             .frame(width: 120, height: 120)
-                            .clipShape(Circle())
+                            .clipShape(Circle()) // обрезает картинку по кругу
                     }
                     .buttonStyle(.plain)
-                    .onTapGesture {
-                        print("Avatar tapped")
-                    }
-
-                    Button("Edit Photo") {
-                        viewModel.showImageOptions = true
-                    }
+                    .contentShape(Circle()) // ограничивает зону нажатия кругом
+                    
+                    // 2) Кнопка Edit Photo: простой текст, вызывает confirmationDialog
+                    Text("Edit Photo")
+                        .foregroundColor(.blue)
+                        .onTapGesture {
+                            viewModel.showImageOptions = true
+                        }
+                        .contentShape(Rectangle()) // чёткая hit-область
                 }
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
-
+            
             // MARK: Name & Email
             Section(header: Text("Name")) {
                 TextField("Name", text: $viewModel.name)
@@ -49,34 +55,23 @@ struct UserInfoEditView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
-//                    Task {
-//                        await viewModel.saveProfile()
-//                        dismiss()
-//                    }
+                    // Task { await viewModel.saveProfile(); dismiss() }
                 }
                 .disabled(!viewModel.canSave)
             }
         }
-        // MARK: ActionSheet for image options
-        .actionSheet(isPresented: $viewModel.showImageOptions) {
-            ActionSheet(
-                title: Text("Edit Photo"),
-                buttons: [
-                    .default(Text("Choose from Library"), action: viewModel.chooseFromLibrary),
-                    .default(Text("Take Photo"), action: viewModel.takePhoto),
-                    .destructive(Text("Delete Photo"), action: viewModel.deletePhoto),
-                    .cancel()
-                ]
-            )
+        // Только кнопка Edit Photo меняет showImageOptions
+        .confirmationDialog("Edit Photo", isPresented: $viewModel.showImageOptions, titleVisibility: .visible) {
+            Button("Choose from Library") { viewModel.chooseFromLibrary() }
+            Button("Take Photo") { viewModel.takePhoto() }
+            Button("Delete Photo", role: .destructive) { viewModel.deletePhoto() }
         }
-        // MARK: Photo & Camera pickers (с заглушками)
         .sheet(isPresented: $viewModel.showPhotoPicker) {
             Text("Photo Picker Placeholder")
         }
         .sheet(isPresented: $viewModel.showCamera) {
             Text("Camera View Placeholder")
         }
-        // MARK: Error alert
         .alert(isPresented: $viewModel.showErrorAlert) {
             Alert(
                 title: Text("Error"),
@@ -85,13 +80,29 @@ struct UserInfoEditView: View {
             )
         }
     }
-
+    
+    // MARK: - Subviews
+    
+    // Аватар: отдельная кнопка без изменения showImageOptions
+    private var avatarButton: some View {
+        Button {
+            print("Avatar tapped")
+        } label: {
+            avatarContent
+                .scaledToFill()
+                .frame(width: 120, height: 120)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+        // Не раскрываем hit-область за границы изображения
+        .contentShape(Circle())
+    }
+    
     // MARK: Avatar rendering logic
     @ViewBuilder
     private var avatarContent: some View {
         if let img = viewModel.avatarImage {
-            Image(uiImage: img)
-                .resizable()
+            Image(uiImage: img).resizable()
         } else if let url = viewModel.initialPhotoURL {
             AsyncImage(url: url) { phase in
                 if let image = phase.image {
@@ -111,3 +122,4 @@ struct UserInfoEditView: View {
         }
     }
 }
+
