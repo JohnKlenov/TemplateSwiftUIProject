@@ -13,13 +13,13 @@ class UserInfoEditViewModel: ObservableObject {
     // Входные данные из UserProfile
     private let uid: String
     private let initialName: String
-    private let initialEmail: String
+    private let initialLastName: String
     let initialPhotoURL: URL?
 //    private let profileService: ProfileServiceProtocol
 
     // Публикуемые свойства для View
     @Published var name: String
-    @Published var email: String
+    @Published var lastName: String
     @Published var avatarImage: UIImage?
     @Published var showImageOptions = false
     @Published var showPhotoPicker = false
@@ -36,25 +36,36 @@ class UserInfoEditViewModel: ObservableObject {
         print("init UserInfoEditViewModel")
         self.uid = profile.uid
         self.initialName = profile.name ?? ""
-        self.initialEmail = profile.email ?? ""
+        self.initialLastName = profile.lastName ?? ""
         self.initialPhotoURL = profile.photoURL
         //        self.profileService = profileService
         self.name = profile.name ?? ""
-        self.email = profile.email ?? ""
+        self.lastName = profile.lastName ?? ""
         self.authorizationManager = authorizationManager
         setupBindings()
     }
 
     private func setupBindings() {
-        // Save активируется, когда поля непустые и изменились
+        // Save активируется, когда хотя бы одно строковое поле непустое или изменилось
+        /// даем максимальную свободу в имени/фамилии - хоть один символ, может содержать любые пробелы(но строка из пробелов это не имя).
+        ///Каждый раз, когда любая из них ($name, $email) меняется, CombineLatest выдаёт обновлённую пару значений (name, email)
+        ///let isNameValid = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty - Он проверяет, что строка name содержит хотя бы один видимый символ, кроме пробелов, табов и переносов. не позволить сохранить пустую строку, даже если она состоит из пробелов или переносов. Но при этом сохранять оригинальную строку, если она содержит хоть один видимый символ.
+        ///name.trimmingCharacters(in: .whitespacesAndNewlines) - Удаляет все пробельные символы в начале и в конце строки name (обычные пробелы + табуляции "\t" + переносы строк "\n" + возвраты каретки "\r")
+        ///notEmpty - хотя бы одно поле не пустое
+        ///Финальная логика: Поля не пустые + Есть изменения + Сейчас не идёт процесс сохранения (isSaving == false)
+        ///сли всё это выполнено → canSave = true
         Publishers
-            .CombineLatest($name, $email)
-            .map { [weak self] name, email in
+            .CombineLatest($name, $lastName)
+            .map { [weak self] name, lastName in
                 guard let self else { return false }
-                let trimmedName = name.trimmingCharacters(in: .whitespaces)
-                let trimmedEmail = email.trimmingCharacters(in: .whitespaces)
-                let notEmpty = !trimmedName.isEmpty && !trimmedEmail.isEmpty
-                let changed = trimmedName != self.initialName || trimmedEmail != self.initialEmail
+                
+                // Проверка на содержимое — но сохраняем оригинал
+                let isNameValid = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                let isLastNameValid = !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                
+                let notEmpty = isNameValid || isLastNameValid
+                let changed = name != self.initialName || lastName != self.initialLastName
+                
                 return notEmpty && changed && !self.isSaving
             }
             .receive(on: RunLoop.main)
@@ -65,7 +76,38 @@ class UserInfoEditViewModel: ObservableObject {
     }
 
     func saveProfile()  {
-        //func saveProfile() async {
+//        profileService.updateProfile(
+//            uid: uid,
+//            name: name,
+//            email: lastName
+//        )
+    }
+
+    // MARK: - Image actions
+
+    func chooseFromLibrary() { showPhotoPicker = true }
+    func takePhoto() { showCamera = true }
+    func deletePhoto() { avatarImage = nil }
+
+    deinit {
+        cancellables.removeAll()
+        print("deinit UserInfoEditViewModel")
+    }
+}
+
+extension String {
+    func normalizedWhitespace() -> String {
+        self
+            .trimmingCharacters(in: .whitespacesAndNewlines) // удаляет пробелы и переносы в начале и конце
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression) // заменяет любые подряд идущие пробелы на один
+    }
+}
+
+
+//                let trimmedName = name.trimmingCharacters(in: .whitespaces)
+//                let trimmedLastName = lastName.trimmingCharacters(in: .whitespaces)
+
+//func saveProfile() async {
 //        guard canSave else { return }
 //        isSaving = true
 //
@@ -81,17 +123,3 @@ class UserInfoEditViewModel: ObservableObject {
 //            isSaving = false
 //            showErrorAlert = true
 //        }
-    }
-
-    // MARK: - Image actions
-
-    func chooseFromLibrary() { showPhotoPicker = true }
-    func takePhoto() { showCamera = true }
-    func deletePhoto() { avatarImage = nil }
-
-    deinit {
-        cancellables.removeAll()
-        print("deinit UserInfoEditViewModel")
-    }
-}
-

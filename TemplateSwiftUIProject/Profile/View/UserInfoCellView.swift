@@ -55,7 +55,7 @@ struct UserInfoCellView: View {
                         .foregroundColor(.primary)
                 }
                 
-                Text(displayEmail)
+                Text(lastName)
                     .font(.subheadline)
                     .foregroundColor(AppColors.gray)
             }
@@ -137,7 +137,7 @@ struct UserInfoCellView: View {
         return viewModel.userProfile?.name ?? "Без имени"
     }
     
-    private var displayEmail: String {  // Делаем опциональным
+    private var lastName: String {  // Делаем опциональным
         if viewModel.isUserAnonymous {
             return "Анонимный режим"
         }
@@ -147,7 +147,7 @@ struct UserInfoCellView: View {
         if viewModel.profileLoadingState == .loading {
             return "Загрузка..."
         }
-        return viewModel.userProfile?.email ?? "Email не указан"
+        return viewModel.userProfile?.lastName ?? "Фамилия не указана"
     }
 }
 

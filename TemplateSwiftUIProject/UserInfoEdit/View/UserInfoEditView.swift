@@ -45,8 +45,8 @@ struct UserInfoEditView: View {
             Section(header: Text("Name")) {
                 TextField("Name", text: $viewModel.name)
             }
-            Section(header: Text("Email")) {
-                TextField("Email", text: $viewModel.email)
+            Section(header: Text("LastName")) {
+                TextField("LastName", text: $viewModel.lastName)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
             }

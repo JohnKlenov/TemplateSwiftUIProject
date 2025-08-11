@@ -43,13 +43,13 @@ import Combine
 struct UserProfile: Codable, Equatable, Hashable {
     let uid: String
     var name: String?
-    var email: String?
+    var lastName: String?
     var photoURL: URL?
 
     init(uid: String, name: String? = nil, email: String? = nil, photoURL: URL? = nil) {
         self.uid = uid
         self.name = name
-        self.email = email
+        self.lastName = email
         self.photoURL = photoURL
     }
 }
