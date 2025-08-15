@@ -11,12 +11,12 @@ import SwiftUI
 struct UserInfoEditViewInjected: View {
     @StateObject private var viewModel: UserInfoEditViewModel
     
-    init(authorizationManager: AuthorizationManager, profile: UserProfile) {
+    init(authorizationManager: AuthorizationManager, profileService: FirestoreProfileService, profile: UserProfile) {
         print("init UserInfoEditViewInjected")
         let _ = Self._printChanges()
         _viewModel = StateObject(
             wrappedValue: UserInfoEditViewModel(
-                authorizationManager: authorizationManager, profile: profile
+                authorizationManager: authorizationManager, profileService: profileService, profile: profile
             )
         )
     }

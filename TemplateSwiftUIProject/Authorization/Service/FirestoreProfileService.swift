@@ -24,32 +24,16 @@
 import FirebaseFirestore
 import Combine
 
-// before case .userInfoEdit(let profile):
-
-//struct UserProfile: Codable {
-//    let uid: String
-//    var name: String?
-//    var email: String?
-//    var photoURL: URL?
-//    
-//    init(uid: String, name: String? = nil, email: String? = nil, photoURL: URL? = nil) {
-//        self.uid = uid
-//        self.name = name
-//        self.email = email
-//        self.photoURL = photoURL
-//    }
-//}
-
 struct UserProfile: Codable, Equatable, Hashable {
     let uid: String
     var name: String?
     var lastName: String?
     var photoURL: URL?
 
-    init(uid: String, name: String? = nil, email: String? = nil, photoURL: URL? = nil) {
+    init(uid: String, name: String? = nil, lastName: String? = nil, photoURL: URL? = nil) {
         self.uid = uid
         self.name = name
-        self.lastName = email
+        self.lastName = lastName
         self.photoURL = photoURL
     }
 }
@@ -57,7 +41,7 @@ struct UserProfile: Codable, Equatable, Hashable {
 
 protocol ProfileServiceProtocol {
     func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error>
-    func updateProfile(_ profile: UserProfile) -> AnyPublisher<Void, Error>
+    func updateProfile(_ profile: UserProfile)
 }
 
 class FirestoreProfileService: ProfileServiceProtocol {
@@ -85,10 +69,12 @@ class FirestoreProfileService: ProfileServiceProtocol {
         /// snapshot.metadata.hasPendingWrites == true + snapshot.metadata.isFromCache == true - Локальная запись, оффлайн или ещё не синхронизирована
         /// snapshot.metadata.hasPendingWrites - В документе есть локальные изменения, которые ещё не подтверждены сервером.
         /// snapshot.metadata.isFromCache - Снапшот пришёл из локального кэша, а не напрямую с сервера
-            profileListener = docRef.addSnapshotListener(includeMetadataChanges: true) { snapshot, error in
+            profileListener = docRef.addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, error in
                 if let error = error {
                     subject.send(completion: .failure(error))
-                    self.handleFirestoreError(error, operationDescription: "Error fetch profile")
+                    ///  когда мы будем удалять users/{uid} через cloud function
+                    ///  может отработать error ошибка прав доступа до того как будет вызван новый fetchProfile(uid: String) и profileListener?.remove()
+                    self?.handleFirestoreError(error, operationDescription: "Error fetch profile")
                     return
                 }
 
@@ -96,13 +82,14 @@ class FirestoreProfileService: ProfileServiceProtocol {
                 ///Внутренние сбои SDK + Неверный путь (например, пустой uid)
                 guard let snapshot = snapshot else {
                     subject.send(completion: .failure(FirebaseInternalError.nilSnapshot))
-                    self.handleFirestoreError(FirebaseInternalError.nilSnapshot, operationDescription: "Error fetch profile")
+                    self?.handleFirestoreError(FirebaseInternalError.nilSnapshot, operationDescription: "Error fetch profile")
                     return
                 }
 
                 do {
                     if snapshot.exists {
                         let profile = try snapshot.data(as: UserProfile.self)
+                        print("FirestoreProfileService Received objects: \(profile)")
                         subject.send(profile)
                     } else {
                         // Документ отсутствует — отдаем пустую модель
@@ -110,7 +97,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
                     }
                 } catch {
                     subject.send(completion: .failure(error))
-                    self.handleFirestoreError(error, operationDescription: "Error fetch profile")
+                    self?.handleFirestoreError(error, operationDescription: "Error fetch profile")
                 }
                 
             }
@@ -119,23 +106,31 @@ class FirestoreProfileService: ProfileServiceProtocol {
                 .eraseToAnyPublisher()
         }
 
-    
-    func updateProfile(_ profile: UserProfile) -> AnyPublisher<Void, Error> {
-        Future { [weak self] promise in
-            do {
-                try self?.db.collection("users").document(profile.uid).setData(from: profile) { error in
-                    if let error = error {
-                        promise(.failure(error))
-                        self?.handleFirestoreError(error, operationDescription: "Error update profile")
-                    } else {
-                        promise(.success(()))
+    func updateProfile(_ profile: UserProfile) {
+        
+        let docRef = db
+            .collection("users")
+            .document(profile.uid)
+            .collection("userProfileData")
+            .document(profile.uid)
+        
+        do {
+            try docRef.setData(from: profile, merge: true) { [weak self] error in
+                guard let self else { return }
+                if let error = error {
+                    DispatchQueue.main.async {
+                        self.handleFirestoreError(error, operationDescription: "Error update profile")
                     }
                 }
-            } catch {
-                promise(.failure(error))
-                self?.handleFirestoreError(error, operationDescription: "Error update profile")
+                // Успех обрабатывать не требуется: Root-listener сам обновит UI.
+                // При оффлайне completion придёт позже, когда будет подтверждение сервера или ошибка.
             }
-        }.eraseToAnyPublisher()
+        } catch {
+            // Синхронная ошибка кодирования модели
+            DispatchQueue.main.async { [weak self] in
+                self?.handleFirestoreError(error, operationDescription: "Encoding error update profile")
+            }
+        }
     }
     
     private func handleFirestoreError(_ error: Error, operationDescription:String) {
@@ -208,3 +203,45 @@ class FirestoreProfileService: ProfileServiceProtocol {
 //                }
 //            )
 //    }
+
+
+
+
+
+
+// MARK: - trush
+
+//    func updateProfile(_ profile: UserProfile) -> AnyPublisher<Void, Error> {
+//        Future { [weak self] promise in
+//            do {
+//                try self?.db.collection("users").document(profile.uid).setData(from: profile) { error in
+//                    if let error = error {
+//                        promise(.failure(error))
+//                        self?.handleFirestoreError(error, operationDescription: "Error update profile")
+//                    } else {
+//                        promise(.success(()))
+//                    }
+//                }
+//            } catch {
+//                promise(.failure(error))
+//                self?.handleFirestoreError(error, operationDescription: "Error update profile")
+//            }
+//        }.eraseToAnyPublisher()
+//    }
+
+
+// before case .userInfoEdit(let profile):
+
+//struct UserProfile: Codable {
+//    let uid: String
+//    var name: String?
+//    var email: String?
+//    var photoURL: URL?
+//
+//    init(uid: String, name: String? = nil, email: String? = nil, photoURL: URL? = nil) {
+//        self.uid = uid
+//        self.name = name
+//        self.email = email
+//        self.photoURL = photoURL
+//    }
+//}

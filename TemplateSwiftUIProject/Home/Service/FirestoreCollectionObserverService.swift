@@ -89,7 +89,7 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
                     try? document.data(as: T.self)
                 }) ?? []
                 
-//                print("Received objects: \(data)")
+                print("FirestoreCollectionObserverService Received objects: \(data)")
                 subject.send(.success(data))
             }
         }

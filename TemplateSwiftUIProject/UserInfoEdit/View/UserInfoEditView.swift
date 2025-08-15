@@ -14,7 +14,9 @@ enum FieldToFocusProfileEdit: Hashable, CaseIterable {
 }
 
 struct UserInfoEditView: View {
+    
     @ObservedObject var viewModel: UserInfoEditViewModel
+    @EnvironmentObject var accountCoordinator: AccountCoordinator
     @FocusState var isFieldFocus: FieldToFocusProfileEdit?
     
     var body: some View {
@@ -71,7 +73,8 @@ struct UserInfoEditView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Done") {
-                    // Task { await viewModel.saveProfile(); dismiss() }
+                    viewModel.updateProfile()
+                    accountCoordinator.popToRoot()
                 }
                 .disabled(!viewModel.canSave)
             }

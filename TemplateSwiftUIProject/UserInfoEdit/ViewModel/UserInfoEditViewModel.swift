@@ -29,10 +29,11 @@ class UserInfoEditViewModel: ObservableObject {
     @Published private(set) var canSave = false
 
     private let authorizationManager: AuthorizationManager
+    private let profileService: FirestoreProfileService
     
     private var cancellables = Set<AnyCancellable>()
 
-    init(authorizationManager: AuthorizationManager, profile: UserProfile) {
+    init(authorizationManager: AuthorizationManager, profileService: FirestoreProfileService, profile: UserProfile) {
         print("init UserInfoEditViewModel")
         self.uid = profile.uid
         self.initialName = profile.name ?? ""
@@ -42,6 +43,7 @@ class UserInfoEditViewModel: ObservableObject {
         self.name = profile.name ?? ""
         self.lastName = profile.lastName ?? ""
         self.authorizationManager = authorizationManager
+        self.profileService = profileService
         setupBindings()
     }
 
@@ -75,12 +77,8 @@ class UserInfoEditViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    func saveProfile()  {
-//        profileService.updateProfile(
-//            uid: uid,
-//            name: name,
-//            email: lastName
-//        )
+    func updateProfile()  {
+        profileService.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: initialPhotoURL))
     }
 
     // MARK: - Image actions
