@@ -72,7 +72,7 @@ final class FirestoreGetService {
                     // Если коллекция существует, но документов нет, считаем это ошибкой:
                     if snapshot.documents.isEmpty {
                         print("MallSection: empty snapshot")
-                        continuation.resume(throwing: FirebaseEnternalError.emptyResult)
+                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
                         return
                     }
                     let items: [MallItem] = snapshot.documents.compactMap { document -> MallItem? in
@@ -89,7 +89,7 @@ final class FirestoreGetService {
                     if items.isEmpty {
                         // Логирование (Crashlytics, Sentry, и т.д.)
                         print("MallSection: conversion yielded empty")
-                        continuation.resume(throwing: FirebaseEnternalError.emptyResult)
+                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
                     } else {
                         print("MallSection snapshot != nil = \(items)")
                         continuation.resume(returning: items)
@@ -97,7 +97,7 @@ final class FirestoreGetService {
                 } else {
                     // Логирование (Crashlytics, Sentry, и т.д.)
                     print("MallSection snapshot == nil")
-                    continuation.resume(throwing: FirebaseEnternalError.emptyResult)
+                    continuation.resume(throwing: FirebaseInternalError.emptyResult)
                 }
             }
         }
@@ -115,7 +115,7 @@ final class FirestoreGetService {
                     if snapshot.documents.isEmpty {
                         // Логирование (Crashlytics, Sentry, и т.д.)
                         print("ShopSection: empty snapshot")
-                        continuation.resume(throwing: FirebaseEnternalError.emptyResult)
+                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
                         return
                     }
                     let items: [ShopItem] = snapshot.documents.compactMap { document -> ShopItem? in
@@ -131,7 +131,7 @@ final class FirestoreGetService {
                     if items.isEmpty {
                         // Логирование (Crashlytics, Sentry, и т.д.)
                         print("ShopSection: conversion yielded empty")
-                        continuation.resume(throwing: FirebaseEnternalError.emptyResult)
+                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
                     } else {
                         print("ShopSection snapshot != nil = \(items)")
                         continuation.resume(returning: items)
@@ -139,7 +139,7 @@ final class FirestoreGetService {
                 } else {
                     // Логирование (Crashlytics, Sentry, и т.д.)
                     print("ShopSection snapshot == nil")
-                    continuation.resume(throwing: FirebaseEnternalError.emptyResult)
+                    continuation.resume(throwing: FirebaseInternalError.emptyResult)
                 }
             }
         }
@@ -156,7 +156,7 @@ final class FirestoreGetService {
                     if snapshot.documents.isEmpty {
                         // Логирование (Crashlytics, Sentry, и т.д.)
                         print("PopularProducts: empty snapshot")
-                        continuation.resume(throwing: FirebaseEnternalError.emptyResult)
+                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
                         return
                     }
                     let items: [ProductItem] = snapshot.documents.compactMap { document -> ProductItem? in
@@ -172,7 +172,7 @@ final class FirestoreGetService {
                     if items.isEmpty {
                         // Логирование (Crashlytics, Sentry, и т.д.)
                         print("PopularProducts: conversion yielded empty")
-                        continuation.resume(throwing: FirebaseEnternalError.emptyResult)
+                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
                     } else {
                         print("PopularProducts snapshot != nil = \(items)")
                         continuation.resume(returning: items)
@@ -180,7 +180,7 @@ final class FirestoreGetService {
                 } else {
                     // Логирование (Crashlytics, Sentry, и т.д.)
                     print("PopularProducts snapshot == nil")
-                    continuation.resume(throwing: FirebaseEnternalError.emptyResult)
+                    continuation.resume(throwing: FirebaseInternalError.emptyResult)
                 }
             }
         }

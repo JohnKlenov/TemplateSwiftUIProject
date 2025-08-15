@@ -74,7 +74,7 @@ class SharedErrorHandler: ErrorHandlerProtocol {
         print("SharedErrorHandler shared error - \(String(describing: error?.localizedDescription))")
         
         guard let error = error else {
-            return Localized.FirebaseEnternalError.defaultError
+            return Localized.FirebaseInternalError.defaultError
         }
         
         // 🔍 Обработка ошибок декодирования до преобразования в NSError
@@ -97,15 +97,15 @@ class SharedErrorHandler: ErrorHandlerProtocol {
                 return handleRealtimeDatabaseError(nsError)
             }
             if nsError.domain == "Anonymous Auth" {
-                return Localized.FirebaseEnternalError.anonymousAuthError
+                return Localized.FirebaseInternalError.anonymousAuthError
             }
         }
         
-        if let customError = error as? FirebaseEnternalError {
-            return customError.errorDescription ?? Localized.FirebaseEnternalError.defaultError
+        if let customError = error as? FirebaseInternalError {
+            return customError.errorDescription ?? Localized.FirebaseInternalError.defaultError
         }
         
-        return Localized.FirebaseEnternalError.defaultError
+        return Localized.FirebaseInternalError.defaultError
     }
     
     private func handleDecodingError(_ error: DecodingError) -> String {
@@ -137,7 +137,7 @@ class SharedErrorHandler: ErrorHandlerProtocol {
         // Crashlytics.crashlytics().log(logMessage)
 
         // Возвращаем пользователю нейтральное сообщение
-        return Localized.FirebaseEnternalError.defaultError
+        return Localized.FirebaseInternalError.defaultError
     }
 
     private func handleAuthError(_ code: AuthErrorCode) -> String {

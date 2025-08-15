@@ -135,6 +135,8 @@
 "error.custom_firebase.not_signed_in" = "Ningún usuario ha iniciado sesión actualmente.";
 "error.anonymous_auth" = "Error desconocido durante la autenticación anónima";
 "error.custom_firebase.empty_result" = "No se encontraron datos.";
+"error.custom_firebase.nil_snapshot" = "Falta la instantánea. Inténtalo de nuevo más tarde.";
+
 
 
 

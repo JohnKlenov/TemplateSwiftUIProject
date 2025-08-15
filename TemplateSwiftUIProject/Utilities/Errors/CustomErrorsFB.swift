@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum FirebaseEnternalError: Error, LocalizedError {
+enum FirebaseInternalError: Error, LocalizedError {
     case invalidCollectionPath
     case failedDeployOptionalError
     case failedDeployOptionalID
@@ -15,23 +15,26 @@ enum FirebaseEnternalError: Error, LocalizedError {
     case notSignedIn
     case defaultError
     case emptyResult
+    case nilSnapshot
 
     var errorDescription: String? {
         switch self {
         case .invalidCollectionPath:
-            return Localized.FirebaseEnternalError.invalidCollectionPath
+            return Localized.FirebaseInternalError.invalidCollectionPath
         case .failedDeployOptionalError:
-            return Localized.FirebaseEnternalError.failedDeployOptionalError
+            return Localized.FirebaseInternalError.failedDeployOptionalError
         case .failedDeployOptionalID:
-            return Localized.FirebaseEnternalError.failedDeployOptionalID
+            return Localized.FirebaseInternalError.failedDeployOptionalID
         case .jsonConversionFailed:
-            return Localized.FirebaseEnternalError.jsonConversionFailed
+            return Localized.FirebaseInternalError.jsonConversionFailed
         case .notSignedIn:
-            return Localized.FirebaseEnternalError.notSignedIn
+            return Localized.FirebaseInternalError.notSignedIn
         case .defaultError:
-            return Localized.FirebaseEnternalError.defaultError
+            return Localized.FirebaseInternalError.defaultError
         case .emptyResult:
-            return Localized.FirebaseEnternalError.emptyResult
+            return Localized.FirebaseInternalError.emptyResult
+        case .nilSnapshot:
+            return Localized.FirebaseInternalError.nilSnapshot
         }
     }
 }

@@ -19,7 +19,7 @@ import UIKit
 struct SignInView: View {
     // Состояние для переключения видимости пароля
     @State private var isPasswordVisible = false
-    @FocusState var isFieldFocus: FieldToFocus?
+    @FocusState var isFieldFocus: FieldToFocusAuth?
     
     @ObservedObject var viewModel: SignInViewModel
     @EnvironmentObject var localization: LocalizationService

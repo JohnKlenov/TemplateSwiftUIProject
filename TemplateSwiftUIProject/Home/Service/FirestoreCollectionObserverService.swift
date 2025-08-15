@@ -55,6 +55,9 @@ protocol FirestoreCollectionObserverProtocol {
     func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never>
 }
 
+
+// MARK: -  .receive(on: RunLoop.main) ???? обновление UI должно быть везде на главном потоке!!!! -
+
 class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
     private let db: Firestore
     private var listener: ListenerRegistration?
@@ -63,11 +66,13 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
     init(db: Firestore = Firestore.firestore()) {
         self.db = db
     }
+    //addSnapshotListener(includeMetadataChanges: true)
+    /// у нас сейчас includeMetadataChanges: false
     /// если мы успешно удаляем account то для card product нужно удалить listener?.remove()
     func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never> {
         // Проверка валидности пути
         guard PathValidator.validateCollectionPath(path) else {
-            return Just(.failure(FirebaseEnternalError.invalidCollectionPath))
+            return Just(.failure(FirebaseInternalError.invalidCollectionPath))
                 .eraseToAnyPublisher()
         }
         
@@ -149,7 +154,7 @@ class RealtimeCollectionObserverService : FirestoreCollectionObserverProtocolBef
     
     func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], any Error>, Never> {
         guard PathValidator.validateCollectionPath(path) else {
-            return Just(.failure(FirebaseEnternalError.invalidCollectionPath)).eraseToAnyPublisher()
+            return Just(.failure(FirebaseInternalError.invalidCollectionPath)).eraseToAnyPublisher()
         }
         
         let subject = PassthroughSubject<Result<[BookCloud], Error>, Never>()

@@ -8,8 +8,14 @@
 
 import SwiftUI
 
+/// MARK: - Фокусируемые поля
+enum FieldToFocusProfileEdit: Hashable, CaseIterable {
+    case nameField, lastNameField
+}
+
 struct UserInfoEditView: View {
     @ObservedObject var viewModel: UserInfoEditViewModel
+    @FocusState var isFieldFocus: FieldToFocusProfileEdit?
     
     var body: some View {
         let _ = Self._printChanges()
@@ -44,17 +50,27 @@ struct UserInfoEditView: View {
             // MARK: Name & Email
             Section(header: Text("Name")) {
                 TextField("Name", text: $viewModel.name)
+                    .submitLabel(.next)
+                    .focused($isFieldFocus, equals: .nameField)
+                    .onSubmit { focusNextField() }
+//                    .keyboardType(.)
+                    .disableAutocorrection(true)
+                    .autocapitalization(.none)
             }
             Section(header: Text("LastName")) {
                 TextField("LastName", text: $viewModel.lastName)
-                    .keyboardType(.emailAddress)
+                    .submitLabel(.done)
+                    .focused($isFieldFocus, equals: .lastNameField)
+                    .onSubmit { focusNextField() }
+                    .keyboardType(.default)
+                    .disableAutocorrection(true)
                     .autocapitalization(.none)
             }
         }
         .navigationTitle("Edit Profile")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
+                Button("Done") {
                     // Task { await viewModel.saveProfile(); dismiss() }
                 }
                 .disabled(!viewModel.canSave)
@@ -78,6 +94,25 @@ struct UserInfoEditView: View {
                 message: Text("Failed to save profile."),
                 dismissButton: .default(Text("OK"))
             )
+        }
+        .simultaneousGesture(
+            TapGesture().onEnded {
+                hideKeyboard()
+            }
+        )
+    }
+    
+    
+    // MARK: helpe methods
+    
+    private func focusNextField() {
+        switch isFieldFocus {
+        case .nameField:
+            isFieldFocus = .lastNameField
+        case .lastNameField:
+            isFieldFocus = nil
+        default:
+            isFieldFocus = nil
         }
     }
     

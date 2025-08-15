@@ -47,8 +47,8 @@
 import SwiftUI
 import UIKit
 
-//// MARK: - Фокусируемые поля
-enum FieldToFocus: Hashable, CaseIterable {
+/// MARK: - Фокусируемые поля
+enum FieldToFocusAuth: Hashable, CaseIterable {
     case emailField, securePasswordField, passwordField
 }
 
@@ -56,7 +56,7 @@ enum FieldToFocus: Hashable, CaseIterable {
 struct SignUpView: View {
     // Состояние для переключения видимости пароля
     @State private var isPasswordVisible = false
-    @FocusState var isFieldFocus: FieldToFocus?
+    @FocusState var isFieldFocus: FieldToFocusAuth?
     
     @ObservedObject var viewModel: SignUpViewModel
     @EnvironmentObject var localization: LocalizationService

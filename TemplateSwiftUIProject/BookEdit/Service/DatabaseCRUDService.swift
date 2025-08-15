@@ -53,7 +53,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
             bookWithID.id = bookID
             
             guard let childId = bookWithID.id else {
-                let error = FirebaseEnternalError.failedDeployOptionalID
+                let error = FirebaseInternalError.failedDeployOptionalID
                 promise(.success(.failure(error)))
                 return
             }
@@ -63,7 +63,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
                 let bookDict = try JSONSerialization.jsonObject(with: bookData) as? [String:Any]
                 
                 guard let bookDict = bookDict else {
-                    promise(.success(.failure(FirebaseEnternalError.jsonConversionFailed)))
+                    promise(.success(.failure(FirebaseInternalError.jsonConversionFailed)))
                     return
                 }
                 /// ошибки которые приходят от сервера все кроме отсутствия сети мы не можем на них повлиять со стороны user.
@@ -84,7 +84,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
     func updateBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             guard let childId = book.id else {
-                let error = FirebaseEnternalError.failedDeployOptionalID
+                let error = FirebaseInternalError.failedDeployOptionalID
                 promise(.success(.failure(error)))
                 return
             }
@@ -93,7 +93,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
                 let bookData = try JSONEncoder().encode(book)
                 let bookDict = try JSONSerialization.jsonObject(with: bookData) as? [String:Any]
                 guard let bookDict = bookDict else {
-                    promise(.success(.failure(FirebaseEnternalError.jsonConversionFailed)))
+                    promise(.success(.failure(FirebaseInternalError.jsonConversionFailed)))
                     return
                 }
                 self?.db.child(path).child(childId).updateChildValues(bookDict) { error, _ in
@@ -114,7 +114,7 @@ class RealtimeDatabaseCRUDService: DatabaseCRUDServiceProtocol {
     func removeBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             guard let childId = book.id else {
-                promise(.success(.failure(FirebaseEnternalError.failedDeployOptionalID)))
+                promise(.success(.failure(FirebaseInternalError.failedDeployOptionalID)))
                 return
             }
             
@@ -167,7 +167,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
     func updateBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             guard let bookID = book.id else {
-                promise(.success(.failure(FirebaseEnternalError.failedDeployOptionalID)))
+                promise(.success(.failure(FirebaseInternalError.failedDeployOptionalID)))
                 return
             }
             do {
@@ -176,7 +176,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
                 let bookDict = try JSONSerialization.jsonObject(with: bookData) as? [String: Any]
                 
                 guard let bookDict = bookDict else {
-                    promise(.success(.failure(FirebaseEnternalError.jsonConversionFailed)))
+                    promise(.success(.failure(FirebaseInternalError.jsonConversionFailed)))
                     return
                 }
 
@@ -197,7 +197,7 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
     func removeBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
         Future { [weak self] promise in
             guard let bookID = book.id else {
-                promise(.success(.failure(FirebaseEnternalError.failedDeployOptionalID)))
+                promise(.success(.failure(FirebaseInternalError.failedDeployOptionalID)))
                 return
             }
             

@@ -141,6 +141,8 @@
 "error.custom_firebase.not_signed_in" = "No user is currently signed in.";
 "error.anonymous_auth" = "Unknown error occurred during anonymous authentication";
 "error.custom_firebase.empty_result" = "No data found.";
+"error.custom_firebase.nil_snapshot" = "Snapshot is missing. Please try again later.";
+
 
 /* Auth Errors */
 "error.auth.provider_already_linked" = "The user is already linked to this provider. Please log in using this provider or link another.";

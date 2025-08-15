@@ -68,6 +68,7 @@ class ContentAccountViewModel: ObservableObject {
 //        }
     }
     
+    
     private func loadUserProfile(uid: String) {
         
         // 1. Отменяем предыдущую загрузку профиля
@@ -89,6 +90,7 @@ class ContentAccountViewModel: ObservableObject {
                 receiveValue: { [weak self] profile in
                     print("loadUserProfile/receiveValue -  \(profile)")
                     self?.userProfile = profile
+                    self?.profileLoadingState = .idle
                 }
             )
     }

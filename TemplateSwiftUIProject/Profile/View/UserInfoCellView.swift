@@ -68,6 +68,7 @@ struct UserInfoCellView: View {
         .padding(.vertical, 8)
         .contentShape(Rectangle())
         .onTapGesture {
+            /// а так же если isError что бы нельзя было выйти на .userInfoEdit с ошибкой
             guard !isLoading else { return }
 //            guard let profile = viewModel.userProfile else { return }
 //            accountCoordinator.navigateTo(page: .userInfoEdit(profile))

@@ -77,7 +77,7 @@ final class AuthorizationService {
         currentUserPublisher()
             .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
                 guard let self = self else {
-                    return Fail(error: FirebaseEnternalError.defaultError)
+                    return Fail(error: FirebaseInternalError.defaultError)
                         .eraseToAnyPublisher()
                 }
                 if user.isAnonymous {
@@ -107,7 +107,7 @@ final class AuthorizationService {
     func deleteAccount() -> AnyPublisher<Void, DeleteAccountError> {
         Future<Void, DeleteAccountError> { promise in
             guard let user = Auth.auth().currentUser else {
-                promise(.failure(.underlying(FirebaseEnternalError.notSignedIn)))
+                promise(.failure(.underlying(FirebaseInternalError.notSignedIn)))
                 return
             }
             
@@ -131,7 +131,7 @@ final class AuthorizationService {
     func reauthenticate(email: String, password: String) -> AnyPublisher<Void, Error> {
         Future<Void, Error> { promise in
             guard let user = Auth.auth().currentUser else {
-                return promise(.failure(FirebaseEnternalError.notSignedIn))
+                return promise(.failure(FirebaseInternalError.notSignedIn))
             }
 
             let credential = EmailAuthProvider.credential(withEmail: email, password: password)
@@ -153,7 +153,7 @@ final class AuthorizationService {
 
     private func currentUserPublisher() -> AnyPublisher<User, Error> {
         guard let user = Auth.auth().currentUser else {
-            return Fail(error: FirebaseEnternalError.notSignedIn).eraseToAnyPublisher()
+            return Fail(error: FirebaseInternalError.notSignedIn).eraseToAnyPublisher()
         }
         return Just(user)
             .setFailureType(to: Error.self)
@@ -170,7 +170,7 @@ final class AuthorizationService {
                 } else {
                     /// вот эту ошибку нужно обязательно логировать
                     /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
-                    promise(.failure(FirebaseEnternalError.defaultError))
+                    promise(.failure(FirebaseInternalError.defaultError))
                 }
             }
         }
@@ -190,7 +190,7 @@ final class AuthorizationService {
                 } else {
                     /// вот эту ошибку нужно обязательно логировать
                     /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
-                    promise(.failure(FirebaseEnternalError.defaultError))
+                    promise(.failure(FirebaseInternalError.defaultError))
                 }
             }
         }
@@ -214,7 +214,7 @@ final class AuthorizationService {
                 } else {
                     /// вот эту ошибку нужно обязательно логировать
                     /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
-                    promise(.failure(FirebaseEnternalError.defaultError))
+                    promise(.failure(FirebaseInternalError.defaultError))
                 }
             }
         }
