@@ -8,6 +8,8 @@
 import SwiftUI
 import Combine
 
+///@MainActor гарантирует, что все методы и свойства внутри класса будут выполняться на главном потоке (DispatchQueue.main).
+///если убрать @MainActor Придётся вручную писать DispatchQueue.main.async { ... } в каждом месте
 @MainActor
 class UserInfoEditViewModel: ObservableObject {
     // Входные данные из UserProfile
@@ -15,7 +17,6 @@ class UserInfoEditViewModel: ObservableObject {
     private let initialName: String
     private let initialLastName: String
     let initialPhotoURL: URL?
-//    private let profileService: ProfileServiceProtocol
 
     // Публикуемые свойства для View
     @Published var name: String
@@ -25,9 +26,9 @@ class UserInfoEditViewModel: ObservableObject {
     @Published var showPhotoPicker = false
     @Published var showCamera = false
     @Published var showErrorAlert = false
-    @Published private(set) var isSaving = false
     @Published private(set) var canSave = false
 
+    private var isSaving = false
     private let authorizationManager: AuthorizationManager
     private let profileService: FirestoreProfileService
     
@@ -39,7 +40,6 @@ class UserInfoEditViewModel: ObservableObject {
         self.initialName = profile.name ?? ""
         self.initialLastName = profile.lastName ?? ""
         self.initialPhotoURL = profile.photoURL
-        //        self.profileService = profileService
         self.name = profile.name ?? ""
         self.lastName = profile.lastName ?? ""
         self.authorizationManager = authorizationManager
@@ -61,14 +61,17 @@ class UserInfoEditViewModel: ObservableObject {
             .map { [weak self] name, lastName in
                 guard let self else { return false }
                 
-                // Проверка на содержимое — но сохраняем оригинал
-                let isNameValid = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                let isLastNameValid = !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                
+                let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                let trimmedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                let isNameValid = !trimmedName.isEmpty
+                let isLastNameValid = !trimmedLastName.isEmpty
+
                 let notEmpty = isNameValid || isLastNameValid
-                let changed = name != self.initialName || lastName != self.initialLastName
-                
-                return notEmpty && changed && !self.isSaving
+                let changed = trimmedName != self.initialName.trimmingCharacters(in: .whitespacesAndNewlines)
+                           || trimmedLastName != self.initialLastName.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                return notEmpty && changed
             }
             .receive(on: RunLoop.main)
             .sink { [weak self] canSave in
@@ -77,9 +80,14 @@ class UserInfoEditViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    // если сохраняем текст updateTextProfile() то в photoURL передаем nil
+    // если сохраняем image updateImageProfile() то в name: nil, lastName: nil
+    // Ты можешь обновить только одно поле через setData(from:merge:true), если в закодированной модели присутствует только это поле. Для этого передай модель, в которой все остальные опционалы равны nil — тогда синтезированный Encodable просто не закодирует их.
     func updateProfile()  {
-        profileService.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: initialPhotoURL))
+        profileService.updateProfile(UserProfile(uid: uid, name: name.nilIfOnlyWhitespace, lastName: lastName.nilIfOnlyWhitespace, photoURL: nil))
     }
+    
+    //        profileService.updateProfile(UserProfile(uid: uid, name: nil, lastName: nil, photoURL: URL(string: "https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/TestImage%2F3-e1bc007b39c5a8b930833e35963b9914.jpeg?alt=media&token=345fe1d8-93d8-4824-8ee5-a58d4763918a")))
 
     // MARK: - Image actions
 
@@ -94,30 +102,30 @@ class UserInfoEditViewModel: ObservableObject {
 }
 
 extension String {
-    func normalizedWhitespace() -> String {
-        self
-            .trimmingCharacters(in: .whitespacesAndNewlines) // удаляет пробелы и переносы в начале и конце
-            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression) // заменяет любые подряд идущие пробелы на один
+    var nilIfOnlyWhitespace: String? {
+        // Удаляем все пробельные символы (пробелы, табы, переносы и т.д.)
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Если после удаления осталась пустая строка — значит, была только "пустота"
+        return trimmed.isEmpty ? nil : self
     }
 }
 
 
-//                let trimmedName = name.trimmingCharacters(in: .whitespaces)
-//                let trimmedLastName = lastName.trimmingCharacters(in: .whitespaces)
 
-//func saveProfile() async {
-//        guard canSave else { return }
-//        isSaving = true
+// в данной логике если при первом переходе хоть одно поле было заполнено
+// то даже пробел в новой строке активирует кнопку done
+// во всем остальном он хорошо работает
+
+//            .map { [weak self] name, lastName in
+//                guard let self else { return false }
 //
-//        do {
-//            try await profileService.updateProfile(
-//                uid: uid,
-//                name: name,
-//                email: email,
-//                avatarImage: avatarImage
-//            )
-//            isSaving = false
-//        } catch {
-//            isSaving = false
-//            showErrorAlert = true
-//        }
+//                // Проверка на содержимое — но сохраняем оригинал
+//                let isNameValid = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+//                let isLastNameValid = !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+//
+//                let notEmpty = isNameValid || isLastNameValid
+//                let changed = name != self.initialName || lastName != self.initialLastName
+//
+//                return notEmpty && changed
+//            }

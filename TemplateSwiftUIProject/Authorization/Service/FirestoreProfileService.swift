@@ -69,6 +69,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
         /// snapshot.metadata.hasPendingWrites == true + snapshot.metadata.isFromCache == true - Локальная запись, оффлайн или ещё не синхронизирована
         /// snapshot.metadata.hasPendingWrites - В документе есть локальные изменения, которые ещё не подтверждены сервером.
         /// snapshot.metadata.isFromCache - Снапшот пришёл из локального кэша, а не напрямую с сервера
+        /// docRef.addSnapshotListener(includeMetadataChanges: false) - я протестировал и с false при ошибки Missing or insufficient permissions. приходит откатной snapshot
             profileListener = docRef.addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, error in
                 if let error = error {
                     subject.send(completion: .failure(error))
@@ -107,7 +108,6 @@ class FirestoreProfileService: ProfileServiceProtocol {
         }
 
     func updateProfile(_ profile: UserProfile) {
-        
         let docRef = db
             .collection("users")
             .document(profile.uid)
@@ -115,6 +115,9 @@ class FirestoreProfileService: ProfileServiceProtocol {
             .document(profile.uid)
         
         do {
+            ///Если merge == false (по умолчанию), он перезаписывает весь документ
+            ///Когда ты указываешь merge: true, Firestore: Обновляет только те поля, которые есть в сериализованной модели
+            ///Сохраняет все остальные поля, которые уже были в документе + Не удаляет поля, которых нет в модели
             try docRef.setData(from: profile, merge: true) { [weak self] error in
                 guard let self else { return }
                 if let error = error {
@@ -122,6 +125,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
                         self.handleFirestoreError(error, operationDescription: "Error update profile")
                     }
                 }
+                print("docRef.setData - \(String(describing: error))")
                 // Успех обрабатывать не требуется: Root-listener сам обновит UI.
                 // При оффлайне completion придёт позже, когда будет подтверждение сервера или ошибка.
             }

@@ -142,6 +142,8 @@ struct UserInfoEditView: View {
         if let img = viewModel.avatarImage {
             Image(uiImage: img).resizable()
         } else if let url = viewModel.initialPhotoURL {
+            ///AsyncImage был создан как минималистичный способ загрузки изображений по URL в SwiftUI
+            ///AsyncImage не кэширует изображение
             AsyncImage(url: url) { phase in
                 if let image = phase.image {
                     image.resizable()
