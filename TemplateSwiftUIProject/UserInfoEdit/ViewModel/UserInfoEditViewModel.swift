@@ -61,17 +61,9 @@ class UserInfoEditViewModel: ObservableObject {
             .map { [weak self] name, lastName in
                 guard let self else { return false }
                 
-                let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-                let trimmedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
-
-                let isNameValid = !trimmedName.isEmpty
-                let isLastNameValid = !trimmedLastName.isEmpty
-
-                let notEmpty = isNameValid || isLastNameValid
-                let changed = trimmedName != self.initialName.trimmingCharacters(in: .whitespacesAndNewlines)
-                           || trimmedLastName != self.initialLastName.trimmingCharacters(in: .whitespacesAndNewlines)
-
-                return notEmpty && changed
+                let changed = name != self.initialName || lastName != self.initialLastName
+                
+                return changed
             }
             .receive(on: RunLoop.main)
             .sink { [weak self] canSave in
@@ -84,10 +76,8 @@ class UserInfoEditViewModel: ObservableObject {
     // если сохраняем image updateImageProfile() то в name: nil, lastName: nil
     // Ты можешь обновить только одно поле через setData(from:merge:true), если в закодированной модели присутствует только это поле. Для этого передай модель, в которой все остальные опционалы равны nil — тогда синтезированный Encodable просто не закодирует их.
     func updateProfile()  {
-        profileService.updateProfile(UserProfile(uid: uid, name: name.nilIfOnlyWhitespace, lastName: lastName.nilIfOnlyWhitespace, photoURL: nil))
+        profileService.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil))
     }
-    
-    //        profileService.updateProfile(UserProfile(uid: uid, name: nil, lastName: nil, photoURL: URL(string: "https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/TestImage%2F3-e1bc007b39c5a8b930833e35963b9914.jpeg?alt=media&token=345fe1d8-93d8-4824-8ee5-a58d4763918a")))
 
     // MARK: - Image actions
 
@@ -100,6 +90,10 @@ class UserInfoEditViewModel: ObservableObject {
         print("deinit UserInfoEditViewModel")
     }
 }
+
+
+
+//        profileService.updateProfile(UserProfile(uid: uid, name: nil, lastName: nil, photoURL: URL(string: "https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/TestImage%2F3-e1bc007b39c5a8b930833e35963b9914.jpeg?alt=media&token=345fe1d8-93d8-4824-8ee5-a58d4763918a")))
 
 extension String {
     var nilIfOnlyWhitespace: String? {
@@ -129,3 +123,22 @@ extension String {
 //
 //                return notEmpty && changed
 //            }
+
+
+// profileService.updateProfile(UserProfile(uid: uid, name: name.nilIfOnlyWhitespace, lastName: lastName.nilIfOnlyWhitespace, photoURL: nil))
+
+//    .map { [weak self] name, lastName in
+//        guard let self else { return false }
+//        
+//        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+//        let trimmedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+//
+//        let isNameValid = !trimmedName.isEmpty
+//        let isLastNameValid = !trimmedLastName.isEmpty
+//
+//        let notEmpty = isNameValid || isLastNameValid
+//        let changed = trimmedName != self.initialName.trimmingCharacters(in: .whitespacesAndNewlines)
+//                   || trimmedLastName != self.initialLastName.trimmingCharacters(in: .whitespacesAndNewlines)
+//
+//        return notEmpty && changed
+//    }

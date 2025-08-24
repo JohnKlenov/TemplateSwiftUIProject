@@ -113,35 +113,104 @@ class FirestoreProfileService: ProfileServiceProtocol {
             .document(profile.uid)
             .collection("userProfileData")
             .document(profile.uid)
-        
+
         do {
-            ///Если merge == false (по умолчанию), он перезаписывает весь документ
-            ///Когда ты указываешь merge: true, Firestore: Обновляет только те поля, которые есть в сериализованной модели
-            ///Сохраняет все остальные поля, которые уже были в документе + Не удаляет поля, которых нет в модели
-            try docRef.setData(from: profile, merge: true) { [weak self] error in
-                guard let self else { return }
-                if let error = error {
+            var data = try Firestore.Encoder().encode(profile)
+
+            if let name = profile.name, name.isEmpty {
+                data["name"] = FieldValue.delete()
+            }
+            if let lastName = profile.lastName, lastName.isEmpty {
+                data["lastName"] = FieldValue.delete()
+            }
+
+            docRef.setData(data, merge: true) { [weak self] error in
+                if let error {
                     DispatchQueue.main.async {
-                        self.handleFirestoreError(error, operationDescription: "Error update profile")
+                        self?.handleFirestoreError(error, operationDescription: "Error update profile")
                     }
                 }
-                print("docRef.setData - \(String(describing: error))")
-                // Успех обрабатывать не требуется: Root-listener сам обновит UI.
-                // При оффлайне completion придёт позже, когда будет подтверждение сервера или ошибка.
             }
         } catch {
-            // Синхронная ошибка кодирования модели
             DispatchQueue.main.async { [weak self] in
                 self?.handleFirestoreError(error, operationDescription: "Encoding error update profile")
             }
         }
     }
+
+
+//    func updateProfile(_ profile: UserProfile) {
+//        let docRef = db
+//            .collection("users")
+//            .document(profile.uid)
+//            .collection("userProfileData")
+//            .document(profile.uid)
+//        
+//        do {
+//            ///Если merge == false (по умолчанию), он перезаписывает весь документ
+//            ///Когда ты указываешь merge: true, Firestore: Обновляет только те поля, которые есть в сериализованной модели
+//            ///Сохраняет все остальные поля, которые уже были в документе + Не удаляет поля, которых нет в модели
+//            ///merge: true = «обнови только указанные поля» → существующие данные не трогаются, а для удаления нужно явно поставить FieldValue.delete().
+//            try docRef.setData(from: profile, merge: true) { [weak self] error in
+//                guard let self else { return }
+//                if let error = error {
+//                    DispatchQueue.main.async {
+//                        self.handleFirestoreError(error, operationDescription: "Error update profile")
+//                    }
+//                }
+//                print("docRef.setData - \(String(describing: error))")
+//                // Успех обрабатывать не требуется: Root-listener сам обновит UI.
+//                // При оффлайне completion придёт позже, когда будет подтверждение сервера или ошибка.
+//            }
+//        } catch {
+//            // Синхронная ошибка кодирования модели
+//            DispatchQueue.main.async { [weak self] in
+//                self?.handleFirestoreError(error, operationDescription: "Encoding error update profile")
+//            }
+//        }
+//    }
     
     private func handleFirestoreError(_ error: Error, operationDescription:String) {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
 }
+
+
+
+// docRef.setData(from: profile, merge: true)
+
+
+//func updateProfile(_ profile: UserProfile) {
+//    let docRef = db
+//        .collection("users")
+//        .document(profile.uid)
+//        .collection("userProfileData")
+//        .document(profile.uid)
+//    
+//    do {
+//        ///Если merge == false (по умолчанию), он перезаписывает весь документ
+//        ///Когда ты указываешь merge: true, Firestore: Обновляет только те поля, которые есть в сериализованной модели
+//        ///Сохраняет все остальные поля, которые уже были в документе + Не удаляет поля, которых нет в модели
+//        ///merge: true = «обнови только указанные поля» → существующие данные не трогаются, а для удаления нужно явно поставить FieldValue.delete().
+//        try docRef.setData(from: profile, merge: true) { [weak self] error in
+//            guard let self else { return }
+//            if let error = error {
+//                DispatchQueue.main.async {
+//                    self.handleFirestoreError(error, operationDescription: "Error update profile")
+//                }
+//            }
+//            print("docRef.setData - \(String(describing: error))")
+//            // Успех обрабатывать не требуется: Root-listener сам обновит UI.
+//            // При оффлайне completion придёт позже, когда будет подтверждение сервера или ошибка.
+//        }
+//    } catch {
+//        // Синхронная ошибка кодирования модели
+//        DispatchQueue.main.async { [weak self] in
+//            self?.handleFirestoreError(error, operationDescription: "Encoding error update profile")
+//        }
+//    }
+//}
 
 
 
