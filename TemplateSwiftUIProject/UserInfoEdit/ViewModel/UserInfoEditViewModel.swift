@@ -78,6 +78,20 @@ class UserInfoEditViewModel: ObservableObject {
     func updateProfile()  {
         profileService.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil))
     }
+    
+    func handlePickedImage(_ image: UIImage?) {
+        guard let image = image else { return }
+        // Здесь можно оптимизировать размер
+        self.avatarImage = image
+        // Загружаем в Storage/Firestore — например, асинхронно
+        Task {
+//            do {
+//                try await profileService.uploadAvatar(for: uid, image: image)
+//            } catch {
+//                self.showErrorAlert = true
+//            }
+        }
+    }
 
     // MARK: - Image actions
 

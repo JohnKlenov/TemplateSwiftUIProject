@@ -93,6 +93,9 @@
 		5EC332E12E48D3470051BE5B /* UserInfoEditViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332E02E48D3470051BE5B /* UserInfoEditViewInjected.swift */; };
 		5EC332E32E48D3700051BE5B /* UserInfoEditViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332E22E48D3700051BE5B /* UserInfoEditViewModel.swift */; };
 		5EC332E52E48D3B40051BE5B /* UserInfoEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332E42E48D3B40051BE5B /* UserInfoEditView.swift */; };
+		5EC332E82E5C43820051BE5B /* ClearButtonModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332E72E5C43820051BE5B /* ClearButtonModifier.swift */; };
+		5EC332EA2E5C44440051BE5B /* PhotoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332E92E5C44440051BE5B /* PhotoPickerView.swift */; };
+		5EC332EC2E5C76020051BE5B /* PhotoPickerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332EB2E5C76020051BE5B /* PhotoPickerError.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -211,6 +214,9 @@
 		5EC332E02E48D3470051BE5B /* UserInfoEditViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfoEditViewInjected.swift; sourceTree = "<group>"; };
 		5EC332E22E48D3700051BE5B /* UserInfoEditViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfoEditViewModel.swift; sourceTree = "<group>"; };
 		5EC332E42E48D3B40051BE5B /* UserInfoEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfoEditView.swift; sourceTree = "<group>"; };
+		5EC332E72E5C43820051BE5B /* ClearButtonModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearButtonModifier.swift; sourceTree = "<group>"; };
+		5EC332E92E5C44440051BE5B /* PhotoPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPickerView.swift; sourceTree = "<group>"; };
+		5EC332EB2E5C76020051BE5B /* PhotoPickerError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPickerError.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLoggingService.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -660,6 +666,14 @@
 			path = ViewModel;
 			sourceTree = "<group>";
 		};
+		5EC332E62E5B39E10051BE5B /* UIComponents */ = {
+			isa = PBXGroup;
+			children = (
+				5EC332E92E5C44440051BE5B /* PhotoPickerView.swift */,
+			);
+			path = UIComponents;
+			sourceTree = "<group>";
+		};
 		5EC88EDD2DB1375A00A95224 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
@@ -697,6 +711,7 @@
 			isa = PBXGroup;
 			children = (
 				5EC88EF02DCE234D00A95224 /* HapticFeedbackModifier.swift */,
+				5EC332E72E5C43820051BE5B /* ClearButtonModifier.swift */,
 			);
 			path = CustomViewModifier;
 			sourceTree = "<group>";
@@ -938,6 +953,7 @@
 		5EC94A0A2CC3C9BF003736A9 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				5EC332E62E5B39E10051BE5B /* UIComponents */,
 				5EA2E6082DF2DF2100C53E52 /* UseCaseInfo */,
 				5EA2E6022DE34EA600C53E52 /* OrientationService */,
 				5EC88EEF2DCE231F00A95224 /* CustomViewModifier */,
@@ -965,6 +981,7 @@
 				5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */,
 				5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */,
 				5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */,
+				5EC332EB2E5C76020051BE5B /* PhotoPickerError.swift */,
 			);
 			path = Errors;
 			sourceTree = "<group>";
@@ -1090,7 +1107,9 @@
 				5E8F9CB32D819F21004036F6 /* GalleryViewModel.swift in Sources */,
 				5EA2E60B2DF2DF6600C53E52 /* Layout.swift in Sources */,
 				5E8F9CBF2D81A451004036F6 /* ShopsSectionView.swift in Sources */,
+				5EC332E82E5C43820051BE5B /* ClearButtonModifier.swift in Sources */,
 				5EC88EDC2DB136F500A95224 /* AccountView.swift in Sources */,
+				5EC332EC2E5C76020051BE5B /* PhotoPickerError.swift in Sources */,
 				5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */,
 				5E8F9CCC2D81AF68004036F6 /* GalleryContentViewModel.swift in Sources */,
 				5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */,
@@ -1131,6 +1150,7 @@
 				5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */,
 				5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */,
 				5EC88EFD2DD4A58D00A95224 /* SignUpView.swift in Sources */,
+				5EC332EA2E5C44440051BE5B /* PhotoPickerView.swift in Sources */,
 				5EA2E6012DDF360500C53E52 /* SignInViewModel.swift in Sources */,
 				5EA2E6122E03FFBF00C53E52 /* CombineSetting.swift in Sources */,
 				5EA2E5F82DDCB28D00C53E52 /* SignUpViewModel.swift in Sources */,
