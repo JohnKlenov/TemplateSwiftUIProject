@@ -111,6 +111,8 @@
 "error.sign_in" = "Error al iniciar sesión";
 "error.forgot_password" = "Error al restablecer la contraseña";
 "error.account_deletion" = "Error al eliminar la cuenta";
+"error.picking_image" = "No se pudo seleccionar la foto";
+
 
 
 /* Title Of Success Operation Firebase */
@@ -216,6 +218,14 @@
 "error.realtime_database.authentication_cancelled" = "El usuario canceló la autenticación. Por favor, inténtelo de nuevo.";
 "error.realtime_database.authentication_required" = "Se requiere autenticación del usuario. Por favor, inicie sesión e inténtelo de nuevo.";
 "error.realtime_database.generic" = "Ocurrió un error en la base de datos en tiempo real. Por favor, inténtelo de nuevo.";
+
+/* PhotoPickerError */
+"error.photo_picker.no_item_available" = "El elemento seleccionado no está disponible.";
+"error.photo_picker.item_unavailable" = "No se puede cargar el elemento.";
+"error.photo_picker.unsupported_type" = "Tipo de medio no compatible.";
+"error.photo_picker.icloud_required" = "Se requiere conexión a la red para descargar desde iCloud.";
+"error.photo_picker.load_failed" = "No se pudo cargar el elemento.";
+"error.photo_picker.unknown" = "Error desconocido.";
 
 
 /* Validation string */

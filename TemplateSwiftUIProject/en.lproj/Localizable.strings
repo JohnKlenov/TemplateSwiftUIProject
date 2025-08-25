@@ -115,6 +115,8 @@
 "error.sign_in" = "Error during sign in";
 "error.forgot_password" = "Error during password reset";
 "error.account_deletion" = "Error deleting account";
+"error.picking_image" = "Failed to select photo";
+
 
 
 /* Title Of Success Operation Firebase */
@@ -218,6 +220,13 @@
 "error.realtime_database.authentication_required" = "User authentication is required. Please log in and try again.";
 "error.realtime_database.generic" = "An realtime database error occurred. Please try again.";
 
+/* PhotoPickerError */
+"error.photo_picker.no_item_available" = "The selected item is not available.";
+"error.photo_picker.item_unavailable" = "The item cannot be loaded.";
+"error.photo_picker.unsupported_type" = "Unsupported media type.";
+"error.photo_picker.icloud_required" = "A network connection is required to download from iCloud.";
+"error.photo_picker.load_failed" = "Failed to load the item.";
+"error.photo_picker.unknown" = "Unknown error.";
 
 
 /* System error */

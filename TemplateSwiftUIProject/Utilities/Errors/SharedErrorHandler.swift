@@ -82,6 +82,11 @@ class SharedErrorHandler: ErrorHandlerProtocol {
             return handleDecodingError(decodingError)
         }
         
+        if let pickerError = error as? PhotoPickerError {
+            return handlePhotoPickerError(pickerError)
+        }
+
+        
         // Преобразуем ошибку в NSError для работы с кодами и доменами
         if let nsError = error as NSError? {
             if let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
@@ -139,6 +144,24 @@ class SharedErrorHandler: ErrorHandlerProtocol {
         // Возвращаем пользователю нейтральное сообщение
         return Localized.FirebaseInternalError.defaultError
     }
+    
+    private func handlePhotoPickerError(_ pickerError: PhotoPickerError) -> String {
+        switch pickerError {
+        case .noItemAvailable:
+            return Localized.PhotoPickerError.noItemAvailable
+        case .itemUnavailable:
+            return Localized.PhotoPickerError.itemUnavailable
+        case .unsupportedType:
+            return Localized.PhotoPickerError.unsupportedType
+        case .iCloudRequired:
+            return Localized.PhotoPickerError.iCloudRequired
+        case .loadFailed(let underlyingError),
+             .unknown(let underlyingError):
+            // Возвращаем системное сообщение ошибки «как есть» — оно уже может быть локализовано системой
+            return (underlyingError as NSError).localizedDescription
+        }
+    }
+
 
     private func handleAuthError(_ code: AuthErrorCode) -> String {
         switch code {

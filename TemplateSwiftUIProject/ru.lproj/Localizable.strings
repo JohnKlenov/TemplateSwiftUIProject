@@ -112,6 +112,8 @@
 "error.sign_in" = "Ошибка при входе в аккаунт";
 "error.forgot_password" = "Ошибка при восстановлении пароля";
 "error.account_deletion" = "Ошибка при удалении аккаунта";
+"error.picking_image" = "Не удалось выбрать фото";
+
 
 
 /* Title Of Success Operation Firebase */
@@ -217,6 +219,15 @@
 "error.realtime_database.authentication_cancelled" = "Пользователь отменил аутентификацию. Попробуйте снова.";
 "error.realtime_database.authentication_required" = "Необходима аутентификация пользователя. Пожалуйста, войдите в систему и попробуйте снова.";
 "error.realtime_database.generic" = "Произошла ошибка базы данных в реальном времени. Пожалуйста, попробуйте еще раз.";
+
+/* PhotoPickerError */
+"error.photo_picker.no_item_available" = "Выбранный элемент недоступен.";
+"error.photo_picker.item_unavailable" = "Элемент нельзя загрузить.";
+"error.photo_picker.unsupported_type" = "Неподдерживаемый тип медиа.";
+"error.photo_picker.icloud_required" = "Требуется подключение к сети для загрузки из iCloud.";
+"error.photo_picker.load_failed" = "Не удалось загрузить элемент.";
+"error.photo_picker.unknown" = "Неизвестная ошибка.";
+
 
 
 /* System error */

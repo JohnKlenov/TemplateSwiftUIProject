@@ -80,25 +80,21 @@ struct UserInfoEditView: View {
                 PhotoPickerView { result in
                     switch result {
                     case .success(let image):
-                        print("Выбор фото подтвержден")
-                        // ✅ Успешно получили UIImage
+                        print("UserInfoEditView Выбор фото подтвержден")
+                        // Успешно получили UIImage
                         self.viewModel.handlePickedImage(image)
 
                     case .failure(let error):
-                        // ⚠️ Ошибка — можно показать alert или лог
-                        print("Ошибка выбора фото: \(error.localizedDescription)")
+                        // Ошибка — можно показать alert или лог
+                        print("UserInfoEditView Ошибка выбора фото: \(error.localizedDescription)")
+                        self.viewModel.handlePickedImageError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.pickingImage)
 
                     case .cancelled:
-                        // 🚪 Пользователь закрыл пикер без выбора
-                        print("Выбор фото отменён")
+                        // Пользователь закрыл пикер без выбора
+                        print("UserInfoEditView Выбор фото отменён")
                     }
                 }
             }
-//            .sheet(isPresented: $viewModel.showPhotoPicker) {
-//                PhotoPickerView { image in
-//                    viewModel.handlePickedImage(image)
-//                }
-//            }
             .sheet(isPresented: $viewModel.showCamera) {
                 Text("Camera View Placeholder")
             }

@@ -133,6 +133,7 @@ enum Localized {
         static let signIn = "error.sign_in"
         static let forgotPassword = "error.forgot_password"
         static let accountDeletion = "error.account_deletion"
+        static let pickingImage = "error.picking_image"
     }
     
     enum TitleOfSuccessOperationFirebase {
@@ -248,6 +249,17 @@ enum Localized {
     }
     
     
+        
+        // MARK: - PhotoPickerError
+        enum PhotoPickerError {
+            static let noItemAvailable = "error.photo_picker.no_item_available"
+            static let itemUnavailable = "error.photo_picker.item_unavailable"
+            static let unsupportedType = "error.photo_picker.unsupported_type"
+            static let iCloudRequired  = "error.photo_picker.icloud_required"
+            static let loadFailed = "error.photo_picker.load_failed"
+            static let unknown = "error.photo_picker.unknown"
+        }
+
     
     // MARK: - Auth View -
     

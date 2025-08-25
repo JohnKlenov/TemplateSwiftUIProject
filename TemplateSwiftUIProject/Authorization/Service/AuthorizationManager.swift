@@ -81,6 +81,11 @@ final class AuthorizationManager: ObservableObject {
             .store(in: &cancellables)
     }
     
+    func handleError(_ error: Error, operationDescription:String) {
+        let errorMessage = errorHandler.handle(error: error)
+        alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
+    }
+    
     private func handleAuthenticationError(_ error: Error, operationDescription:String) {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)

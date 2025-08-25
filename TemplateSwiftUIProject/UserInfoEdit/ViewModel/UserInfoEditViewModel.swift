@@ -92,6 +92,10 @@ class UserInfoEditViewModel: ObservableObject {
 //            }
         }
     }
+    
+  func handlePickedImageError(_ error: Error, operationDescription:String) {
+      authorizationManager.handleError(error, operationDescription: operationDescription)
+    }
 
     // MARK: - Image actions
 
