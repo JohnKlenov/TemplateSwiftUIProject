@@ -5,6 +5,10 @@
 //  Created by Evgenyi on 10.08.25.
 //
 
+
+
+
+
 import SwiftUI
 import Combine
 
@@ -29,12 +33,11 @@ class UserInfoEditViewModel: ObservableObject {
     @Published private(set) var canSave = false
 
     private var isSaving = false
-    private let authorizationManager: AuthorizationManager
-    private let profileService: FirestoreProfileService
+    private let editManager: UserInfoEditManager
     
     private var cancellables = Set<AnyCancellable>()
 
-    init(authorizationManager: AuthorizationManager, profileService: FirestoreProfileService, profile: UserProfile) {
+    init(editManager: UserInfoEditManager, profile: UserProfile) {
         print("init UserInfoEditViewModel")
         self.uid = profile.uid
         self.initialName = profile.name ?? ""
@@ -42,8 +45,7 @@ class UserInfoEditViewModel: ObservableObject {
         self.initialPhotoURL = profile.photoURL
         self.name = profile.name ?? ""
         self.lastName = profile.lastName ?? ""
-        self.authorizationManager = authorizationManager
-        self.profileService = profileService
+        self.editManager = editManager
         setupBindings()
     }
 
@@ -76,46 +78,33 @@ class UserInfoEditViewModel: ObservableObject {
     // если сохраняем image updateImageProfile() то в name: nil, lastName: nil
     // Ты можешь обновить только одно поле через setData(from:merge:true), если в закодированной модели присутствует только это поле. Для этого передай модель, в которой все остальные опционалы равны nil — тогда синтезированный Encodable просто не закодирует их.
     func updateProfile()  {
-        /*
-         🔍 Почему утечки памяти не будет при вызове без .store(in:)
-
-        Future в методе updateProfile — однократный Combine-паблишер, который начинает выполнение сразу при подписке.
-        sink создаёт объект AnyCancellable, но мы его не сохраняем (используем _ =), значит он живёт только в текущем стеке вызова.
-        Когда AnyCancellable уничтожается (почти сразу после выхода из этого места), Combine вызывает у него .cancel().
-
-        ⚠️ Важный момент: отмена Combine-подписки НЕ отменяет сам вызов setData во Firebase SDK.
-        Firebase продолжит выполнение операции до конца, независимо от Combine.
-        После завершения setData, Promise внутри Future выполнится, но результат просто никуда не отправится (подписчик уже уничтожен).
-
-        🧠 Объекты не удерживаются циклически — self используется с [weak self], поэтому retain cycle невозможен.
-
-        ✅ Резюме: выполняется «fire-and-forget», памяти не течёт, операция в Firebase гарантированно завершится.
-
-        📌 Что делает .store(in: &cancellables)
-        .store(in:) сохраняет AnyCancellable в коллекцию (Set<AnyCancellable>), чтобы подписка жила ровно столько, сколько живёт владелец коллекции.
-        Пока подписка хранится в cancellables — Combine не вызовет .cancel(), и Publisher продолжит выдавать события.
-        Как только владелец (например, ViewModel) деинициализируется, Set уничтожается, и все подписки в нём автоматически отменяются.
-        */
-        _ = profileService.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil))
-            .sink(receiveCompletion: { _ in }, receiveValue: { })
+        editManager.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil))
     }
     
     func handlePickedImage(_ image: UIImage?) {
         guard let image = image else { return }
-        // Здесь можно оптимизировать размер
         self.avatarImage = image
-        // Загружаем в Storage/Firestore — например, асинхронно
-//        Task {
-//            do {
-//                try await profileService.uploadAvatar(for: uid, image: image)
-//            } catch {
-//                self.showErrorAlert = true
-//            }
-//        }
+        
+        editManager.uploadAvatar(for: uid, image: image)
+            .receive(on: DispatchQueue.main) // UI-эффекты на главном потоке
+            .sink { [weak self] completion in
+                switch completion {
+                case .finished:
+                    print("Аватар успешно обновлён в Firestore")
+                case .failure(let error):
+                    // ВАЖНО: алерты уже показаны в сервисах. Здесь — только лог.
+                    print("Ошибка загрузки/обновления аватара: \(error.localizedDescription)")
+                    self?.avatarImage = nil
+                }
+            } receiveValue: { _ in
+                // Паблишер возвращает Void — UI-логика не требуется
+            }
+            .store(in: &cancellables)
     }
+
     
   func handlePickedImageError(_ error: Error, operationDescription:String) {
-      authorizationManager.handleError(error, operationDescription: operationDescription)
+      editManager.handleError(error, operationDescription: operationDescription)
     }
 
     // MARK: - Image actions
@@ -144,6 +133,29 @@ extension String {
     }
 }
 
+
+
+
+//func updateProfile()  {
+//        _ = editManager.firestoreService.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil))
+//            .sink(receiveCompletion: { _ in }, receiveValue: { })
+//}
+
+
+
+//    func handlePickedImage(_ image: UIImage?) {
+//        guard let image = image else { return }
+//        // Здесь можно оптимизировать размер
+//        self.avatarImage = image
+//        // Загружаем в Storage/Firestore — например, асинхронно
+////        Task {
+////            do {
+////                try await profileService.uploadAvatar(for: uid, image: image)
+////            } catch {
+////                self.showErrorAlert = true
+////            }
+////        }
+//    }
 
 
 // в данной логике если при первом переходе хоть одно поле было заполнено

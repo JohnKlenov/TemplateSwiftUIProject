@@ -40,6 +40,9 @@ final class StorageProfileService: StorageProfileServiceProtocol {
     private let errorHandler: ErrorHandlerProtocol = SharedErrorHandler()
     private let alertManager: AlertManager = .shared
     
+    ///putData(data) — загрузка файла в Storage - Если интернет отсутствует:Firebase сразу вернёт ошибку в completion блоке
+    ///Если интернет есть, но очень плохой: Загрузка может зависнуть, затем завершиться ошибкой по таймауту.
+    ///downloadURL — получение ссылки после загрузки Если putData прошёл, но интернет пропал перед downloadURL: Получишь ошибку в блоке Не использует локальный кэш — всегда требует соединения с интернетом. Если интернет есть, но слабый или нестабильный: Запрос может «зависнуть» на некоторое время — Firebase SDK будет пытаться установить соединение.Запрос может «зависнуть» на некоторое время — Firebase SDK будет пытаться установить соединение.
     func uploadImageData(path: String, data: Data, operationDescription: String) -> AnyPublisher<URL, Error> {
         Future<URL, Error> { [weak self] promise in
             guard let self = self else { return }

@@ -5,6 +5,9 @@
 //  Created by Evgenyi on 5.02.25.
 //
 
+
+
+// !!! идея вынести алерт и еррор менеджер из сервисов (storageProfileService и profileService ) и перенести их в (authorizationManager + userInfoEditManager)
 import SwiftUI
 
 //@MainActor
@@ -13,12 +16,16 @@ class ViewBuilderService: ObservableObject {
     private let crudManager: CRUDSManager
     private let authorizationManager: AuthorizationManager
     private let profileService:FirestoreProfileService
+    private let storageProfileService: StorageProfileServiceProtocol
+    private let userInfoEditManager:UserInfoEditManager
 
     init() {
         let service = AuthorizationService()
         self.authorizationManager = AuthorizationManager(service: service, errorHandler: SharedErrorHandler())
         
         self.profileService = FirestoreProfileService()
+        self.storageProfileService = StorageProfileService()
+        self.userInfoEditManager = UserInfoEditManager(firestoreService: profileService, storageService: storageProfileService, errorHandler: SharedErrorHandler())
         self.crudManager = CRUDSManager(
             authService: AuthService(),
             errorHandler: SharedErrorHandler(),
@@ -67,7 +74,7 @@ class ViewBuilderService: ObservableObject {
         case .reauthenticate:
             ReauthenticateViewInjected(authorizationManager: authorizationManager)
         case .userInfoEdit(let profile):
-            UserInfoEditViewInjected(authorizationManager: authorizationManager, profileService: profileService, profile: profile)
+            UserInfoEditViewInjected(editManager: userInfoEditManager, profile: profile)
         }
     }
     

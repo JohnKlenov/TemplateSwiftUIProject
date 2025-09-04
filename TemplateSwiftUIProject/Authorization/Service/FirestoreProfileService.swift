@@ -140,6 +140,8 @@ class FirestoreProfileService: ProfileServiceProtocol {
             .eraseToAnyPublisher()
     }
 
+
+
     func updateProfile(_ profile: UserProfile) -> AnyPublisher<Void, Error> {
             Future<Void, Error> { [weak self] promise in
                 guard let self = self else { return }
@@ -160,7 +162,12 @@ class FirestoreProfileService: ProfileServiceProtocol {
                     if let lastName = profile.lastName, lastName.isEmpty {
                         data["lastName"] = FieldValue.delete()
                     }
-                    
+                    // Completion‑блок вызывается только после попытки синхронизации с сервером:
+                    ///Если сеть появилась и сервер принял изменения → error == nil.
+                    ///Если сервер отверг (например, из‑за security rules) → error будет с причиной отказа.
+                    ///Если сети нет и SDK ещё не успел сделать попытку → блок просто не вызывается, пока не появится соединение.
+                    ///Firestore не вызовет твой completion-блок до тех пор, пока не попробует (и фактически не завершит) синхронизацию с сервером.
+                    ///Это значит, что ловить внутри completion ошибки вида NSURLErrorNotConnectedToInternet, timedOut и т.п. обычно бесполезно,
                     docRef.setData(data, merge: true) { [weak self] error in
                         if let error = error {
                             ///DispatchQueue.main.async { [weak self] in ???
@@ -186,6 +193,66 @@ class FirestoreProfileService: ProfileServiceProtocol {
 }
 
 
+
+
+//    func updateProfile(_ profile: UserProfile) -> AnyPublisher<Void, Error> {
+//        Future<Void, Error> { [weak self] promise in
+//            guard let self = self else { return }
+//
+//            let docRef = self.db
+//                .collection("users")
+//                .document(profile.uid)
+//                .collection("userProfileData")
+//                .document(profile.uid)
+//
+//            do {
+//                var data = try Firestore.Encoder().encode(profile)
+//
+//                // Нормализация: пустые строки → удаление полей в Firestore
+//                if let name = profile.name, name.isEmpty {
+//                    data["name"] = FieldValue.delete()
+//                }
+//                if let lastName = profile.lastName, lastName.isEmpty {
+//                    data["lastName"] = FieldValue.delete()
+//                }
+//
+//                docRef.setData(data, merge: true) { [weak self] error in
+//                    if let error = error {
+//                        // Определяем тип ошибки
+//                        let nsError = error as NSError
+//                        let code = nsError.code
+//                        let domain = nsError.domain
+//
+//                        // Сетевые ошибки — не показываем алерт, просто логируем (нет сети setData работает в оффлайн )
+//                        ///Ошибка в completion setData в оффлайне — это не всегда «фатал», а просто «на момент вызова сервер не ответил».
+//                        ///в большинстве случаев при работе с docRef.setData Firestore вернёт ошибку с доменом FIRFirestoreErrorDomain
+//                        ///Если проблема не в логике Firestore, а в транспортном уровне (нет интернета, таймаут, потеря соединения) то domain = NSURLErrorDomain
+//                        ///.contains(code) — быстрый способ проверить, относится ли код к этим "мягким" ошибкам
+//                        if domain == NSURLErrorDomain,
+//                           [NSURLErrorNotConnectedToInternet,
+//                            NSURLErrorTimedOut,
+//                            NSURLErrorNetworkConnectionLost].contains(code) {
+//                            print("⚠️ Firestore: нет сети или слабое соединение, изменения будут синхронизированы позже")
+//                            promise(.success(()))
+////                            promise(.failure(error)) // Можно вернуть failure, чтобы цепочка знала, что сервер не подтвердил
+//                            return
+//                        }
+//
+//                        // Остальные ошибки — показываем алерт
+//                        ///DispatchQueue.main.async { [weak self] in ???
+//                        self?.handleFirestoreError(error, operationDescription: "Error update profile")
+//                        promise(.failure(error))
+//                    } else {
+//                        promise(.success(()))
+//                    }
+//                }
+//            } catch {
+//                self.handleFirestoreError(error, operationDescription: "Encoding error update profile")
+//                promise(.failure(error))
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
 
 // btfore UserInfoEditManager
 //    func updateProfile(_ profile: UserProfile) {
