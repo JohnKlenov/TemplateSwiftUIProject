@@ -73,7 +73,7 @@ struct UserProfile: Codable, Equatable, Hashable {
 
 protocol ProfileServiceProtocol {
     func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error>
-    func updateProfile(_ profile: UserProfile, operationDescription:String) -> AnyPublisher<Void, Error>
+    func updateProfile(_ profile: UserProfile, operationDescription:String, shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error>
 //    func updateProfile(_ profile: UserProfile)
 }
 
@@ -144,7 +144,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
 
 
 
-    func updateProfile(_ profile: UserProfile, operationDescription: String) -> AnyPublisher<Void, Error> {
+    func updateProfile(_ profile: UserProfile, operationDescription: String, shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error> {
             Future<Void, Error> { [weak self] promise in
                 guard let self = self else { return }
                 
@@ -163,6 +163,10 @@ class FirestoreProfileService: ProfileServiceProtocol {
                     }
                     if let lastName = profile.lastName, lastName.isEmpty {
                         data["lastName"] = FieldValue.delete()
+                    }
+                    // 🔥 Явное удаление photoURL, если требуется
+                    if shouldDeletePhotoURL {
+                        data["photoURL"] = FieldValue.delete()
                     }
                     // Completion‑блок вызывается только после попытки синхронизации с сервером:
                     ///Если сеть появилась и сервер принял изменения → error == nil.

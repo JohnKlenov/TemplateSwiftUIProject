@@ -32,6 +32,8 @@ import UIKit
 
 protocol StorageProfileServiceProtocol {
     func uploadImageData(path: String, data: Data, operationDescription: String) -> AnyPublisher<URL, Error>
+    func deleteImage(at url: URL, operationDescription: String) -> AnyPublisher<Void, Error>
+
 }
 
 final class StorageProfileService: StorageProfileServiceProtocol {
@@ -74,6 +76,24 @@ final class StorageProfileService: StorageProfileServiceProtocol {
         }
         .eraseToAnyPublisher()
     }
+    
+    func deleteImage(at url: URL, operationDescription: String) -> AnyPublisher<Void, Error> {
+        Future<Void, Error> { [weak self] promise in
+            guard let self else { return }
+
+            let ref = storage.reference(forURL: url.absoluteString)
+            ref.delete { error in
+                if let error = error {
+                    self.handleStorageError(error, operationDescription: operationDescription)
+                    promise(.failure(error))
+                } else {
+                    promise(.success(()))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+
     
     private func handleStorageError(_ error: Error, operationDescription: String) {
         let message = errorHandler.handle(error: error)

@@ -74,7 +74,9 @@ struct UserInfoEditView: View {
             .confirmationDialog("Edit Photo", isPresented: $viewModel.showImageOptions, titleVisibility: .visible) {
                 Button("Choose from Library") { viewModel.chooseFromLibrary() }
                 Button("Take Photo") { viewModel.takePhoto() }
-                Button("Delete Photo", role: .destructive) { viewModel.deletePhoto() }
+                if viewModel.initialPhotoURL != nil {
+                    Button("Delete Photo", role: .destructive) { viewModel.deletePhoto() }
+                }
             }
             .sheet(isPresented: $viewModel.showPhotoPicker) {
                 PhotoPickerView { result in

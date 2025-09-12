@@ -132,6 +132,7 @@
 
 
 
+
 // MARK: - В UI сразу обновляют данные (оптимистичный апдейт)
 
 import Combine
@@ -175,10 +176,23 @@ final class UserInfoEditManager {
                     return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
                 }
                 let profile = UserProfile(uid: uid, photoURL: url)
-                return self.firestoreService.updateProfile(profile, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+                return self.firestoreService.updateProfile(profile, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, shouldDeletePhotoURL: false)
             }
             .eraseToAnyPublisher()
     }
+    
+    func deleteAvatar(for uid: String, photoURL: URL, operationDescription: String) -> AnyPublisher<Void, Error> {
+        return storageService.deleteImage(at: photoURL, operationDescription: operationDescription)
+            .flatMap { [weak self] _ -> AnyPublisher<Void, Error> in
+                guard let self else {
+                    return Empty(completeImmediately: true).eraseToAnyPublisher()
+                }
+                let profile = UserProfile(uid: uid, photoURL: nil)
+                return self.firestoreService.updateProfile(profile, operationDescription: operationDescription, shouldDeletePhotoURL: true)
+            }
+            .eraseToAnyPublisher()
+    }
+
     
     /*
      🔍 Почему утечки памяти не будет при вызове без .store(in:)
@@ -200,8 +214,8 @@ final class UserInfoEditManager {
     Пока подписка хранится в cancellables — Combine не вызовет .cancel(), и Publisher продолжит выдавать события.
     Как только владелец (например, ViewModel) деинициализируется, Set уничтожается, и все подписки в нём автоматически отменяются.
     */
-    func updateProfile(_ profile: UserProfile, operationDescription: String) {
-        _ = firestoreService.updateProfile(profile, operationDescription: operationDescription)
+    func updateProfile(_ profile: UserProfile, operationDescription: String, shouldDeletePhotoURL:Bool) {
+        _ = firestoreService.updateProfile(profile, operationDescription: operationDescription, shouldDeletePhotoURL: shouldDeletePhotoURL)
             .sink(receiveCompletion: { _ in }, receiveValue: { })
     }
     

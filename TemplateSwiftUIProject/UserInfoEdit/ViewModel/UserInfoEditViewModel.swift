@@ -9,6 +9,8 @@
 
 
 
+
+
 import SwiftUI
 import Combine
 
@@ -20,7 +22,7 @@ class UserInfoEditViewModel: ObservableObject {
     private let uid: String
     private let initialName: String
     private let initialLastName: String
-    let initialPhotoURL: URL?
+    var initialPhotoURL: URL?
 
     // Публикуемые свойства для View
     @Published var name: String
@@ -79,11 +81,20 @@ class UserInfoEditViewModel: ObservableObject {
     // если сохраняем image updateImageProfile() то в name: nil, lastName: nil
     // Ты можешь обновить только одно поле через setData(from:merge:true), если в закодированной модели присутствует только это поле. Для этого передай модель, в которой все остальные опционалы равны nil — тогда синтезированный Encodable просто не закодирует их.
     func updateProfile()  {
-        editManager.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil), operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields)
+        editManager.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil), operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields, shouldDeletePhotoURL: false)
     }
     
+    
     func handlePickedImage(_ image: UIImage) {
-
+        
+        // или что бы не иметь проболем можно вызвать editManager.uploadAvatar по нажатию на кнопу Done???
+        // когда мы добавляем картинку то лучше обнулять initialPhotoURL в nil
+        /// это делается для того что бы для сценария когда мы удачно добавили картинку
+        /// затем начали еще раз добавлять новую картинку в этом же UserInfoEditView и это прошло не успешно
+        /// нам прилетает avatarImage = nil и мы попадаем на загрузку самой первой initialPhotoURL
+        /// хотя ее уже может и не быть на сервере после первой удачно сохраненной
+        /// поэтому лучше сразу затерать ее и тогда пользователь не будет в заблуждении
+        self.initialPhotoURL = nil
         self.avatarImage = image
         
         editManager.uploadAvatar(for: uid, image: image)
@@ -113,7 +124,22 @@ class UserInfoEditViewModel: ObservableObject {
 
     func chooseFromLibrary() { showPhotoPicker = true }
     func takePhoto() { showCamera = true }
-    func deletePhoto() { avatarImage = nil }
+    func deletePhoto() {
+        
+        guard let photoURL = initialPhotoURL else { return }
+        
+        editManager.deleteAvatar(for: uid, photoURL: photoURL, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                if case .failure(let error) = completion {
+                    print("Ошибка удаления аватара: \(error.localizedDescription)")
+                }
+            } receiveValue: { [weak self] in
+                self?.avatarImage = nil
+                self?.initialPhotoURL = nil
+            }
+            .store(in: &cancellables)
+    }
 
     deinit {
         cancellables.removeAll()
