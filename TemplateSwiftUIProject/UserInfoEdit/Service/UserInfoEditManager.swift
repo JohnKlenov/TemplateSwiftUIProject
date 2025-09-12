@@ -152,21 +152,21 @@ final class UserInfoEditManager {
         self.alertManager = alertManager
     }
     
-    /// Загружает аватар в Storage и обновляет профиль в Firestore
-    /// Все алерты показывают СЕРВИСЫ. Менеджер не вызывает handleError.
+    // Загружает аватар в Storage и обновляет профиль в Firestore
     func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<Void, Error> {
         // 1. Сжатие изображения
         guard let data = image.jpegData(compressionQuality: 0.8) else {
-            /// ??? ProfileServiceError.imageEncodingFailed
-            return Fail(error: ProfileServiceError.imageEncodingFailed)
+            handleError(FirebaseInternalError.imageEncodingFailed, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+            return Fail(error: FirebaseInternalError.imageEncodingFailed)
                 .eraseToAnyPublisher()
         }
         
         // 2. Путь и заголовки операций (ключи/тексты для алертов в сервисах)
-        let path = "avatars/\(uid).jpg"
+        let path = "avatars/\(uid)/\(uid).jpg"
         
         // 3. Цепочка: Storage → Firestore
-        return storageService.uploadImageData(path: path, data: data, operationDescription: "storageOperationTitle")
+        return storageService.uploadImageData(path: path, data: data, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+        ///полезен в отладке, но в продакшене лучше заменить на логгер или удалить.
             .handleEvents(receiveOutput: { url in
                 print("✅ Avatar uploaded to Storage: \(url)")
             })
@@ -175,10 +175,11 @@ final class UserInfoEditManager {
                     return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
                 }
                 let profile = UserProfile(uid: uid, photoURL: url)
-                return self.firestoreService.updateProfile(profile)
+                return self.firestoreService.updateProfile(profile, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
             }
             .eraseToAnyPublisher()
     }
+    
     /*
      🔍 Почему утечки памяти не будет при вызове без .store(in:)
 
@@ -199,8 +200,8 @@ final class UserInfoEditManager {
     Пока подписка хранится в cancellables — Combine не вызовет .cancel(), и Publisher продолжит выдавать события.
     Как только владелец (например, ViewModel) деинициализируется, Set уничтожается, и все подписки в нём автоматически отменяются.
     */
-    func updateProfile(_ profile: UserProfile) {
-        _ = firestoreService.updateProfile(profile)
+    func updateProfile(_ profile: UserProfile, operationDescription: String) {
+        _ = firestoreService.updateProfile(profile, operationDescription: operationDescription)
             .sink(receiveCompletion: { _ in }, receiveValue: { })
     }
     

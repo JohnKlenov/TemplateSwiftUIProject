@@ -16,6 +16,7 @@ enum FirebaseInternalError: Error, LocalizedError {
     case defaultError
     case emptyResult
     case nilSnapshot
+    case imageEncodingFailed
 
     var errorDescription: String? {
         switch self {
@@ -35,6 +36,8 @@ enum FirebaseInternalError: Error, LocalizedError {
             return Localized.FirebaseInternalError.emptyResult
         case .nilSnapshot:
             return Localized.FirebaseInternalError.nilSnapshot
+        case .imageEncodingFailed:
+            return Localized.FirebaseInternalError.imageEncodingFailed
         }
     }
 }

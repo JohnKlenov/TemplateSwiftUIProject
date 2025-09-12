@@ -44,14 +44,15 @@ class ContentAccountViewModel: ObservableObject {
                 
                 // 1. Обновление кнопки
                 self.isUserAnonymous = isAnonymous
-                
+                /// если сделали signIn нужно обнулить
+                self.userProfile = nil
                 // 2. Загрузка профиля (если нужно)
                 if !isAnonymous, let uid = authUser?.uid {
                     self.loadUserProfile(uid: uid)
                 } else {
                     // 3. Сброс данных для анонимов
                     // если при удалении account у нас не получится создать анонимного то тут будет nil и глобальный алерт с ретрай
-                    self.userProfile = nil
+//                    self.userProfile = nil
                     self.profileLoadingState = .idle
                 }
             }

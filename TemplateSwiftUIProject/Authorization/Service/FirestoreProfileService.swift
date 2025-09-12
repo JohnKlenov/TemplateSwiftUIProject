@@ -73,7 +73,7 @@ struct UserProfile: Codable, Equatable, Hashable {
 
 protocol ProfileServiceProtocol {
     func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error>
-    func updateProfile(_ profile: UserProfile) -> AnyPublisher<Void, Error>
+    func updateProfile(_ profile: UserProfile, operationDescription:String) -> AnyPublisher<Void, Error>
 //    func updateProfile(_ profile: UserProfile)
 }
 
@@ -108,7 +108,9 @@ class FirestoreProfileService: ProfileServiceProtocol {
                 subject.send(completion: .failure(error))
                 ///  когда мы будем удалять users/{uid} через cloud function
                 ///  может отработать error ошибка прав доступа до того как будет вызван новый fetchProfile(uid: String) и profileListener?.remove()
-                self?.handleFirestoreError(error, operationDescription: "Error fetch profile")
+                ///  !!! можно не отображать алерт в случае ошибки получения данных о пользователе так как у нас всегда есть retry
+                ///  но отправлять данные в краш листикс
+                self?.handleFirestoreError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
                 return
             }
             
@@ -116,7 +118,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
             ///Внутренние сбои SDK + Неверный путь (например, пустой uid)
             guard let snapshot = snapshot else {
                 subject.send(completion: .failure(FirebaseInternalError.nilSnapshot))
-                self?.handleFirestoreError(FirebaseInternalError.nilSnapshot, operationDescription: "Error fetch profile")
+                self?.handleFirestoreError(FirebaseInternalError.nilSnapshot, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
                 return
             }
             
@@ -131,7 +133,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
                 }
             } catch {
                 subject.send(completion: .failure(error))
-                self?.handleFirestoreError(error, operationDescription: "Error fetch profile")
+                self?.handleFirestoreError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
             }
             
         }
@@ -142,7 +144,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
 
 
 
-    func updateProfile(_ profile: UserProfile) -> AnyPublisher<Void, Error> {
+    func updateProfile(_ profile: UserProfile, operationDescription: String) -> AnyPublisher<Void, Error> {
             Future<Void, Error> { [weak self] promise in
                 guard let self = self else { return }
                 
@@ -171,7 +173,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
                     docRef.setData(data, merge: true) { [weak self] error in
                         if let error = error {
                             ///DispatchQueue.main.async { [weak self] in ???
-                            self?.handleFirestoreError(error, operationDescription: "Error update profile")
+                            self?.handleFirestoreError(error, operationDescription: operationDescription)
                             promise(.failure(error))
                         } else {
                             promise(.success(()))
@@ -179,7 +181,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
                     }
                 } catch {
                     ///DispatchQueue.main.async { [weak self] in ???
-                    self.handleFirestoreError(error, operationDescription: "Encoding error update profile")
+                    self.handleFirestoreError(error, operationDescription: operationDescription)
                     promise(.failure(error))
                 }
             }

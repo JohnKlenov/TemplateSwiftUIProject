@@ -115,8 +115,8 @@
 "error.sign_in" = "Error during sign in";
 "error.forgot_password" = "Error during password reset";
 "error.account_deletion" = "Error deleting account";
-"error.picking_image" = "Failed to select photo";
-
+"error.editing_profile_fields" = "Failed to update profile text fields";
+"error.fetching_profile_data" = "Failed to fetch profile data";
 
 
 /* Title Of Success Operation Firebase */
@@ -144,6 +144,8 @@
 "error.anonymous_auth" = "Unknown error occurred during anonymous authentication";
 "error.custom_firebase.empty_result" = "No data found.";
 "error.custom_firebase.nil_snapshot" = "Snapshot is missing. Please try again later.";
+"error.custom_firebase.image_encoding_failed" = "Failed to process the image. Please try a different photo.";
+
 
 
 /* Auth Errors */
@@ -228,6 +230,8 @@
 "error.photo_picker.load_failed" = "Failed to load the item.";
 "error.photo_picker.unknown" = "Unknown error.";
 
+/* Title Of Failed Operation PhotoPicker */
+"error.picking_image" = "Failed to select photo";
 
 /* System error */
 

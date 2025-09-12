@@ -103,6 +103,7 @@
 
 /* Firebase error */
 
+
 /* Title Of Failed Operation Firebase */
 "error.deleting_book" = "Ошибка при удалении книги";
 "error.authentication" = "Ошибка аутентификации";
@@ -112,8 +113,8 @@
 "error.sign_in" = "Ошибка при входе в аккаунт";
 "error.forgot_password" = "Ошибка при восстановлении пароля";
 "error.account_deletion" = "Ошибка при удалении аккаунта";
-"error.picking_image" = "Не удалось выбрать фото";
-
+"error.editing_profile_fields" = "Ошибка при изменении текстовых данных профиля";
+"error.fetching_profile_data" = "Ошибка при получении данных профиля";
 
 
 /* Title Of Success Operation Firebase */
@@ -140,6 +141,8 @@
 "error.anonymous_auth" = "Неизвестная ошибка при анонимной аутентификации";
 "error.custom_firebase.empty_result" = "Данные не найдены.";
 "error.custom_firebase.nil_snapshot" = "Снимок данных отсутствует. Попробуйте позже.";
+"error.custom_firebase.image_encoding_failed" = "Не удалось обработать изображение. Попробуйте другое фото.";
+
 
 
 
@@ -228,6 +231,8 @@
 "error.photo_picker.load_failed" = "Не удалось загрузить элемент.";
 "error.photo_picker.unknown" = "Неизвестная ошибка.";
 
+/* Title Of Failed Operation PhotoPicker */
+"error.picking_image" = "Не удалось выбрать фото";
 
 
 /* System error */

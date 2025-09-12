@@ -56,6 +56,7 @@
 //as? DecodingError  - Доступ к case, codingPath, debugDescription и конкретному типу
 
 // MARK: - тут мы еще не работали с ошибками которые нужно отображть через алерт а какие логировать
+// можно так же передавать в func handle(error: (any Error)?) description то есть откуда она пришла для краш листикса
 
 import FirebaseAuth
 import FirebaseFirestore

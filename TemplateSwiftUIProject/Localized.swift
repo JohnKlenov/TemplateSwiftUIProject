@@ -133,13 +133,18 @@ enum Localized {
         static let signIn = "error.sign_in"
         static let forgotPassword = "error.forgot_password"
         static let accountDeletion = "error.account_deletion"
-        static let pickingImage = "error.picking_image"
+        static let editingProfileFields = "error.editing_profile_fields"
+        static let fetchingProfileData = "error.fetching_profile_data"
     }
     
     enum TitleOfSuccessOperationFirebase {
         static let signUp = "title.success.sign_up"
         static let signIn = "title.success.sign_in"
         static let accountDeletion = "title.success.account_deletion"
+    }
+    
+    enum TitleOfFailedOperationPickingImage {
+        static let pickingImage = "error.picking_image"
     }
 
     // MARK: - Message Alert
@@ -149,7 +154,6 @@ enum Localized {
         static let signIn = "message.success.sign_in"
         static let accountDeletion = "message.success.account_deletion"
     }
-
     
     
     // MARK: - Custom Firebase Error -
@@ -164,6 +168,7 @@ enum Localized {
         static var anonymousAuthError = "error.anonymous_auth"
         static var emptyResult = "error.custom_firebase.empty_result"
         static var nilSnapshot = "error.custom_firebase.nil_snapshot"
+        static var imageEncodingFailed = "error.custom_firebase.image_encoding_failed"
     }
     
     // MARK: - Auth Errors

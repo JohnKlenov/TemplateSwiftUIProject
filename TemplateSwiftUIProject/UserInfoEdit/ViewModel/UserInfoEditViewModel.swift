@@ -61,6 +61,7 @@ class UserInfoEditViewModel: ObservableObject {
         Publishers
             .CombineLatest($name, $lastName)
             .map { [weak self] name, lastName in
+                ///это синтаксический сахар, доступный с Swift 5.7+
                 guard let self else { return false }
                 
                 let changed = name != self.initialName || lastName != self.initialLastName
@@ -78,11 +79,11 @@ class UserInfoEditViewModel: ObservableObject {
     // если сохраняем image updateImageProfile() то в name: nil, lastName: nil
     // Ты можешь обновить только одно поле через setData(from:merge:true), если в закодированной модели присутствует только это поле. Для этого передай модель, в которой все остальные опционалы равны nil — тогда синтезированный Encodable просто не закодирует их.
     func updateProfile()  {
-        editManager.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil))
+        editManager.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil), operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields)
     }
     
-    func handlePickedImage(_ image: UIImage?) {
-        guard let image = image else { return }
+    func handlePickedImage(_ image: UIImage) {
+
         self.avatarImage = image
         
         editManager.uploadAvatar(for: uid, image: image)
@@ -91,6 +92,7 @@ class UserInfoEditViewModel: ObservableObject {
                 switch completion {
                 case .finished:
                     print("Аватар успешно обновлён в Firestore")
+                    break // Ничего не делаем, но явно фиксируем успешное завершение
                 case .failure(let error):
                     // ВАЖНО: алерты уже показаны в сервисах. Здесь — только лог.
                     print("Ошибка загрузки/обновления аватара: \(error.localizedDescription)")

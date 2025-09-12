@@ -111,8 +111,8 @@
 "error.sign_in" = "Error al iniciar sesión";
 "error.forgot_password" = "Error al restablecer la contraseña";
 "error.account_deletion" = "Error al eliminar la cuenta";
-"error.picking_image" = "No se pudo seleccionar la foto";
-
+"error.editing_profile_fields" = "Error al modificar los campos de texto del perfil";
+"error.fetching_profile_data" = "Error al obtener los datos del perfil";
 
 
 /* Title Of Success Operation Firebase */
@@ -138,6 +138,8 @@
 "error.anonymous_auth" = "Error desconocido durante la autenticación anónima";
 "error.custom_firebase.empty_result" = "No se encontraron datos.";
 "error.custom_firebase.nil_snapshot" = "Falta la instantánea. Inténtalo de nuevo más tarde.";
+"error.custom_firebase.image_encoding_failed" = "No se pudo procesar la imagen. Intente con otra foto.";
+
 
 
 
@@ -227,6 +229,8 @@
 "error.photo_picker.load_failed" = "No se pudo cargar el elemento.";
 "error.photo_picker.unknown" = "Error desconocido.";
 
+/* Title Of Failed Operation PhotoPicker */
+"error.picking_image" = "No se pudo seleccionar la foto";
 
 /* Validation string */
 
