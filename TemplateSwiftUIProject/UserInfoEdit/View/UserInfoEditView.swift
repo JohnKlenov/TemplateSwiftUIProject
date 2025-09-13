@@ -31,9 +31,12 @@ struct UserInfoEditView: View {
                         Text("Edit Photo")
                             .foregroundColor(.blue)
                             .onTapGesture {
-                                viewModel.showImageOptions = true
+                                if !viewModel.isAvatarLoading {
+                                    viewModel.showImageOptions = true
+                                }
                             }
                             .contentShape(Rectangle()) // чёткая hit-область
+                            .disabled(viewModel.isAvatarLoading) // Блокируем нажатие
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                 }
@@ -143,14 +146,42 @@ struct UserInfoEditView: View {
         Button {
             print("Avatar tapped")
         } label: {
-            avatarContent
-                .scaledToFill()
-                .frame(width: 120, height: 120)
-                .clipShape(Circle()) // обрезает картинку по кругу
+            ZStack {
+                avatarContent
+                    .scaledToFill()
+                    .frame(width: 120, height: 120)
+                    .clipShape(Circle())
+
+                if viewModel.isAvatarLoading {
+                    Circle()
+                        .fill(Color.black.opacity(0.3)) // затемнение фона
+                        .frame(width: 120, height: 120)
+
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .scaleEffect(1.5)
+                        .transition(.opacity.combined(with: .scale)) // анимация появления
+                        .animation(.easeInOut(duration: 0.3), value: viewModel.isAvatarLoading)
+                }
+            }
         }
         .buttonStyle(.plain)
-        .contentShape(Circle()) // ограничивает зону нажатия кругом
+        .contentShape(Circle())
+        .disabled(viewModel.isAvatarLoading)
     }
+
+//    private var avatarButton: some View {
+//        Button {
+//            print("Avatar tapped")
+//        } label: {
+//            avatarContent
+//                .scaledToFill()
+//                .frame(width: 120, height: 120)
+//                .clipShape(Circle()) // обрезает картинку по кругу
+//        }
+//        .buttonStyle(.plain)
+//        .contentShape(Circle()) // ограничивает зону нажатия кругом
+//    }
     
     @ViewBuilder
     private var avatarContent: some View {

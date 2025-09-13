@@ -164,7 +164,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
                     if let lastName = profile.lastName, lastName.isEmpty {
                         data["lastName"] = FieldValue.delete()
                     }
-                    // 🔥 Явное удаление photoURL, если требуется
+                    // Явное удаление photoURL, если требуется
                     if shouldDeletePhotoURL {
                         data["photoURL"] = FieldValue.delete()
                     }

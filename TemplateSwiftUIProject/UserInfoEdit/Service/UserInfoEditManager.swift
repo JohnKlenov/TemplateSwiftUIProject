@@ -154,33 +154,32 @@ final class UserInfoEditManager {
     }
     
     // Загружает аватар в Storage и обновляет профиль в Firestore
-    func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<Void, Error> {
-        // 1. Сжатие изображения
+    func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
         guard let data = image.jpegData(compressionQuality: 0.8) else {
             handleError(FirebaseInternalError.imageEncodingFailed, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
             return Fail(error: FirebaseInternalError.imageEncodingFailed)
                 .eraseToAnyPublisher()
         }
         
-        // 2. Путь и заголовки операций (ключи/тексты для алертов в сервисах)
         let path = "avatars/\(uid)/\(uid).jpg"
         
-        // 3. Цепочка: Storage → Firestore
         return storageService.uploadImageData(path: path, data: data, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
         ///полезен в отладке, но в продакшене лучше заменить на логгер или удалить.
             .handleEvents(receiveOutput: { url in
                 print("✅ Avatar uploaded to Storage: \(url)")
             })
-            .flatMap { [weak self] url -> AnyPublisher<Void, Error> in
-                guard let self = self else {
+            .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
+                guard let self else {
                     return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
                 }
                 let profile = UserProfile(uid: uid, photoURL: url)
                 return self.firestoreService.updateProfile(profile, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, shouldDeletePhotoURL: false)
+                    .map { url } // возвращаем URL после успешного обновления
+                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }
-    
+
     func deleteAvatar(for uid: String, photoURL: URL, operationDescription: String) -> AnyPublisher<Void, Error> {
         return storageService.deleteImage(at: photoURL, operationDescription: operationDescription)
             .flatMap { [weak self] _ -> AnyPublisher<Void, Error> in
@@ -229,3 +228,32 @@ enum ProfileServiceError: Error {
     case imageEncodingFailed
 }
 
+
+
+//    func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<Void, Error> {
+//        // 1. Сжатие изображения
+//        guard let data = image.jpegData(compressionQuality: 0.8) else {
+//            handleError(FirebaseInternalError.imageEncodingFailed, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+//            return Fail(error: FirebaseInternalError.imageEncodingFailed)
+//                .eraseToAnyPublisher()
+//        }
+//
+//        // 2. Путь и заголовки операций (ключи/тексты для алертов в сервисах)
+//        let path = "avatars/\(uid)/\(uid).jpg"
+//
+//        // 3. Цепочка: Storage → Firestore
+//        return storageService.uploadImageData(path: path, data: data, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+//        ///полезен в отладке, но в продакшене лучше заменить на логгер или удалить.
+//            .handleEvents(receiveOutput: { url in
+//                print("✅ Avatar uploaded to Storage: \(url)")
+//            })
+//            .flatMap { [weak self] url -> AnyPublisher<Void, Error> in
+//                guard let self = self else {
+//                    return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
+//                }
+//                let profile = UserProfile(uid: uid, photoURL: url)
+//                return self.firestoreService.updateProfile(profile, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, shouldDeletePhotoURL: false)
+//            }
+//            .eraseToAnyPublisher()
+//    }
+    

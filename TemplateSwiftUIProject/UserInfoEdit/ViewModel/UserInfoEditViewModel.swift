@@ -33,6 +33,7 @@ class UserInfoEditViewModel: ObservableObject {
     @Published var showCamera = false
     @Published var showErrorAlert = false
     @Published private(set) var canSave = false
+    @Published var isAvatarLoading = false
 
     private var isSaving = false
     private let editManager: UserInfoEditManager
@@ -84,33 +85,21 @@ class UserInfoEditViewModel: ObservableObject {
         editManager.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil), operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields, shouldDeletePhotoURL: false)
     }
     
-    
     func handlePickedImage(_ image: UIImage) {
-        
-        // или что бы не иметь проболем можно вызвать editManager.uploadAvatar по нажатию на кнопу Done???
-        // когда мы добавляем картинку то лучше обнулять initialPhotoURL в nil
-        /// это делается для того что бы для сценария когда мы удачно добавили картинку
-        /// затем начали еще раз добавлять новую картинку в этом же UserInfoEditView и это прошло не успешно
-        /// нам прилетает avatarImage = nil и мы попадаем на загрузку самой первой initialPhotoURL
-        /// хотя ее уже может и не быть на сервере после первой удачно сохраненной
-        /// поэтому лучше сразу затерать ее и тогда пользователь не будет в заблуждении
-        self.initialPhotoURL = nil
         self.avatarImage = image
-        
+        self.isAvatarLoading = true
+
         editManager.uploadAvatar(for: uid, image: image)
-            .receive(on: DispatchQueue.main) // UI-эффекты на главном потоке
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
-                switch completion {
-                case .finished:
-                    print("Аватар успешно обновлён в Firestore")
-                    break // Ничего не делаем, но явно фиксируем успешное завершение
-                case .failure(let error):
-                    // ВАЖНО: алерты уже показаны в сервисах. Здесь — только лог.
+                self?.isAvatarLoading = false
+                if case .failure(let error) = completion {
                     print("Ошибка загрузки/обновления аватара: \(error.localizedDescription)")
                     self?.avatarImage = nil
                 }
-            } receiveValue: { _ in
-                // Паблишер возвращает Void — UI-логика не требуется
+            } receiveValue: { [weak self] newURL in
+                print("editManager.uploadAvatar success newURL -  \(newURL)")
+                self?.initialPhotoURL = newURL // сохраняем новый URL
             }
             .store(in: &cancellables)
     }
@@ -127,10 +116,12 @@ class UserInfoEditViewModel: ObservableObject {
     func deletePhoto() {
         
         guard let photoURL = initialPhotoURL else { return }
+        self.isAvatarLoading = true
         
         editManager.deleteAvatar(for: uid, photoURL: photoURL, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
+                self?.isAvatarLoading = false
                 if case .failure(let error) = completion {
                     print("Ошибка удаления аватара: \(error.localizedDescription)")
                 }
@@ -147,6 +138,45 @@ class UserInfoEditViewModel: ObservableObject {
     }
 }
 
+
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
+//            self?.isAvatarLoading = false
+//            self?.avatarImage = nil
+//        }
+
+
+//    func handlePickedImage(_ image: UIImage) {
+//
+//        self.avatarImage = image
+//        self.isAvatarLoading = true
+//
+//        editManager.uploadAvatar(for: uid, image: image)
+//            .receive(on: DispatchQueue.main) // UI-эффекты на главном потоке
+//            .sink { [weak self] completion in
+//                self?.isAvatarLoading = false
+//                switch completion {
+//                case .finished:
+//                    print("Аватар успешно обновлён в Firestore")
+//                    break // Ничего не делаем, но явно фиксируем успешное завершение
+//                case .failure(let error):
+//                    // ВАЖНО: алерты уже показаны в сервисах. Здесь — только лог.
+//                    print("Ошибка загрузки/обновления аватара: \(error.localizedDescription)")
+//                    self?.avatarImage = nil
+//                }
+//            } receiveValue: { _ in
+//                // Паблишер возвращает Void — UI-логика не требуется
+//            }
+//            .store(in: &cancellables)
+//    }
+//func handlePickedImage(_ image: UIImage)
+
+// или что бы не иметь проболем можно вызвать editManager.uploadAvatar по нажатию на кнопу Done???
+// когда мы добавляем картинку то лучше обнулять initialPhotoURL в nil
+/// это делается для того что бы для сценария когда мы удачно добавили картинку
+/// затем начали еще раз добавлять новую картинку в этом же UserInfoEditView и это прошло не успешно
+/// нам прилетает avatarImage = nil и мы попадаем на загрузку самой первой initialPhotoURL
+/// хотя ее уже может и не быть на сервере после первой удачно сохраненной
+/// поэтому лучше сразу затерать ее и тогда пользователь не будет в заблуждении
 
 
 //        profileService.updateProfile(UserProfile(uid: uid, name: nil, lastName: nil, photoURL: URL(string: "https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/TestImage%2F3-e1bc007b39c5a8b930833e35963b9914.jpeg?alt=media&token=345fe1d8-93d8-4824-8ee5-a58d4763918a")))
