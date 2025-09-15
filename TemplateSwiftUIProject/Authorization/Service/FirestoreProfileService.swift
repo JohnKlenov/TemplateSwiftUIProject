@@ -146,8 +146,8 @@ class FirestoreProfileService: ProfileServiceProtocol {
 
     func updateProfile(_ profile: UserProfile, operationDescription: String, shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error> {
             Future<Void, Error> { [weak self] promise in
+                print("func updateProfile - profile - \(profile)")
                 guard let self = self else { return }
-                
                 let docRef = self.db
                     .collection("users")
                     .document(profile.uid)
@@ -176,6 +176,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
                     ///Это значит, что ловить внутри completion ошибки вида NSURLErrorNotConnectedToInternet, timedOut и т.п. обычно бесполезно,
                     docRef.setData(data, merge: true) { [weak self] error in
                         if let error = error {
+                            print("error func updateProfile docRef.setData")
                             ///DispatchQueue.main.async { [weak self] in ???
                             self?.handleFirestoreError(error, operationDescription: operationDescription)
                             promise(.failure(error))
@@ -184,6 +185,7 @@ class FirestoreProfileService: ProfileServiceProtocol {
                         }
                     }
                 } catch {
+                    print("error func updateProfile catch")
                     ///DispatchQueue.main.async { [weak self] in ???
                     self.handleFirestoreError(error, operationDescription: operationDescription)
                     promise(.failure(error))

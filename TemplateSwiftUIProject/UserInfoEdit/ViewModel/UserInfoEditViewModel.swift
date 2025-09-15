@@ -7,7 +7,7 @@
 
 
 
-
+//    @Published var infoEditState: UserInfoEditManager.State = .idle
 
 
 
@@ -76,6 +76,32 @@ class UserInfoEditViewModel: ObservableObject {
                 self?.canSave = canSave
             }
             .store(in: &cancellables)
+        
+        editManager.state = .idle
+        editManager.$state
+            .handleEvents(receiveOutput: { print("→ UserInfoEditViewModel подписка получила:", $0) })
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                
+                self?.isAvatarLoading = (state == .loading)
+                
+                switch state {
+                case .avatarUploadSuccess(url: let url):
+                    ///  если мы добавили новый аватар но плохая сеть ушли затем вернулись у нас старая картинка и вдруг приходит url тогда у нас не отобразится новый аватар так как initialPhotoURL не паблишер а может нужно принудительно self?.avatarImage = nil ?
+                    self?.initialPhotoURL = url
+                case .avatarDeleteSuccess:
+                    self?.avatarImage = nil
+                    self?.initialPhotoURL = nil
+                case .avatarUploadFailure:
+                    /// если initialPhotoURL был то он должен отобразится в UI
+                    self?.avatarImage = nil
+                case .avatarDeleteFailure:
+                    break
+                default:
+                    break
+                }
+            }
+            .store(in: &cancellables)
     }
 
     // если сохраняем текст updateTextProfile() то в photoURL передаем nil
@@ -87,21 +113,7 @@ class UserInfoEditViewModel: ObservableObject {
     
     func handlePickedImage(_ image: UIImage) {
         self.avatarImage = image
-        self.isAvatarLoading = true
-
-        editManager.uploadAvatar(for: uid, image: image)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] completion in
-                self?.isAvatarLoading = false
-                if case .failure(let error) = completion {
-                    print("Ошибка загрузки/обновления аватара: \(error.localizedDescription)")
-                    self?.avatarImage = nil
-                }
-            } receiveValue: { [weak self] newURL in
-                print("editManager.uploadAvatar success newURL -  \(newURL)")
-                self?.initialPhotoURL = newURL // сохраняем новый URL
-            }
-            .store(in: &cancellables)
+        editManager.uploadAvatarAndTrack(for: uid, image: image)
     }
 
     
@@ -113,23 +125,10 @@ class UserInfoEditViewModel: ObservableObject {
 
     func chooseFromLibrary() { showPhotoPicker = true }
     func takePhoto() { showCamera = true }
+    
     func deletePhoto() {
-        
         guard let photoURL = initialPhotoURL else { return }
-        self.isAvatarLoading = true
-        
-        editManager.deleteAvatar(for: uid, photoURL: photoURL, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] completion in
-                self?.isAvatarLoading = false
-                if case .failure(let error) = completion {
-                    print("Ошибка удаления аватара: \(error.localizedDescription)")
-                }
-            } receiveValue: { [weak self] in
-                self?.avatarImage = nil
-                self?.initialPhotoURL = nil
-            }
-            .store(in: &cancellables)
+        editManager.deleteAvatarAndTrack(for: uid, photoURL: photoURL, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
     }
 
     deinit {
@@ -144,6 +143,46 @@ class UserInfoEditViewModel: ObservableObject {
 //            self?.avatarImage = nil
 //        }
 
+
+//    func deletePhoto() {
+//
+//        guard let photoURL = initialPhotoURL else { return }
+//        self.isAvatarLoading = true
+//
+//        editManager.deleteAvatar(for: uid, photoURL: photoURL, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                self?.isAvatarLoading = false
+//                if case .failure(let error) = completion {
+//                    print("Ошибка удаления аватара: \(error.localizedDescription)")
+//                }
+//            } receiveValue: { [weak self] in
+//                self?.avatarImage = nil
+//                self?.initialPhotoURL = nil
+//            }
+//            .store(in: &cancellables)
+//    }
+
+
+// before
+//    func handlePickedImage(_ image: UIImage) {
+//        self.avatarImage = image
+//        self.isAvatarLoading = true
+//
+//        editManager.uploadAvatar(for: uid, image: image)
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                self?.isAvatarLoading = false
+//                if case .failure(let error) = completion {
+//                    print("Ошибка загрузки/обновления аватара: \(error.localizedDescription)")
+//                    self?.avatarImage = nil
+//                }
+//            } receiveValue: { [weak self] newURL in
+//                print("editManager.uploadAvatar success newURL -  \(newURL)")
+//                self?.initialPhotoURL = newURL // сохраняем новый URL
+//            }
+//            .store(in: &cancellables)
+//    }
 
 //    func handlePickedImage(_ image: UIImage) {
 //

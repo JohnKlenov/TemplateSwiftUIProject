@@ -139,11 +139,62 @@ import Combine
 import UIKit
 
 final class UserInfoEditManager {
+
+    enum State: Equatable {
+        case idle
+        case loading
+        case avatarUploadSuccess(url: URL)
+        case avatarDeleteSuccess
+        case avatarUploadFailure
+        case avatarDeleteFailure
+
+        static func == (lhs: State, rhs: State) -> Bool {
+            switch (lhs, rhs) {
+            case (.idle, .idle),
+                 (.loading, .loading),
+                 (.avatarDeleteSuccess, .avatarDeleteSuccess),
+                 (.avatarUploadFailure, .avatarUploadFailure),
+                 (.avatarDeleteFailure, .avatarDeleteFailure):
+                return true
+            case (.avatarUploadSuccess(let lURL), .avatarUploadSuccess(let rURL)):
+                return lURL == rURL
+            default:
+                return false
+            }
+        }
+    }
+
+//    enum State: Equatable {
+//        case idle
+//        case loading
+//        case success(url: URL)
+//        case deleted
+//        case failure
+//
+//        static func == (lhs: State, rhs: State) -> Bool {
+//            switch (lhs, rhs) {
+//            case (.idle, .idle),
+//                 (.loading, .loading),
+//                 (.failure, .failure),
+//                 (.deleted, .deleted):
+//                return true
+//            case (.success(let lURL), .success(let rURL)):
+//                return lURL == rURL
+//            default:
+//                return false
+//            }
+//        }
+//    }
+
     
     private let firestoreService: ProfileServiceProtocol
     private let storageService: StorageProfileServiceProtocol
     private let alertManager:AlertManager
     private let errorHandler: ErrorHandlerProtocol
+    private var avatarUploadCancellable: AnyCancellable?
+    private var avatarDeleteCancellable: AnyCancellable?
+    
+    @Published var state: State = .idle
     
     init(firestoreService: ProfileServiceProtocol,
          storageService: StorageProfileServiceProtocol, errorHandler: ErrorHandlerProtocol, alertManager: AlertManager = AlertManager.shared) {
@@ -154,25 +205,26 @@ final class UserInfoEditManager {
     }
     
     // Загружает аватар в Storage и обновляет профиль в Firestore
-    func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
+    private func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
         guard let data = image.jpegData(compressionQuality: 0.8) else {
             handleError(FirebaseInternalError.imageEncodingFailed, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
             return Fail(error: FirebaseInternalError.imageEncodingFailed)
                 .eraseToAnyPublisher()
         }
         
-        let path = "avatars/\(uid)/\(uid).jpg"
+        // Генерируем уникальное имя файла с timestamp
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let fileName = "avatar_\(timestamp).jpg"
+        let path = "avatars/\(uid)/\(fileName)"
         
         return storageService.uploadImageData(path: path, data: data, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
-        ///полезен в отладке, но в продакшене лучше заменить на логгер или удалить.
-            .handleEvents(receiveOutput: { url in
-                print("✅ Avatar uploaded to Storage: \(url)")
-            })
             .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
-                guard let self else {
+                guard let self = self else {
+                    print(".flatMap guard let self = self else")
                     return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
                 }
                 let profile = UserProfile(uid: uid, photoURL: url)
+                print(".flatMap url - \(url.absoluteString)")
                 return self.firestoreService.updateProfile(profile, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, shouldDeletePhotoURL: false)
                     .map { url } // возвращаем URL после успешного обновления
                     .eraseToAnyPublisher()
@@ -180,7 +232,26 @@ final class UserInfoEditManager {
             .eraseToAnyPublisher()
     }
 
-    func deleteAvatar(for uid: String, photoURL: URL, operationDescription: String) -> AnyPublisher<Void, Error> {
+    func uploadAvatarAndTrack(for uid: String, image: UIImage) {
+        state = .loading
+        avatarUploadCancellable?.cancel() // отменяем предыдущую загрузку
+        
+        avatarUploadCancellable = uploadAvatar(for: uid, image: image)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                
+                if case .failure(let error) = completion {
+                    print("Ошибка загрузки/обновления аватара: \(error.localizedDescription)")
+                    self?.state = .avatarUploadFailure
+                }
+            } receiveValue: { [weak self] newURL in
+                print("editManager.uploadAvatar success newURL -  \(newURL)")
+                self?.state = .avatarUploadSuccess(url: newURL)// сохраняем новый URL
+            }
+    }
+
+
+    private func deleteAvatar(for uid: String, photoURL: URL, operationDescription: String) -> AnyPublisher<Void, Error> {
         return storageService.deleteImage(at: photoURL, operationDescription: operationDescription)
             .flatMap { [weak self] _ -> AnyPublisher<Void, Error> in
                 guard let self else {
@@ -191,6 +262,24 @@ final class UserInfoEditManager {
             }
             .eraseToAnyPublisher()
     }
+
+    func deleteAvatarAndTrack(for uid: String, photoURL: URL, operationDescription: String) {
+        state = .loading
+        avatarDeleteCancellable?.cancel()
+
+        avatarDeleteCancellable = deleteAvatar(for: uid, photoURL: photoURL, operationDescription: operationDescription)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                if case .failure(let error) = completion {
+                    print("Ошибка удаления аватара: \(error.localizedDescription)")
+                    self?.state = .avatarDeleteFailure
+                }
+            } receiveValue: { [weak self] in
+                print("Аватар успешно удалён")
+                self?.state = .avatarDeleteSuccess
+            }
+    }
+
 
     
     /*
@@ -224,11 +313,45 @@ final class UserInfoEditManager {
     }
 }
 
-enum ProfileServiceError: Error {
-    case imageEncodingFailed
-}
 
 
+
+
+
+
+//enum ProfileServiceError: Error {
+//    case imageEncodingFailed
+//}
+
+
+
+//    enum State: Equatable {
+//        case idle
+//        case loading
+//        case success(url: URL)
+//        case failure
+//
+//        static func == (lhs: State, rhs: State) -> Bool {
+//            switch (lhs, rhs) {
+//            case (.idle, .idle),
+//                 (.loading, .loading),
+//                 (.failure, .failure):
+//                return true
+//            case (.success(let lURL), .success(let rURL)):
+//                return lURL == rURL
+//            default:
+//                return false
+//            }
+//        }
+//    }
+
+///полезен в отладке, но в продакшене лучше заменить на логгер или удалить.
+//            .handleEvents(receiveOutput: { url in
+//                print("✅ Avatar uploaded to Storage: \(url)")
+//            })
+
+
+//        let path = "avatars/\(uid)/\(uid).jpg"
 
 //    func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<Void, Error> {
 //        // 1. Сжатие изображения
