@@ -37,7 +37,6 @@ struct UserInfoEditView: View {
                                 }
                             }
                             .contentShape(Rectangle()) // чёткая hit-область
-                            .disabled(viewModel.isAvatarLoading) // Блокируем нажатие
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                 }
@@ -78,6 +77,7 @@ struct UserInfoEditView: View {
             .confirmationDialog("Edit Photo", isPresented: $viewModel.showImageOptions, titleVisibility: .visible) {
                 Button("Choose from Library") { viewModel.chooseFromLibrary() }
                 Button("Take Photo") { viewModel.takePhoto() }
+                /// так как при  viewModel.isAvatarLoading = true confirmationDialog не открыть то удаление сделать не получится во время загрузки
                 if viewModel.initialPhotoURL != nil {
                     Button("Delete Photo", role: .destructive) { viewModel.deletePhoto() }
                 }
@@ -103,13 +103,6 @@ struct UserInfoEditView: View {
             }
             .sheet(isPresented: $viewModel.showCamera) {
                 Text("Camera View Placeholder")
-            }
-            .alert(isPresented: $viewModel.showErrorAlert) {
-                Alert(
-                    title: Text("Error"),
-                    message: Text("Failed to save profile."),
-                    dismissButton: .default(Text("OK"))
-                )
             }
     }
     
@@ -176,19 +169,11 @@ struct UserInfoEditView: View {
         if let img = viewModel.avatarImage {
             Image(uiImage: img).resizable()
         } else if let url = viewModel.initialPhotoURL {
-            ///AsyncImage был создан как минималистичный способ загрузки изображений по URL в SwiftUI
-            ///AsyncImage не кэширует изображение
-            AsyncImage(url: url) { phase in
-                if let image = phase.image {
-                    image.resizable()
-                } else if phase.error != nil {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .foregroundColor(.gray)
-                } else {
-                    ProgressView()
-                }
-            }
+            WebImageView(
+                url: url,
+                placeholderColor: .gray,
+                displayStyle: .fixedFrame(width: 120, height: 120)
+            )
         } else {
             Image(systemName: "person.crop.circle.fill")
                 .resizable()
@@ -197,6 +182,33 @@ struct UserInfoEditView: View {
     }
 }
 
+
+
+
+//@ViewBuilder
+//private var avatarContent: some View {
+//    if let img = viewModel.avatarImage {
+//        Image(uiImage: img).resizable()
+//    } else if let url = viewModel.initialPhotoURL {
+//        ///AsyncImage был создан как минималистичный способ загрузки изображений по URL в SwiftUI
+//        ///AsyncImage не кэширует изображение
+//        AsyncImage(url: url) { phase in
+//            if let image = phase.image {
+//                image.resizable()
+//            } else if phase.error != nil {
+//                Image(systemName: "person.crop.circle.fill")
+//                    .resizable()
+//                    .foregroundColor(.gray)
+//            } else {
+//                ProgressView()
+//            }
+//        }
+//    } else {
+//        Image(systemName: "person.crop.circle.fill")
+//            .resizable()
+//            .foregroundColor(.gray)
+//    }
+//}
 
 //    private var avatarButton: some View {
 //        Button {

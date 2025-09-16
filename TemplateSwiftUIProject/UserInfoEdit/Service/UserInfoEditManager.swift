@@ -164,33 +164,12 @@ final class UserInfoEditManager {
         }
     }
 
-//    enum State: Equatable {
-//        case idle
-//        case loading
-//        case success(url: URL)
-//        case deleted
-//        case failure
-//
-//        static func == (lhs: State, rhs: State) -> Bool {
-//            switch (lhs, rhs) {
-//            case (.idle, .idle),
-//                 (.loading, .loading),
-//                 (.failure, .failure),
-//                 (.deleted, .deleted):
-//                return true
-//            case (.success(let lURL), .success(let rURL)):
-//                return lURL == rURL
-//            default:
-//                return false
-//            }
-//        }
-//    }
-
     
     private let firestoreService: ProfileServiceProtocol
     private let storageService: StorageProfileServiceProtocol
     private let alertManager:AlertManager
     private let errorHandler: ErrorHandlerProtocol
+    
     private var avatarUploadCancellable: AnyCancellable?
     private var avatarDeleteCancellable: AnyCancellable?
     
@@ -220,11 +199,9 @@ final class UserInfoEditManager {
         return storageService.uploadImageData(path: path, data: data, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
             .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
                 guard let self = self else {
-                    print(".flatMap guard let self = self else")
                     return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
                 }
                 let profile = UserProfile(uid: uid, photoURL: url)
-                print(".flatMap url - \(url.absoluteString)")
                 return self.firestoreService.updateProfile(profile, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, shouldDeletePhotoURL: false)
                     .map { url } // возвращаем URL после успешного обновления
                     .eraseToAnyPublisher()
@@ -240,12 +217,10 @@ final class UserInfoEditManager {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
                 
-                if case .failure(let error) = completion {
-                    print("Ошибка загрузки/обновления аватара: \(error.localizedDescription)")
+                if case .failure(_) = completion {
                     self?.state = .avatarUploadFailure
                 }
             } receiveValue: { [weak self] newURL in
-                print("editManager.uploadAvatar success newURL -  \(newURL)")
                 self?.state = .avatarUploadSuccess(url: newURL)// сохраняем новый URL
             }
     }
@@ -266,16 +241,14 @@ final class UserInfoEditManager {
     func deleteAvatarAndTrack(for uid: String, photoURL: URL, operationDescription: String) {
         state = .loading
         avatarDeleteCancellable?.cancel()
-
+        
         avatarDeleteCancellable = deleteAvatar(for: uid, photoURL: photoURL, operationDescription: operationDescription)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
-                if case .failure(let error) = completion {
-                    print("Ошибка удаления аватара: \(error.localizedDescription)")
+                if case .failure(_) = completion {
                     self?.state = .avatarDeleteFailure
                 }
             } receiveValue: { [weak self] in
-                print("Аватар успешно удалён")
                 self?.state = .avatarDeleteSuccess
             }
     }

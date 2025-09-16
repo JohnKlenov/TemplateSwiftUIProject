@@ -5,11 +5,32 @@
 //  Created by Evgenyi on 10.08.25.
 //
 
+// MARK: - Documentation
 
+// запись аватар и текстовых полей возможно делать последоватьельно даже при зависшей подгрузки аватар
+// аватар при зависшей загрузки/удалении не возможно открыть .confirmationDialog("Edit Photo") в одном жизненном цикле UserInfoEditView
 
-//    @Published var infoEditState: UserInfoEditManager.State = .idle
+// если мы при зависшей загрузки/удалении задисмисили UserInfoEditView (операции вызванные в UserInfoEditManager будут выполняться) - при успехи загрузки/удалении мы в UserInfoCellView увидим изменения аватар(отработает listener и вернет поле с url или nil), если операция выполнится с ошибкой мы увидим алерт(в теории мы можем увидеть несколько алертов по очереди)
 
+// если мы при зависшей загрузки/удалении задисмисили UserInfoEditView и снова init UserInfoEditView то даже при незавершенном пайплайне uploadAvatarAndTrack или deleteAvatarAndTrack мы сможем снова вызвать uploadAvatarAndTrack или deleteAvatarAndTrack при этом отменив незавершенный первый пэйплайн. (при этом мы в таком случае будем работать с url который еще не был удален или обновлен)
+/// детали  - если мы avatarUploadCancellable?.cancel()  то в таком случае мы если не будет ошибки сохраним картинку в Storage под новым уникальным именем ( мы не увидим ее так как пайплайн будет прерван ,  эту картинку' потом удалит Garbage colector )  / API который мы успели дернуть до завершения пейплайн все равно выполнится
+/// детали - если мы avatarDeleteCancellable?.cancel() то в таком случае мы если не будет ошибки удалим картинку в Storage / API который мы успели дернуть до завершения пейплайн все равно выполнится  - следовательно при повторном удалении )мы поймаем ошибку что такого url уже не существует / или возможно даже две ошибки
 
+//если мы при зависшей загрузки/удалении задисмисили UserInfoEditView и снова init UserInfoEditView то в новой сессии UserInfoEditView мы можем получить при успехи загрузки/удалении - при загрузки новый url который обновит image / при удалении удаление avatar. Если не успешная операция увидим Алерт.
+///  если мы добавили новый аватар но плохая сеть ушли затем вернулись у нас старая картинка и вдруг приходит url тогда у нас не отобразится новый аватар так как initialPhotoURL не паблишер а может нужно принудительно self?.avatarImage = nil ?
+
+// механика работы avatarContent:
+/// при первом старте UserInfoEditView у нас нет viewModel.avatarImage -> пытаемся получить WebImageView(url: ur) (WebImageView кэшь / если нет в кэше идем в сеть - серый плэйсхолдер ) -> если нет отображаем Image(systemName: "person.crop.circle.fill") Аватар нет у user!
+///
+///
+// с этой спецификай можно потестить его работу:
+
+///  1. пришли в UserInfoEditView аватар нет -> добавляем image если ошибка откатываемся назад на "person.crop.circle.fill" / если нет то везде(UserInfoEditView + UserInfoCellView) обновленный WebImageView(url: ur) - мы ждем side effect при успешном добавлении (на мгновение пропадет viewModel.avatarImage и начнется загрузка WebImageView(url: ur))
+///  при успешном добавлении откатываемся на UserInfoCellView и уже без инета на UserInfoEditView -> ожидаем кэш в WebImageView
+/// 2. пришли в UserInfoEditView аватар есть -> добавляем image -> если ошибка к примеру правила откатываемся на старый WebImageView(url: ur) если нет инета, откатываемся на UserInfoCellView снова заходим на UserInfoEditView без инета по кэшу получаем аватар затем включаем инет -> получаем url и новыую картинку в WebImageView(url: ur)
+///  3. пришли в UserInfoEditView аватар есть ->  удаляем -> успех!
+/// пришли в UserInfoEditView аватар есть ->  удаляем без инента  ->  уходим на UserInfoCellView затем снова на UserInfoEditView видим картинку из кэша  и включаем инет -> происходит удаление! (тут можно добавит кейс что инет появился а правила не позволяют)
+///  тестируем сценарии при незавершенном пайплайне uploadAvatarAndTrack или deleteAvatarAndTrack
 
 import SwiftUI
 import Combine
@@ -31,7 +52,6 @@ class UserInfoEditViewModel: ObservableObject {
     @Published var showImageOptions = false
     @Published var showPhotoPicker = false
     @Published var showCamera = false
-    @Published var showErrorAlert = false
     @Published private(set) var canSave = false
     @Published var isAvatarLoading = false
 
@@ -53,6 +73,9 @@ class UserInfoEditViewModel: ObservableObject {
     }
 
     private func setupBindings() {
+        
+        editManager.state = .idle
+        
         // Save активируется, когда хотя бы одно строковое поле непустое или изменилось
         /// даем максимальную свободу в имени/фамилии - хоть один символ, может содержать любые пробелы(но строка из пробелов это не имя).
         ///Каждый раз, когда любая из них ($name, $email) меняется, CombineLatest выдаёт обновлённую пару значений (name, email)
@@ -77,7 +100,6 @@ class UserInfoEditViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        editManager.state = .idle
         editManager.$state
             .handleEvents(receiveOutput: { print("→ UserInfoEditViewModel подписка получила:", $0) })
             .receive(on: DispatchQueue.main)
@@ -89,6 +111,7 @@ class UserInfoEditViewModel: ObservableObject {
                 case .avatarUploadSuccess(url: let url):
                     ///  если мы добавили новый аватар но плохая сеть ушли затем вернулись у нас старая картинка и вдруг приходит url тогда у нас не отобразится новый аватар так как initialPhotoURL не паблишер а может нужно принудительно self?.avatarImage = nil ?
                     self?.initialPhotoURL = url
+                    self?.avatarImage = nil
                 case .avatarDeleteSuccess:
                     self?.avatarImage = nil
                     self?.initialPhotoURL = nil
