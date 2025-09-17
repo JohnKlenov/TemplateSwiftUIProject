@@ -181,14 +181,14 @@ struct WebImageView: View {
         .overlay(
             Group {
                 //нужно отработать что бы в плэйсхолдере обозначалось что не удалось подгрузить из сети картинку
-                if debugMode, let error = lastError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(4)
-                        .background(Color.black.opacity(0.8))
-                        .cornerRadius(4)
-                }
+//                if debugMode, let error = lastError {
+//                    Text(error)
+//                        .font(.caption)
+//                        .foregroundColor(.red)
+//                        .padding(4)
+//                        .background(Color.black.opacity(0.8))
+//                        .cornerRadius(4)
+//                }
             }
         )
     }

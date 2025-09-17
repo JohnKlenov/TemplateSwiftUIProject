@@ -226,6 +226,7 @@ final class UserInfoEditManager {
     }
 
 
+    /// а может мне сначало удалять url  апотом image в storage
     private func deleteAvatar(for uid: String, photoURL: URL, operationDescription: String) -> AnyPublisher<Void, Error> {
         return storageService.deleteImage(at: photoURL, operationDescription: operationDescription)
             .flatMap { [weak self] _ -> AnyPublisher<Void, Error> in

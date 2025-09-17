@@ -164,6 +164,7 @@ struct UserInfoEditView: View {
         .disabled(viewModel.isAvatarLoading)
     }
     
+    
     @ViewBuilder
     private var avatarContent: some View {
         if let img = viewModel.avatarImage {

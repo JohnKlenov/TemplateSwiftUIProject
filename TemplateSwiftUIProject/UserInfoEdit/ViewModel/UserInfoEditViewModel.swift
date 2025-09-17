@@ -8,29 +8,51 @@
 // MARK: - Documentation
 
 // запись аватар и текстовых полей возможно делать последоватьельно даже при зависшей подгрузки аватар
-// аватар при зависшей загрузки/удалении не возможно открыть .confirmationDialog("Edit Photo") в одном жизненном цикле UserInfoEditView
+// аватар при зависшей загрузки/удалении не возможно открыть .confirmationDialog("Edit Photo") в  жизненном цикле UserInfoEditView
 
-// если мы при зависшей загрузки/удалении задисмисили UserInfoEditView (операции вызванные в UserInfoEditManager будут выполняться) - при успехи загрузки/удалении мы в UserInfoCellView увидим изменения аватар(отработает listener и вернет поле с url или nil), если операция выполнится с ошибкой мы увидим алерт(в теории мы можем увидеть несколько алертов по очереди)
+// если мы при зависшей загрузки/удалении задисмисили UserInfoEditView (операции вызванные в UserInfoEditManager будут выполняться) - при успехи загрузки/удалении мы в UserInfoCellView увидим изменения аватар(отработает listener и вернет поле с url или nil), если операция выполнится с ошибкой мы увидим алерт( мы можем увидеть несколько алертов по очереди)
 
-// если мы при зависшей загрузки/удалении задисмисили UserInfoEditView и снова init UserInfoEditView то даже при незавершенном пайплайне uploadAvatarAndTrack или deleteAvatarAndTrack мы сможем снова вызвать uploadAvatarAndTrack или deleteAvatarAndTrack при этом отменив незавершенный первый пэйплайн. (при этом мы в таком случае будем работать с url который еще не был удален или обновлен)
-/// детали  - если мы avatarUploadCancellable?.cancel()  то в таком случае мы если не будет ошибки сохраним картинку в Storage под новым уникальным именем ( мы не увидим ее так как пайплайн будет прерван ,  эту картинку' потом удалит Garbage colector )  / API который мы успели дернуть до завершения пейплайн все равно выполнится
-/// детали - если мы avatarDeleteCancellable?.cancel() то в таком случае мы если не будет ошибки удалим картинку в Storage / API который мы успели дернуть до завершения пейплайн все равно выполнится  - следовательно при повторном удалении )мы поймаем ошибку что такого url уже не существует / или возможно даже две ошибки
+// если мы при зависшей загрузки/удалении задисмисили UserInfoEditView и снова init UserInfoEditView то мы увидим на аватар спинер так как операция загрузки/удалении еще не завершилась - после завершения операции спинер исчезнет.
 
 //если мы при зависшей загрузки/удалении задисмисили UserInfoEditView и снова init UserInfoEditView то в новой сессии UserInfoEditView мы можем получить при успехи загрузки/удалении - при загрузки новый url который обновит image / при удалении удаление avatar. Если не успешная операция увидим Алерт.
-///  если мы добавили новый аватар но плохая сеть ушли затем вернулись у нас старая картинка и вдруг приходит url тогда у нас не отобразится новый аватар так как initialPhotoURL не паблишер а может нужно принудительно self?.avatarImage = nil ?
+
 
 // механика работы avatarContent:
 /// при первом старте UserInfoEditView у нас нет viewModel.avatarImage -> пытаемся получить WebImageView(url: ur) (WebImageView кэшь / если нет в кэше идем в сеть - серый плэйсхолдер ) -> если нет отображаем Image(systemName: "person.crop.circle.fill") Аватар нет у user!
-///
-///
-// с этой спецификай можно потестить его работу:
 
-///  1. пришли в UserInfoEditView аватар нет -> добавляем image если ошибка откатываемся назад на "person.crop.circle.fill" / если нет то везде(UserInfoEditView + UserInfoCellView) обновленный WebImageView(url: ur) - мы ждем side effect при успешном добавлении (на мгновение пропадет viewModel.avatarImage и начнется загрузка WebImageView(url: ur))
+// bugs:
+
+// func deleteAvatarAndTrack - две сетевые операции 1. удаление image in Storage, 2. Удаление url в Cloud Firestore
+// если не удалось удалить url в Cloud Firestore нам рпиходит ошибка -> удаление Avatar провалилось но мы по факту его удалили у нас только url в Profile и кэшированная картинка в WebImageView
+// Стратегии решения в продакшене:
+
+/// 1. Если Firestore не обновился — можно восстановить файл в Storage: - storageService.reuploadImage(at: photoURL, originalData: cachedData)
+/// 2. Фоновая компенсация через Cloud Function - Можно создать Cloud Function, которая: Слушает события удаления файлов в Storage. + Проверяет, что photoURL в Firestore больше не валиден. + Удаляет photoURL из профиля, если файл исчез.
+/// 3. Вместо физического удаления: Перемещаем файл в avatars/deleted/{uid}/... + Обновляем Firestore + Только после успешного обновления — удаляем файл окончательно
+
+
+// тестим работу:
+
+///  WWW1. пришли в UserInfoEditView аватар нет -> добавляем image если ошибка откатываемся назад на "person.crop.circle.fill" / если нет то везде(UserInfoEditView + UserInfoCellView) обновленный WebImageView(url: ur) - мы ждем side effect при успешном добавлении (на мгновение пропадет viewModel.avatarImage и начнется загрузка WebImageView(url: ur))
 ///  при успешном добавлении откатываемся на UserInfoCellView и уже без инета на UserInfoEditView -> ожидаем кэш в WebImageView
-/// 2. пришли в UserInfoEditView аватар есть -> добавляем image -> если ошибка к примеру правила откатываемся на старый WebImageView(url: ur) если нет инета, откатываемся на UserInfoCellView снова заходим на UserInfoEditView без инета по кэшу получаем аватар затем включаем инет -> получаем url и новыую картинку в WebImageView(url: ur)
-///  3. пришли в UserInfoEditView аватар есть ->  удаляем -> успех!
+/// WWW 2. пришли в UserInfoEditView аватар есть -> добавляем image -> если ошибка к примеру правила откатываемся на старый WebImageView(url: ur) если нет инета, откатываемся на UserInfoCellView снова заходим на UserInfoEditView без инета по кэшу получаем аватар затем включаем инет -> получаем url и новыую картинку в WebImageView(url: ur)
+///  WWW 3. пришли в UserInfoEditView аватар есть ->  удаляем -> успех!
 /// пришли в UserInfoEditView аватар есть ->  удаляем без инента  ->  уходим на UserInfoCellView затем снова на UserInfoEditView видим картинку из кэша  и включаем инет -> происходит удаление! (тут можно добавит кейс что инет появился а правила не позволяют)
-///  тестируем сценарии при незавершенном пайплайне uploadAvatarAndTrack или deleteAvatarAndTrack
+
+///  WWW deleteAvatarAndTrack -> удаляем при слабом инете - уходим на UserInfoCellView затем возвращаемся на UserInfoEditView снова удаляем при слабом интернете и получается второй раз вызываем deleteAvatarAndTrack (вот что имеем когда появляется сеть - первый пэйплайн отключаем и удаляем картинку из Storage но не переходим на удаление url пэйплайн отключен, далее  мы посути тут же вызываем еще раз deleteAvatarAndTrack  пытаемся удалить второй раз картинку из Storage  но тут нам приходит ошибка - error.storage.object_not_found и дальше у нас обрывается на этом пэйплайн и мы не можем удалить url  - сломанный сценарий (теперь у нас в UI есть закешированная картинка но в Storage ее уже нет ))
+///  WWW uploadAvatarAndTrack -> при таком же кейсе как в deleteAvatarAndTrack  выше тут не будет алерта с ошибкой мы просто будет дублировать аватары на Storage с разными именами.
+
+
+
+// Tresh
+
+///  switch state { если мы добавили новый аватар но плохая сеть ушли затем вернулись у нас старая картинка и вдруг приходит url тогда у нас не отобразится новый аватар так как initialPhotoURL не паблишер а может нужно принудительно self?.avatarImage = nil ?
+
+///даже при незавершенном пайплайне uploadAvatarAndTrack или deleteAvatarAndTrack мы сможем снова вызвать uploadAvatarAndTrack или deleteAvatarAndTrack при этом отменив незавершенный первый пэйплайн. (при этом мы в таком случае будем работать с url который еще не был удален или обновлен)
+/// детали  - если мы avatarUploadCancellable?.cancel()  то в таком случае мы если не будет ошибки сохраним картинку в Storage под новым уникальным именем ( мы не увидим ее так как пайплайн будет прерван ,  эту картинку' потом удалит Garbage colector )  / API который мы успели дернуть до завершения пейплайн все равно выполнится
+/// детали - если мы avatarDeleteCancellable?.cancel() то в таком случае мы если не будет ошибки удалим картинку в Storage / API который мы успели дернуть до завершения пейплайн все равно выполнится  - следовательно при повторном удалении )мы поймаем ошибку что такого url уже не существует / или возможно даже две ошибки
+
+
 
 import SwiftUI
 import Combine
@@ -74,7 +96,7 @@ class UserInfoEditViewModel: ObservableObject {
 
     private func setupBindings() {
         
-        editManager.state = .idle
+//        editManager.state = .idle
         
         // Save активируется, когда хотя бы одно строковое поле непустое или изменилось
         /// даем максимальную свободу в имени/фамилии - хоть один символ, может содержать любые пробелы(но строка из пробелов это не имя).
@@ -109,14 +131,15 @@ class UserInfoEditViewModel: ObservableObject {
                 
                 switch state {
                 case .avatarUploadSuccess(url: let url):
-                    ///  если мы добавили новый аватар но плохая сеть ушли затем вернулись у нас старая картинка и вдруг приходит url тогда у нас не отобразится новый аватар так как initialPhotoURL не паблишер а может нужно принудительно self?.avatarImage = nil ?
+                    if self?.avatarImage == nil {
+                        self?.initialPhotoURL = url
+                        self?.avatarImage = nil
+                    }
                     self?.initialPhotoURL = url
-                    self?.avatarImage = nil
                 case .avatarDeleteSuccess:
-                    self?.avatarImage = nil
                     self?.initialPhotoURL = nil
+                    self?.avatarImage = nil
                 case .avatarUploadFailure:
-                    /// если initialPhotoURL был то он должен отобразится в UI
                     self?.avatarImage = nil
                 case .avatarDeleteFailure:
                     break
@@ -151,6 +174,7 @@ class UserInfoEditViewModel: ObservableObject {
     
     func deletePhoto() {
         guard let photoURL = initialPhotoURL else { return }
+        /// тут нужен другой operationDescription - Fieled to delete photo
         editManager.deleteAvatarAndTrack(for: uid, photoURL: photoURL, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
     }
 
