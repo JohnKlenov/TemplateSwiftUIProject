@@ -117,6 +117,8 @@
 "error.account_deletion" = "Error deleting account";
 "error.editing_profile_fields" = "Failed to update profile text fields";
 "error.fetching_profile_data" = "Failed to fetch profile data";
+"error.deleting_profile_avatar" = "Failed to delete avatar";
+
 
 
 /* Title Of Success Operation Firebase */

@@ -115,6 +115,8 @@
 "error.account_deletion" = "Ошибка при удалении аккаунта";
 "error.editing_profile_fields" = "Ошибка при изменении текстовых данных профиля";
 "error.fetching_profile_data" = "Ошибка при получении данных профиля";
+"error.deleting_profile_avatar" = "Не удалось удалить аватар";
+
 
 
 /* Title Of Success Operation Firebase */

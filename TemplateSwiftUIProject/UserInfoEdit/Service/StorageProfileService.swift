@@ -87,6 +87,7 @@ final class StorageProfileService: StorageProfileServiceProtocol {
             let ref = storage.reference(forURL: url.absoluteString)
             ref.delete { error in
                 if let error = error {
+                    /// так как мы не хотим отображать неудачное удаление аватар нам не нужно вызывать handleStorageError
                     self.handleStorageError(error, operationDescription: operationDescription)
                     promise(.failure(error))
                 } else {

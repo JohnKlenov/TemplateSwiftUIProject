@@ -174,8 +174,7 @@ class UserInfoEditViewModel: ObservableObject {
     
     func deletePhoto() {
         guard let photoURL = initialPhotoURL else { return }
-        /// тут нужен другой operationDescription - Fieled to delete photo
-        editManager.deleteAvatarAndTrack(for: uid, photoURL: photoURL, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+        editManager.deleteAvatarAndTrack(for: uid, photoURL: photoURL, operationDescription: Localized.TitleOfFailedOperationFirebase.deletingProfileAvatar)
     }
 
     deinit {

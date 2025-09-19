@@ -135,6 +135,7 @@ enum Localized {
         static let accountDeletion = "error.account_deletion"
         static let editingProfileFields = "error.editing_profile_fields"
         static let fetchingProfileData = "error.fetching_profile_data"
+        static let deletingProfileAvatar = "error.deleting_profile_avatar"
     }
     
     enum TitleOfSuccessOperationFirebase {
