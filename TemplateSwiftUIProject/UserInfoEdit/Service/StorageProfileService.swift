@@ -32,7 +32,7 @@ import UIKit
 
 protocol StorageProfileServiceProtocol {
     func uploadImageData(path: String, data: Data, operationDescription: String) -> AnyPublisher<URL, Error>
-    func deleteImage(at url: URL, operationDescription: String) -> AnyPublisher<Void, Error>
+    func deleteImage(at url: URL)
 
 }
 
@@ -80,22 +80,14 @@ final class StorageProfileService: StorageProfileServiceProtocol {
         .eraseToAnyPublisher()
     }
     
-    func deleteImage(at url: URL, operationDescription: String) -> AnyPublisher<Void, Error> {
-        Future<Void, Error> { [weak self] promise in
-            guard let self else { return }
-
-            let ref = storage.reference(forURL: url.absoluteString)
-            ref.delete { error in
-                if let error = error {
-                    /// так как мы не хотим отображать неудачное удаление аватар нам не нужно вызывать handleStorageError
-                    self.handleStorageError(error, operationDescription: operationDescription)
-                    promise(.failure(error))
-                } else {
-                    promise(.success(()))
-                }
+    func deleteImage(at url: URL) {
+        let ref = storage.reference(forURL: url.absoluteString)
+        ref.delete { [weak self] error in
+            if let error = error {
+                // Логируем, но не пробрасываем наружу
+                let _ = self?.errorHandler.handle(error: error)
             }
         }
-        .eraseToAnyPublisher()
     }
 
     
@@ -104,6 +96,28 @@ final class StorageProfileService: StorageProfileServiceProtocol {
         alertManager.showGlobalAlert(message: message, operationDescription: operationDescription, alertType: .ok)
     }
 }
+
+
+
+
+
+//    func deleteImage(at url: URL, operationDescription: String) -> AnyPublisher<Void, Error> {
+//        Future<Void, Error> { [weak self] promise in
+//            guard let self else { return }
+//
+//            let ref = storage.reference(forURL: url.absoluteString)
+//            ref.delete { error in
+//                if let error = error {
+//                    /// так как мы не хотим отображать неудачное удаление аватар нам не нужно вызывать handleStorageError
+//                    let _ = self.errorHandler.handle(error: error)
+//                    promise(.failure(error))
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
 
 ///всегда в users/{userID}/userid.jpg хранить всего один файл с аватар . Но меня беспокоят две возможные проблемы - первая это что если в момент записи новой картинки в Storage все пройдет хорошо но получения url пройдет с ошибкой , тогда мы затрем наш старую картинку в storage и прервем получения новой? И второй момент я думаю о том что мы кэшируем картинку в SDWebImage по url , но не будет ли url всегда одинаковый вне зависимости от того какую картинку мы загрузим в Storage ведь путь всегда один и тот же - users/{userID}/userid.jpg ? Как подобные проблемы решают старшие iOS разработчики на боевых приложениях учитывая мою кодовую базу?
 ///

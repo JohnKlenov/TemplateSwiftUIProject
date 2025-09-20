@@ -95,9 +95,7 @@ class UserInfoEditViewModel: ObservableObject {
     }
 
     private func setupBindings() {
-        
-//        editManager.state = .idle
-        
+    
         // Save активируется, когда хотя бы одно строковое поле непустое или изменилось
         /// даем максимальную свободу в имени/фамилии - хоть один символ, может содержать любые пробелы(но строка из пробелов это не имя).
         ///Каждый раз, когда любая из них ($name, $email) меняется, CombineLatest выдаёт обновлённую пару значений (name, email)
@@ -131,6 +129,8 @@ class UserInfoEditViewModel: ObservableObject {
                 
                 switch state {
                 case .avatarUploadSuccess(url: let url):
+                    /// если мы не дождались ответа от avatarUpload и ушли с EditView
+                    /// что бы обновить WebImage если данные придут
                     if self?.avatarImage == nil {
                         self?.initialPhotoURL = url
                         self?.avatarImage = nil
@@ -141,8 +141,6 @@ class UserInfoEditViewModel: ObservableObject {
                     self?.avatarImage = nil
                 case .avatarUploadFailure:
                     self?.avatarImage = nil
-                case .avatarDeleteFailure:
-                    break
                 default:
                     break
                 }

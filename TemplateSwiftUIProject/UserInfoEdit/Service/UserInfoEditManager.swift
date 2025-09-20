@@ -172,7 +172,6 @@ final class UserInfoEditManager {
     
     private var avatarUploadCancellable: AnyCancellable?
     private var avatarDeleteUrlCancellable: AnyCancellable?
-    private var avatarDeleteStorageCancellable: AnyCancellable?
     
     @Published var state: State = .idle
     
@@ -184,17 +183,10 @@ final class UserInfoEditManager {
         self.alertManager = alertManager
     }
     
-    func resized(image: UIImage, targetSize: CGSize) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: targetSize)
-        return renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: targetSize))
-        }
-    }
-
-    
     // Загружает аватар в Storage и обновляет профиль в Firestore
     private func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
         //jpegData(compressionQuality:)
+        ///Эта функция может вернуть nil, если изображение не содержит данных или если базовый объект CGImageRef содержит данные в неподдерживаемом растровом формате.
         ///Преобразует UIImage в JPEG-формат. Сжимает изображение с заданным коэффициентом от 0.0 (максимальное сжатие, худшее качество) до 1.0 (минимальное сжатие, лучшее качество).
         ///снижение размера на 20–40%, но не в 2–3 раза, если исходник уже JPEG.
         guard let resizedImage = image.resizedMaintainingAspectRatio(toFit: 600), let data = resizedImage.jpegData(compressionQuality: 0.8) else {
@@ -204,9 +196,7 @@ final class UserInfoEditManager {
         }
         
         // Генерируем уникальное имя файла с timestamp
-        let timestamp = Int(Date().timeIntervalSince1970)
-        let fileName = "avatar_\(timestamp).jpg"
-        let path = "avatars/\(uid)/\(fileName)"
+        let path = String.avatarPath(for: uid)
         
         return storageService.uploadImageData(path: path, data: data, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
             .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
@@ -238,27 +228,19 @@ final class UserInfoEditManager {
     }
 
     // сначало удаляем url а потом image в Storage (если удаление в Storage не прошло чистим через Cloud Function)
-    ///Если обе операции — firestoreService.updateProfile и storageService.deleteImage — завершаются .success/.failure: Подписки завершаются автоматически. + avatarDeleteCancellable и avatarDeleteStorageCancellable больше не активны, даже если ты не вызываешь .cancel() вручную. + Память очищается, потому что Combine автоматически завершает подписку после .success/.failure
-    ///Когда нужно вызывать .cancel() вручную? - Хочешь прервать операцию до её завершения (например, пользователь нажал "Отмена"). + Вызываешь deleteAvatarAndTrack повторно, и хочешь отменить предыдущую попытку, чтобы избежать гонки.
     func deleteAvatarAndTrack(for uid: String, photoURL: URL, operationDescription: String) {
         state = .loading
         avatarDeleteUrlCancellable?.cancel()
-        avatarDeleteStorageCancellable?.cancel()
         
         let profile = UserProfile(uid: uid, photoURL: nil)
         
-        avatarDeleteUrlCancellable = firestoreService.updateProfile(profile, operationDescription: operationDescription, shouldDeletePhotoURL: true)
+        avatarDeleteUrlCancellable = firestoreService
+            .updateProfile(profile,
+                           operationDescription: operationDescription,
+                           shouldDeletePhotoURL: true)
             .handleEvents(receiveOutput: { [weak self] _ in
-                guard let self else { return }
-                
-                self.avatarDeleteStorageCancellable = self.storageService.deleteImage(at: photoURL, operationDescription: operationDescription)
-                    .sink(receiveCompletion: { completion in
-                        if case .failure(let error) = completion {
-                            print("⚠️ Ошибка удаления из Storage: \(error.localizedDescription)")
-                        }
-                    }, receiveValue: {
-                        print("✅ Аватар удалён из Storage")
-                    })
+                // Fire‑and‑forget удаление из Storage
+                self?.storageService.deleteImage(at: photoURL)
             })
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
@@ -269,35 +251,6 @@ final class UserInfoEditManager {
                 self?.state = .avatarDeleteSuccess
             }
     }
-
-    
-//    func deleteAvatarAndTrack(for uid: String, photoURL: URL, operationDescription: String) {
-//        state = .loading
-//        avatarDeleteCancellable?.cancel()
-//        
-//        let profile = UserProfile(uid: uid, photoURL: nil)
-//        
-//        avatarDeleteCancellable = firestoreService.updateProfile(profile, operationDescription: operationDescription, shouldDeletePhotoURL: true)
-//            .handleEvents(receiveOutput: { [weak self] _ in
-//                // Удаляем из Storage в фоне, не влияя на состояние
-//                _ = self?.storageService.deleteImage(at: photoURL, operationDescription: operationDescription)
-//                    .sink(receiveCompletion: { completion in
-//                        if case .failure(let error) = completion {
-//                            print("⚠️ Ошибка удаления из Storage: \(error.localizedDescription)")
-//                        }
-//                    }, receiveValue: {
-//                        print("✅ Аватар удалён из Storage")
-//                    })
-//            })
-//            .receive(on: DispatchQueue.main)
-//            .sink { [weak self] completion in
-//                if case .failure = completion {
-//                    self?.state = .avatarDeleteFailure
-//                }
-//            } receiveValue: { [weak self] in
-//                self?.state = .avatarDeleteSuccess
-//            }
-//    }
 
     /*
      🔍 Почему утечки памяти не будет при вызове без .store(in:)
@@ -333,6 +286,73 @@ final class UserInfoEditManager {
 
 
 
+
+
+
+
+
+//        let timestamp = Int(Date().timeIntervalSince1970)
+//        let fileName = "avatar_\(timestamp).jpg"
+//        let path = "avatars/\(uid)/\(fileName)"
+
+//    func deleteAvatarAndTrack(for uid: String, photoURL: URL, operationDescription: String) {
+//        state = .loading
+//        avatarDeleteUrlCancellable?.cancel()
+//        avatarDeleteStorageCancellable?.cancel()
+//
+//        let profile = UserProfile(uid: uid, photoURL: nil)
+//
+//        avatarDeleteUrlCancellable = firestoreService.updateProfile(profile, operationDescription: operationDescription, shouldDeletePhotoURL: true)
+//            .handleEvents(receiveOutput: { [weak self] _ in
+//                guard let self else { return }
+//
+//                self.avatarDeleteStorageCancellable = self.storageService.deleteImage(at: photoURL, operationDescription: operationDescription)
+//                    .sink(receiveCompletion: { completion in
+//                        if case .failure(let error) = completion {
+//                            print("⚠️ Ошибка удаления из Storage: \(error.localizedDescription)")
+//                        }
+//                    }, receiveValue: {
+//                        print("✅ Аватар удалён из Storage")
+//                    })
+//            })
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                if case .failure = completion {
+//                    self?.state = .avatarDeleteFailure
+//                }
+//            } receiveValue: { [weak self] in
+//                self?.state = .avatarDeleteSuccess
+//            }
+//    }
+
+    
+//    func deleteAvatarAndTrack(for uid: String, photoURL: URL, operationDescription: String) {
+//        state = .loading
+//        avatarDeleteCancellable?.cancel()
+//
+//        let profile = UserProfile(uid: uid, photoURL: nil)
+//
+//        avatarDeleteCancellable = firestoreService.updateProfile(profile, operationDescription: operationDescription, shouldDeletePhotoURL: true)
+//            .handleEvents(receiveOutput: { [weak self] _ in
+//                // Удаляем из Storage в фоне, не влияя на состояние
+//                _ = self?.storageService.deleteImage(at: photoURL, operationDescription: operationDescription)
+//                    .sink(receiveCompletion: { completion in
+//                        if case .failure(let error) = completion {
+//                            print("⚠️ Ошибка удаления из Storage: \(error.localizedDescription)")
+//                        }
+//                    }, receiveValue: {
+//                        print("✅ Аватар удалён из Storage")
+//                    })
+//            })
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                if case .failure = completion {
+//                    self?.state = .avatarDeleteFailure
+//                }
+//            } receiveValue: { [weak self] in
+//                self?.state = .avatarDeleteSuccess
+//            }
+//    }
 
 //    private func deleteAvatar(for uid: String, photoURL: URL, operationDescription: String) -> AnyPublisher<Void, Error> {
 //        return storageService.deleteImage(at: photoURL, operationDescription: operationDescription)

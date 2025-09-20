@@ -13,6 +13,8 @@
 ///Для повышения надежности можно использовать более сложное регулярное выражение или специализированные библиотеки, учитывающие все крайние случаи, если требуется абсолютная точность.
 ///Под «более мощным методом» я подразумеваю подход, который надёжнее охватывает все корректные варианты формата email, согласно стандартам (RFC 5322, например), а не только типичные варианты вроде "user@example.com".
 
+//ValidationString.swift
+
 import Foundation
 
 
@@ -48,6 +50,14 @@ extension String {
             return .failure(Localized.ValidSignUp.passwordNoUppercase)
         }
         return .success
+    }
+    
+    // Генерирует уникальный путь для аватара пользователя.
+    // - Parameter uid: Идентификатор пользователя.
+    // - Returns: Строка вида "avatars/{uid}/avatar_{timestamp}.jpg"
+    static func avatarPath(for uid: String) -> String {
+        let timestamp = Int(Date().timeIntervalSince1970)
+        return "avatars/\(uid)/avatar_\(timestamp).jpg"
     }
     
     // Проверка email с использованием NSDataDetector
