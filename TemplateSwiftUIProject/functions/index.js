@@ -3,9 +3,9 @@
  * Реагирует на удаление аккаунта и очищает связанные данные
  */
 
-const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
-const {setGlobalOptions, logger} = require("firebase-functions");
+const functions = require('firebase-functions/v1');
+const admin = require('firebase-admin');
+const {setGlobalOptions, logger} = require('firebase-functions');
 
 setGlobalOptions({maxInstances: 10});
 admin.initializeApp();
@@ -26,4 +26,10 @@ exports.deleteUserData = functions.auth.user().onDelete(async (user) => {
     });
   }
 });
+
+exports.cleanupUnusedAvatars =
+  require('./cleanupUnusedAvatars').cleanupUnusedAvatars;
+
+exports.cleanupUnusedAvatarsTest =
+  require('./cleanupUnusedAvatarsTest').cleanupUnusedAvatarsTest;
 

@@ -5,10 +5,6 @@
 //  Created by Evgenyi on 18.10.24.
 //
 
-/// смотри я хочу что бы ты создал мне такой же AccountView но вместо номера телефона в верхнем cell я хочу поместить email. Все остальные cell которые размещены на скрин шоте я хочу другие - (Notification, Change language, Dark mode, About Us, Create Account  ) для image можеш сразу использовать мой WebImageView. Ты старший ios разработчик! постарайся написать код так что бы UI был адаптивный под экран устройств начиная с iPhone 8 и самые новые модели.
-
-/// С Create Account мы переходим в навигационном стеке на SignIn с него можем перейти на SignUp так же в навигационном стеке. C SignUp можем вернуться на SignIn нажав на back или на кнопку signIn и это будет тот же back.
-/// На cartProduct если пользователь анонимный то при отсутствии товара в корзине мы сможем видить кнопку Create Account перейдя на которую мы попадаем на стек SignIn + SignUp (или SignUp + SignIn)
 
 
 // MARK: - delete account
