@@ -72,7 +72,9 @@
 ///Firebase не предоставляет явного значения для таймаута по умолчанию, вы можете управлять таймаутами вручную.
 ///Контроль таймаутов в Firebase не является абсолютно необходимым и может усложнить ваш код, особенно если у вас нет строгих требований к времени ожидания. В большинстве случаев, можно доверить Firebase управлять соединением и ждать ответ от сервера столько, сколько необходимо.
 
-
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+//            self?.handleAuthenticationError(NSError(domain: "Anonymous Auth", code: 111, userInfo: [NSLocalizedDescriptionKey: "This is a test global alert."]))
+//        }
 
 
 import Combine
@@ -106,10 +108,6 @@ protocol HomeViewModelProtocol: ObservableObject {
     func removeBook(book: BookCloud, forView:String, operationDescription: String)
     func retry()
 }
-
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
-//            self?.handleAuthenticationError(NSError(domain: "Anonymous Auth", code: 111, userInfo: [NSLocalizedDescriptionKey: "This is a test global alert."]))
-//        }
 
 
 class HomeContentViewModel: HomeViewModelProtocol {
@@ -220,6 +218,43 @@ class HomeContentViewModel: HomeViewModelProtocol {
         viewState = .error(errorMessage)
     }
 }
+
+
+
+
+
+// MARK: - before AnonAccountTrackerService
+
+
+//class HomeContentViewModel: HomeViewModelProtocol {
+//    
+//    /// может просто var alertManager:AlertManager ???@ObservedObject
+//    var alertManager:AlertManager
+//    @Published var viewState: ViewState = .loading
+//    
+//    private var stateError:StateError = .localError
+//    private var cancellables = Set<AnyCancellable>()
+//    private var authenticationService: AuthenticationServiceProtocol
+//    private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
+//    var managerCRUDS: CRUDSManager
+//    private let errorHandler: ErrorHandlerProtocol
+//    private(set) var globalRetryHandler: GlobalRetryHandler?
+//    
+//    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: CRUDSManager, errorHandler: ErrorHandlerProtocol) {
+//        self.alertManager = alertManager
+//        self.authenticationService = authenticationService
+//        self.firestorColletionObserverService = firestorColletionObserverService
+//        self.errorHandler = errorHandler
+//        self.managerCRUDS = managerCRUDS
+//        print("init HomeContentViewModel")
+//
+//    }
+
+
+
+
+
+
 
 
 

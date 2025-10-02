@@ -100,6 +100,7 @@
 		5EC332F12E5EF01E0051BE5B /* StorageProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332F02E5EF01E0051BE5B /* StorageProfileService.swift */; };
 		5EC332F32E7D4B120051BE5B /* UIImage+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332F22E7D4B120051BE5B /* UIImage+Ext.swift */; };
 		5EC332F52E88002E0051BE5B /* DescriptionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332F42E88002E0051BE5B /* DescriptionProfile.swift */; };
+		5EC332F72E8C01A10051BE5B /* AnonAccountTrackerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -225,6 +226,7 @@
 		5EC332F02E5EF01E0051BE5B /* StorageProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageProfileService.swift; sourceTree = "<group>"; };
 		5EC332F22E7D4B120051BE5B /* UIImage+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Ext.swift"; sourceTree = "<group>"; };
 		5EC332F42E88002E0051BE5B /* DescriptionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DescriptionProfile.swift; sourceTree = "<group>"; };
+		5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnonAccountTrackerService.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsLoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLoggingService.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -940,6 +942,7 @@
 			children = (
 				5EC94A052CC29770003736A9 /* AuthenticationService.swift */,
 				5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */,
+				5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -1110,6 +1113,7 @@
 				5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */,
 				5E8F9C6E2D537A57004036F6 /* ViewBuilderModel.swift in Sources */,
 				5E8F9CC52D81A4CB004036F6 /* ShopCell.swift in Sources */,
+				5EC332F72E8C01A10051BE5B /* AnonAccountTrackerService.swift in Sources */,
 				5EC88EE82DBD815900A95224 /* GlobalRetryHandler.swift in Sources */,
 				5E8F9CCF2D99777A004036F6 /* ImageCacheManager.swift in Sources */,
 				5EC94A002CC291DB003736A9 /* ContentAccountView.swift in Sources */,

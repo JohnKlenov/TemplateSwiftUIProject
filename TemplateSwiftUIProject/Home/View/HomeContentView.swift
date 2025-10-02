@@ -28,9 +28,9 @@ struct HomeContentView:View {
     @EnvironmentObject var retryHandler: GlobalRetryHandler
     
     
-    init(managerCRUDS: CRUDSManager) {
+    init(managerCRUDS: CRUDSManager, authenticationService: AuthenticationServiceProtocol) {
         _viewModel = StateObject(wrappedValue: HomeContentViewModel(
-            authenticationService: AuthenticationService(),
+            authenticationService: authenticationService,
             firestorColletionObserverService: FirestoreCollectionObserverService(),
             managerCRUDS: managerCRUDS, 
             errorHandler: SharedErrorHandler()))
@@ -93,6 +93,34 @@ struct HomeContentView:View {
         }
     }
 }
+
+
+
+
+
+// MARK: - before AnonAccountTrackerService
+
+
+//struct HomeContentView:View {
+//    
+//    
+//    @StateObject private var viewModel: HomeContentViewModel
+//    @EnvironmentObject var homeCoordinator:HomeCoordinator
+//    @EnvironmentObject var localization: LocalizationService
+//    @EnvironmentObject var retryHandler: GlobalRetryHandler
+//    
+//    
+//    init(managerCRUDS: CRUDSManager) {
+//        _viewModel = StateObject(wrappedValue: HomeContentViewModel(
+//            authenticationService: AuthenticationService(),
+//            firestorColletionObserverService: FirestoreCollectionObserverService(),
+//            managerCRUDS: managerCRUDS,
+//            errorHandler: SharedErrorHandler()))
+//        print("init HomeContentView")
+//    }
+
+
+
 
 
 

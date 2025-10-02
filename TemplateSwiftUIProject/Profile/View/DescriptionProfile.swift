@@ -216,6 +216,10 @@
 ///Это автоматически триггерит onDelete → очистку данных в Firestore и Storage.
 
 
+// Тест cleanupAnonTracker (удаляем cleanupAnonTracker в Firestore как только user перестал быть анон) -> Создаем Анонимного (SignOut) -> SignUp -> данные по пути users/{uid}/anonAccountTracker/{uid} должны быть удалены.
+
+// Тест удаление Anon : Создаем Анонимного (SignOut) -> Создаем Profile + Avatars -> SignIn -> на следующий день в это же время ждем удаления сиротского Anon и данных Firestore + Storage
+
 
 // клиент
 
@@ -287,7 +291,7 @@
 
 
 
-
+//# 1 version
 
 //Cloud Function (Node.js) - Scheduled cleanup of inactive anonymous users
 
@@ -374,6 +378,185 @@
 
 
 
+//# 2 version prod + test
+
+
+
+
+//admin.initializeApp() должен быть вызван только один раз во всём проекте функций. Обычно это делают в functions/index.js (или в отдельном общем модуле, который импортируется везде).
+//Если ты вызываешь admin.initializeApp() в каждом файле (cleanupInactiveAnonUsers.js, cleanupInactiveAnonUsersTest.js, cleanupAnonTracker.js), Firebase не упадёт, но в логах будут предупреждения вида: Error: The default Firebase app already exists.
+
+
+
+
+
+//🔹 Как работает этот код (по шагам)
+//Раз в сутки запускается функция (отдельно для продакшена и теста).
+//Вычисляется дедлайн:
+//30 дней назад (продакшен)
+//1 день назад (тест)
+//Запрос к Firestore: ищем все anonAccountTracker, где isAnonymous == true и lastActiveAt < cutoff.
+//Для каждого кандидата:
+//Получаем UserRecord из Firebase Auth.
+//Если у пользователя есть провайдеры (providerData.length > 0) → значит, он уже постоянный → пропускаем.
+//Если провайдеров нет → это всё ещё анонимный → удаляем через admin.auth().deleteUser(uid).
+//У постоянного пользователя всегда есть хотя бы один провайдер (email, Google, Apple и т. д.).
+//Если пользователя уже нет в Auth → просто логируем, а трекер подчистит onDelete.
+//Удаление трекеров вручную не выполняется — этим занимается functions.auth.user().onDelete.
+
+
+
+
+
+
+//🔹 cleanupInactiveAnonUsers.js  (продакшен, 30 дней)
+
+
+//const functions = require("firebase-functions");
+//const admin = require("firebase-admin");
+//const db = admin.firestore();
+//
+///**
+// * PROD: Очистка анонимных аккаунтов, неактивных более 30 дней
+// */
+//exports.cleanupInactiveAnonUsers = functions.pubsub
+//  .schedule("every 24 hours")
+//  .onRun(async () => {
+//    const cutoffDate = new Date();
+//    cutoffDate.setDate(cutoffDate.getDate() - 30);
+//    const cutoff = admin.firestore.Timestamp.fromDate(cutoffDate);
+//
+//    console.log(`🧹 [PROD] Ищем анонимные аккаунты, неактивные до ${cutoff.toDate().toISOString()}`);
+//
+//    const snapshot = await db.collectionGroup("anonAccountTracker")
+//      .where("isAnonymous", "==", true)
+//      .where("lastActiveAt", "<", cutoff)
+//      .get();
+//
+//    if (snapshot.empty) {
+//      console.log("ℹ️ [PROD] Нет неактивных анонимных аккаунтов для удаления");
+//      return null;
+//    }
+//
+//    const tasks = [];
+//    snapshot.forEach((doc) => {
+//      const uid = doc.id;
+//      tasks.push(handleCandidateUser(uid, doc.ref, "[PROD]"));
+//    });
+//
+//    await Promise.all(tasks);
+//    console.log(`✅ [PROD] Завершена очистка. Обработано ${tasks.length} кандидатов.`);
+//    return null;
+//  });
+//
+//async function handleCandidateUser(uid, trackerRef, tag) {
+//  try {
+//    const userRecord = await admin.auth().getUser(uid);
+//    const isStillAnonymous = userRecord.providerData.length === 0;
+//
+//    if (!isStillAnonymous) {
+//      console.log(`⏭️ ${tag} Пропускаем ${uid}: пользователь уже не анонимный`);
+//      // Обновляем трекер, чтобы он больше не попадал в выборку
+//      await trackerRef.update({ isAnonymous: false });
+//      return;
+//    }
+//
+//    await admin.auth().deleteUser(uid);
+//    console.log(`✅ ${tag} Удалён анонимный пользователь ${uid}`);
+//  } catch (err) {
+//    if (err.code === "auth/user-not-found") {
+//      console.log(`ℹ️ ${tag} ${uid} уже удалён из Auth`);
+//      await trackerRef.update({ isAnonymous: false });
+//      return;
+//    }
+//    console.error(`❌ ${tag} Ошибка при обработке ${uid}:`, err);
+//  }
+//}
+//
+
+
+
+//🔹 index.js
+//exports.cleanupInactiveAnonUsers = require("./cleanupInactiveAnonUsers").cleanupInactiveAnonUsers;
+
+
+
+
+
+//🔹 cleanupInactiveAnonUsersTest.js  (тест, 1 день)
+
+
+
+//const functions = require("firebase-functions");
+//const admin = require("firebase-admin");
+//const db = admin.firestore();
+//
+///**
+// * TEST: Очистка анонимных аккаунтов, неактивных более 1 дня
+// */
+//exports.cleanupInactiveAnonUsersTest = functions.pubsub
+//  .schedule("every 24 hours")
+//  .onRun(async () => {
+//    const cutoffDate = new Date();
+//    cutoffDate.setDate(cutoffDate.getDate() - 1);
+//    const cutoff = admin.firestore.Timestamp.fromDate(cutoffDate);
+//
+//    console.log(`🧪 [TEST] Ищем анонимные аккаунты, неактивные до ${cutoff.toDate().toISOString()}`);
+//
+//    const snapshot = await db.collectionGroup("anonAccountTracker")
+//      .where("isAnonymous", "==", true)
+//      .where("lastActiveAt", "<", cutoff)
+//      .get();
+//
+//    if (snapshot.empty) {
+//      console.log("ℹ️ [TEST] Нет неактивных анонимных аккаунтов для удаления");
+//      return null;
+//    }
+//
+//    const tasks = [];
+//    snapshot.forEach((doc) => {
+//      const uid = doc.id;
+//      tasks.push(handleCandidateUser(uid, doc.ref, "[TEST]"));
+//    });
+//
+//    await Promise.all(tasks);
+//    console.log(`✅ [TEST] Завершена очистка. Обработано ${tasks.length} кандидатов.`);
+//    return null;
+//  });
+//
+//async function handleCandidateUser(uid, trackerRef, tag) {
+//  try {
+//    const userRecord = await admin.auth().getUser(uid);
+//    const isStillAnonymous = userRecord.providerData.length === 0;
+//
+//    if (!isStillAnonymous) {
+//      console.log(`⏭️ ${tag} Пропускаем ${uid}: пользователь уже не анонимный`);
+//      // Обновляем трекер, чтобы он больше не попадал в выборку
+//      await trackerRef.update({ isAnonymous: false });
+//      return;
+//    }
+//
+//    await admin.auth().deleteUser(uid);
+//    console.log(`✅ ${tag} Удалён анонимный пользователь ${uid}`);
+//  } catch (err) {
+//    if (err.code === "auth/user-not-found") {
+//      console.log(`ℹ️ ${tag} ${uid} уже удалён из Auth`);
+//      await trackerRef.update({ isAnonymous: false });
+//      return;
+//    }
+//    console.error(`❌ ${tag} Ошибка при обработке ${uid}:`, err);
+//  }
+//}
+//
+
+
+
+//🔹 index.js
+//exports.cleanupInactiveAnonUsersTest = require("./cleanupInactiveAnonUsersTest").cleanupInactiveAnonUsersTest;
+
+
+
+
 
 //Cloud Function (Node.js) -  cleanupAnonTracker (удаляем cleanupAnonTracker в Firestore как только user перестал быть анон)
 
@@ -385,10 +568,8 @@
 
 
 //Создаём отдельный файл, например cleanupAnonTracker.js:
-
 //const functions = require("firebase-functions/v1");
 //const admin = require("firebase-admin");
-//
 //const db = admin.firestore();
 //
 ///**
@@ -414,6 +595,7 @@
 //    }
 //  }
 //});
+
 
 
 
@@ -511,7 +693,6 @@
 //  }
 //});
 //
-// Остальные функции
 //exports.cleanupUnusedAvatars =
 //  require('./cleanupUnusedAvatars').cleanupUnusedAvatars;
 //

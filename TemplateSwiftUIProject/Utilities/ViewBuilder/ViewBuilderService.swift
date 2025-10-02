@@ -18,10 +18,14 @@ class ViewBuilderService: ObservableObject {
     private let profileService:FirestoreProfileService
     private let storageProfileService: StorageProfileServiceProtocol
     private let userInfoEditManager:UserInfoEditManager
+    private let authService: AuthenticationServiceProtocol
 
     init() {
         let service = AuthorizationService()
         self.authorizationManager = AuthorizationManager(service: service, errorHandler: SharedErrorHandler())
+        
+        let trackerService = AnonAccountTrackerService()
+        self.authService = AuthenticationService(trackerService: trackerService)
         
         self.profileService = FirestoreProfileService()
         self.storageProfileService = StorageProfileService()
@@ -37,7 +41,7 @@ class ViewBuilderService: ObservableObject {
     func homeViewBuild(page: HomeFlow) -> some View {
         switch page {
         case .home:
-            HomeContentView(managerCRUDS: crudManager)
+            HomeContentView(managerCRUDS: crudManager, authenticationService: authService)
         case .bookDetails(let book):
             BookDetailsView(managerCRUDS: crudManager, book: book)
         case .someHomeView:
