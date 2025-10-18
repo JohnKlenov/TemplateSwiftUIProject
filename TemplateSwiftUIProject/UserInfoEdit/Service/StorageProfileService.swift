@@ -60,6 +60,9 @@ final class StorageProfileService: StorageProfileServiceProtocol {
                 }
                 
                 ref.downloadURL { url, error in
+                    //.where('lastActiveAt', '<', cutoff)
+// firebase deploy --only functions:cleanupInactiveAnonUsersTest
+
 //                    promise(.failure(FirebaseInternalError.imageEncodingFailed))
                     if let error = error {
                         print("error uploadImageData ref.downloadURL")

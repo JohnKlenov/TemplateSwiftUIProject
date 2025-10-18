@@ -173,6 +173,8 @@ final class UserInfoEditManager {
     private var avatarUploadCancellable: AnyCancellable?
     private var avatarDeleteUrlCancellable: AnyCancellable?
     
+    /// так как uploadAvatar может зависнуть на минуты то лучше при смене аккаунта обновлять его на .idle через зависимость authListener в UserInfoEditManager в котором будет addListener за пользователем и через Combine мы будем обновлять state на .idle
+    /// Но тут проблема в том что Firebase SDK все равно отработают. То есть нам нужно прервать пйплайн на всех методах????
     @Published var state: State = .idle
     
     init(firestoreService: ProfileServiceProtocol,
@@ -184,6 +186,25 @@ final class UserInfoEditManager {
     }
     
     // Загружает аватар в Storage и обновляет профиль в Firestore
+    /// нужно понимать что в нашем случае если при смене аватар дело дошло до firestoreService.updateProfile но подвисло от плохой сети то в addSnapshotListener сразу отрабаотает локальный кэш и видимо раз сеть плохая тоже не сможет получить картинку в SDWebimage сразу - но этот сценарий маловероятный так как firestoreService.updateProfile требует мало времени даже при млохой сети! а вот storageService.uploadImageData может при плохой сети зависнуть на долго если картинка большая но в нашем случае мы ее сжимае поэтому тут тоже скорость ответа должна быть бустрее!
+    /// Плюс Firestore применяет optimistic update: локальный кэш обновляется мгновенно, слушатели (addSnapshotListener) срабатывают сразу. Поэтому «подвиснуть» здесь почти нереально. Единственный случай — если сеть полностью отсутствует, тогда completion не вызовется до появления соединения.
+    ///
+    ///
+    /// ❗️Почему мы можем добавить `.timeout(...)` ПОКА ОСТАВЛЯЕМ КАК ЕСТЬ:
+    /// но методы Firebase SDK это не остановит а лишь прирвет пэйплайн Combine. (setData сразу обновляет локальный кэш, слушатели (addSnapshotListener) мгновенно видят изменения, даже если сервер ещё не подтвердил - по этому если мы прирываем пэйплайн нам нужно что бы addSnapshotListener не реагировал до тех пор пока не придет подтверждение от сервера.)
+    /// то есть если сработает timeout в combine и после это в адлистенер придет snapshot.metadata.hasPendingWrites == false выходит мы пользователю покажем ошибку что не получилось а потом он возьми и обновись? это ведь не нормально как такое решают на продакшене?
+    /// Да, твой сценарий возможен. На продакшене это решают либо жёсткой фильтрацией по hasPendingWrites (UI ждёт только подтверждённые данные), либо смягчением UX (ошибка = «не удалось подтвердить», но optimistic‑update остаётся).
+    /// По умолчанию Firebase SDK может ждать ответа от сервера очень долго (минуты),
+    /// если сеть нестабильна или соединение зависло. Это создаёт плохой UX — пользователь
+    /// видит «вечную загрузку» и не понимает, что происходит.
+    ///
+    /// Используя `.timeout(.seconds(15))`, мы ограничиваем общее время ожидания операции
+    /// (Storage + Firestore). Если за 15 секунд ответ не пришёл, Combine прерывает цепочку
+    /// и возвращает контролируемую ошибку `FirebaseInternalError.timeout`.
+    /// Это позволяет:
+    /// - показать пользователю понятное сообщение («Сеть нестабильна, попробуйте ещё раз»);
+    /// - избежать бесконечного ожидания;
+    /// - сохранить предсказуемость поведения приложения.
     private func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
         //jpegData(compressionQuality:)
         ///Эта функция может вернуть nil, если изображение не содержит данных или если базовый объект CGImageRef содержит данные в неподдерживаемом растровом формате.
@@ -203,6 +224,7 @@ final class UserInfoEditManager {
                 guard let self = self else {
                     return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
                 }
+                // может есть смысл ставить тайм аут если сеть очень плохая?
                 let profile = UserProfile(uid: uid, photoURL: url)
                 return self.firestoreService.updateProfile(profile, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, shouldDeletePhotoURL: false)
                     .map { url } // возвращаем URL после успешного обновления
@@ -211,6 +233,7 @@ final class UserInfoEditManager {
             .eraseToAnyPublisher()
     }
 
+    
     func uploadAvatarAndTrack(for uid: String, image: UIImage) {
         state = .loading
         avatarUploadCancellable?.cancel() // отменяем предыдущую загрузку
@@ -282,6 +305,223 @@ final class UserInfoEditManager {
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
 }
+
+
+
+
+
+
+// MARK: - Test
+
+
+
+
+//import FirebaseAuth
+//import Combine
+//
+//final class FirebaseAuthUserProvider: CurrentUserProvider {
+//    private let subject = CurrentValueSubject<String?, Never>(nil)
+//    private var handle: AuthStateDidChangeListenerHandle?
+//    
+//    init() {
+//        handle = Auth.auth().addStateDidChangeListener { _, user in
+//            self.subject.send(user?.uid)
+//        }
+//    }
+//    
+//    deinit {
+//        if let handle = handle {
+//            Auth.auth().removeStateDidChangeListener(handle)
+//        }
+//    }
+//    
+//    var currentUserPublisher: AnyPublisher<String?, Never> {
+//        subject.eraseToAnyPublisher()
+//    }
+//}
+
+
+
+//import Combine
+//import UIKit
+//
+///// Менеджер для операций редактирования информации о пользователе (аватар, профиль).
+///// Использует Combine для реактивного управления состоянием и асинхронными операциями.
+//final class UserInfoEditManager {
+//    // MARK: - State
+//    enum State: Equatable {
+//        case idle
+//        case loading
+//        case avatarUploadSuccess(url: URL)
+//        case avatarDeleteSuccess
+//        case avatarUploadFailure
+//        case avatarDeleteFailure
+//        case avatarUploadDelayedConfirmation   // мягкий статус при таймауте
+//    }
+//    
+//    @Published private(set) var state: State = .idle
+//    
+//    // MARK: - Dependencies
+//    private let firestoreService: ProfileServiceProtocol
+//    private let storageService: StorageProfileServiceProtocol
+//    private let errorHandler: ErrorHandlerProtocol
+//    private let alertManager: AlertManager
+//    private let userProvider: CurrentUserProvider
+//    
+//    // MARK: - Combine
+//    private var avatarUploadCancellable: AnyCancellable?
+//    private var avatarDeleteUrlCancellable: AnyCancellable?
+//    private var userListenerCancellable: AnyCancellable?
+//    
+//    private var currentUID: String?
+//    
+//    init(firestoreService: ProfileServiceProtocol,
+//         storageService: StorageProfileServiceProtocol,
+//         errorHandler: ErrorHandlerProtocol,
+//         userProvider: CurrentUserProvider,
+//         alertManager: AlertManager = .shared) {
+//        self.firestoreService = firestoreService
+//        self.storageService = storageService
+//        self.errorHandler = errorHandler
+//        self.alertManager = alertManager
+//        self.userProvider = userProvider
+//        
+//        observeUserChanges()
+//    }
+//    
+//    private func observeUserChanges() {
+//        userListenerCancellable = userProvider.currentUserPublisher
+//            .sink { [weak self] newUID in
+//                guard let self = self else { return }
+//                if self.currentUID != newUID {
+//                    print("🔄 User changed: \(String(describing: self.currentUID)) → \(String(describing: newUID))")
+//                    self.state = .idle
+//                    self.avatarUploadCancellable?.cancel()
+//                    self.avatarDeleteUrlCancellable?.cancel()
+//                    self.currentUID = newUID
+//                }
+//            }
+//    }
+//    
+//    // MARK: - Upload Avatar
+//    
+//    func uploadAvatarAndTrack(for uid: String, image: UIImage) {
+//        guard uid == currentUID else {
+//            print("⚠️ Игнорируем uploadAvatar: uid не совпадает с текущим пользователем")
+//            return
+//        }
+//        transition(to: .loading, autoReset: false)
+//        avatarUploadCancellable?.cancel()
+//        
+//        avatarUploadCancellable = uploadAvatar(for: uid, image: image)
+//            // ⏱ Ограничиваем общее время ожидания
+//            .timeout(.seconds(15), scheduler: DispatchQueue.main, customError: {
+//                FirebaseInternalError.delayedConfirmation
+//            })
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                guard let self = self, uid == self.currentUID else { return }
+//                switch completion {
+//                case .failure(let error):
+//                    if let internalError = error as? FirebaseInternalError,
+//                       internalError == .delayedConfirmation {
+//                        // Мягкий статус: загрузка ушла, но подтверждение задерживается
+//                        self.transition(to: .avatarUploadDelayedConfirmation)
+//                    } else {
+//                        self.transition(to: .avatarUploadFailure)
+//                    }
+//                case .finished:
+//                    break
+//                }
+//            } receiveValue: { [weak self] newURL in
+//                guard let self = self, uid == self.currentUID else { return }
+//                self.transition(to: .avatarUploadSuccess(url: newURL))
+//            }
+//    }
+//    
+//    private func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
+//        guard let resizedImage = image.resizedMaintainingAspectRatio(toFit: 600),
+//              let data = resizedImage.jpegData(compressionQuality: 0.8) else {
+//            handleError(FirebaseInternalError.imageEncodingFailed,
+//                        operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+//            return Fail(error: FirebaseInternalError.imageEncodingFailed)
+//                .eraseToAnyPublisher()
+//        }
+//        
+//        let path = String.avatarPath(for: uid)
+//        
+//        return storageService.uploadImageData(path: path,
+//                                              data: data,
+//                                              operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+//            .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
+//                guard let self = self else {
+//                    return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
+//                }
+//                let profile = UserProfile(uid: uid, photoURL: url)
+//                return self.firestoreService.updateProfile(profile,
+//                                                           operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage,
+//                                                           shouldDeletePhotoURL: false)
+//                    .map { url }
+//                    .eraseToAnyPublisher()
+//            }
+//            .eraseToAnyPublisher()
+//    }
+//    
+//    // MARK: - Delete Avatar
+//    
+//    func deleteAvatarAndTrack(for uid: String, photoURL: URL, operationDescription: String) {
+//        guard uid == currentUID else {
+//            print("⚠️ Игнорируем deleteAvatar: uid не совпадает с текущим пользователем")
+//            return
+//        }
+//        transition(to: .loading, autoReset: false)
+//        avatarDeleteUrlCancellable?.cancel()
+//        
+//        let profile = UserProfile(uid: uid, photoURL: nil)
+//        
+//        avatarDeleteUrlCancellable = firestoreService
+//            .updateProfile(profile,
+//                           operationDescription: operationDescription,
+//                           shouldDeletePhotoURL: true)
+//            .handleEvents(receiveOutput: { [weak self] _ in
+//                self?.storageService.deleteImage(at: photoURL)
+//            })
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                guard let self = self, uid == self.currentUID else { return }
+//                if case .failure = completion {
+//                    self.transition(to: .avatarDeleteFailure)
+//                }
+//            } receiveValue: { [weak self] in
+//                guard let self = self, uid == self.currentUID else { return }
+//                self.transition(to: .avatarDeleteSuccess)
+//            }
+//    }
+//    
+//    // MARK: - Helpers
+//    
+//    private func transition(to newState: State, autoReset: Bool = true) {
+//        state = newState
+//        if autoReset, newState != .idle, newState != .loading {
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+//                self?.state = .idle
+//            }
+//        }
+//    }
+//    
+//    private func handleError(_ error: Error, operationDescription: String) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showGlobalAlert(message: errorMessage,
+//                                     operationDescription: operationDescription,
+//                                     alertType: .ok)
+//    }
+//}
+//
+
+
+
+
+
 
 
 

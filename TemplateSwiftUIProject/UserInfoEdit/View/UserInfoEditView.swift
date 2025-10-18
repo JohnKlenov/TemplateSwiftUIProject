@@ -41,6 +41,7 @@ struct UserInfoEditView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                 }
                 
+                
                 // MARK: Name
                 Section(header: Text("Name")) {
                     TextField("Name", text: $viewModel.name)
@@ -143,12 +144,10 @@ struct UserInfoEditView: View {
                     .scaledToFill()
                     .frame(width: 120, height: 120)
                     .clipShape(Circle())
-
                 if viewModel.isAvatarLoading {
                     Circle()
                         .fill(Color.black.opacity(0.3)) // затемнение фона
                         .frame(width: 120, height: 120)
-
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle())
                         .scaleEffect(1.5)

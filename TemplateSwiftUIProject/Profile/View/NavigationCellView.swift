@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct NavigationCellView: View {
     let title: String
@@ -32,8 +33,16 @@ struct NavigationCellView: View {
         .padding(.vertical, 0)
         .contentShape(Rectangle())
         .onTapGesture {
-            accountCoordinator.navigateTo(page: destination)
-            print("onTapGesture - \(title)")
+            if destination == .aboutUs {
+                do {
+                    try Auth.auth().signOut()
+                } catch {
+                    print("error signOut() - \(error.localizedDescription)")
+                }
+            } else {
+                accountCoordinator.navigateTo(page: destination)
+                print("onTapGesture - \(title)")
+            }
         }
     }
     

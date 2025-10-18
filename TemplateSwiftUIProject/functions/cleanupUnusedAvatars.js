@@ -30,12 +30,8 @@
  *   - Ошибки удаления конкретного файла логируются, но не прерывают выполнение.
  */
 
-const { onSchedule } = require('firebase-functions/v2/scheduler');
+const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
 
 const db = admin.firestore();
 const storage = admin.storage().bucket(process.env.FIREBASE_STORAGE_BUCKET);
@@ -59,63 +55,65 @@ function extractFileNameFromUrl(url) {
   }
 }
 
-// Основная функция очистки
-const cleanupUnusedAvatars = onSchedule('every monday 03:00', async () => {
-  const now = Date.now();
-  const graceMs = GRACE_DAYS * 24 * 60 * 60 * 1000;
+// Основная функция очистки (v1 API)
+const cleanupUnusedAvatars = functions.pubsub
+  .schedule('every monday 03:00')
+  .onRun(async () => {
+    const now = Date.now();
+    const graceMs = GRACE_DAYS * 24 * 60 * 60 * 1000;
 
-  // Получаем все профили пользователей
-  const profilesSnap = await db.collectionGroup(PROFILE_COLLECTION_GROUP).get();
+    // Получаем все профили пользователей
+    const profilesSnap = await db.collectionGroup(PROFILE_COLLECTION_GROUP).get();
 
-  for (const doc of profilesSnap.docs) {
-    const data = doc.data();
-    const uid = doc.id;
-    const photoURL = data.photoURL || null;
-    const usedFileName = photoURL ? extractFileNameFromUrl(photoURL) : null;
+    for (const doc of profilesSnap.docs) {
+      const data = doc.data();
+      const uid = doc.id;
+      const photoURL = data.photoURL || null;
+      const usedFileName = photoURL ? extractFileNameFromUrl(photoURL) : null;
 
-    // Папка с аватарами конкретного пользователя
-    const prefix = `avatars/${uid}/`;
+      // Папка с аватарами конкретного пользователя
+      const prefix = `avatars/${uid}/`;
 
-    const [files] = await storage.getFiles({ prefix });
-    if (!files.length) continue;
+      const [files] = await storage.getFiles({ prefix });
+      if (!files.length) continue;
 
-    // Получаем метаданные и сортируем по дате обновления
-    const withMeta = await Promise.all(
-      files.map(async (file) => {
-        const [meta] = await file.getMetadata();
-        const updated = new Date(meta.updated || meta.timeCreated || Date.now()).getTime();
-        const name = file.name.replace(prefix, '');
-        return { file, name, updated };
-      })
-    );
+      // Получаем метаданные и сортируем по дате обновления
+      const withMeta = await Promise.all(
+        files.map(async (file) => {
+          const [meta] = await file.getMetadata();
+          const updated = new Date(meta.updated || meta.timeCreated || Date.now()).getTime();
+          const name = file.name.replace(prefix, '');
+          return { file, name, updated };
+        })
+      );
 
-    withMeta.sort((a, b) => b.updated - a.updated);
+      withMeta.sort((a, b) => b.updated - a.updated);
 
-    // Формируем список "не трогать"
-    const keep = new Set();
-    if (usedFileName) keep.add(usedFileName);
+      // Формируем список "не трогать"
+      const keep = new Set();
+      if (usedFileName) keep.add(usedFileName);
 
-    for (const { name } of withMeta) {
-      if (keep.size >= (usedFileName ? 1 + KEEP_RECENT : KEEP_RECENT)) break;
-      if (!keep.has(name)) keep.add(name);
-    }
+      for (const { name } of withMeta) {
+        if (keep.size >= (usedFileName ? 1 + KEEP_RECENT : KEEP_RECENT)) break;
+        if (!keep.has(name)) keep.add(name);
+      }
 
-    // Определяем кандидатов на удаление
-    const toDelete = withMeta.filter(({ name, updated }) => {
-      const isOld = now - updated > graceMs;
-      return isOld && !keep.has(name);
-    });
+      // Определяем кандидатов на удаление
+      const toDelete = withMeta.filter(({ name, updated }) => {
+        const isOld = now - updated > graceMs;
+        return isOld && !keep.has(name);
+      });
 
-    // Удаляем старые и неиспользуемые
-    for (const item of toDelete) {
-      try {
-        await item.file.delete();
-        console.log(`Deleted ${item.file.name}`);
-      } catch (e) {
-        console.warn(`Failed to delete ${item.file.name}:`, e);
+      // Удаляем старые и неиспользуемые
+      for (const item of toDelete) {
+        try {
+          await item.file.delete();
+          console.log(`Deleted ${item.file.name}`);
+        } catch (e) {
+          console.warn(`Failed to delete ${item.file.name}:`, e);
+        }
       }
     }
-  }
-});
+  });
 
 module.exports = { cleanupUnusedAvatars };
