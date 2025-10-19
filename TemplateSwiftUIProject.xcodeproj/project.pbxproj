@@ -43,6 +43,7 @@
 		5E8F9CCC2D81AF68004036F6 /* GalleryContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CCB2D81AF68004036F6 /* GalleryContentViewModel.swift */; };
 		5E8F9CCF2D99777A004036F6 /* ImageCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */; };
 		5E8F9CD12D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */; };
+		5EA082972EA5107C00E244B8 /* FirebaseAuthUserProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082962EA5107C00E244B8 /* FirebaseAuthUserProvider.swift */; };
 		5EA2E5F32DDC8A5D00C53E52 /* String+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F22DDC8A5D00C53E52 /* String+Ext.swift */; };
 		5EA2E5F52DDCB1CC00C53E52 /* HideKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */; };
 		5EA2E5F82DDCB28D00C53E52 /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */; };
@@ -176,6 +177,7 @@
 		5E8F9CCB2D81AF68004036F6 /* GalleryContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryContentViewModel.swift; sourceTree = "<group>"; };
 		5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManager.swift; sourceTree = "<group>"; };
 		5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+DynamicTypeMetrics.swift"; sourceTree = "<group>"; };
+		5EA082962EA5107C00E244B8 /* FirebaseAuthUserProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAuthUserProvider.swift; sourceTree = "<group>"; };
 		5EA2E5F22DDC8A5D00C53E52 /* String+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Ext.swift"; sourceTree = "<group>"; };
 		5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HideKeyboard.swift; sourceTree = "<group>"; };
 		5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
@@ -690,6 +692,7 @@
 			children = (
 				5EC332EE2E5EEF770051BE5B /* UserInfoEditManager.swift */,
 				5EC332F02E5EF01E0051BE5B /* StorageProfileService.swift */,
+				5EA082962EA5107C00E244B8 /* FirebaseAuthUserProvider.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -1164,6 +1167,7 @@
 				5EA4FDC72CD8E780001CA401 /* BookEditView.swift in Sources */,
 				5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */,
 				5E8F9CA12D7CDFB7004036F6 /* GalleryContentViewModel(test).swift in Sources */,
+				5EA082972EA5107C00E244B8 /* FirebaseAuthUserProvider.swift in Sources */,
 				5EC332E12E48D3470051BE5B /* UserInfoEditViewInjected.swift in Sources */,
 				5EA4FE2F2D05B89B001CA401 /* SheetManager.swift in Sources */,
 				5EAF5B032D2D552900D96FD6 /* HomeViewModel.swift in Sources */,

@@ -53,6 +53,39 @@
 */
 
 
+// MARK: - comment methods
+
+//docRef.addSnapshotListener(includeMetadataChanges: true)
+
+/// с includeMetadataChanges: true ты получишь два снапшота: один сразу (локальный), второй — когда сервер подтвердит. Без него — только первый, и ты не узнаешь, что данные дошли до сервера.
+/// snapshot.metadata.hasPendingWrites == true + snapshot.metadata.isFromCache == true - Локальная запись, оффлайн или ещё не синхронизирована
+/// snapshot.metadata.hasPendingWrites - В документе есть локальные изменения, которые ещё не подтверждены сервером.
+/// snapshot.metadata.isFromCache - Снапшот пришёл из локального кэша, а не напрямую с сервера
+/// docRef.addSnapshotListener(includeMetadataChanges: false) - я протестировал и с false при ошибки Missing or insufficient permissions. приходит откатной snapshot
+
+///  когда мы будем удалять users/{uid} через cloud function
+///  может отработать error ошибка прав доступа до того как будет вызван новый fetchProfile(uid: String) и profileListener?.remove()
+///  !!! можно не отображать алерт в случае ошибки получения данных о пользователе так как у нас всегда есть retry
+///  но отправлять данные в краш листикс
+
+
+//func updateProfile
+
+// Completion‑блок вызывается только после попытки синхронизации с сервером:
+///Если сеть появилась и сервер принял изменения → error == nil.
+///Если сервер отверг (например, из‑за security rules) → error будет с причиной отказа.
+///Если сети нет и SDK ещё не успел сделать попытку → блок просто не вызывается, пока не появится соединение.
+///Firestore не вызовет твой completion-блок до тех пор, пока не попробует (и фактически не завершит) синхронизацию с сервером.
+///Это значит, что ловить внутри completion ошибки вида NSURLErrorNotConnectedToInternet, timedOut и т.п. обычно бесполезно,
+
+
+
+
+
+
+
+// MARK: - UserInfoEditManager (централизованная обработка ошибок)
+
 import FirebaseFirestore
 import Combine
 
@@ -70,22 +103,19 @@ struct UserProfile: Codable, Equatable, Hashable {
     }
 }
 
-
 protocol ProfileServiceProtocol {
     func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error>
-    func updateProfile(_ profile: UserProfile, operationDescription:String, shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error>
-//    func updateProfile(_ profile: UserProfile)
+    func updateProfile(_ profile: UserProfile,
+                       operationDescription: String,
+                       shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error>
 }
 
-class FirestoreProfileService: ProfileServiceProtocol {
+final class FirestoreProfileService: ProfileServiceProtocol {
     
     private let db = Firestore.firestore()
     private var profileListener: ListenerRegistration?
-    private let errorHandler: ErrorHandlerProtocol = SharedErrorHandler()
-    private let alertManager: AlertManager = AlertManager.shared
     
     func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error> {
-        
         profileListener?.remove()
         profileListener = nil
         
@@ -97,108 +127,213 @@ class FirestoreProfileService: ProfileServiceProtocol {
             .collection("userProfileData")
             .document(uid)
         
-        //docRef.addSnapshotListener(includeMetadataChanges: true)
-        /// с includeMetadataChanges: true ты получишь два снапшота: один сразу (локальный), второй — когда сервер подтвердит. Без него — только первый, и ты не узнаешь, что данные дошли до сервера.
-        /// snapshot.metadata.hasPendingWrites == true + snapshot.metadata.isFromCache == true - Локальная запись, оффлайн или ещё не синхронизирована
-        /// snapshot.metadata.hasPendingWrites - В документе есть локальные изменения, которые ещё не подтверждены сервером.
-        /// snapshot.metadata.isFromCache - Снапшот пришёл из локального кэша, а не напрямую с сервера
-        /// docRef.addSnapshotListener(includeMetadataChanges: false) - я протестировал и с false при ошибки Missing or insufficient permissions. приходит откатной snapshot
-        profileListener = docRef.addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, error in
+        profileListener = docRef.addSnapshotListener(includeMetadataChanges: true) { snapshot, error in
             if let error = error {
                 subject.send(completion: .failure(error))
-                ///  когда мы будем удалять users/{uid} через cloud function
-                ///  может отработать error ошибка прав доступа до того как будет вызван новый fetchProfile(uid: String) и profileListener?.remove()
-                ///  !!! можно не отображать алерт в случае ошибки получения данных о пользователе так как у нас всегда есть retry
-                ///  но отправлять данные в краш листикс
-                self?.handleFirestoreError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
                 return
             }
             
-            ///В корректной работе Firestore snapshot == nil && error == nil — не должно быть(редко).
-            ///Внутренние сбои SDK + Неверный путь (например, пустой uid)
             guard let snapshot = snapshot else {
                 subject.send(completion: .failure(FirebaseInternalError.nilSnapshot))
-                self?.handleFirestoreError(FirebaseInternalError.nilSnapshot, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
                 return
             }
             
             do {
                 if snapshot.exists {
                     let profile = try snapshot.data(as: UserProfile.self)
-                    print("FirestoreProfileService Received objects: \(profile)")
+                    print("✅ FirestoreProfileService received: \(profile)")
                     subject.send(profile)
                 } else {
-                    // Документ отсутствует — отдаем пустую модель
+                    // Документ отсутствует — отдаём пустую модель
                     subject.send(UserProfile(uid: uid))
                 }
             } catch {
                 subject.send(completion: .failure(error))
-                self?.handleFirestoreError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
             }
-            
         }
         
-        return subject
-            .eraseToAnyPublisher()
+        return subject.eraseToAnyPublisher()
     }
-
-
-
-    func updateProfile(_ profile: UserProfile, operationDescription: String, shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error> {
-            Future<Void, Error> { [weak self] promise in
-                print("func updateProfile - profile - \(profile)")
-                guard let self = self else { return }
-                let docRef = self.db
-                    .collection("users")
-                    .document(profile.uid)
-                    .collection("userProfileData")
-                    .document(profile.uid)
-                
-                do {
-                    var data = try Firestore.Encoder().encode(profile)
-                    
-                    // Нормализация: пустые строки → удаление полей в Firestore
-                    if let name = profile.name, name.isEmpty {
-                        data["name"] = FieldValue.delete()
-                    }
-                    if let lastName = profile.lastName, lastName.isEmpty {
-                        data["lastName"] = FieldValue.delete()
-                    }
-                    // Явное удаление photoURL, если требуется
-                    if shouldDeletePhotoURL {
-                        data["photoURL"] = FieldValue.delete()
-                    }
-                    // Completion‑блок вызывается только после попытки синхронизации с сервером:
-                    ///Если сеть появилась и сервер принял изменения → error == nil.
-                    ///Если сервер отверг (например, из‑за security rules) → error будет с причиной отказа.
-                    ///Если сети нет и SDK ещё не успел сделать попытку → блок просто не вызывается, пока не появится соединение.
-                    ///Firestore не вызовет твой completion-блок до тех пор, пока не попробует (и фактически не завершит) синхронизацию с сервером.
-                    ///Это значит, что ловить внутри completion ошибки вида NSURLErrorNotConnectedToInternet, timedOut и т.п. обычно бесполезно,
-                    docRef.setData(data, merge: true) { [weak self] error in
-                        if let error = error {
-                            print("error func updateProfile docRef.setData")
-                            ///DispatchQueue.main.async { [weak self] in ???
-                            self?.handleFirestoreError(error, operationDescription: operationDescription)
-                            promise(.failure(error))
-                        } else {
-                            promise(.success(()))
-                        }
-                    }
-                } catch {
-                    print("error func updateProfile catch")
-                    ///DispatchQueue.main.async { [weak self] in ???
-                    self.handleFirestoreError(error, operationDescription: operationDescription)
-                    promise(.failure(error))
-                }
-            }
-            .eraseToAnyPublisher()
-        }
     
-    private func handleFirestoreError(_ error: Error, operationDescription:String) {
-        let errorMessage = errorHandler.handle(error: error)
-        alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
+    func updateProfile(_ profile: UserProfile,
+                       operationDescription: String,
+                       shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error> {
+        Future<Void, Error> { promise in
+            print("func updateProfile - profile - \(profile)")
+            
+            let docRef = self.db
+                .collection("users")
+                .document(profile.uid)
+                .collection("userProfileData")
+                .document(profile.uid)
+            
+            do {
+                var data = try Firestore.Encoder().encode(profile)
+                
+                // Нормализация: пустые строки → удаление полей
+                if let name = profile.name, name.isEmpty {
+                    data["name"] = FieldValue.delete()
+                }
+                if let lastName = profile.lastName, lastName.isEmpty {
+                    data["lastName"] = FieldValue.delete()
+                }
+                // Явное удаление photoURL, если требуется
+                if shouldDeletePhotoURL {
+                    data["photoURL"] = FieldValue.delete()
+                }
+                
+                docRef.setData(data, merge: true) { error in
+                    if let error = error {
+                        print("❌ Firestore update error: setData")
+                        promise(.failure(error))
+                    } else {
+                        promise(.success(()))
+                    }
+                }
+            } catch {
+                print("❌ Firestore update error: encoding")
+                promise(.failure(error))
+            }
+        }
+        .eraseToAnyPublisher()
     }
 }
+
+
+
+
+// MARK: - before центрозовынной обработки ошибок в UserInfoEditManager
+
+//import FirebaseFirestore
+//import Combine
+//
+//struct UserProfile: Codable, Equatable, Hashable {
+//    let uid: String
+//    var name: String?
+//    var lastName: String?
+//    var photoURL: URL?
+//
+//    init(uid: String, name: String? = nil, lastName: String? = nil, photoURL: URL? = nil) {
+//        self.uid = uid
+//        self.name = name
+//        self.lastName = lastName
+//        self.photoURL = photoURL
+//    }
+//}
+//
+//
+//protocol ProfileServiceProtocol {
+//    func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error>
+//    func updateProfile(_ profile: UserProfile, operationDescription:String, shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error>
+//}
+//
+//class FirestoreProfileService: ProfileServiceProtocol {
+//    
+//    private let db = Firestore.firestore()
+//    private var profileListener: ListenerRegistration?
+//    private let errorHandler: ErrorHandlerProtocol = SharedErrorHandler()
+//    private let alertManager: AlertManager = AlertManager.shared
+//    
+//    func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error> {
+//        
+//        profileListener?.remove()
+//        profileListener = nil
+//        
+//        let subject = PassthroughSubject<UserProfile, Error>()
+//        
+//        let docRef = db
+//            .collection("users")
+//            .document(uid)
+//            .collection("userProfileData")
+//            .document(uid)
+//        
+//        profileListener = docRef.addSnapshotListener(includeMetadataChanges: true) { [weak self] snapshot, error in
+//            if let error = error {
+//                subject.send(completion: .failure(error))
+//                self?.handleFirestoreError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
+//                return
+//            }
+//            
+//            ///В корректной работе Firestore snapshot == nil && error == nil — не должно быть(редко).
+//            ///Внутренние сбои SDK + Неверный путь (например, пустой uid)
+//            guard let snapshot = snapshot else {
+//                subject.send(completion: .failure(FirebaseInternalError.nilSnapshot))
+//                self?.handleFirestoreError(FirebaseInternalError.nilSnapshot, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
+//                return
+//            }
+//            
+//            do {
+//                if snapshot.exists {
+//                    let profile = try snapshot.data(as: UserProfile.self)
+//                    print("FirestoreProfileService Received objects: \(profile)")
+//                    subject.send(profile)
+//                } else {
+//                    // Документ отсутствует — отдаем пустую модель
+//                    subject.send(UserProfile(uid: uid))
+//                }
+//            } catch {
+//                subject.send(completion: .failure(error))
+//                self?.handleFirestoreError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
+//            }
+//            
+//        }
+//        
+//        return subject
+//            .eraseToAnyPublisher()
+//    }
+//
+//
+//
+//    func updateProfile(_ profile: UserProfile, operationDescription: String, shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error> {
+//            Future<Void, Error> { [weak self] promise in
+//                print("func updateProfile - profile - \(profile)")
+//                guard let self = self else { return }
+//                let docRef = self.db
+//                    .collection("users")
+//                    .document(profile.uid)
+//                    .collection("userProfileData")
+//                    .document(profile.uid)
+//                
+//                do {
+//                    var data = try Firestore.Encoder().encode(profile)
+//                    
+//                    // Нормализация: пустые строки → удаление полей в Firestore
+//                    if let name = profile.name, name.isEmpty {
+//                        data["name"] = FieldValue.delete()
+//                    }
+//                    if let lastName = profile.lastName, lastName.isEmpty {
+//                        data["lastName"] = FieldValue.delete()
+//                    }
+//                    // Явное удаление photoURL, если требуется
+//                    if shouldDeletePhotoURL {
+//                        data["photoURL"] = FieldValue.delete()
+//                    }
+//                    
+//                    docRef.setData(data, merge: true) { [weak self] error in
+//                        if let error = error {
+//                            print("error func updateProfile docRef.setData")
+//                            ///DispatchQueue.main.async { [weak self] in ???
+//                            self?.handleFirestoreError(error, operationDescription: operationDescription)
+//                            promise(.failure(error))
+//                        } else {
+//                            promise(.success(()))
+//                        }
+//                    }
+//                } catch {
+//                    print("error func updateProfile catch")
+//                    ///DispatchQueue.main.async { [weak self] in ???
+//                    self.handleFirestoreError(error, operationDescription: operationDescription)
+//                    promise(.failure(error))
+//                }
+//            }
+//            .eraseToAnyPublisher()
+//        }
+//    
+//    private func handleFirestoreError(_ error: Error, operationDescription:String) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
+//    }
+//}
 
 
 

@@ -26,6 +26,18 @@
     - Возвращаем .failure(FirebaseInternalError.nilSnapshot)
 */
 
+// MARK: - comment methods
+
+//func uploadImageData
+
+///putData(data) — загрузка файла в Storage - Если интернет отсутствует:Firebase сразу вернёт ошибку в completion блоке
+///Если интернет есть, но очень плохой: Загрузка может зависнуть, затем завершиться ошибкой по таймауту.
+///downloadURL — получение ссылки после загрузки Если putData прошёл, но интернет пропал перед downloadURL: Получишь ошибку в блоке Не использует локальный кэш — всегда требует соединения с интернетом. Если интернет есть, но слабый или нестабильный: Запрос может «зависнуть» на некоторое время — Firebase SDK будет пытаться установить соединение.Запрос может «зависнуть» на некоторое время — Firebase SDK будет пытаться установить соединение.
+
+
+
+// MARK: - UserInfoEditManager (централизованная обработка ошибок)
+
 import FirebaseStorage
 import Combine
 import UIKit
@@ -33,48 +45,32 @@ import UIKit
 protocol StorageProfileServiceProtocol {
     func uploadImageData(path: String, data: Data, operationDescription: String) -> AnyPublisher<URL, Error>
     func deleteImage(at url: URL)
-
 }
 
 final class StorageProfileService: StorageProfileServiceProtocol {
     
     private let storage = Storage.storage()
-    private let errorHandler: ErrorHandlerProtocol = SharedErrorHandler()
-    private let alertManager: AlertManager = .shared
     
-    ///putData(data) — загрузка файла в Storage - Если интернет отсутствует:Firebase сразу вернёт ошибку в completion блоке
-    ///Если интернет есть, но очень плохой: Загрузка может зависнуть, затем завершиться ошибкой по таймауту.
-    ///downloadURL — получение ссылки после загрузки Если putData прошёл, но интернет пропал перед downloadURL: Получишь ошибку в блоке Не использует локальный кэш — всегда требует соединения с интернетом. Если интернет есть, но слабый или нестабильный: Запрос может «зависнуть» на некоторое время — Firebase SDK будет пытаться установить соединение.Запрос может «зависнуть» на некоторое время — Firebase SDK будет пытаться установить соединение.
     func uploadImageData(path: String, data: Data, operationDescription: String) -> AnyPublisher<URL, Error> {
-        Future<URL, Error> { [weak self] promise in
-            guard let self = self else { return }
-            
-            let ref = storage.reference(withPath: path)
+        Future<URL, Error> { promise in
+            let ref = self.storage.reference(withPath: path)
             
             ref.putData(data, metadata: nil) { _, error in
                 if let error = error {
-                    print("error uploadImageData ref.putData")
-                    self.handleStorageError(error, operationDescription: operationDescription)
+                    print("❌ Storage upload error: putData")
                     promise(.failure(error))
                     return
                 }
                 
                 ref.downloadURL { url, error in
-                    //.where('lastActiveAt', '<', cutoff)
-// firebase deploy --only functions:cleanupInactiveAnonUsersTest
-
-//                    promise(.failure(FirebaseInternalError.imageEncodingFailed))
                     if let error = error {
-                        print("error uploadImageData ref.downloadURL")
-                        self.handleStorageError(error, operationDescription: operationDescription)
+                        print("❌ Storage upload error: downloadURL")
                         promise(.failure(error))
                         return
                     }
                     guard let url = url else {
-                        print("error uploadImageData guard let url = url")
-                        let err = FirebaseInternalError.nilSnapshot
-                        self.handleStorageError(err, operationDescription: operationDescription)
-                        promise(.failure(err))
+                        print("❌ Storage upload error: nil URL")
+                        promise(.failure(FirebaseInternalError.nilSnapshot))
                         return
                     }
                     promise(.success(url))
@@ -86,20 +82,88 @@ final class StorageProfileService: StorageProfileServiceProtocol {
     
     func deleteImage(at url: URL) {
         let ref = storage.reference(forURL: url.absoluteString)
-        ref.delete { [weak self] error in
+        ref.delete { error in
             if let error = error {
                 // Логируем, но не пробрасываем наружу
-                let _ = self?.errorHandler.handle(error: error)
+                print("⚠️ Storage delete error: \(error.localizedDescription)")
             }
         }
     }
-
-    
-    private func handleStorageError(_ error: Error, operationDescription: String) {
-        let message = errorHandler.handle(error: error)
-        alertManager.showGlobalAlert(message: message, operationDescription: operationDescription, alertType: .ok)
-    }
 }
+
+
+
+// MARK: - before центрозовынной обработки ошибок в UserInfoEditManager
+
+
+//import FirebaseStorage
+//import Combine
+//import UIKit
+//
+//protocol StorageProfileServiceProtocol {
+//    func uploadImageData(path: String, data: Data, operationDescription: String) -> AnyPublisher<URL, Error>
+//    func deleteImage(at url: URL)
+//
+//}
+//
+//final class StorageProfileService: StorageProfileServiceProtocol {
+//    
+//    private let storage = Storage.storage()
+//    private let errorHandler: ErrorHandlerProtocol = SharedErrorHandler()
+//    private let alertManager: AlertManager = .shared
+//    
+//    func uploadImageData(path: String, data: Data, operationDescription: String) -> AnyPublisher<URL, Error> {
+//        Future<URL, Error> { [weak self] promise in
+//            guard let self = self else { return }
+//            
+//            let ref = storage.reference(withPath: path)
+//            
+//            ref.putData(data, metadata: nil) { _, error in
+//                if let error = error {
+//                    print("error uploadImageData ref.putData")
+//                    self.handleStorageError(error, operationDescription: operationDescription)
+//                    promise(.failure(error))
+//                    return
+//                }
+//                
+//                ref.downloadURL { url, error in
+////                    promise(.failure(FirebaseInternalError.imageEncodingFailed))
+//                    if let error = error {
+//                        print("error uploadImageData ref.downloadURL")
+//                        self.handleStorageError(error, operationDescription: operationDescription)
+//                        promise(.failure(error))
+//                        return
+//                    }
+//                    guard let url = url else {
+//                        print("error uploadImageData guard let url = url")
+//                        let err = FirebaseInternalError.nilSnapshot
+//                        self.handleStorageError(err, operationDescription: operationDescription)
+//                        promise(.failure(err))
+//                        return
+//                    }
+//                    promise(.success(url))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//    
+//    func deleteImage(at url: URL) {
+//        let ref = storage.reference(forURL: url.absoluteString)
+//        ref.delete { [weak self] error in
+//            if let error = error {
+//                // Логируем, но не пробрасываем наружу
+//                let _ = self?.errorHandler.handle(error: error)
+//            }
+//        }
+//    }
+//
+//    
+//    private func handleStorageError(_ error: Error, operationDescription: String) {
+//        let message = errorHandler.handle(error: error)
+//        alertManager.showGlobalAlert(message: message, operationDescription: operationDescription, alertType: .ok)
+//    }
+//}
 
 
 // MARK: по какой логике чистим картинки "сироты" в Storage  (у которых при update не удалось получить url но картинка была сохранена в Storage или при удалении аватара не удалось по каким то причинам это сделать, то есть url с СloudFirestore удалили а удаление картинки в storage по каким то причинам провалилась)
