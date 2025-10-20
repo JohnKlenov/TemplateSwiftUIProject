@@ -144,6 +144,8 @@
 "error.custom_firebase.empty_result" = "Данные не найдены.";
 "error.custom_firebase.nil_snapshot" = "Снимок данных отсутствует. Попробуйте позже.";
 "error.custom_firebase.image_encoding_failed" = "Не удалось обработать изображение. Попробуйте другое фото.";
+"error.custom_firebase.delayed_confirmation" = "Обновление аватара занимает больше времени, чем обычно. Подтверждение может прийти позже.";
+
 
 
 

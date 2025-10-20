@@ -170,6 +170,7 @@ enum Localized {
         static var emptyResult = "error.custom_firebase.empty_result"
         static var nilSnapshot = "error.custom_firebase.nil_snapshot"
         static var imageEncodingFailed = "error.custom_firebase.image_encoding_failed"
+        static var delayedConfirmation = "error.custom_firebase.delayed_confirmation"
     }
     
     // MARK: - Auth Errors

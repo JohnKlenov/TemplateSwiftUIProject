@@ -214,6 +214,33 @@ Firebase продолжит выполнение операции до конц�
 
 
 
+
+//func uploadAvatarAndTrack(for uid: String, image: UIImage)
+
+/// Загружает аватар и отслеживает результат.
+///
+/// Поведение по шагам:
+/// 1. Проверка `guard uid == currentUID` в начале метода:
+///    - гарантирует, что мы не начнём загрузку для "устаревшего" пользователя,
+///      если в момент вызова уже произошла смена аккаунта.
+///    - если uid не совпадает с текущим авторизованным пользователем, метод сразу выходит.
+///
+/// 2. `.timeout(.seconds(15))`:
+///    - если операция (Storage + Firestore) не завершится за 15 секунд,
+///      пайплайн прервётся и в `.sink` придёт `.failure(FirebaseInternalError.delayedConfirmation)`.
+///    - эта ошибка будет передана в `handleError(error, ...)`, и пользователь увидит мягкое сообщение
+///      о задержке подтверждения.
+///
+/// 3. Проверка `guard uid == self.currentUID` внутри `.sink` (и в `receiveValue`):
+///    - защищает от ситуации, когда один пользователь вышел, а другой вошёл,
+///      но старый пайплайн всё ещё завершился и пытается обновить state.
+///    - если uid не совпадает с текущим, результат игнорируется.
+///
+/// Таким образом, мы защищаемся от "протечек" событий между пользователями и
+/// показываем корректные ошибки/статусы только для актуального пользователя.
+
+
+
 // MARK: - UserInfoEditManager (централизованная обработка ошибок)
 
 import Combine
@@ -230,7 +257,6 @@ final class UserInfoEditManager {
         case avatarDeleteSuccess
         case avatarUploadFailure
         case avatarDeleteFailure
-        case avatarUploadDelayedConfirmation   // мягкий статус при таймауте
     }
     
     @Published private(set) var state: State = .idle
@@ -288,38 +314,27 @@ final class UserInfoEditManager {
         avatarUploadCancellable?.cancel()
         
         avatarUploadCancellable = uploadAvatar(for: uid, image: image)
-            // ⏱ Ограничиваем общее время ожидания
             .timeout(.seconds(15), scheduler: DispatchQueue.main, customError: {
                 FirebaseInternalError.delayedConfirmation
             })
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
                 guard let self = self, uid == self.currentUID else { return }
-                switch completion {
-                case .failure(let error):
-                    if let internalError = error as? FirebaseInternalError,
-                       internalError == .delayedConfirmation {
-                        // Мягкий статус: загрузка ушла, но подтверждение задерживается
-                        self.transition(to: .avatarUploadDelayedConfirmation)
-                    } else {
-                        self.handleError(error,
-                                         operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
-                        self.transition(to: .avatarUploadFailure)
-                    }
-                case .finished:
-                    break
+                if case .failure(let error) = completion {
+                    self.handleError(error,
+                                     operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+                    self.transition(to: .avatarUploadFailure)
                 }
             } receiveValue: { [weak self] newURL in
                 guard let self = self, uid == self.currentUID else { return }
                 self.transition(to: .avatarUploadSuccess(url: newURL))
             }
     }
+
     
     private func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
         guard let resizedImage = image.resizedMaintainingAspectRatio(toFit: 600),
               let data = resizedImage.jpegData(compressionQuality: 0.8) else {
-            handleError(FirebaseInternalError.imageEncodingFailed,
-                        operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
             return Fail(error: FirebaseInternalError.imageEncodingFailed)
                 .eraseToAnyPublisher()
         }
@@ -394,7 +409,7 @@ final class UserInfoEditManager {
         }
     }
     
-    private func handleError(_ error: Error, operationDescription: String) {
+    func handleError(_ error: Error, operationDescription: String) {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showGlobalAlert(message: errorMessage,
                                      operationDescription: operationDescription,
@@ -403,6 +418,46 @@ final class UserInfoEditManager {
 }
 
 
+
+
+//    func uploadAvatarAndTrack(for uid: String, image: UIImage) {
+//        guard uid == currentUID else {
+//            print("⚠️ Игнорируем uploadAvatar: uid не совпадает с текущим пользователем")
+//            return
+//        }
+//        transition(to: .loading, autoReset: false)
+//        avatarUploadCancellable?.cancel()
+//
+//        avatarUploadCancellable = uploadAvatar(for: uid, image: image)
+//            // ⏱ Ограничиваем общее время ожидания
+//            .timeout(.seconds(15), scheduler: DispatchQueue.main, customError: {
+//                FirebaseInternalError.delayedConfirmation
+//            })
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                guard let self = self, uid == self.currentUID else { return }
+//                switch completion {
+//                case .failure(let error):
+//                    self.handleError(error,
+//                                     operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+//                    self.transition(to: .avatarUploadFailure)
+//                    if let internalError = error as? FirebaseInternalError,
+//                       internalError == .delayedConfirmation {
+//                        // Мягкий статус: загрузка ушла, но подтверждение задерживается
+//                        self.transition(to: .avatarUploadDelayedConfirmation)
+//                    } else {
+//                        self.handleError(error,
+//                                         operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+//                        self.transition(to: .avatarUploadFailure)
+//                    }
+//                case .finished:
+//                    break
+//                }
+//            } receiveValue: { [weak self] newURL in
+//                guard let self = self, uid == self.currentUID else { return }
+//                self.transition(to: .avatarUploadSuccess(url: newURL))
+//            }
+//    }
 
 // MARK: - before центрозовынной обработки ошибок в UserInfoEditManager
 
