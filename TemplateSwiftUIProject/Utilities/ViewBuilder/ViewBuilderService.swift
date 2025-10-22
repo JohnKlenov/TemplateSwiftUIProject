@@ -29,7 +29,8 @@ class ViewBuilderService: ObservableObject {
         
         self.profileService = FirestoreProfileService()
         self.storageProfileService = StorageProfileService()
-        self.userInfoEditManager = UserInfoEditManager(firestoreService: profileService, storageService: storageProfileService, errorHandler: SharedErrorHandler())
+        let userProvider: CurrentUserProvider = FirebaseAuthUserProvider()
+        self.userInfoEditManager = UserInfoEditManager(firestoreService: profileService, storageService: storageProfileService, errorHandler: SharedErrorHandler(), userProvider: userProvider)
         self.crudManager = CRUDSManager(
             authService: AuthService(),
             errorHandler: SharedErrorHandler(),

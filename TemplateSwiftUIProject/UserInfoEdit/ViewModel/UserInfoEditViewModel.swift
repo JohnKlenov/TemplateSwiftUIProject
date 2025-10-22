@@ -147,12 +147,12 @@ class UserInfoEditViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-
+//Localized.TitleOfFailedOperationFirebase.editingProfileFields
     // если сохраняем текст updateTextProfile() то в photoURL передаем nil
     // если сохраняем image updateImageProfile() то в name: nil, lastName: nil
     // Ты можешь обновить только одно поле через setData(from:merge:true), если в закодированной модели присутствует только это поле. Для этого передай модель, в которой все остальные опционалы равны nil — тогда синтезированный Encodable просто не закодирует их.
     func updateProfile()  {
-        editManager.updateProfile(UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil), operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields, shouldDeletePhotoURL: false)
+        editManager.updateProfile(for: uid, profile: UserProfile(uid: uid, name: name, lastName: lastName, photoURL: nil))
     }
     
     func handlePickedImage(_ image: UIImage) {
@@ -172,7 +172,7 @@ class UserInfoEditViewModel: ObservableObject {
     
     func deletePhoto() {
         guard let photoURL = initialPhotoURL else { return }
-        editManager.deleteAvatarAndTrack(for: uid, photoURL: photoURL, operationDescription: Localized.TitleOfFailedOperationFirebase.deletingProfileAvatar)
+        editManager.deleteAvatarAndTrack(for: uid, photoURL: photoURL)
     }
 
     deinit {

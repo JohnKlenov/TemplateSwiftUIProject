@@ -271,6 +271,7 @@ final class UserInfoEditManager {
     // MARK: - Combine
     private var avatarUploadCancellable: AnyCancellable?
     private var avatarDeleteUrlCancellable: AnyCancellable?
+    private var updateProfileCancellable: AnyCancellable?
     private var userListenerCancellable: AnyCancellable?
     
     private var currentUID: String?
@@ -306,10 +307,8 @@ final class UserInfoEditManager {
     // MARK: - Upload Avatar
     
     func uploadAvatarAndTrack(for uid: String, image: UIImage) {
-        guard uid == currentUID else {
-            print("⚠️ Игнорируем uploadAvatar: uid не совпадает с текущим пользователем")
-            return
-        }
+        
+        guard uid == currentUID else { return }
         transition(to: .loading, autoReset: false)
         avatarUploadCancellable?.cancel()
         
@@ -343,30 +342,26 @@ final class UserInfoEditManager {
         let path = String.avatarPath(for: uid)
         
         return storageService.uploadImageData(path: path,
-                                              data: data,
-                                              operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
-            .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
-                guard let self = self else {
-                    return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
-                }
-                let profile = UserProfile(uid: uid, photoURL: url)
-                return self.firestoreService.updateProfile(profile,
-                                                           operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage,
-                                                           shouldDeletePhotoURL: false)
-                    .map { url }
-                    .eraseToAnyPublisher()
+                                              data: data)
+        .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
+            guard let self = self else {
+                return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
             }
+            let profile = UserProfile(uid: uid, photoURL: url)
+            return self.firestoreService.updateProfile(profile,
+                                                       shouldDeletePhotoURL: false)
+            .map { url }
             .eraseToAnyPublisher()
+        }
+        .eraseToAnyPublisher()
     }
     
     // MARK: - Delete Avatar
     
     // сначало удаляем url а потом image в Storage (если удаление в Storage не прошло чистим через Cloud Function)
-    func deleteAvatarAndTrack(for uid: String, photoURL: URL, operationDescription: String) {
-        guard uid == currentUID else {
-            print("⚠️ Игнорируем deleteAvatar: uid не совпадает с текущим пользователем")
-            return
-        }
+    func deleteAvatarAndTrack(for uid: String, photoURL: URL) {
+        
+        guard uid == currentUID else { return }
         transition(to: .loading, autoReset: false)
         avatarDeleteUrlCancellable?.cancel()
         
@@ -374,7 +369,6 @@ final class UserInfoEditManager {
         
         avatarDeleteUrlCancellable = firestoreService
             .updateProfile(profile,
-                           operationDescription: operationDescription,
                            shouldDeletePhotoURL: true)
             .handleEvents(receiveOutput: { [weak self] _ in
                 // Fire‑and‑forget удаление из Storage
@@ -384,7 +378,7 @@ final class UserInfoEditManager {
             .sink { [weak self] completion in
                 guard let self = self, uid == self.currentUID else { return }
                 if case .failure(let error) = completion {
-                    self.handleError(error, operationDescription: operationDescription)
+                    self.handleError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.deletingProfileAvatar)
                     self.transition(to: .avatarDeleteFailure)
                 }
             } receiveValue: { [weak self] in
@@ -393,10 +387,25 @@ final class UserInfoEditManager {
             }
     }
     
-    func updateProfile(_ profile: UserProfile, operationDescription: String, shouldDeletePhotoURL:Bool) {
-        _ = firestoreService.updateProfile(profile, operationDescription: operationDescription, shouldDeletePhotoURL: shouldDeletePhotoURL)
-            .sink(receiveCompletion: { _ in }, receiveValue: { })
+    func updateProfile(for uid: String, profile: UserProfile) {
+        
+        guard uid == currentUID else { return }
+        updateProfileCancellable?.cancel()
+        
+        updateProfileCancellable = firestoreService
+            .updateProfile(profile, shouldDeletePhotoURL: false)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                guard let self = self, uid == self.currentUID else { return }
+                if case .failure(let error) = completion {
+                    self.handleError(error,
+                                     operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields)
+                }
+            } receiveValue: { _ in
+                // Пока ничего не делаем при успехе
+            }
     }
+
     
     // MARK: - Helpers
     

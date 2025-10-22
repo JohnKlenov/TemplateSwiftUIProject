@@ -106,7 +106,6 @@ struct UserProfile: Codable, Equatable, Hashable {
 protocol ProfileServiceProtocol {
     func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error>
     func updateProfile(_ profile: UserProfile,
-                       operationDescription: String,
                        shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error>
 }
 
@@ -156,7 +155,6 @@ final class FirestoreProfileService: ProfileServiceProtocol {
     }
     
     func updateProfile(_ profile: UserProfile,
-                       operationDescription: String,
                        shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error> {
         Future<Void, Error> { promise in
             print("func updateProfile - profile - \(profile)")

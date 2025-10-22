@@ -43,7 +43,7 @@ import Combine
 import UIKit
 
 protocol StorageProfileServiceProtocol {
-    func uploadImageData(path: String, data: Data, operationDescription: String) -> AnyPublisher<URL, Error>
+    func uploadImageData(path: String, data: Data) -> AnyPublisher<URL, Error>
     func deleteImage(at url: URL)
 }
 
@@ -51,7 +51,7 @@ final class StorageProfileService: StorageProfileServiceProtocol {
     
     private let storage = Storage.storage()
     
-    func uploadImageData(path: String, data: Data, operationDescription: String) -> AnyPublisher<URL, Error> {
+    func uploadImageData(path: String, data: Data) -> AnyPublisher<URL, Error> {
         Future<URL, Error> { promise in
             let ref = self.storage.reference(withPath: path)
             
