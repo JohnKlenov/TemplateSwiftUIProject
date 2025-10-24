@@ -241,6 +241,28 @@ Firebase продолжит выполнение операции до конц�
 
 
 
+
+
+
+// MARK: - Test
+
+// 1. Работа - func updateProfile()  + func handlePickedImage(_ image: UIImage) + func deletePhoto()
+
+// 2. Проверка работы transition в 1 пункте + справоцировать side effect с картинкой в UserInfoEditView после того как мы вышли из аккаунта который перед выходом сменил аватар
+
+// 3. Проверка работы .timeout -
+//func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
+//return Fail<URL, Error>(error: FirebaseInternalError.imageEncodingFailed)
+//    .delay(for: .seconds(16), scheduler: DispatchQueue.main)
+//    .eraseToAnyPublisher()
+//}
+
+// 4. проверка работы observeUserChanges() - следим за print("🔄 User changed: \(String(describing: self.currentUID)) → \(String(describing: newUID))") при первом старте и когда мы сделаем сигнаут(перед тем как делать сигнаут вызовем func uploadAvatarAndTrack с реализацией в func uploadAvatar - когда отработает observeUserChanges() таймер уже будет не активен и мы не увидем алерт через 15 секунд)
+
+// 5. profileService.fetchProfile(uid: uid) не дергает алерт через хендлер в profileService. по хорошему создать отдельный менеджеор для этого. Подумать о том что при удалении будет отрабатывать ошибка в листенере так как правиола уже не позволяюьт чтение! Можно просто вернуть в profileService для этого метода хэндлер! 
+
+// деплой тест + переходим к методу удаления аккаунта
+
 // MARK: - UserInfoEditManager (централизованная обработка ошибок)
 
 import Combine
@@ -298,6 +320,7 @@ final class UserInfoEditManager {
                     print("🔄 User changed: \(String(describing: self.currentUID)) → \(String(describing: newUID))")
                     self.state = .idle
                     self.avatarUploadCancellable?.cancel()
+                    self.updateProfileCancellable?.cancel()
                     self.avatarDeleteUrlCancellable?.cancel()
                     self.currentUID = newUID
                 }

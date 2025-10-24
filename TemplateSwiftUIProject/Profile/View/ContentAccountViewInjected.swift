@@ -10,8 +10,8 @@ import SwiftUI
 struct ContentAccountViewInjected: View {
     @StateObject private var viewModel: ContentAccountViewModel
     
-    init(authorizationManager: AuthorizationManager, profileService: FirestoreProfileService) {
-        _viewModel = StateObject(wrappedValue: ContentAccountViewModel(authorizationManager: authorizationManager, profileService: profileService))
+    init(authorizationManager: AuthorizationManager, profileService: FirestoreProfileService, errorHandler: ErrorHandlerProtocol) {
+        _viewModel = StateObject(wrappedValue: ContentAccountViewModel(authorizationManager: authorizationManager, profileService: profileService, errorHandler: errorHandler))
     }
     
     var body: some View {

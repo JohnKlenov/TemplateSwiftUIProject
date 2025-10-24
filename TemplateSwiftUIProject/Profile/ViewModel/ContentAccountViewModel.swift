@@ -19,13 +19,18 @@ class ContentAccountViewModel: ObservableObject {
     
     private let authorizationManager: AuthorizationManager
     private let profileService: FirestoreProfileService
+    private let errorHandler: ErrorHandlerProtocol
+    private let alertManager: AlertManager
+    
     private var profileLoadCancellable: AnyCancellable?
     private var cancellables = Set<AnyCancellable>()
     
-    init(authorizationManager: AuthorizationManager, profileService: FirestoreProfileService) {
+    init(authorizationManager: AuthorizationManager, profileService: FirestoreProfileService, errorHandler: ErrorHandlerProtocol, alertManager: AlertManager = .shared) {
         print("init ContentAccountViewModel")
         self.authorizationManager = authorizationManager
         self.profileService = profileService
+        self.errorHandler = errorHandler
+        self.alertManager = alertManager
         self.profileLoadingState = .loading
         /// можно в authorizationManager завести отдельный accountDeletionState?
         authorizationManager.$state
@@ -69,7 +74,10 @@ class ContentAccountViewModel: ObservableObject {
 //        }
     }
     
-    
+
+
+    // как не поймать ошибку в  profileService.fetchProfile(uid: uid) в момент удаления аккаунта?
+    /// Чтобы быть полностью защищённым, комбинируй два уровня: В observeUserChanges() сразу снимаешь listener. + Внутри самого listener’а проверяешь uid == currentUID.
     private func loadUserProfile(uid: String) {
         
         // 1. Отменяем предыдущую загрузку профиля
@@ -84,8 +92,9 @@ class ContentAccountViewModel: ObservableObject {
                     switch completion {
                     case .finished:
                         self?.profileLoadingState = .idle
-                    case .failure(_):
+                    case .failure(let error):
                         self?.profileLoadingState = .failure
+                        self?.handleError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
                     }
                 },
                 receiveValue: { [weak self] profile in
@@ -102,6 +111,11 @@ class ContentAccountViewModel: ObservableObject {
         //        authorizationManager.signOutAccount()
     }
     
+    private func handleError(_ error: Error, operationDescription: String) {
+        let errorMessage = errorHandler.handle(error: error)
+        alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
+    }
+    
     deinit {
         /// это излишний код SwiftUI сам убират подписчиков после удаления
         cancellables.removeAll()
@@ -110,6 +124,34 @@ class ContentAccountViewModel: ObservableObject {
 }
 
 
+
+
+
+//private func loadUserProfile(uid: String) {
+//    
+//    // 1. Отменяем предыдущую загрузку профиля
+//    profileLoadCancellable?.cancel()
+//    profileLoadingState = .loading
+//    
+//    // 2. Создаем новую подписку
+//    profileLoadCancellable = profileService.fetchProfile(uid: uid)
+//        .receive(on: DispatchQueue.main)
+//        .sink(
+//            receiveCompletion: { [weak self] completion in
+//                switch completion {
+//                case .finished:
+//                    self?.profileLoadingState = .idle
+//                case .failure(_):
+//                    self?.profileLoadingState = .failure
+//                }
+//            },
+//            receiveValue: { [weak self] profile in
+//                print("loadUserProfile/receiveValue -  \(profile)")
+//                self?.userProfile = profile
+//                self?.profileLoadingState = .idle
+//            }
+//        )
+//}
 
 //private func loadUserProfile(uid: String) {
 //    // 1. Отменяем предыдущую загрузку профиля

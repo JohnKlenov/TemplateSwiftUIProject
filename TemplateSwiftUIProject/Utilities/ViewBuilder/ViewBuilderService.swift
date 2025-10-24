@@ -73,7 +73,10 @@ class ViewBuilderService: ObservableObject {
         case .createAccount:
             SignUpViewInjected(authorizationManager: authorizationManager)
         case .account:
-            ContentAccountViewInjected(authorizationManager: authorizationManager, profileService: profileService)
+            // у нас обычно errorHandler живет в manager а в manager services! 
+            // но тут мы сделали временное исключение так как ContentAccountViewModel живет в памяти всегда мы можем себе это позволить
+            // то есть по хорошему нужно сделать manager для profileService и туда же перенести errorHandler и DI это в ContentAccountViewInjected
+            ContentAccountViewInjected(authorizationManager: authorizationManager, profileService: profileService, errorHandler: SharedErrorHandler())
         case .login:
             SignInViewInjected(authorizationManager: authorizationManager)
         case .reauthenticate:
