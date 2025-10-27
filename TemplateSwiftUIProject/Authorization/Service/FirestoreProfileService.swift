@@ -128,6 +128,7 @@ final class FirestoreProfileService: ProfileServiceProtocol {
         
         profileListener = docRef.addSnapshotListener(includeMetadataChanges: true) { snapshot, error in
             if let error = error {
+                print("✅ FirestoreProfileService fetchProfile error - \(error.localizedDescription)")
                 subject.send(completion: .failure(error))
                 return
             }
@@ -140,7 +141,7 @@ final class FirestoreProfileService: ProfileServiceProtocol {
             do {
                 if snapshot.exists {
                     let profile = try snapshot.data(as: UserProfile.self)
-                    print("✅ FirestoreProfileService received: \(profile)")
+                    print("✅ FirestoreProfileService fetchProfile received: \(profile)")
                     subject.send(profile)
                 } else {
                     // Документ отсутствует — отдаём пустую модель

@@ -15,6 +15,7 @@ class ViewBuilderService: ObservableObject {
     
     private let crudManager: CRUDSManager
     private let authorizationManager: AuthorizationManager
+    private let userInfoCellManager: UserInfoCellManager
     private let profileService:FirestoreProfileService
     private let storageProfileService: StorageProfileServiceProtocol
     private let userInfoEditManager:UserInfoEditManager
@@ -30,7 +31,11 @@ class ViewBuilderService: ObservableObject {
         self.profileService = FirestoreProfileService()
         self.storageProfileService = StorageProfileService()
         let userProvider: CurrentUserProvider = FirebaseAuthUserProvider()
+        
         self.userInfoEditManager = UserInfoEditManager(firestoreService: profileService, storageService: storageProfileService, errorHandler: SharedErrorHandler(), userProvider: userProvider)
+        
+        self.userInfoCellManager = UserInfoCellManager(profileService: profileService, errorHandler: SharedErrorHandler())
+        
         self.crudManager = CRUDSManager(
             authService: AuthService(),
             errorHandler: SharedErrorHandler(),
@@ -73,10 +78,7 @@ class ViewBuilderService: ObservableObject {
         case .createAccount:
             SignUpViewInjected(authorizationManager: authorizationManager)
         case .account:
-            // у нас обычно errorHandler живет в manager а в manager services! 
-            // но тут мы сделали временное исключение так как ContentAccountViewModel живет в памяти всегда мы можем себе это позволить
-            // то есть по хорошему нужно сделать manager для profileService и туда же перенести errorHandler и DI это в ContentAccountViewInjected
-            ContentAccountViewInjected(authorizationManager: authorizationManager, profileService: profileService, errorHandler: SharedErrorHandler())
+            ContentAccountViewInjected(authorizationManager: authorizationManager, userInfoCellManager: userInfoCellManager)
         case .login:
             SignInViewInjected(authorizationManager: authorizationManager)
         case .reauthenticate:

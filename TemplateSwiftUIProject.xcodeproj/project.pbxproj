@@ -44,6 +44,7 @@
 		5E8F9CCF2D99777A004036F6 /* ImageCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */; };
 		5E8F9CD12D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */; };
 		5EA082972EA5107C00E244B8 /* FirebaseAuthUserProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082962EA5107C00E244B8 /* FirebaseAuthUserProvider.swift */; };
+		5EA0829A2EAFAD8300E244B8 /* UserInfoCellManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082992EAFAD8300E244B8 /* UserInfoCellManager.swift */; };
 		5EA2E5F32DDC8A5D00C53E52 /* String+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F22DDC8A5D00C53E52 /* String+Ext.swift */; };
 		5EA2E5F52DDCB1CC00C53E52 /* HideKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */; };
 		5EA2E5F82DDCB28D00C53E52 /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */; };
@@ -178,6 +179,7 @@
 		5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManager.swift; sourceTree = "<group>"; };
 		5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+DynamicTypeMetrics.swift"; sourceTree = "<group>"; };
 		5EA082962EA5107C00E244B8 /* FirebaseAuthUserProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAuthUserProvider.swift; sourceTree = "<group>"; };
+		5EA082992EAFAD8300E244B8 /* UserInfoCellManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfoCellManager.swift; sourceTree = "<group>"; };
 		5EA2E5F22DDC8A5D00C53E52 /* String+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Ext.swift"; sourceTree = "<group>"; };
 		5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HideKeyboard.swift; sourceTree = "<group>"; };
 		5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
@@ -391,6 +393,14 @@
 				5E8F9CCE2D99777A004036F6 /* ImageCacheManager.swift */,
 			);
 			path = ImageCacheManager;
+			sourceTree = "<group>";
+		};
+		5EA082982EAFAD2300E244B8 /* Service */ = {
+			isa = PBXGroup;
+			children = (
+				5EA082992EAFAD8300E244B8 /* UserInfoCellManager.swift */,
+			);
+			path = Service;
 			sourceTree = "<group>";
 		};
 		5EA2E5F62DDCB26000C53E52 /* ViewModel */ = {
@@ -892,6 +902,7 @@
 		5EC949F82CC29137003736A9 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				5EA082982EAFAD2300E244B8 /* Service */,
 				5EC88EDD2DB1375A00A95224 /* ViewModel */,
 				5EC949F92CC2918F003736A9 /* View */,
 			);
@@ -1126,6 +1137,7 @@
 				5E8F9CB12D819EB6004036F6 /* GalleryView.swift in Sources */,
 				5EC94A0D2CC3CA4E003736A9 /* CustomErrorsFB.swift in Sources */,
 				5EC332DC2E3E4AF50051BE5B /* ReauthenticateViewInjected.swift in Sources */,
+				5EA0829A2EAFAD8300E244B8 /* UserInfoCellManager.swift in Sources */,
 				5EC94A122CC59585003736A9 /* HomeContentViewModel.swift in Sources */,
 				5E8F9CC32D81A4A7004036F6 /* MallCell.swift in Sources */,
 				5EA2E6052DE34EE000C53E52 /* OrientationInfo.swift in Sources */,

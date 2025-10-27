@@ -246,18 +246,8 @@ Firebase продолжит выполнение операции до конц�
 
 // MARK: - Test
 
-// 1. Работа - func updateProfile()  + func handlePickedImage(_ image: UIImage) + func deletePhoto()
 
-// 2. Проверка работы transition в 1 пункте + справоцировать side effect с картинкой в UserInfoEditView после того как мы вышли из аккаунта который перед выходом сменил аватар
-
-// 3. Проверка работы .timeout -
-//func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
-//return Fail<URL, Error>(error: FirebaseInternalError.imageEncodingFailed)
-//    .delay(for: .seconds(16), scheduler: DispatchQueue.main)
-//    .eraseToAnyPublisher()
-//}
-
-// 4. проверка работы observeUserChanges() - следим за print("🔄 User changed: \(String(describing: self.currentUID)) → \(String(describing: newUID))") при первом старте и когда мы сделаем сигнаут(перед тем как делать сигнаут вызовем func uploadAvatarAndTrack с реализацией в func uploadAvatar - когда отработает observeUserChanges() таймер уже будет не активен и мы не увидем алерт через 15 секунд)
+// 4. проверка работы observeUserChanges() - следим за print("🔄 User changed: \(String(describing: self.currentUID)) → \(String(describing: newUID))") при первом старте и когда мы сделаем сигнаут(перед тем как делать сигнаут вызовем func uploadAvatarAndTrack с реализацией в func uploadAvatar - когда отработает observeUserChanges() таймер уже будет не активен и мы не увидем алерт через 15 секунд) + отработает ошибка на profileListener так как нарушаться права на мгновение.
 
 // 5. profileService.fetchProfile(uid: uid) не дергает алерт через хендлер в profileService. по хорошему создать отдельный менеджеор для этого. Подумать о том что при удалении будет отрабатывать ошибка в листенере так как правиола уже не позволяюьт чтение! Можно просто вернуть в profileService для этого метода хэндлер! 
 
@@ -355,28 +345,31 @@ final class UserInfoEditManager {
 
     
     private func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
-        guard let resizedImage = image.resizedMaintainingAspectRatio(toFit: 600),
-              let data = resizedImage.jpegData(compressionQuality: 0.8) else {
-            return Fail(error: FirebaseInternalError.imageEncodingFailed)
-                .eraseToAnyPublisher()
-        }
-        
-        // Генерируем уникальное имя файла с timestamp
-        let path = String.avatarPath(for: uid)
-        
-        return storageService.uploadImageData(path: path,
-                                              data: data)
-        .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
-            guard let self = self else {
-                return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
-            }
-            let profile = UserProfile(uid: uid, photoURL: url)
-            return self.firestoreService.updateProfile(profile,
-                                                       shouldDeletePhotoURL: false)
-            .map { url }
+        return Fail<URL, Error>(error: FirebaseInternalError.imageEncodingFailed)
+            .delay(for: .seconds(16), scheduler: DispatchQueue.main)
             .eraseToAnyPublisher()
-        }
-        .eraseToAnyPublisher()
+//        guard let resizedImage = image.resizedMaintainingAspectRatio(toFit: 600),
+//              let data = resizedImage.jpegData(compressionQuality: 0.8) else {
+//            return Fail(error: FirebaseInternalError.imageEncodingFailed)
+//                .eraseToAnyPublisher()
+//        }
+//        
+//        // Генерируем уникальное имя файла с timestamp
+//        let path = String.avatarPath(for: uid)
+//        
+//        return storageService.uploadImageData(path: path,
+//                                              data: data)
+//        .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
+//            guard let self = self else {
+//                return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
+//            }
+//            let profile = UserProfile(uid: uid, photoURL: url)
+//            return self.firestoreService.updateProfile(profile,
+//                                                       shouldDeletePhotoURL: false)
+//            .map { url }
+//            .eraseToAnyPublisher()
+//        }
+//        .eraseToAnyPublisher()
     }
     
     // MARK: - Delete Avatar

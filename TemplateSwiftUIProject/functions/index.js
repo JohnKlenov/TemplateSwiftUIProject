@@ -19,9 +19,6 @@ exports.deleteUserData =
 exports.cleanupInactiveAnonUsers =
   require('./cleanupInactiveAnonUsers').cleanupInactiveAnonUsers;
 
-exports.cleanupInactiveAnonUsersTest =
-  require('./cleanupInactiveAnonUsersTest').cleanupInactiveAnonUsersTest;
-
 // 🔹 Дополнительные задачи
 exports.cleanupUnusedAvatars =
   require('./cleanupUnusedAvatars').cleanupUnusedAvatars;
