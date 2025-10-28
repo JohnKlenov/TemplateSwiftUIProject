@@ -22,7 +22,9 @@ class ViewBuilderService: ObservableObject {
     private let authService: AuthenticationServiceProtocol
 
     init() {
-        let service = AuthorizationService()
+        let userProvider: CurrentUserProvider = FirebaseAuthUserProvider()
+        
+        let service = AuthorizationService(userProvider: userProvider)
         self.authorizationManager = AuthorizationManager(service: service, errorHandler: SharedErrorHandler())
         
         let trackerService = AnonAccountTrackerService()
@@ -30,7 +32,6 @@ class ViewBuilderService: ObservableObject {
         
         self.profileService = FirestoreProfileService()
         self.storageProfileService = StorageProfileService()
-        let userProvider: CurrentUserProvider = FirebaseAuthUserProvider()
         
         self.userInfoEditManager = UserInfoEditManager(firestoreService: profileService, storageService: storageProfileService, errorHandler: SharedErrorHandler(), userProvider: userProvider)
         

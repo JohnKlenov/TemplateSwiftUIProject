@@ -22,37 +22,28 @@ enum DeleteAccountError: Error {
   case underlying(Error)
 }
 
-struct AuthUser {
-    let uid: String
-    let isAnonymous: Bool
-}
-
 final class AuthorizationService {
     
-    private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
+    private let userProvider: CurrentUserProvider
+    private var cancellable: AnyCancellable?
     private let authStateSubject = PassthroughSubject<AuthUser?, Never>()
-//    private let functions = Functions.functions()
     
     var authStatePublisher: AnyPublisher<AuthUser?, Never> {
         authStateSubject.eraseToAnyPublisher()
     }
     
-    init() {
-        
+    init(userProvider: CurrentUserProvider) {
         print("AuthorizationService init")
-        if let handle = aythenticalSateHandler {
-            Auth.auth().removeStateDidChangeListener(handle)
-        }
-        /// при удалении узера нам сначало должен прийти nil а потм уже объект user anon
-        aythenticalSateHandler = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
-            print("AuthorizationService/AuthorizationManager user.uid - \(String(describing: user?.uid))")
-            guard let user = user else {
-                self?.authStateSubject.send(nil)
-                return
+        self.userProvider = userProvider
+        observeUserChanges()
+    }
+    
+    private func observeUserChanges() {
+        cancellable = userProvider.currentUserPublisher
+            .sink { [weak self] authUser in
+                print("🔄 AuthorizationService получил нового пользователя: \(String(describing: authUser))")
+                self?.authStateSubject.send(authUser)
             }
-            let authUser = AuthUser(uid: user.uid, isAnonymous: user.isAnonymous)
-            self?.authStateSubject.send(authUser)
-        }
     }
     
     // регистрация или линковка анонимного пользователя
@@ -238,7 +229,65 @@ final class AuthorizationService {
         .eraseToAnyPublisher()
     }
     
-    /// 3) Вызываем HTTPS-функцию на удаление старого анонима
+    deinit {
+        print("AuthorizationService deinit")
+    }
+    
+}
+
+
+
+
+
+
+// MARK: - Before refactoring AuthorizationService (DI FirebaseAuthUserProvider)
+
+//final class AuthorizationService {
+//    
+//    private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
+//    private let authStateSubject = PassthroughSubject<AuthUser?, Never>()
+////    private let functions = Functions.functions()
+//    
+//    var authStatePublisher: AnyPublisher<AuthUser?, Never> {
+//        authStateSubject.eraseToAnyPublisher()
+//    }
+//    
+//    init() {
+//        
+//        print("AuthorizationService init")
+//        if let handle = aythenticalSateHandler {
+//            Auth.auth().removeStateDidChangeListener(handle)
+//        }
+//        /// при удалении узера нам сначало должен прийти nil а потм уже объект user anon
+//        aythenticalSateHandler = Auth.auth().addStateDidChangeListener { [weak self] (_, user) in
+//            print("AuthorizationService/AuthorizationManager user.uid - \(String(describing: user?.uid))")
+//            guard let user = user else {
+//                self?.authStateSubject.send(nil)
+//                return
+//            }
+//            let authUser = AuthUser(uid: user.uid, isAnonymous: user.isAnonymous)
+//            self?.authStateSubject.send(authUser)
+//        }
+//    }
+
+//deinit {
+//    print("AuthorizationService deinit")
+//    if let handle = aythenticalSateHandler {
+//        Auth.auth().removeStateDidChangeListener(handle)
+//    }
+//}
+
+
+
+
+
+
+
+
+
+
+
+/// 3) Вызываем HTTPS-функцию на удаление старого анонима
 //    private func cleanupAnonymous(anonUid: String)
 //    -> AnyPublisher<Void, Error>
 //    {
@@ -255,8 +304,8 @@ final class AuthorizationService {
 //        }
 //        .eraseToAnyPublisher()
 //    }
-    
-    // создаём/обновляем профиль
+
+// создаём/обновляем профиль
 //    func createProfile(name: String) -> AnyPublisher<Void, Error> {
 //        Deferred {
 //            Future { promise in
@@ -275,16 +324,18 @@ final class AuthorizationService {
 //        }
 //        .eraseToAnyPublisher()
 //    }
-    
-    
-    deinit {
-        print("AuthorizationService deinit")
-        if let handle = aythenticalSateHandler {
-            Auth.auth().removeStateDidChangeListener(handle)
-        }
-    }
 
-}
+
+
+
+
+
+
+
+
+
+
+
 
 
 

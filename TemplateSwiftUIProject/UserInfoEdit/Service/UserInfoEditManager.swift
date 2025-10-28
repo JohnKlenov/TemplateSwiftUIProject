@@ -300,14 +300,16 @@ final class UserInfoEditManager {
         self.userProvider = userProvider
         
         observeUserChanges()
+        
     }
     
     private func observeUserChanges() {
         userListenerCancellable = userProvider.currentUserPublisher
-            .sink { [weak self] newUID in
+            .sink { [weak self] authUser in
                 guard let self = self else { return }
+                let newUID = authUser?.uid
                 if self.currentUID != newUID {
-                    print("🔄 User changed: \(String(describing: self.currentUID)) → \(String(describing: newUID))")
+                    print("🔄 UserInfoEditManager получил нового пользователя: \(String(describing: self.currentUID)) → \(String(describing: newUID))")
                     self.state = .idle
                     self.avatarUploadCancellable?.cancel()
                     self.updateProfileCancellable?.cancel()
@@ -441,6 +443,27 @@ final class UserInfoEditManager {
                                      alertType: .ok)
     }
 }
+
+
+
+// MARK: - Before refactoring AuthorizationService (DI FirebaseAuthUserProvider)
+
+
+
+//private func observeUserChanges() {
+//    userListenerCancellable = userProvider.currentUserPublisher
+//        .sink { [weak self] newUID in
+//            guard let self = self else { return }
+//            if self.currentUID != newUID {
+//                print("🔄 User changed: \(String(describing: self.currentUID)) → \(String(describing: newUID))")
+//                self.state = .idle
+//                self.avatarUploadCancellable?.cancel()
+//                self.updateProfileCancellable?.cancel()
+//                self.avatarDeleteUrlCancellable?.cancel()
+//                self.currentUID = newUID
+//            }
+//        }
+//}
 
 
 

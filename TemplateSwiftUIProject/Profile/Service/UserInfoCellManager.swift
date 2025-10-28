@@ -13,6 +13,7 @@ import FirebaseFirestore
 /// Отдаёт наружу паблишеры для ViewModel.
 final class UserInfoCellManager {
     private let profileService: FirestoreProfileService
+    private let userProvider: CurrentUserProvider
     private let errorHandler: ErrorHandlerProtocol
     
     // Publisher'ы для связи с ViewModel
@@ -20,11 +21,28 @@ final class UserInfoCellManager {
     let userProfile = CurrentValueSubject<UserProfile?, Never>(nil)
     
     private var profileLoadCancellable: AnyCancellable?
+    private var userListenerCancellable: AnyCancellable?
     
-    init(profileService: FirestoreProfileService,
+    private var currentUID: String?
+    
+    init(profileService: FirestoreProfileService, userProvider: CurrentUserProvider,
          errorHandler: ErrorHandlerProtocol) {
         self.profileService = profileService
+        self.userProvider = userProvider
         self.errorHandler = errorHandler
+    }
+    
+    private func observeUserChanges() {
+        userListenerCancellable = userProvider.currentUserPublisher
+            .sink { [weak self] authUser in
+                guard let self = self else { return }
+                let newUID = authUser?.uid
+                if self.currentUID != newUID {
+                    print("🔄 UserInfoCellManager получил нового пользователя: \(String(describing: self.currentUID)) → \(String(describing: newUID))")
+                    self.profileLoadCancellable?.cancel()
+                    self.currentUID = newUID
+                }
+            }
     }
     
     /// Загружает профиль пользователя по UID.
@@ -32,6 +50,8 @@ final class UserInfoCellManager {
     /// - В случае успеха публикует профиль.
     /// - В случае ошибки публикует `.failure` и вызывает глобальный алерт.
     func loadUserProfile(uid: String) {
+        
+        guard uid == currentUID else { return }
         profileLoadCancellable?.cancel()
         profileLoadingState.send(.loading)
         

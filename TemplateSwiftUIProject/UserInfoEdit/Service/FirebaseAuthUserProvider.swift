@@ -37,21 +37,29 @@ import Combine
 ///
 ///
 
-/// Абстракция над источником текущего пользователя.
-/// Может быть реализована через FirebaseAuth, мок для тестов, или любую другую систему авторизации.
+
+struct AuthUser {
+    let uid: String
+    let isAnonymous: Bool
+}
+
 protocol CurrentUserProvider {
-    /// Паблишер, который эмитит uid текущего пользователя или nil при logout/удалении.
-    var currentUserPublisher: AnyPublisher<String?, Never> { get }
+    /// Паблишер, который эмитит AuthUser или nil при logout/удалении.
+    var currentUserPublisher: AnyPublisher<AuthUser?, Never> { get }
 }
 
 
 final class FirebaseAuthUserProvider: CurrentUserProvider {
-    private let subject = CurrentValueSubject<String?, Never>(Auth.auth().currentUser?.uid)
+    private let subject: CurrentValueSubject<AuthUser?, Never>
     private var handle: AuthStateDidChangeListenerHandle?
 
     init() {
+        let initialUser = Auth.auth().currentUser.map { AuthUser(uid: $0.uid, isAnonymous: $0.isAnonymous) }
+        subject = CurrentValueSubject<AuthUser?, Never>(initialUser)
+        
         handle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            self?.subject.send(user?.uid)
+            let authUser = user.map { AuthUser(uid: $0.uid, isAnonymous: $0.isAnonymous) }
+            self?.subject.send(authUser)
         }
     }
 
@@ -61,8 +69,44 @@ final class FirebaseAuthUserProvider: CurrentUserProvider {
         }
     }
 
-    var currentUserPublisher: AnyPublisher<String?, Never> {
+    var currentUserPublisher: AnyPublisher<AuthUser?, Never> {
         subject.eraseToAnyPublisher()
     }
 }
 
+
+
+
+
+
+// MARK: - Before refactoring AuthorizationService (DI FirebaseAuthUserProvider)
+
+
+///// Абстракция над источником текущего пользователя.
+///// Может быть реализована через FirebaseAuth, мок для тестов, или любую другую систему авторизации.
+//protocol CurrentUserProvider {
+//    /// Паблишер, который эмитит uid текущего пользователя или nil при logout/удалении.
+//    var currentUserPublisher: AnyPublisher<String?, Never> { get }
+//}
+//
+//
+//final class FirebaseAuthUserProvider: CurrentUserProvider {
+//    private let subject = CurrentValueSubject<String?, Never>(Auth.auth().currentUser?.uid)
+//    private var handle: AuthStateDidChangeListenerHandle?
+//
+//    init() {
+//        handle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+//            self?.subject.send(user?.uid)
+//        }
+//    }
+//
+//    deinit {
+//        if let handle = handle {
+//            Auth.auth().removeStateDidChangeListener(handle)
+//        }
+//    }
+//
+//    var currentUserPublisher: AnyPublisher<String?, Never> {
+//        subject.eraseToAnyPublisher()
+//    }
+//}
