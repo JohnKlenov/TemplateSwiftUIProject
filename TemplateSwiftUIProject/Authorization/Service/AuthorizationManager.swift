@@ -68,6 +68,7 @@ final class AuthorizationManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     init(service: AuthorizationService, errorHandler: ErrorHandlerProtocol, alertManager: AlertManager = AlertManager.shared) {
+        print("init AuthorizationManager")
         self.authService = service
         self.errorHandler = errorHandler
         self.alertManager = alertManager

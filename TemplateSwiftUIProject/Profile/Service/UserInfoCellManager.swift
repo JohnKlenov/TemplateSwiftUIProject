@@ -30,6 +30,7 @@ final class UserInfoCellManager {
         self.profileService = profileService
         self.userProvider = userProvider
         self.errorHandler = errorHandler
+        self.observeUserChanges()
     }
     
     private func observeUserChanges() {
@@ -50,8 +51,7 @@ final class UserInfoCellManager {
     /// - В случае успеха публикует профиль.
     /// - В случае ошибки публикует `.failure` и вызывает глобальный алерт.
     func loadUserProfile(uid: String) {
-        
-        guard uid == currentUID else { return }
+        print("UserInfoCellManager func loadUserProfile(uid: String)")
         profileLoadCancellable?.cancel()
         profileLoadingState.send(.loading)
         
