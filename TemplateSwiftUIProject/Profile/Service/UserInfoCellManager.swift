@@ -45,19 +45,15 @@ final class UserInfoCellManager {
                 }
             }
     }
-    
-    /// Загружает профиль пользователя по UID.
-    /// - Обновляет состояние загрузки.
-    /// - В случае успеха публикует профиль.
-    /// - В случае ошибки публикует `.failure` и вызывает глобальный алерт.
+
     func loadUserProfile(uid: String) {
-        print("UserInfoCellManager func loadUserProfile(uid: String)")
         profileLoadCancellable?.cancel()
         profileLoadingState.send(.loading)
         
         profileLoadCancellable = profileService.fetchProfile(uid: uid)
             .sink(
                 receiveCompletion: { [weak self] completion in
+                    
                     switch completion {
                     case .finished:
                         self?.profileLoadingState.send(.idle)
@@ -83,3 +79,37 @@ final class UserInfoCellManager {
     }
 }
 
+
+//print("UserInfoCellManager func loadUserProfile(uid: String) - \(uid)")
+
+//    func loadUserProfile(uid: String) {
+//        profileLoadCancellable?.cancel()
+//        profileLoadingState.send(.loading)
+//
+//        profileLoadCancellable = profileService.fetchProfile(uid: uid)
+//            .sink(
+//                receiveCompletion: { [weak self] completion in
+//                    guard let self = self else { return }
+//                    guard self.currentUID == uid else {
+//                        print("⚠️ Игнорируем completion: uid изменился")
+//                        return
+//                    }
+//                    switch completion {
+//                    case .finished:
+//                        self.profileLoadingState.send(.idle)
+//                    case .failure(let error):
+//                        self.profileLoadingState.send(.failure)
+//                        self.handleError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.fetchingProfileData)
+//                    }
+//                },
+//                receiveValue: { [weak self] profile in
+//                    guard let self = self else { return }
+//                    guard self.currentUID == uid else {
+//                        print("⚠️ Игнорируем результат: uid изменился")
+//                        return
+//                    }
+//                    self.userProfile.send(profile)
+//                    self.profileLoadingState.send(.idle)
+//                }
+//            )
+//    }

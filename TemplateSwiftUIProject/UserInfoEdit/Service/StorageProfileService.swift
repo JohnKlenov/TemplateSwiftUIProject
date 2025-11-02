@@ -63,6 +63,7 @@ final class StorageProfileService: StorageProfileServiceProtocol {
                 }
                 
                 ref.downloadURL { url, error in
+                    //                                        promise(.failure(FirebaseInternalError.imageEncodingFailed))
                     if let error = error {
                         print("❌ Storage upload error: downloadURL")
                         promise(.failure(error))

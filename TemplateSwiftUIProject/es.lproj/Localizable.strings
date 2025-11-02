@@ -142,6 +142,8 @@
 "error.custom_firebase.nil_snapshot" = "Falta la instantánea. Inténtalo de nuevo más tarde.";
 "error.custom_firebase.image_encoding_failed" = "No se pudo procesar la imagen. Intente con otra foto.";
 "error.custom_firebase.delayed_confirmation" = "La actualización del avatar está tardando más de lo habitual. La confirmación puede llegar más tarde.";
+"error.custom_firebase.stale_user_session" = "El usuario actual ha cambiado. Por favor, salga de la pantalla actual e inténtelo de nuevo.";
+
 
 
 

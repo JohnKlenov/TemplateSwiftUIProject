@@ -322,8 +322,10 @@ final class UserInfoEditManager {
     // MARK: - Upload Avatar
     
     func uploadAvatarAndTrack(for uid: String, image: UIImage) {
-        
-        guard uid == currentUID else { return }
+        guard uid == currentUID else {
+            self.handleError(FirebaseInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+            return
+        }
         transition(to: .loading, autoReset: false)
         avatarUploadCancellable?.cancel()
         
@@ -347,31 +349,31 @@ final class UserInfoEditManager {
 
     
     private func uploadAvatar(for uid: String, image: UIImage) -> AnyPublisher<URL, Error> {
-        return Fail<URL, Error>(error: FirebaseInternalError.imageEncodingFailed)
-            .delay(for: .seconds(16), scheduler: DispatchQueue.main)
-            .eraseToAnyPublisher()
-//        guard let resizedImage = image.resizedMaintainingAspectRatio(toFit: 600),
-//              let data = resizedImage.jpegData(compressionQuality: 0.8) else {
-//            return Fail(error: FirebaseInternalError.imageEncodingFailed)
-//                .eraseToAnyPublisher()
-//        }
-//        
-//        // Генерируем уникальное имя файла с timestamp
-//        let path = String.avatarPath(for: uid)
-//        
-//        return storageService.uploadImageData(path: path,
-//                                              data: data)
-//        .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
-//            guard let self = self else {
-//                return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
-//            }
-//            let profile = UserProfile(uid: uid, photoURL: url)
-//            return self.firestoreService.updateProfile(profile,
-//                                                       shouldDeletePhotoURL: false)
-//            .map { url }
+//        return Fail<URL, Error>(error: FirebaseInternalError.imageEncodingFailed)
+//            .delay(for: .seconds(16), scheduler: DispatchQueue.main)
 //            .eraseToAnyPublisher()
-//        }
-//        .eraseToAnyPublisher()
+        guard let resizedImage = image.resizedMaintainingAspectRatio(toFit: 600),
+              let data = resizedImage.jpegData(compressionQuality: 0.8) else {
+            return Fail(error: FirebaseInternalError.imageEncodingFailed)
+                .eraseToAnyPublisher()
+        }
+        
+        // Генерируем уникальное имя файла с timestamp
+        let path = String.avatarPath(for: uid)
+        
+        return storageService.uploadImageData(path: path,
+                                              data: data)
+        .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
+            guard let self = self else {
+                return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
+            }
+            let profile = UserProfile(uid: uid, photoURL: url)
+            return self.firestoreService.updateProfile(profile,
+                                                       shouldDeletePhotoURL: false)
+            .map { url }
+            .eraseToAnyPublisher()
+        }
+        .eraseToAnyPublisher()
     }
     
     // MARK: - Delete Avatar
@@ -379,7 +381,10 @@ final class UserInfoEditManager {
     // сначало удаляем url а потом image в Storage (если удаление в Storage не прошло чистим через Cloud Function)
     func deleteAvatarAndTrack(for uid: String, photoURL: URL) {
         
-        guard uid == currentUID else { return }
+        guard uid == currentUID else {
+            self.handleError(FirebaseInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+            return
+        }
         transition(to: .loading, autoReset: false)
         avatarDeleteUrlCancellable?.cancel()
         
@@ -407,7 +412,10 @@ final class UserInfoEditManager {
     
     func updateProfile(for uid: String, profile: UserProfile) {
         
-        guard uid == currentUID else { return }
+        guard uid == currentUID else {
+            self.handleError(FirebaseInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+            return
+        }
         updateProfileCancellable?.cancel()
         
         updateProfileCancellable = firestoreService

@@ -54,12 +54,7 @@ struct UserInfoCellView: View {
         .onTapGesture {
             /// а так же если isError что бы нельзя было выйти на .userInfoEdit с ошибкой
             guard !isLoading else { return }
-//            guard let profile = viewModel.userProfile else { return }
-//            accountCoordinator.navigateTo(page: .userInfoEdit(profile))
             if !viewModel.isUserAnonymous {
-                /// если мы при profile != nil сделаем удачно SignIn и loadUserProfile(uid: uid) вернет ошибку
-                /// наш profile останится от прошлого userAccount
-                /// нужно обнулять profile - profile = nil при изменении изменения авторизации
                 guard let profile = viewModel.userProfile else { return }
                 accountCoordinator.navigateTo(page: .userInfoEdit(profile))
             } else {

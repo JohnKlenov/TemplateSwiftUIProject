@@ -18,6 +18,7 @@ enum FirebaseInternalError: Error, LocalizedError {
     case nilSnapshot
     case imageEncodingFailed
     case delayedConfirmation
+    case staleUserSession
 
     var errorDescription: String? {
         switch self {
@@ -41,6 +42,8 @@ enum FirebaseInternalError: Error, LocalizedError {
             return Localized.FirebaseInternalError.imageEncodingFailed
         case .delayedConfirmation:
             return Localized.FirebaseInternalError.delayedConfirmation
+        case .staleUserSession:
+            return Localized.FirebaseInternalError.staleUserSession
         }
     }
 }

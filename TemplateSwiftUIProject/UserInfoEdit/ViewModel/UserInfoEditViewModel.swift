@@ -94,6 +94,7 @@ class UserInfoEditViewModel: ObservableObject {
         setupBindings()
     }
 
+
     private func setupBindings() {
     
         // Save активируется, когда хотя бы одно строковое поле непустое или изменилось
@@ -147,7 +148,7 @@ class UserInfoEditViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-//Localized.TitleOfFailedOperationFirebase.editingProfileFields
+
     // если сохраняем текст updateTextProfile() то в photoURL передаем nil
     // если сохраняем image updateImageProfile() то в name: nil, lastName: nil
     // Ты можешь обновить только одно поле через setData(from:merge:true), если в закодированной модели присутствует только это поле. Для этого передай модель, в которой все остальные опционалы равны nil — тогда синтезированный Encodable просто не закодирует их.
@@ -180,6 +181,21 @@ class UserInfoEditViewModel: ObservableObject {
         print("deinit UserInfoEditViewModel")
     }
 }
+
+
+
+
+
+//extension String {
+//    var nilIfOnlyWhitespace: String? {
+//        // Удаляем все пробельные символы (пробелы, табы, переносы и т.д.)
+//        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+//
+//        // Если после удаления осталась пустая строка — значит, была только "пустота"
+//        return trimmed.isEmpty ? nil : self
+//    }
+//}
+
 
 
 //        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
@@ -264,15 +280,7 @@ class UserInfoEditViewModel: ObservableObject {
 
 //        profileService.updateProfile(UserProfile(uid: uid, name: nil, lastName: nil, photoURL: URL(string: "https://firebasestorage.googleapis.com/v0/b/templateswiftui.appspot.com/o/TestImage%2F3-e1bc007b39c5a8b930833e35963b9914.jpeg?alt=media&token=345fe1d8-93d8-4824-8ee5-a58d4763918a")))
 
-extension String {
-    var nilIfOnlyWhitespace: String? {
-        // Удаляем все пробельные символы (пробелы, табы, переносы и т.д.)
-        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Если после удаления осталась пустая строка — значит, была только "пустота"
-        return trimmed.isEmpty ? nil : self
-    }
-}
+
 
 
 
