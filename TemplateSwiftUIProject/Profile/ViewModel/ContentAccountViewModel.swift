@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 8.07.25.
 //
 
+
 import SwiftUI
 import Combine
 
@@ -63,6 +64,10 @@ class ContentAccountViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    // ??? accountDeletionState - spiner на deleteAccount isOn даже если
+    // мы ушли с CreateAccount не дождавшисть ответа от signIn/SignUp
+    // и на оборот если мы не дождались deleteAccount и пошли на CreateAccount
+    // там будет spiner isOn на кнопках
     private func bindAuthorizationManager() {
         // Подписка на состояние удаления аккаунта
         authorizationManager.$state

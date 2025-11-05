@@ -138,6 +138,9 @@ class HomeContentViewModel: HomeViewModelProtocol {
             self.globalRetryHandler = handler
         }
     
+    // можно обернуть Services HomeViewModel в Manager как в Profile
+    // bind() имеет самоисправляемый баг при котором firestorColletionObserverService.observeCollection
+    // выбрасывает ошибку правил безопасности когда мы deleteAccount/signOut
     private func bind() {
         print(" private func bind() ")
         viewState = .loading

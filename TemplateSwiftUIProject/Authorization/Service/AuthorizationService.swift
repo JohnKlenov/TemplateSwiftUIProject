@@ -6,9 +6,128 @@
 //
 
 
+// MARK: - ID токен Firebase
 
-// func signInBasic в первой тестовой реализации будет реализован без удаления anonUser и его данных в CloudFunction
-// мы будем это делать вручную + сначало мы потестим как отработает удаление личных данных пользователя из CloudFunction в след за удалением аккаунта пользователя 
+// Firebase Auth: срок жизни токена
+//
+// - ID токен Firebase по умолчанию живёт около 1 часа.
+// - После этого он автоматически обновляется с помощью refresh‑токена,
+//   если приложение активно и есть интернет.
+// - Refresh‑токен не имеет жёсткого срока (может жить месяцами),
+//   но сервер может его отозвать (например, при смене пароля или блокировке).
+// - Если пользователь заходит в приложение раз в сутки или раз в две недели,
+//   SDK при старте обновит ID токен через refresh‑токен и всё будет работать.
+// - Проблемы возникают только если refresh‑токен недействителен
+//   (например, пользователь удалён, пароль изменён, аккаунт отключён).
+//
+// Итог:
+// - ID токен устаревает через ~1 час.
+// - Для пользователя, который заходит раз в день или реже,
+//   это прозрачно: SDK обновит токен автоматически.
+// - Реаутентификация нужна только при критичных операциях
+//   (delete, смена пароля/почты) или если refresh‑токен отозван.
+//
+
+
+// MARK: - паралельное выполнение auth‑операций
+
+// Auth операции (SignIn / SignUp / DeleteAccount)
+//
+// - В боевых приложениях не допускают параллельных auth‑операций.
+// - Пока выполняется SignIn или SignUp, UI блокирует другие действия (например, DeleteAccount).
+// - Причина: Firebase Auth поддерживает только одного currentUser, параллельные вызовы создают гонки.
+// - Правильный паттерн: "одна auth‑операция за раз" + возможность отмены на уровне UI.
+// - Таким образом сохраняется консистентность и предсказуемое поведение.
+//
+
+
+// MARK: - func deleteAccount()
+
+
+// Firebase Auth: user.delete — обработка ошибок и сетевое поведение
+//
+// 1) Подробно: возможные ошибки в блоке `user.delete { error in ... }`
+//
+//    - Домен ошибок: FIRAuthErrorDomain (можно преобразовать в AuthErrorCode по rawValue).
+//    - Наиболее частые коды, которые стоит явно обрабатывать:
+//
+//      .requiresRecentLogin
+//      // Удаление аккаунта требует «свежей» аутентификации.
+//      // Нужно инициировать повторный вход пользователя и затем повторить удаление.
+//
+//      .networkError
+//      // Проблемы с сетью: отсутствие интернета, сбои DNS, потеря пакетов.
+//      // Следует показать пользователю сообщение об ошибке и предложить повторить.
+//
+//      .userTokenExpired
+//      // Токен доступа устарел. Обычно помогает повторная аутентификация.
+//
+//      .invalidUserToken
+//      // Токен недействителен (повреждён или отозван). Требуется повторный вход.
+//
+//      .userNotFound
+//      // Пользователь больше не существует (например, уже удалён на сервере).
+//      // С точки зрения UX можно трактовать как успешное удаление.
+//
+//      .internalError
+//      // Внутренняя ошибка Firebase. Логируем и показываем общее сообщение об ошибке.
+//
+//      .appNotAuthorized
+//      // Ошибка конфигурации проекта (неверные ключи, настройки).
+//      // Критическая ошибка, требует исправления конфигурации.
+//
+//    // Общий паттерн:
+//    // if let code = AuthErrorCode(rawValue: nsError.code) { switch code { ... } }
+//
+//
+// 2) Ключевые моменты: плохой интернет или отсутствие сети
+//    - При полном отсутствии соединения SDK быстро вернёт `.networkError`.
+//    - При очень плохом соединении SDK будет пытаться достучаться до серверов,
+//      пока системный стек не вернёт ошибку.
+//
+//
+// 3) Ключевые моменты: таймаут
+//    - У Firebase Auth SDK нет жёстко задокументированного таймаута для delete().
+//    - Используется системный сетевой стек iOS (обычно таймаут соединения ~60 секунд).
+//    - Если нужно предсказуемое поведение, оборачивайте вызов в Combine‑оператор
+//      `.timeout(.seconds(15), ...)`, чтобы ограничить ожидание.
+//
+//
+// Практические рекомендации
+//    - Минимум обрабатывать: .requiresRecentLogin, .networkError, .userNotFound.
+//    - Для временных проблем (сеть) показывать пользователю возможность повторить.
+//    - Для предсказуемости использовать собственный таймаут на уровне Combine.
+//    - Неизвестные коды логировать и показывать универсальное сообщение об ошибке.
+//
+
+// Поведение при таймауте и «позднем ответе» Firebase SDK (user.delete)
+// для deleteAccount лучше не ставить таймаут, а довериться SDK и показать пользователю реальный результат.
+//
+// 1) Что делает таймаут в Combine
+//    - Когда срабатывает .timeout, паблишер завершает цепочку с ошибкой.
+//    - Подписчик (sink) получает .failure и считается завершённым.
+//    - Все cancellable для этой подписки освобождаются.
+//
+// 2) Что происходит, если SDK вернёт ответ позже
+//    - Firebase SDK всё равно вызовет completion-блок user.delete.
+//    - Внутри Future будет вызван promise(...).
+//    - Но Future по контракту принимает результат только один раз.
+//    - Если promise уже был вызван (таймаут сработал), повторный вызов игнорируется.
+//    - Никакого двойного завершения или краша не произойдёт.
+//
+// 3) Итоговое поведение
+//    - Для подписчика: он увидит только ошибку таймаута.
+//    - Поздний ответ SDK будет проигнорирован.
+//    - Это нормальное и безопасное поведение.
+//
+// 4) Практический совет
+//    - Если важно отлаживать такие ситуации, можно добавить print()
+//      перед вызовом promise в user.delete, чтобы логировать «опоздавшие» ответы.
+//    - Например: print("⚠️ SDK ответил после таймаута").
+//
+
+
+
 
 import FirebaseAuth
 import Combine
@@ -101,17 +220,28 @@ final class AuthorizationService {
                 promise(.failure(.underlying(FirebaseInternalError.notSignedIn)))
                 return
             }
-            
             user.delete { error in
                 if let nsError = error as NSError? {
                     // создаём AuthErrorCode по rawValue и сравниваем
-                    if let code = AuthErrorCode(rawValue: nsError.code),
-                       code == .requiresRecentLogin {
-                        promise(.failure(.reauthenticationRequired(nsError)))
+                    if let code = AuthErrorCode(rawValue: nsError.code) {
+                        switch code {
+                        case .requiresRecentLogin,
+                             .userTokenExpired,
+                             .invalidUserToken,
+                             .invalidCredential:
+                            // Все эти ошибки требуют повторной аутентификации
+                            promise(.failure(.reauthenticationRequired(nsError)))
+                            
+                        default:
+                            // Остальные ошибки пробрасываем как underlying
+                            promise(.failure(.underlying(nsError)))
+                        }
                     } else {
+                        // Если не удалось распарсить код — пробрасываем как underlying
                         promise(.failure(.underlying(nsError)))
                     }
                 } else {
+                    // Ошибки нет — удаление прошло успешно
                     promise(.success(()))
                 }
             }
@@ -119,12 +249,14 @@ final class AuthorizationService {
         .eraseToAnyPublisher()
     }
     
+    
     func reauthenticate(email: String, password: String) -> AnyPublisher<Void, Error> {
         Future<Void, Error> { promise in
             guard let user = Auth.auth().currentUser else {
                 return promise(.failure(FirebaseInternalError.notSignedIn))
             }
 
+            // может быть Apple + Google Provider
             let credential = EmailAuthProvider.credential(withEmail: email, password: password)
 
             user.reauthenticate(with: credential) { result, error in
@@ -236,6 +368,22 @@ final class AuthorizationService {
 }
 
 
+
+
+
+//            user.delete { error in
+//                if let nsError = error as NSError? {
+//                    // создаём AuthErrorCode по rawValue и сравниваем
+//                    if let code = AuthErrorCode(rawValue: nsError.code),
+//                       code == .requiresRecentLogin {
+//                        promise(.failure(.reauthenticationRequired(nsError)))
+//                    } else {
+//                        promise(.failure(.underlying(nsError)))
+//                    }
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
 
 
 

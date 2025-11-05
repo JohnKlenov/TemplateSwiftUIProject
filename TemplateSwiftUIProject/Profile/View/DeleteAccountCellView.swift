@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 8.07.25.
 //
 
+
 import SwiftUI
 
 /// как получается так что при изменение accountDeletionState извне DeleteAccountCellView перерисовывается?

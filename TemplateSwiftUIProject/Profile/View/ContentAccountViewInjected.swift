@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 8.07.25.
 //
 
+
 import SwiftUI
 //profileService: FirestoreProfileService, errorHandler: ErrorHandlerProtocol
 struct ContentAccountViewInjected: View {

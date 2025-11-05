@@ -38,6 +38,7 @@ import Combine
 ///
 
 
+
 struct AuthUser {
     let uid: String
     let isAnonymous: Bool
