@@ -242,9 +242,6 @@ struct ReauthenticateView: View {
             print("Некоторые поля заполнены неверно.")
         }
     }
-//    var body: some View {
-//        Text("ReauthenticateView")
-//    }
 }
 
 //    var body: some View {

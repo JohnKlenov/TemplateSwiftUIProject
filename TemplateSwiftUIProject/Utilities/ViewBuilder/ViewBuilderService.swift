@@ -79,6 +79,7 @@ class ViewBuilderService: ObservableObject {
             SomeView()
         case .createAccount:
             SignUpViewInjected(authorizationManager: authorizationManager)
+//            ReauthenticateViewInjected(authorizationManager: authorizationManager)
         case .account:
             ContentAccountViewInjected(authorizationManager: authorizationManager, userInfoCellManager: userInfoCellManager)
         case .login:

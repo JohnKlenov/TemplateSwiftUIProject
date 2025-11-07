@@ -74,6 +74,7 @@ final class AuthorizationManager: ObservableObject {
         self.errorHandler = errorHandler
         self.alertManager = alertManager
         
+        // ??? может на вский случай тут менять state = .idle
         authService.authStatePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] authUser in
@@ -204,9 +205,7 @@ final class AuthorizationManager: ObservableObject {
             alertType: .ok
         )
     }
-//    
-//    authService.reauthenticate(email: email, password: password)
-//        .receive(on: DispatchQueue.main)
+
     
     func confirmIdentity(email: String, password: String) {
         state = .loading
