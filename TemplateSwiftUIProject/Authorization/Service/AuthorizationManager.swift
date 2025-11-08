@@ -245,9 +245,10 @@ final class AuthorizationManager: ObservableObject {
             } receiveValue: { _ in }
             .store(in: &cancellables)
     }
-    
 }
     
+
+
     
     
     //    func deleteAccount() {

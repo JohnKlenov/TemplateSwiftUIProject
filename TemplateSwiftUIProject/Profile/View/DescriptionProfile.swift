@@ -164,8 +164,241 @@
 
 
 
+// MARK: - first code for ReauthenticateView one provaider
+
+//import FirebaseAuth
+//import Combine
+//
+//extension AuthorizationService {
+//    
+//    /// Publisher, который эмитит список всех провайдеров текущего пользователя
+//    func authProvidersPublisher() -> AnyPublisher<[String], Never> {
+//        let providers = Auth.auth().currentUser?.providerData.map { $0.providerID } ?? []
+//        
+//        // Если список пустой — это аномалия, логируем в Crashlytics
+//        if providers.isEmpty {
+//            // TODO: Crashlytics.log("authProvidersPublisher вернул пустой список провайдеров")
+//            print("⚠️ authProvidersPublisher: пустой список провайдеров")
+//        }
+//        
+//        return Just(providers)
+//            .eraseToAnyPublisher()
+//    }
+//    
+//    /// Publisher, который эмитит основной провайдер (обычно первый)
+//    func primaryAuthProviderPublisher() -> AnyPublisher<String?, Never> {
+//        let provider = Auth.auth().currentUser?.providerData.first?.providerID
+//        
+//        // Если nil — это аномалия, логируем в Crashlytics
+//        if provider == nil {
+//            // TODO: Crashlytics.log("primaryAuthProviderPublisher вернул nil")
+//            print("⚠️ primaryAuthProviderPublisher: providerID == nil")
+//        }
+//        
+//        return Just(provider)
+//            .eraseToAnyPublisher()
+//    }
+//}
+
+
+
+
+//final class AuthorizationManager: ObservableObject {
+//    enum State {
+//        case idle, loading, success, failure
+//    }
+//    
+//    @Published private(set) var state: State = .idle
+//    @Published private(set) var isUserAnonymous: Bool = true
+//    @Published private(set) var currentAuthUser: AuthUser?
+//    @Published private(set) var primaryProvider: String?
+//    @Published private(set) var providers: [String] = []
+//    
+//    private let authService: AuthorizationService
+//    private let errorHandler: ErrorHandlerProtocol
+//    private var cancellables = Set<AnyCancellable>()
+//    var alertManager: AlertManager
+//    
+//    init(service: AuthorizationService,
+//         errorHandler: ErrorHandlerProtocol,
+//         alertManager: AlertManager = AlertManager.shared) {
+//        self.authService = service
+//        self.errorHandler = errorHandler
+//        self.alertManager = alertManager
+//        
+//        setupAuthStateSubscription()
+//    }
+//    
+//    // MARK: - Подписки
+//    
+//    private func setupAuthStateSubscription() {
+//        authService.authStatePublisher
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] authUser in
+//                self?.handleAuthStateChange(authUser)
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func handleAuthStateChange(_ authUser: AuthUser?) {
+//        isUserAnonymous = authUser?.isAnonymous ?? true
+//        currentAuthUser = authUser
+//        
+//        // ⚡️ Сбрасываем провайдеры при смене пользователя
+//        resetProviders()
+//        
+//        // ⚡️ Подписываемся на провайдеры только если пользователь перманентный
+//        guard let user = authUser, !user.isAnonymous else {
+//            print("ℹ️ AuthorizationManager: анонимный или nil user — провайдеры не запрашиваем")
+//            return
+//        }
+//        
+//        subscribeToProviders()
+//        subscribeToPrimaryProvider()
+//    }
+//    
+//    private func resetProviders() {
+//        primaryProvider = nil
+//        providers = []
+//    }
+//    
+//    private func subscribeToProviders() {
+//        authService.authProvidersPublisher()
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] providers in
+//                self?.providers = providers
+//                if providers.isEmpty {
+//                    print("⚠️ AuthorizationManager: пустой список провайдеров для перманентного пользователя")
+//                    // TODO: Crashlytics.log("Empty providers list for permanent user")
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func subscribeToPrimaryProvider() {
+//        authService.primaryAuthProviderPublisher()
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] provider in
+//                self?.primaryProvider = provider
+//                if provider == nil {
+//                    print("⚠️ AuthorizationManager: primary provider == nil для перманентного пользователя")
+//                    // TODO: Crashlytics.log("Primary provider is nil for permanent user")
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//}
+//
 
 
 
 
 
+
+//import Combine
+//import SwiftUI
+//
+//final class ReauthenticateViewModel: ObservableObject {
+//    
+//    @Published var email: String = ""
+//    @Published var password: String = ""
+//    
+//    @Published var emailError: String?
+//    @Published var passwordError: String?
+//    
+//    @Published var reauthState: AuthorizationManager.State = .idle
+//    
+//    // Провайдер, который реально привязан к аккаунту
+//    @Published private(set) var providerID: String?
+//    
+//    private let authorizationManager: AuthorizationManager
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//    var isValid: Bool {
+//        !email.isEmpty && !password.isEmpty
+//    }
+//    
+//    init(authorizationManager: AuthorizationManager) {
+//        self.authorizationManager = authorizationManager
+//        setupSubscriptions()
+//    }
+//    
+//    // MARK: - Подписки
+//    
+//    private func setupSubscriptions() {
+//        // Подписка на состояние
+//        authorizationManager.$state
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.reauthState = state
+//            }
+//            .store(in: &cancellables)
+//        
+//        // Подписка на провайдер
+//        authorizationManager.$primaryProvider
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] provider in
+//                guard let self = self else { return }
+//                
+//                // ⚡️ Показываем UI только если провайдер есть и пользователь перманентный
+//                if let provider = provider,
+//                   let user = self.authorizationManager.currentAuthUser,
+//                   !user.isAnonymous {
+//                    self.providerID = provider
+//                    print("ReauthenticateViewModel получил providerID:", provider)
+//                } else {
+//                    // Сбрасываем, если аноним или nil
+//                    self.providerID = nil
+//                    print("ℹ️ ReauthenticateViewModel: анонимный или nil user — UI для реаутентификации не показываем")
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    // MARK: - Валидация
+//    
+//    func updateValidationEmail() {
+//        if email.isEmpty {
+//            emailError = Localized.ValidSignUp.emailEmpty
+//        } else if !email.isValidEmail {
+//            emailError = Localized.ValidSignUp.emailInvalid
+//        } else {
+//            emailError = nil
+//        }
+//    }
+//    
+//    func updateValidationPassword() {
+//        if password.isEmpty {
+//            passwordError = Localized.ValidSignUp.passwordEmpty
+//        } else {
+//            passwordError = nil
+//        }
+//    }
+//    
+//    // MARK: - Реаутентификация
+//    
+//    func reauthenticate() {
+//        guard let providerID = providerID else {
+//            print("⚠️ Нет провайдера для реаутентификации")
+//            return
+//        }
+//        
+//        switch providerID {
+//        case "password":
+//            authorizationManager.confirmIdentity(email: email, password: password)
+//        case "google.com":
+//            // TODO: вызвать Google flow
+//            print("⚠️ Реаутентификация через Google пока не реализована")
+//        case "apple.com":
+//            // TODO: вызвать Apple flow
+//            print("⚠️ Реаутентификация через Apple пока не реализована")
+//        default:
+//            print("⚠️ Неизвестный провайдер:", providerID)
+//        }
+//    }
+//    
+//    deinit {
+//        cancellables.removeAll()
+//        print("deinit ReauthenticateViewModel")
+//    }
+//}
