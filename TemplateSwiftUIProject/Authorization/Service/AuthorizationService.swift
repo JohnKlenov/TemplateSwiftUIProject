@@ -260,33 +260,45 @@
 
 import FirebaseAuth
 import Combine
-//import FirebaseFunctions
 
 // Ошибка, специфичная для deleteAccount()
 enum DeleteAccountError: Error {
-  /// Firebase вернул код .requiresRecentLogin
-  case reauthenticationRequired(Error)
-  /// Любая другая ошибка — оборачиваем оригинальный Error
-  case underlying(Error)
+    /// Firebase вернул код .requiresRecentLogin
+    case reauthenticationRequired(Error)
+    /// Любая другая ошибка — оборачиваем оригинальный Error
+    case underlying(Error)
 }
 
 final class AuthorizationService {
     
+    // MARK: - Dependencies
     private let userProvider: CurrentUserProvider
+    
+    // MARK: - Publishers & Storage
     private var cancellable: AnyCancellable?
     private let authStateSubject = PassthroughSubject<AuthUser?, Never>()
     
-    var authStatePublisher: AnyPublisher<AuthUser?, Never> {
-        authStateSubject.eraseToAnyPublisher()
-    }
-    
+    // MARK: - Init
     init(userProvider: CurrentUserProvider) {
         print("AuthorizationService init")
         self.userProvider = userProvider
         observeUserChanges()
     }
     
-    private func observeUserChanges() {
+    deinit {
+        print("AuthorizationService deinit")
+    }
+}
+
+// MARK: - User state
+extension AuthorizationService {
+    
+    /// Паблишер, который эмитит AuthUser или nil при logout/удалении.
+    var authStatePublisher: AnyPublisher<AuthUser?, Never> {
+        authStateSubject.eraseToAnyPublisher()
+    }
+    
+    func observeUserChanges() {
         cancellable = userProvider.currentUserPublisher
             .sink { [weak self] authUser in
                 print("🔄 AuthorizationService получил нового пользователя: \(String(describing: authUser))")
@@ -294,7 +306,16 @@ final class AuthorizationService {
             }
     }
     
-    // регистрация или линковка анонимного пользователя
+    private func updateAuthState(from user: FirebaseAuth.User) {
+        let authUser = AuthUser(uid: user.uid, isAnonymous: user.isAnonymous)
+        authStateSubject.send(authUser)
+    }
+}
+
+// MARK: - Sign up / Link
+extension AuthorizationService {
+    
+    /// Регистрация или линковка анонимного пользователя
     func signUpBasic(email: String, password: String) -> AnyPublisher<Void, Error> {
         currentUserPublisher()
             .flatMap { user -> AnyPublisher<AuthDataResult, Error> in
@@ -309,109 +330,6 @@ final class AuthorizationService {
             .eraseToAnyPublisher()
     }
     
-    // логирование и удаление анонимного пользователя
-    func signInBasic(email: String, password: String)
-    -> AnyPublisher<Void, Error>
-    {
-        currentUserPublisher()
-            .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
-                guard let self = self else {
-                    return Fail(error: FirebaseInternalError.defaultError)
-                        .eraseToAnyPublisher()
-                }
-                if user.isAnonymous {
-                    // Сохраняем UID анонима, чтобы потом удалить
-                    let anonUid = user.uid
-                    print("anonUid func signInBasic - \(anonUid)")
-                    return self.signInPublisher(email: email, password: password)
-                    // после успешного входа — зовём Cloud Function
-//                        .flatMap { _ in
-//                            self.cleanupAnonymous(anonUid: anonUid)
-//                        }
-                        .map { _ in () }
-                        .eraseToAnyPublisher()
-                } else {
-                    // Обычный вход, просто мапим в Void
-                    print("permanentUser func signInBasic - \(user.uid)")
-                    return self.signInPublisher(email: email, password: password)
-                        .map { _ in () }
-                        .eraseToAnyPublisher()
-                }
-            }
-            .eraseToAnyPublisher()
-    }
-        
-    
-    // удаляем аккаунт
-    func deleteAccount() -> AnyPublisher<Void, DeleteAccountError> {
-        Future<Void, DeleteAccountError> { promise in
-            guard let user = Auth.auth().currentUser else {
-                promise(.failure(.underlying(FirebaseInternalError.notSignedIn)))
-                return
-            }
-            user.delete { error in
-                if let nsError = error as NSError? {
-                    // создаём AuthErrorCode по rawValue и сравниваем
-                    if let code = AuthErrorCode(rawValue: nsError.code) {
-                        switch code {
-                        case .requiresRecentLogin,
-                             .userTokenExpired,
-                             .invalidUserToken,
-                             .invalidCredential:
-                            // Все эти ошибки требуют повторной аутентификации
-                            promise(.failure(.reauthenticationRequired(nsError)))
-                            
-                        default:
-                            // Остальные ошибки пробрасываем как underlying
-                            promise(.failure(.underlying(nsError)))
-                        }
-                    } else {
-                        // Если не удалось распарсить код — пробрасываем как underlying
-                        promise(.failure(.underlying(nsError)))
-                    }
-                } else {
-                    // Ошибки нет — удаление прошло успешно
-                    promise(.success(()))
-                }
-            }
-        }
-        .eraseToAnyPublisher()
-    }
-    
-    
-    func reauthenticate(email: String, password: String) -> AnyPublisher<Void, Error> {
-        Future<Void, Error> { promise in
-            guard let user = Auth.auth().currentUser else {
-                return promise(.failure(FirebaseInternalError.notSignedIn))
-            }
-
-            // может быть Apple + Google Provider
-            let credential = EmailAuthProvider.credential(withEmail: email, password: password)
-
-            user.reauthenticate(with: credential) { result, error in
-                if let error = error {
-                    promise(.failure(error))
-                } else {
-                    promise(.success(()))
-                }
-            }
-        }
-        .eraseToAnyPublisher()
-    }
-   
-
-
-    // MARK: - Helpers
-
-    private func currentUserPublisher() -> AnyPublisher<User, Error> {
-        guard let user = Auth.auth().currentUser else {
-            return Fail(error: FirebaseInternalError.notSignedIn).eraseToAnyPublisher()
-        }
-        return Just(user)
-            .setFailureType(to: Error.self)
-            .eraseToAnyPublisher()
-    }
-
     private func createUserPublisher(email: String, password: String) -> AnyPublisher<AuthDataResult, Error> {
         Future { promise in
             Auth.auth().createUser(withEmail: email, password: password) { res, err in
@@ -420,15 +338,14 @@ final class AuthorizationService {
                 } else if let result = res {
                     promise(.success(result))
                 } else {
-                    /// вот эту ошибку нужно обязательно логировать
-                    /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
+                    // Обязательно логировать: неизвестное состояние
                     promise(.failure(FirebaseInternalError.defaultError))
                 }
             }
         }
         .eraseToAnyPublisher()
     }
-
+    
     private func linkPublisher(user: User, credential: AuthCredential) -> AnyPublisher<AuthDataResult, Error> {
         Future { [weak self] promise in
             user.link(with: credential) { res, err in
@@ -436,27 +353,48 @@ final class AuthorizationService {
                 if let error = err {
                     promise(.failure(error))
                 } else if let result = res {
-                    // 💡 Обновляем authState сразу так как при успешной линковки addStateDidChangeListener не отработает
+                    // 💡 Обновляем authState сразу — при успешной линковке addStateDidChangeListener может не отработать
                     self?.updateAuthState(from: result.user)
                     promise(.success(result))
                 } else {
-                    /// вот эту ошибку нужно обязательно логировать
-                    /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
+                    // Обязательно логировать: неизвестное состояние
                     promise(.failure(FirebaseInternalError.defaultError))
                 }
             }
         }
         .eraseToAnyPublisher()
     }
-    
-    private func updateAuthState(from user: FirebaseAuth.User) {
-        let authUser = AuthUser(uid: user.uid, isAnonymous: user.isAnonymous)
-        authStateSubject.send(authUser)
-    }
+}
 
-    private func signInPublisher(email: String, password: String)
-    -> AnyPublisher<AuthDataResult, Error>
-    {
+// MARK: - Sign in / Out
+extension AuthorizationService {
+    
+    /// Логирование; при необходимости удаление анонимного пользователя после входа
+    func signInBasic(email: String, password: String) -> AnyPublisher<Void, Error> {
+        currentUserPublisher()
+            .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
+                guard let self = self else {
+                    return Fail(error: FirebaseInternalError.defaultError).eraseToAnyPublisher()
+                }
+                if user.isAnonymous {
+                    // Сохраняем UID анонима (если далее понадобится cleanup)
+                    let anonUid = user.uid
+                    print("anonUid func signInBasic - \(anonUid)")
+                    return self.signInPublisher(email: email, password: password)
+                        // .flatMap { _ in self.cleanupAnonymous(anonUid: anonUid) }
+                        .map { _ in () }
+                        .eraseToAnyPublisher()
+                } else {
+                    print("permanentUser func signInBasic - \(user.uid)")
+                    return self.signInPublisher(email: email, password: password)
+                        .map { _ in () }
+                        .eraseToAnyPublisher()
+                }
+            }
+            .eraseToAnyPublisher()
+    }
+    
+    private func signInPublisher(email: String, password: String) -> AnyPublisher<AuthDataResult, Error> {
         Future { promise in
             Auth.auth().signIn(withEmail: email, password: password) { res, err in
                 if let err = err {
@@ -464,20 +402,15 @@ final class AuthorizationService {
                 } else if let result = res {
                     promise(.success(result))
                 } else {
-                    /// вот эту ошибку нужно обязательно логировать
-                    /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
+                    // Обязательно логировать: неизвестное состояние
                     promise(.failure(FirebaseInternalError.defaultError))
                 }
             }
         }
         .eraseToAnyPublisher()
     }
-
-    func sendVerificationEmail() {
-        Auth.auth().currentUser?.sendEmailVerification(completion: nil)
-    }
     
-    // сбрасываем локального юзера
+    /// Выход (локально)
     func signOut() -> AnyPublisher<Void, Error> {
         Future { promise in
             do {
@@ -489,14 +422,387 @@ final class AuthorizationService {
         }
         .eraseToAnyPublisher()
     }
+}
+
+// MARK: - Account deletion
+extension AuthorizationService {
     
-    deinit {
-        print("AuthorizationService deinit")
+    /// Удаление аккаунта с маппингом ошибок, требующих реаутентификации
+    func deleteAccount() -> AnyPublisher<Void, DeleteAccountError> {
+        Future<Void, DeleteAccountError> { promise in
+            guard let user = Auth.auth().currentUser else {
+                promise(.failure(.underlying(FirebaseInternalError.notSignedIn)))
+                return
+            }
+            user.delete { error in
+                if let nsError = error as NSError? {
+                    if let code = AuthErrorCode(rawValue: nsError.code) {
+                        switch code {
+                        case .requiresRecentLogin,
+                             .userTokenExpired,
+                             .invalidUserToken,
+                             .invalidCredential:
+                            // Все эти ошибки требуют повторной аутентификации
+                            promise(.failure(.reauthenticationRequired(nsError)))
+                        default:
+                            promise(.failure(.underlying(nsError)))
+                        }
+                    } else {
+                        promise(.failure(.underlying(nsError)))
+                    }
+                } else {
+                    promise(.success(()))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Reauthentication
+extension AuthorizationService {
+    
+    /// Повторная аутентификация через email+password
+    func reauthenticate(email: String, password: String) -> AnyPublisher<Void, Error> {
+        Future<Void, Error> { promise in
+            guard let user = Auth.auth().currentUser else {
+                return promise(.failure(FirebaseInternalError.notSignedIn))
+            }
+            let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+            user.reauthenticate(with: credential) { _, error in
+                if let error = error {
+                    promise(.failure(error))
+                } else {
+                    promise(.success(()))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Verification
+extension AuthorizationService {
+    
+    /// Отправка письма подтверждения
+    func sendVerificationEmail() {
+        Auth.auth().currentUser?.sendEmailVerification(completion: nil)
+    }
+}
+
+// MARK: - Auth providers
+extension AuthorizationService {
+    
+    /// Publisher, который эмитит список всех провайдеров текущего пользователя
+    func authProvidersPublisher() -> AnyPublisher<[String], Never> {
+        let providers = Auth.auth().currentUser?.providerData.map { $0.providerID } ?? []
+        return Just(providers)
+            .eraseToAnyPublisher()
     }
     
+    /// Publisher, который эмитит основной провайдер (обычно первый)
+    func primaryAuthProviderPublisher() -> AnyPublisher<String?, Never> {
+        let provider = Auth.auth().currentUser?.providerData.first?.providerID
+        return Just(provider)
+            .eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Helpers
+extension AuthorizationService {
+    
+    /// Текущий Firebase User как publisher (ошибка, если не залогинен)
+    private func currentUserPublisher() -> AnyPublisher<User, Error> {
+        guard let user = Auth.auth().currentUser else {
+            return Fail(error: FirebaseInternalError.notSignedIn).eraseToAnyPublisher()
+        }
+        return Just(user)
+            .setFailureType(to: Error.self)
+            .eraseToAnyPublisher()
+    }
 }
 
 
+
+
+
+// MARK: - Before mark extension
+
+
+
+
+
+//import FirebaseAuth
+//import Combine
+////import FirebaseFunctions
+//
+//// Ошибка, специфичная для deleteAccount()
+//enum DeleteAccountError: Error {
+//  /// Firebase вернул код .requiresRecentLogin
+//  case reauthenticationRequired(Error)
+//  /// Любая другая ошибка — оборачиваем оригинальный Error
+//  case underlying(Error)
+//}
+//
+//final class AuthorizationService {
+//    
+//    private let userProvider: CurrentUserProvider
+//    private var cancellable: AnyCancellable?
+//    private let authStateSubject = PassthroughSubject<AuthUser?, Never>()
+//    
+//    var authStatePublisher: AnyPublisher<AuthUser?, Never> {
+//        authStateSubject.eraseToAnyPublisher()
+//    }
+//    
+//    init(userProvider: CurrentUserProvider) {
+//        print("AuthorizationService init")
+//        self.userProvider = userProvider
+//        observeUserChanges()
+//    }
+//    
+//    private func observeUserChanges() {
+//        cancellable = userProvider.currentUserPublisher
+//            .sink { [weak self] authUser in
+//                print("🔄 AuthorizationService получил нового пользователя: \(String(describing: authUser))")
+//                self?.authStateSubject.send(authUser)
+//            }
+//    }
+//    
+//    // регистрация или линковка анонимного пользователя
+//    func signUpBasic(email: String, password: String) -> AnyPublisher<Void, Error> {
+//        currentUserPublisher()
+//            .flatMap { user -> AnyPublisher<AuthDataResult, Error> in
+//                if user.isAnonymous {
+//                    let cred = EmailAuthProvider.credential(withEmail: email, password: password)
+//                    return self.linkPublisher(user: user, credential: cred)
+//                } else {
+//                    return self.createUserPublisher(email: email, password: password)
+//                }
+//            }
+//            .map { _ in () }
+//            .eraseToAnyPublisher()
+//    }
+//    
+//    // логирование и удаление анонимного пользователя
+//    func signInBasic(email: String, password: String)
+//    -> AnyPublisher<Void, Error>
+//    {
+//        currentUserPublisher()
+//            .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
+//                guard let self = self else {
+//                    return Fail(error: FirebaseInternalError.defaultError)
+//                        .eraseToAnyPublisher()
+//                }
+//                if user.isAnonymous {
+//                    // Сохраняем UID анонима, чтобы потом удалить
+//                    let anonUid = user.uid
+//                    print("anonUid func signInBasic - \(anonUid)")
+//                    return self.signInPublisher(email: email, password: password)
+//                    // после успешного входа — зовём Cloud Function
+////                        .flatMap { _ in
+////                            self.cleanupAnonymous(anonUid: anonUid)
+////                        }
+//                        .map { _ in () }
+//                        .eraseToAnyPublisher()
+//                } else {
+//                    // Обычный вход, просто мапим в Void
+//                    print("permanentUser func signInBasic - \(user.uid)")
+//                    return self.signInPublisher(email: email, password: password)
+//                        .map { _ in () }
+//                        .eraseToAnyPublisher()
+//                }
+//            }
+//            .eraseToAnyPublisher()
+//    }
+//        
+//    
+//    // удаляем аккаунт
+//    func deleteAccount() -> AnyPublisher<Void, DeleteAccountError> {
+//        Future<Void, DeleteAccountError> { promise in
+//            guard let user = Auth.auth().currentUser else {
+//                promise(.failure(.underlying(FirebaseInternalError.notSignedIn)))
+//                return
+//            }
+//            user.delete { error in
+//                if let nsError = error as NSError? {
+//                    // создаём AuthErrorCode по rawValue и сравниваем
+//                    if let code = AuthErrorCode(rawValue: nsError.code) {
+//                        switch code {
+//                        case .requiresRecentLogin,
+//                             .userTokenExpired,
+//                             .invalidUserToken,
+//                             .invalidCredential:
+//                            // Все эти ошибки требуют повторной аутентификации
+//                            promise(.failure(.reauthenticationRequired(nsError)))
+//                            
+//                        default:
+//                            // Остальные ошибки пробрасываем как underlying
+//                            promise(.failure(.underlying(nsError)))
+//                        }
+//                    } else {
+//                        // Если не удалось распарсить код — пробрасываем как underlying
+//                        promise(.failure(.underlying(nsError)))
+//                    }
+//                } else {
+//                    // Ошибки нет — удаление прошло успешно
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//    
+//    
+//    func reauthenticate(email: String, password: String) -> AnyPublisher<Void, Error> {
+//        Future<Void, Error> { promise in
+//            guard let user = Auth.auth().currentUser else {
+//                return promise(.failure(FirebaseInternalError.notSignedIn))
+//            }
+//
+//            // может быть Apple + Google Provider
+//            let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+//
+//            user.reauthenticate(with: credential) { result, error in
+//                if let error = error {
+//                    promise(.failure(error))
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//   
+//
+//
+//    // MARK: - Helpers
+//
+//    private func currentUserPublisher() -> AnyPublisher<User, Error> {
+//        guard let user = Auth.auth().currentUser else {
+//            return Fail(error: FirebaseInternalError.notSignedIn).eraseToAnyPublisher()
+//        }
+//        return Just(user)
+//            .setFailureType(to: Error.self)
+//            .eraseToAnyPublisher()
+//    }
+//
+//    private func createUserPublisher(email: String, password: String) -> AnyPublisher<AuthDataResult, Error> {
+//        Future { promise in
+//            Auth.auth().createUser(withEmail: email, password: password) { res, err in
+//                if let error = err {
+//                    promise(.failure(error))
+//                } else if let result = res {
+//                    promise(.success(result))
+//                } else {
+//                    /// вот эту ошибку нужно обязательно логировать
+//                    /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
+//                    promise(.failure(FirebaseInternalError.defaultError))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//
+//    private func linkPublisher(user: User, credential: AuthCredential) -> AnyPublisher<AuthDataResult, Error> {
+//        Future { [weak self] promise in
+//            user.link(with: credential) { res, err in
+//                print("linkPublisher res - \(String(describing: res)), error - \(String(describing: err))")
+//                if let error = err {
+//                    promise(.failure(error))
+//                } else if let result = res {
+//                    // 💡 Обновляем authState сразу так как при успешной линковки addStateDidChangeListener не отработает
+//                    self?.updateAuthState(from: result.user)
+//                    promise(.success(result))
+//                } else {
+//                    /// вот эту ошибку нужно обязательно логировать
+//                    /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
+//                    promise(.failure(FirebaseInternalError.defaultError))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//    
+//    private func updateAuthState(from user: FirebaseAuth.User) {
+//        let authUser = AuthUser(uid: user.uid, isAnonymous: user.isAnonymous)
+//        authStateSubject.send(authUser)
+//    }
+//
+//    private func signInPublisher(email: String, password: String)
+//    -> AnyPublisher<AuthDataResult, Error>
+//    {
+//        Future { promise in
+//            Auth.auth().signIn(withEmail: email, password: password) { res, err in
+//                if let err = err {
+//                    promise(.failure(err))
+//                } else if let result = res {
+//                    promise(.success(result))
+//                } else {
+//                    /// вот эту ошибку нужно обязательно логировать
+//                    /// то есть не так FirebaseEnternalError.defaultError а какимто специальным case что бы указать где именно она произошла
+//                    promise(.failure(FirebaseInternalError.defaultError))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//
+//    func sendVerificationEmail() {
+//        Auth.auth().currentUser?.sendEmailVerification(completion: nil)
+//    }
+//    
+//    // сбрасываем локального юзера
+//    func signOut() -> AnyPublisher<Void, Error> {
+//        Future { promise in
+//            do {
+//                try Auth.auth().signOut()
+//                promise(.success(()))
+//            } catch {
+//                promise(.failure(error))
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//    
+//    deinit {
+//        print("AuthorizationService deinit")
+//    }
+//    
+//}
+//
+//
+//
+//// MARK: -
+//extension AuthorizationService {
+//    
+//    /// Publisher, который эмитит список всех провайдеров текущего пользователя
+//    func authProvidersPublisher() -> AnyPublisher<[String], Never> {
+//        let providers = Auth.auth().currentUser?.providerData.map { $0.providerID } ?? []
+//        
+//        // Если список пустой — это аномалия, логируем в Crashlytics
+//        if providers.isEmpty {
+//            // TODO: Crashlytics.log("authProvidersPublisher вернул пустой список провайдеров")
+//            print("⚠️ authProvidersPublisher: пустой список провайдеров")
+//        }
+//        
+//        return Just(providers)
+//            .eraseToAnyPublisher()
+//    }
+//    
+//    /// Publisher, который эмитит основной провайдер (обычно первый)
+//    func primaryAuthProviderPublisher() -> AnyPublisher<String?, Never> {
+//        let provider = Auth.auth().currentUser?.providerData.first?.providerID
+//        
+//        // Если nil — это аномалия, логируем в Crashlytics
+//        if provider == nil {
+//            // TODO: Crashlytics.log("primaryAuthProviderPublisher вернул nil")
+//            print("⚠️ primaryAuthProviderPublisher: providerID == nil")
+//        }
+//        
+//        return Just(provider)
+//            .eraseToAnyPublisher()
+//    }
+//}
 
 
 

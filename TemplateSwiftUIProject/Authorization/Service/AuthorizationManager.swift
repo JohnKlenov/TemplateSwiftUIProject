@@ -48,42 +48,110 @@
 
 
 
+
+    
 import Combine
 import SwiftUI
-//@MainActor
+
 final class AuthorizationManager: ObservableObject {
-    
     enum State {
-        case idle
-        case loading
-        case success
-        case failure
+        case idle, loading, success, failure
     }
     
     @Published private(set) var state: State = .idle
     @Published private(set) var isUserAnonymous: Bool = true
     @Published private(set) var currentAuthUser: AuthUser?
-    var alertManager:AlertManager
+    @Published private(set) var primaryProvider: String?
+    @Published private(set) var providers: [String] = []
+    
     private let authService: AuthorizationService
     private let errorHandler: ErrorHandlerProtocol
     private var cancellables = Set<AnyCancellable>()
     
-    init(service: AuthorizationService, errorHandler: ErrorHandlerProtocol, alertManager: AlertManager = AlertManager.shared) {
-        print("init AuthorizationManager")
+    // Отдельные cancellable для провайдеров
+    private var providersCancellable: AnyCancellable?
+    private var primaryProviderCancellable: AnyCancellable?
+    
+    var alertManager: AlertManager
+    
+    init(service: AuthorizationService,
+         errorHandler: ErrorHandlerProtocol,
+         alertManager: AlertManager = AlertManager.shared) {
         self.authService = service
         self.errorHandler = errorHandler
         self.alertManager = alertManager
         
-        // ??? может на вский случай тут менять state = .idle
+        setupAuthStateSubscription()
+    }
+    
+    // MARK: - Подписки
+    
+    private func setupAuthStateSubscription() {
         authService.authStatePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] authUser in
-                self?.isUserAnonymous = authUser?.isAnonymous ?? true
-                self?.currentAuthUser = authUser // Сохраняем текущего пользователя
+                self?.handleAuthStateChange(authUser)
             }
             .store(in: &cancellables)
     }
     
+    private func handleAuthStateChange(_ authUser: AuthUser?) {
+        isUserAnonymous = authUser?.isAnonymous ?? true
+        currentAuthUser = authUser
+        
+        // ⚡️ Сбрасываем провайдеры при смене пользователя
+        resetProviders()
+        
+        // ⚡️ Подписываемся только если пользователь перманентный
+        guard let user = authUser, !user.isAnonymous else {
+            print("ℹ️ AuthorizationManager: анонимный или nil user — провайдеры не запрашиваем")
+            return
+        }
+        
+        subscribeToProviders()
+        subscribeToPrimaryProvider()
+    }
+    
+    private func resetProviders() {
+        primaryProvider = nil
+        providers = []
+        
+        // Отменяем старые подписки
+        providersCancellable?.cancel()
+        providersCancellable = nil
+        
+        primaryProviderCancellable?.cancel()
+        primaryProviderCancellable = nil
+    }
+    
+    private func subscribeToProviders() {
+        providersCancellable?.cancel() // отменяем старую подписку
+        providersCancellable = authService.authProvidersPublisher()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] providers in
+                self?.providers = providers
+                if providers.isEmpty {
+                    print("⚠️ AuthorizationManager: пустой список провайдеров для перманентного пользователя")
+                    // TODO: Crashlytics.log("Empty providers list for permanent user")
+                }
+                print("⚠️ AuthorizationManager: subscribeToProviders - \(providers)")
+            }
+    }
+    
+    private func subscribeToPrimaryProvider() {
+        primaryProviderCancellable?.cancel() // отменяем старую подписку
+        primaryProviderCancellable = authService.primaryAuthProviderPublisher()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] provider in
+                self?.primaryProvider = provider
+                if provider == nil {
+                    print("⚠️ AuthorizationManager: primary provider == nil для перманентного пользователя")
+                    // TODO: Crashlytics.log("Primary provider is nil for permanent user")
+                }
+                print("⚠️ AuthorizationManager: subscribeToPrimaryProvider - \(String(describing: provider))")
+            }
+    }
+
     func handleError(_ error: Error, operationDescription:String) {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
@@ -249,7 +317,56 @@ final class AuthorizationManager: ObservableObject {
     
 
 
-    
+
+
+// MARK: - before subscribeToProvider
+
+//import Combine
+//import SwiftUI
+////@MainActor
+//final class AuthorizationManager: ObservableObject {
+//
+//    enum State {
+//        case idle
+//        case loading
+//        case success
+//        case failure
+//    }
+//
+//    @Published private(set) var state: State = .idle
+//    @Published private(set) var isUserAnonymous: Bool = true
+//    @Published private(set) var currentAuthUser: AuthUser?
+//    var alertManager:AlertManager
+//    private let authService: AuthorizationService
+//    private let errorHandler: ErrorHandlerProtocol
+//    private var cancellables = Set<AnyCancellable>()
+//
+//    init(service: AuthorizationService, errorHandler: ErrorHandlerProtocol, alertManager: AlertManager = AlertManager.shared) {
+//        print("init AuthorizationManager")
+//        self.authService = service
+//        self.errorHandler = errorHandler
+//        self.alertManager = alertManager
+//
+//        // ??? может на вский случай тут менять state = .idle
+//        authService.authStatePublisher
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] authUser in
+//                self?.isUserAnonymous = authUser?.isAnonymous ?? true
+//                self?.currentAuthUser = authUser // Сохраняем текущего пользователя
+//            }
+//            .store(in: &cancellables)
+//    }
+
+
+
+
+
+
+
+
+
+
+
     
     //    func deleteAccount() {
     //        state = .loading
