@@ -144,6 +144,7 @@ final class AuthorizationManager: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] provider in
                 self?.primaryProvider = provider
+//                self?.primaryProvider = nil
                 if provider == nil {
                     print("⚠️ AuthorizationManager: primary provider == nil для перманентного пользователя")
                     // TODO: Crashlytics.log("Primary provider is nil for permanent user")

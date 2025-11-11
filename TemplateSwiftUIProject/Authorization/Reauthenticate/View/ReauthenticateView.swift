@@ -43,27 +43,27 @@ struct ReauthenticateView: View {
 
     @ViewBuilder
     private var contentSection: some View {
-        switch viewModel.providerID {
-        case "password":
+        switch viewModel.providerType {
+        case .password:
             VStack(spacing: 20) {
                 formSection
                 forgotPasswordSection
                 confirmButton
             }
             
-        case "google.com":
+        case .google:
             VStack(spacing: 20) {
-                googleButton
+                googleFullButton
             }
             .padding(.vertical, 10)
             
-        case "apple.com":
+        case .apple:
             VStack(spacing: 20) {
-                appleButton
+                appleFullButton
             }
             .padding(.vertical, 10)
             
-        default:
+        case .unknown(_):
             VStack(spacing: 20) {
                 formSection
                 forgotPasswordSection
@@ -72,13 +72,60 @@ struct ReauthenticateView: View {
                 divider
                 
                 HStack(spacing: 40) {
-                    appleButton
-                    googleButton
+                    appleButton   // компактная версия
+                    googleButton  // компактная версия
                 }
             }
             .padding(.vertical, 10)
+            
+        case .none:
+            EmptyView()
         }
     }
+
+//    @ViewBuilder
+//    private var contentSection: some View {
+//        switch viewModel.providerType {
+//        case .password:
+//            VStack(spacing: 20) {
+//                formSection
+//                forgotPasswordSection
+//                confirmButton
+//            }
+//            
+//        case .google:
+//            VStack(spacing: 20) {
+//                googleButton
+//            }
+//            .padding(.vertical, 10)
+//            
+//        case .apple:
+//            VStack(spacing: 20) {
+//                appleButton
+//            }
+//            .padding(.vertical, 10)
+//            
+//        case .unknown(_):
+//            VStack(spacing: 20) {
+//                formSection
+//                forgotPasswordSection
+//                confirmButton
+//                
+//                divider
+//                
+//                HStack(spacing: 40) {
+//                    appleButton
+//                    googleButton
+//                }
+//            }
+//            .padding(.vertical, 10)
+//            
+//        case .none:
+//            // ⚡️ nil → аноним или logout → ничего не показываем
+//            EmptyView()
+//        }
+//    }
+
     
     // MARK: - Form
     
@@ -169,6 +216,49 @@ struct ReauthenticateView: View {
                 .background(Circle().stroke(Color.gray, lineWidth: 1))
         }
     }
+
+    private var googleFullButton: some View {
+        Button(action: {
+            guard viewModel.reauthState != .loading else { return }
+            print("Google reauth tapped")
+        }) {
+            HStack(spacing: 12) {
+                Image("googlelogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+                Text("Reauthenticate with Google")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray, lineWidth: 1))
+        }
+        .padding(.horizontal)
+    }
+
+    private var appleFullButton: some View {
+        Button(action: {
+            guard viewModel.reauthState != .loading else { return }
+            print("Apple reauth tapped")
+        }) {
+            HStack(spacing: 12) {
+                Image(systemName: "applelogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+                Text("Reauthenticate with Apple")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray, lineWidth: 1))
+        }
+        .padding(.horizontal)
+    }
+
     
     // MARK: - Fields
     
@@ -279,6 +369,48 @@ struct ReauthenticateView: View {
 
 
 
+// MARK: - before AuthProviderType
+
+
+
+//@ViewBuilder
+//private var contentSection: some View {
+//    switch viewModel.providerID {
+//    case "password":
+//        VStack(spacing: 20) {
+//            formSection
+//            forgotPasswordSection
+//            confirmButton
+//        }
+//        
+//    case "google.com":
+//        VStack(spacing: 20) {
+//            googleButton
+//        }
+//        .padding(.vertical, 10)
+//        
+//    case "apple.com":
+//        VStack(spacing: 20) {
+//            appleButton
+//        }
+//        .padding(.vertical, 10)
+//        
+//    default:
+//        VStack(spacing: 20) {
+//            formSection
+//            forgotPasswordSection
+//            confirmButton
+//            
+//            divider
+//            
+//            HStack(spacing: 40) {
+//                appleButton
+//                googleButton
+//            }
+//        }
+//        .padding(.vertical, 10)
+//    }
+//}
 
 
 
