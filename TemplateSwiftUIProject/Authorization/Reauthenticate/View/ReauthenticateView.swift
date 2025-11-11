@@ -29,10 +29,31 @@ struct ReauthenticateView: View {
     @EnvironmentObject var accountCoordinator: AccountCoordinator
     
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            contentSection
+        Group {
+            switch viewModel.providerType {
+            case .password, .unknown(_):
+                // здесь форма может быть длинной → нужен ScrollView
+                ScrollView(.vertical, showsIndicators: false) {
+                    contentSection
+                        .navigationBarTitleDisplayMode(.inline)
+                        .navigationTitle("Reauth")
+                }
+
+            case .google, .apple:
+                // здесь всего одна кнопка → ScrollView не нужен
+                VStack {
+                    Spacer()
+                    Spacer()
+                    contentSection
+                    Spacer()
+                }
+                .frame(maxHeight: .infinity)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationTitle("Reauth")
+
+            case .none:
+                EmptyView()
+            }
         }
         .simultaneousGesture(
             TapGesture().onEnded { hideKeyboard() }
@@ -50,19 +71,13 @@ struct ReauthenticateView: View {
                 forgotPasswordSection
                 confirmButton
             }
-            
+
         case .google:
-            VStack(spacing: 20) {
-                googleFullButton
-            }
-            .padding(.vertical, 10)
-            
+            googleFullButton   // полноценная кнопка по центру
+
         case .apple:
-            VStack(spacing: 20) {
-                appleFullButton
-            }
-            .padding(.vertical, 10)
-            
+            appleFullButton    // полноценная кнопка по центру
+
         case .unknown(_):
             VStack(spacing: 20) {
                 formSection
@@ -76,55 +91,11 @@ struct ReauthenticateView: View {
                     googleButton  // компактная версия
                 }
             }
-            .padding(.vertical, 10)
-            
+
         case .none:
             EmptyView()
         }
     }
-
-//    @ViewBuilder
-//    private var contentSection: some View {
-//        switch viewModel.providerType {
-//        case .password:
-//            VStack(spacing: 20) {
-//                formSection
-//                forgotPasswordSection
-//                confirmButton
-//            }
-//            
-//        case .google:
-//            VStack(spacing: 20) {
-//                googleButton
-//            }
-//            .padding(.vertical, 10)
-//            
-//        case .apple:
-//            VStack(spacing: 20) {
-//                appleButton
-//            }
-//            .padding(.vertical, 10)
-//            
-//        case .unknown(_):
-//            VStack(spacing: 20) {
-//                formSection
-//                forgotPasswordSection
-//                confirmButton
-//                
-//                divider
-//                
-//                HStack(spacing: 40) {
-//                    appleButton
-//                    googleButton
-//                }
-//            }
-//            .padding(.vertical, 10)
-//            
-//        case .none:
-//            // ⚡️ nil → аноним или logout → ничего не показываем
-//            EmptyView()
-//        }
-//    }
 
     
     // MARK: - Form
@@ -248,6 +219,7 @@ struct ReauthenticateView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
+                    .tint(AppColors.primary)
                 Text("Reauthenticate with Apple")
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
@@ -370,6 +342,121 @@ struct ReauthenticateView: View {
 
 
 // MARK: - before AuthProviderType
+
+
+
+//import SwiftUI
+//
+//struct ReauthenticateView: View {
+//    @ObservedObject var viewModel: ReauthenticateViewModel
+//    @State private var isPasswordVisible = false
+//    @FocusState var isFieldFocus: FieldToFocusAuth?
+//    
+//    @EnvironmentObject var localization: LocalizationService
+//    @EnvironmentObject var accountCoordinator: AccountCoordinator
+//    
+//    var body: some View {
+//        ScrollView(.vertical, showsIndicators: false) {
+//            contentSection
+//                .navigationBarTitleDisplayMode(.inline)
+//                .navigationTitle("Reauth")
+//        }
+//        .simultaneousGesture(
+//            TapGesture().onEnded { hideKeyboard() }
+//        )
+//    }
+//    
+//    // MARK: - Content
+//
+//    @ViewBuilder
+//    private var contentSection: some View {
+//        switch viewModel.providerType {
+//        case .password:
+//            VStack(spacing: 20) {
+//                formSection
+//                forgotPasswordSection
+//                confirmButton
+//            }
+//
+//        case .google:
+//            VStack(spacing: 20) {
+//                googleFullButton
+//            }
+//            .padding(.vertical, 10)
+//            
+//        case .apple:
+//            VStack(spacing: 20) {
+//                appleFullButton
+//            }
+//            .padding(.vertical, 10)
+//            
+//        case .unknown(_):
+//            VStack(spacing: 20) {
+//                formSection
+//                forgotPasswordSection
+//                confirmButton
+//                
+//                divider
+//                
+//                HStack(spacing: 40) {
+//                    appleButton   // компактная версия
+//                    googleButton  // компактная версия
+//                }
+//            }
+//            .padding(.vertical, 10)
+//            
+//        case .none:
+//            EmptyView()
+//        }
+//    }
+
+
+
+
+
+
+//    @ViewBuilder
+//    private var contentSection: some View {
+//        switch viewModel.providerType {
+//        case .password:
+//            VStack(spacing: 20) {
+//                formSection
+//                forgotPasswordSection
+//                confirmButton
+//            }
+//
+//        case .google:
+//            VStack(spacing: 20) {
+//                googleButton
+//            }
+//            .padding(.vertical, 10)
+//
+//        case .apple:
+//            VStack(spacing: 20) {
+//                appleButton
+//            }
+//            .padding(.vertical, 10)
+//
+//        case .unknown(_):
+//            VStack(spacing: 20) {
+//                formSection
+//                forgotPasswordSection
+//                confirmButton
+//
+//                divider
+//
+//                HStack(spacing: 40) {
+//                    appleButton
+//                    googleButton
+//                }
+//            }
+//            .padding(.vertical, 10)
+//
+//        case .none:
+//            // ⚡️ nil → аноним или logout → ничего не показываем
+//            EmptyView()
+//        }
+//    }
 
 
 
