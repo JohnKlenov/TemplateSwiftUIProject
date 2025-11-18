@@ -78,7 +78,7 @@ struct ContentAccountView: View {
                     if case .deleteAccount = row {
                         row.rowView
                             .onTapGesture {
-                                if viewModel.accountDeletionState != .loading {
+                                if !viewModel.isAuthOperationInProgress {
                                     viewModel.showDeleteConfirmation = true
                                 }
                             }
@@ -98,13 +98,117 @@ struct ContentAccountView: View {
             Button("Delete Account", role: .destructive) {
                 viewModel.deleteAccount()
             }
-            .disabled(viewModel.accountDeletionState == .loading)
+            .disabled(viewModel.isAuthOperationInProgress)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Are you sure you want to delete your account? This action cannot be undone.")
         }
     }
 }
+
+
+
+
+
+// MARK: - before Local states
+
+//import SwiftUI
+//
+//// MARK: - Основной экран профиля (AccountView)
+//
+//enum AccountRow: Identifiable {
+//    case toggle(title: String, binding: Binding<Bool>)
+//    case navigation(title: String, destination: AccountFlow)
+//    case deleteAccount(AuthorizationManager.State)
+//
+//    var id: String {
+//        switch self {
+//        case .toggle(let title, _):
+//            return title + "_toggle"
+//        case .navigation(let title, _):
+//            return title + "_nav"
+//        case .deleteAccount: return "delete_account"
+//        }
+//    }
+//}
+//
+//extension AccountRow {
+//    @ViewBuilder
+//    var rowView: some View {
+//        switch self {
+//        case .toggle(let title, let binding):
+//            ToggleCellView(title: title, isOn: binding)
+//        case .navigation(let title, let destination):
+//            NavigationCellView(title: title, destination: destination)
+//        case .deleteAccount(let state):
+//            DeleteAccountCellView(accountDeletionState: state)
+//        }
+//    }
+//}
+//
+//struct ContentAccountView: View {
+//    @ObservedObject var viewModel: ContentAccountViewModel
+//    @State private var notificationsEnabled: Bool = true
+//    @State private var darkModeEnabled: Bool = false
+//    
+//    // Формируем массив строк, где каждая строка описывает конкретный тип ячейки
+//    var rows: [AccountRow] {
+//        var rows: [AccountRow] = [
+//            .toggle(title: "Notification", binding: $notificationsEnabled),
+//            .navigation(title: "Change language", destination: .language),
+//            .toggle(title: "Dark mode", binding: $darkModeEnabled),
+//            .navigation(title: "About Us", destination: .aboutUs),
+//            .navigation(title: "Create Account", destination: .createAccount)
+//        ]
+//        ///if viewModel.shouldShowDeleteButton
+//        if !viewModel.isUserAnonymous {
+//            rows.append(.deleteAccount(viewModel.accountDeletionState))
+//        }
+//        
+//        return rows
+//    }
+//    
+//    var body: some View {
+//        let _ = Self._printChanges()
+//        List {
+//            UserInfoCellView(viewModel: viewModel)
+//            Section {
+//                ForEach(rows) { row in
+//                    if case .deleteAccount = row {
+//                        row.rowView
+//                            .onTapGesture {
+                                
+//                                if viewModel.accountDeletionState != .loading {
+//                                    viewModel.showDeleteConfirmation = true
+//                                }
+//                            }
+//                    } else {
+//                        row.rowView
+//                    }
+//                }
+//            }
+//        }
+//        .listStyle(InsetGroupedListStyle())
+//        .navigationTitle("Account")
+//        .navigationBarTitleDisplayMode(.inline)
+//        .confirmationDialog(
+//            "Delete Account",
+//            isPresented: $viewModel.showDeleteConfirmation
+//        ) {
+//            Button("Delete Account", role: .destructive) {
+//                viewModel.deleteAccount()
+//            }
+//            .disabled(viewModel.accountDeletionState == .loading)
+//            Button("Cancel", role: .cancel) {}
+//        } message: {
+//            Text("Are you sure you want to delete your account? This action cannot be undone.")
+//        }
+//    }
+//}
+
+
+
+
 
 
 

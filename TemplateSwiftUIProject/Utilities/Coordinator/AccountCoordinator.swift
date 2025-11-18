@@ -7,6 +7,7 @@
 
 // func setupNotifications() была необходима потому что в SignUpView .onChange(of: viewModel.registeringState) отрабатывает только когда view isVisible и когда мы уходим на другой экран он не отработывает
 
+
 import SwiftUI
 import Combine
 
@@ -21,6 +22,7 @@ enum AuthType {
     case googleSignUp
     case reauthenticate
 }
+
 
 struct AuthNotificationPayload {
     let authType: AuthType

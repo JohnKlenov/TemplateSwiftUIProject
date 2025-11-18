@@ -19,6 +19,7 @@
 import SwiftUI
 import Combine
 
+
 //@MainActor
 class SignUpViewModel: ObservableObject {
     @Published var email: String = ""
@@ -27,7 +28,8 @@ class SignUpViewModel: ObservableObject {
     @Published var emailError: String?
     @Published var passwordError: String?
     
-    @Published var registeringState: AuthorizationManager.State = .idle
+    @Published var signUpState: AuthorizationManager.State = .idle
+    @Published var isAuthOperationInProgress: Bool = false   // локальное зеркало глобального флага
     
     // Вычисляемое свойство для проверки валидности данных (без side‑эффектов)
     var isValid: Bool {
@@ -37,16 +39,24 @@ class SignUpViewModel: ObservableObject {
     private let authorizationManager: AuthorizationManager
     private var cancellables = Set<AnyCancellable>()
     
-
+//        .handleEvents(receiveOutput: { print("→ SignUpViewModel подписка получила:", $0) })
     init(authorizationManager: AuthorizationManager) {
         self.authorizationManager = authorizationManager
-        print("init SignUpViewModel")
-       
-        authorizationManager.$state
-            .handleEvents(receiveOutput: { print("→ SignUpViewModel подписка получила:", $0) })
+        
+        // Подписка на локальное состояние
+        authorizationManager.$signUpState
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
-                self?.registeringState = state
+                self?.signUpState = state
+            }
+            .store(in: &cancellables)
+        
+        // Подписка на глобальный флаг
+        authorizationManager.$isAuthOperationInProgress
+            .handleEvents(receiveOutput: { print("→ SignUpViewModel подписка $isAuthOperationInProgress получила:", $0) })
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] inProgress in
+                self?.isAuthOperationInProgress = inProgress
             }
             .store(in: &cancellables)
     }
@@ -80,6 +90,80 @@ class SignUpViewModel: ObservableObject {
         print("deinit SignUpViewModel")
     }
 }
+
+
+// MARK: - before Local states
+
+
+//import SwiftUI
+//import Combine
+//
+//
+////@MainActor
+//class SignUpViewModel: ObservableObject {
+//    @Published var email: String = ""
+//    @Published var password: String = ""
+//    
+//    @Published var emailError: String?
+//    @Published var passwordError: String?
+//    
+//    @Published var registeringState: AuthorizationManager.State = .idle
+//    
+//    // Вычисляемое свойство для проверки валидности данных (без side‑эффектов)
+//    var isValid: Bool {
+//        email.isValidEmail && (password.validatePassword() == ValidationResult.success)
+//    }
+//
+//    private let authorizationManager: AuthorizationManager
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//
+//    init(authorizationManager: AuthorizationManager) {
+//        self.authorizationManager = authorizationManager
+//        print("init SignUpViewModel")
+//       
+//        authorizationManager.$state
+//            .handleEvents(receiveOutput: { print("→ SignUpViewModel подписка получила:", $0) })
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.registeringState = state
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func updateValidationEmail() {
+//        if email.isEmpty {
+//            emailError = Localized.ValidSignUp.emailEmpty
+//        } else if !email.isValidEmail {
+//            emailError = Localized.ValidSignUp.emailInvalid
+//        } else {
+//            emailError = nil
+//        }
+//    }
+//    
+//    func updateValidationPassword() {
+//        switch password.validatePassword() {
+//        case .failure(let message):
+//            passwordError = message
+//        case .success:
+//            passwordError = nil
+//        }
+//    }
+//    
+//    func signUp() {
+//        authorizationManager.signUp(email: email, password: password)
+//        
+//    }
+//    
+//    deinit {
+//        cancellables.removeAll()
+//        print("deinit SignUpViewModel")
+//    }
+//}
+
+
+
+
 //        authorizationManager.state = .loading
 //        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
 //            self?.authorizationManager.state = .success

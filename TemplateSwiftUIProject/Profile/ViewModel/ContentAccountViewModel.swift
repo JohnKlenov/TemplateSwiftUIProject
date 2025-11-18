@@ -11,8 +11,11 @@ import Combine
 
 @MainActor
 class ContentAccountViewModel: ObservableObject {
+    
     @Published var accountDeletionState: AuthorizationManager.State = .idle
     @Published private(set) var profileLoadingState: AuthorizationManager.State = .idle
+    @Published var isAuthOperationInProgress: Bool = false
+    
     @Published var showDeleteConfirmation = false
     @Published private(set) var isUserAnonymous: Bool = true
     @Published private(set) var userProfile: UserProfile?
@@ -64,17 +67,20 @@ class ContentAccountViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    // ??? accountDeletionState - spiner на deleteAccount isOn даже если
-    // мы ушли с CreateAccount не дождавшисть ответа от signIn/SignUp
-    // и на оборот если мы не дождались deleteAccount и пошли на CreateAccount
-    // там будет spiner isOn на кнопках
     private func bindAuthorizationManager() {
-        // Подписка на состояние удаления аккаунта
-        authorizationManager.$state
-            .handleEvents(receiveOutput: { print("→ ContentAccountViewModel подписка получила:", $0) })
+        
+        authorizationManager.$deleteAccountState
+            .handleEvents(receiveOutput: { print("→ ContentAccountViewModel подписка $deleteAccountState получила:", $0) })
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 self?.accountDeletionState = state
+            }
+            .store(in: &cancellables)
+        
+        authorizationManager.$isAuthOperationInProgress
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] inProgress in
+                self?.isAuthOperationInProgress = inProgress
             }
             .store(in: &cancellables)
         
@@ -100,6 +106,109 @@ class ContentAccountViewModel: ObservableObject {
         print("deinit ContentAccountViewModel")
     }
 }
+
+
+
+// MARK: - before Local states
+
+
+
+//import SwiftUI
+//import Combine
+//
+//@MainActor
+//class ContentAccountViewModel: ObservableObject {
+//    
+//    @Published var accountDeletionState: AuthorizationManager.State = .idle
+//    @Published private(set) var profileLoadingState: AuthorizationManager.State = .idle
+//    
+//    @Published var showDeleteConfirmation = false
+//    @Published private(set) var isUserAnonymous: Bool = true
+//    @Published private(set) var userProfile: UserProfile?
+//    
+//    private let authorizationManager: AuthorizationManager
+//    private let userInfoCellManager: UserInfoCellManager
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//    init(authorizationManager: AuthorizationManager,
+//         userInfoCellManager: UserInfoCellManager) {
+//        self.authorizationManager = authorizationManager
+//        self.userInfoCellManager = userInfoCellManager
+//        self.profileLoadingState = .loading
+//        bindProfileManager()
+//        bindAuthorizationManager()
+//    }
+//    
+//    // MARK: - Public API
+//    
+//    func retryUserProfile() {
+//        /// такой return нужно логировать через crashListics
+//        guard !isUserAnonymous,
+//              let uid = authorizationManager.currentAuthUser?.uid else { return }
+//        userInfoCellManager.loadUserProfile(uid: uid)
+//    }
+//    
+//    func deleteAccount() {
+//        authorizationManager.deleteAccount()
+//        // authorizationManager.signOutAccount()
+//    }
+//    
+//    // MARK: - Private bindings
+//    
+//    private func bindProfileManager() {
+//        // Подписка на состояние загрузки
+//        userInfoCellManager.profileLoadingState
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.profileLoadingState = state
+//            }
+//            .store(in: &cancellables)
+//        
+//        // Подписка на профиль
+//        userInfoCellManager.userProfile
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] profile in
+//                self?.userProfile = profile
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func bindAuthorizationManager() {
+//        
+//        authorizationManager.$state
+//            .handleEvents(receiveOutput: { print("→ ContentAccountViewModel подписка получила:", $0) })
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.accountDeletionState = state
+//            }
+//            .store(in: &cancellables)
+//        
+//        
+//        // Подписка на изменения авторизации
+//        authorizationManager.$isUserAnonymous
+//            .combineLatest(authorizationManager.$currentAuthUser)
+//            .sink { [weak self] (isAnonymous, authUser) in
+//                guard let self = self else { return }
+//                self.isUserAnonymous = isAnonymous
+//                self.userProfile = nil
+//                if !isAnonymous, let uid = authUser?.uid {
+//                    self.userInfoCellManager.loadUserProfile(uid: uid)
+//                } else {
+//                    self.profileLoadingState = .idle
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    deinit {
+//        /// это излишний код SwiftUI сам убират подписчиков после удаления
+//        cancellables.removeAll()
+//        print("deinit ContentAccountViewModel")
+//    }
+//}
+
+
+
 
 
 //import SwiftUI
