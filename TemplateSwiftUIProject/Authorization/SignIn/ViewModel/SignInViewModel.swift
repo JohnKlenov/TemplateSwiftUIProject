@@ -29,6 +29,7 @@ class SignInViewModel: ObservableObject {
         !email.isEmpty && !password.isEmpty
     }
     
+    
     init(authorizationManager: AuthorizationManager) {
         self.authorizationManager = authorizationManager
         print("init SignInViewModel")

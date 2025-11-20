@@ -78,19 +78,23 @@ class ViewBuilderService: ObservableObject {
         case .aboutUs:
             SomeView()
         case .createAccount:
-//            SignUpViewInjected(authorizationManager: authorizationManager)
-            ReauthenticateViewInjected(authorizationManager: authorizationManager)
+            SignUpViewInjected(authorizationManager: authorizationManager)
         case .account:
-            ContentAccountViewInjected(authorizationManager: authorizationManager, userInfoCellManager: userInfoCellManager)
+            ContentAccountViewInjected(
+                authorizationManager: authorizationManager,
+                userInfoCellManager: userInfoCellManager
+            )
         case .login:
             SignInViewInjected(authorizationManager: authorizationManager)
         case .reauthenticate:
             ReauthenticateViewInjected(authorizationManager: authorizationManager)
+        case .forgotPassword:
+            ForgotPasswordViewInjected(authorizationManager: authorizationManager)   
         case .userInfoEdit(let profile):
             UserInfoEditViewInjected(editManager: userInfoEditManager, profile: profile)
         }
     }
-    
+
     
     /// будут ли у нас проблемы если у нас ViewBuilderService работает на двух стеках и на одгом мы дерним buildSheet что произойдет на втором стеке он тоже дернится?
     @ViewBuilder
@@ -103,3 +107,29 @@ class ViewBuilderService: ObservableObject {
         cover.content
     }
 }
+
+
+
+//before ForgotPasswordView
+
+//@ViewBuilder
+//func accountViewBuild(page: AccountFlow) -> some View {
+//    switch page {
+//    case .userInfo:
+//        SomeView()
+//    case .language:
+//        SomeView()
+//    case .aboutUs:
+//        SomeView()
+//    case .createAccount:
+//        SignUpViewInjected(authorizationManager: authorizationManager)
+//    case .account:
+//        ContentAccountViewInjected(authorizationManager: authorizationManager, userInfoCellManager: userInfoCellManager)
+//    case .login:
+//        SignInViewInjected(authorizationManager: authorizationManager)
+//    case .reauthenticate:
+//        ReauthenticateViewInjected(authorizationManager: authorizationManager)
+//    case .userInfoEdit(let profile):
+//        UserInfoEditViewInjected(editManager: userInfoEditManager, profile: profile)
+//    }
+//}

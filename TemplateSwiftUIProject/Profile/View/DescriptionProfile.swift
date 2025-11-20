@@ -67,7 +67,7 @@
 
 // MARK: - Shared task
 
-// state = .loading
+// ✅state = .loading
 // оставить активный спинер на кнопке где была инициализирована операция аутентификации
 // на остальных связанных со state кнопках аутентификации блокировать нажатия до тех пор пока state = .loading
 // как такое реализовать ? state для каждой кнопки и один общий для всех?
@@ -160,3 +160,212 @@
 // текущий анон слинковать с email 799 что бы проверить forgot password
 
 
+
+
+
+//extension AuthorizationService {
+//    /// Отправка письма для сброса пароля
+//    func sendPasswordReset(email: String) -> AnyPublisher<Void, Error> {
+//        Future { promise in
+//            Auth.auth().sendPasswordReset(withEmail: email) { error in
+//                if let error = error {
+//                    promise(.failure(error))
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//}
+
+//final class AuthorizationManager: ObservableObject {
+//    @Published private(set) var forgotPasswordState: State = .idle
+//    
+//    func forgotPassword(email: String) {
+//        guard !isAuthOperationInProgress else { return }
+//        
+//        isAuthOperationInProgress = true
+//        forgotPasswordState = .loading
+//        
+//        authService.sendPasswordReset(email: email)
+//            .sink { [weak self] completion in
+//                guard let self = self else { return }
+//                
+//                self.forgotPasswordState = .idle
+//                self.isAuthOperationInProgress = false
+//                
+//                switch completion {
+//                case .failure(let error):
+//                    self.handleAuthenticationError(error, operationDescription: "Forgot Password")
+//                case .finished:
+//                    DispatchQueue.main.async {
+//                        self.alertManager.showGlobalAlert(
+//                            message: "Письмо для сброса пароля отправлено!",
+//                            operationDescription: "Forgot Password",
+//                            alertType: .ok
+//                        )
+//                    }
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//}
+
+//final class SignInViewModel: ObservableObject {
+//    @Published var forgotPasswordState: AuthorizationManager.State = .idle
+//    @Published var isAuthOperationInProgress: Bool = false
+//    
+//    private let authorizationManager: AuthorizationManager
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//    init(authorizationManager: AuthorizationManager) {
+//        self.authorizationManager = authorizationManager
+//        
+//        authorizationManager.$forgotPasswordState
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.forgotPasswordState = state
+//            }
+//            .store(in: &cancellables)
+//        
+//        authorizationManager.$isAuthOperationInProgress
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] inProgress in
+//                self?.isAuthOperationInProgress = inProgress
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func forgotPassword(email: String) {
+//        authorizationManager.forgotPassword(email: email)
+//    }
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+//final class ForgotPasswordViewModel: ObservableObject {
+//    @Published var email: String = ""
+//    @Published var emailError: String?
+//    @Published var forgotPasswordState: AuthorizationManager.State = .idle
+//    @Published var isAuthOperationInProgress: Bool = false
+//    
+//    private let authorizationManager: AuthorizationManager
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//    init(authorizationManager: AuthorizationManager) {
+//        self.authorizationManager = authorizationManager
+//        
+//        authorizationManager.$forgotPasswordState
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.forgotPasswordState = state
+//            }
+//            .store(in: &cancellables)
+//        
+//        authorizationManager.$isAuthOperationInProgress
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] inProgress in
+//                self?.isAuthOperationInProgress = inProgress
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func updateValidationEmail() {
+//        if email.isEmpty {
+//            emailError = "Введите email"
+//        } else if !email.isValidEmail {
+//            emailError = "Некорректный email"
+//        } else {
+//            emailError = nil
+//        }
+//    }
+//    
+//    func sendResetLink() {
+//        authorizationManager.forgotPassword(email: email)
+//    }
+//}
+//
+
+
+
+//struct ForgotPasswordView: View {
+//    @StateObject var viewModel: ForgotPasswordViewModel
+//    
+//    var body: some View {
+//        VStack(spacing: 20) {
+//            Text("Reset your password")
+//                .font(.title2)
+//                .fontWeight(.semibold)
+//            
+//            TextField("Email", text: $viewModel.email)
+//                .textFieldStyle(RoundedBorderTextFieldStyle())
+//                .autocapitalization(.none)
+//                .disableAutocorrection(true)
+//                .onChange(of: viewModel.email) { _ in
+//                    viewModel.updateValidationEmail()
+//                }
+//            
+//            if let error = viewModel.emailError {
+//                Text(error)
+//                    .foregroundColor(.red)
+//                    .font(.caption)
+//            }
+//            
+//            Button(action: {
+//                viewModel.sendResetLink()
+//            }) {
+//                if viewModel.forgotPasswordState == .loading {
+//                    ProgressView()
+//                } else {
+//                    Text("Send Reset Link")
+//                        .fontWeight(.semibold)
+//                }
+//            }
+//            .disabled(viewModel.isAuthOperationInProgress || !viewModel.email.isValidEmail)
+//        }
+//        .padding()
+//    }
+//}
+
+
+
+//private var forgotPasswordSection: some View {
+//    HStack {
+//        Spacer()
+//        Button(action: {
+//            accountCoordinator.pushForgotPasswordView()
+//        }) {
+//            Text("Forgot Password?")
+//                .foregroundColor(.blue)
+//                .fontWeight(.semibold)
+//        }
+//        .disabled(viewModel.isAuthOperationInProgress)
+//    }
+//    .padding(.horizontal)
+//}
+
+
+
+//Да, вызывать forgotPassword(email: viewModel.email) прямо из кнопки можно, но это упрощённый вариант.
+//
+//Более профессионально — вынести Forgot Password в отдельный экран:
+//
+//поле для ввода email,
+//
+//валидация,
+//
+//кнопка «Send Reset Link» со спиннером,
+//
+//отдельный ViewModel для управления состоянием.
+//
+//Такой подход масштабируется и соответствует best practices.

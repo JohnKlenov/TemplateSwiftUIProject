@@ -132,6 +132,8 @@ struct ReauthenticateView: View {
                         .progressViewStyle(CircularProgressViewStyle())
                 } else {
                     Text("Confirm")
+                        .animation(nil, value: viewModel.emailError)
+                        .animation(nil, value: viewModel.passwordError)
                 }
             }
             .frame(maxWidth: .infinity)

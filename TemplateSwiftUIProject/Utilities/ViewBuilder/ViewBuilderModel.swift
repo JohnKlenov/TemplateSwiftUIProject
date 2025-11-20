@@ -77,13 +77,13 @@ enum GalleryFlow: Hashable, Equatable {
 
 enum AccountFlow: Hashable {
     case account
-    /// userInfo не используется
     case userInfo
     case language
     case aboutUs
     case createAccount
     case login
     case reauthenticate
+    case forgotPassword
     case userInfoEdit(UserProfile)
 
     static func == (lhs: AccountFlow, rhs: AccountFlow) -> Bool {
@@ -94,7 +94,8 @@ enum AccountFlow: Hashable {
              (.aboutUs, .aboutUs),
              (.createAccount, .createAccount),
              (.login, .login),
-             (.reauthenticate, .reauthenticate):
+             (.reauthenticate, .reauthenticate),
+             (.forgotPassword, .forgotPassword):
             return true
         case (.userInfoEdit(let lhsProfile), .userInfoEdit(let rhsProfile)):
             return lhsProfile.uid == rhsProfile.uid
@@ -112,12 +113,14 @@ enum AccountFlow: Hashable {
         case .createAccount: hasher.combine("createAccount")
         case .login: hasher.combine("login")
         case .reauthenticate: hasher.combine("reauthenticate")
+        case .forgotPassword: hasher.combine("forgotPassword")   
         case .userInfoEdit(let profile):
             hasher.combine("userInfoEdit")
-//            hasher.combine(profile.uid)
+            // hasher.combine(profile.uid)
         }
     }
 }
+
 
 
 struct SheetItem: Identifiable {
@@ -130,6 +133,55 @@ struct FullScreenItem: Identifiable {
     var content: AnyView
 }
 
+
+
+
+// before ForgotPasswordView
+
+
+//enum AccountFlow: Hashable {
+//    case account
+//    /// userInfo не используется
+//    case userInfo
+//    case language
+//    case aboutUs
+//    case createAccount
+//    case login
+//    case reauthenticate
+//    case userInfoEdit(UserProfile)
+//
+//    static func == (lhs: AccountFlow, rhs: AccountFlow) -> Bool {
+//        switch (lhs, rhs) {
+//        case (.account, .account),
+//             (.userInfo, .userInfo),
+//             (.language, .language),
+//             (.aboutUs, .aboutUs),
+//             (.createAccount, .createAccount),
+//             (.login, .login),
+//             (.reauthenticate, .reauthenticate):
+//            return true
+//        case (.userInfoEdit(let lhsProfile), .userInfoEdit(let rhsProfile)):
+//            return lhsProfile.uid == rhsProfile.uid
+//        default:
+//            return false
+//        }
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        switch self {
+//        case .account: hasher.combine("account")
+//        case .userInfo: hasher.combine("userInfo")
+//        case .language: hasher.combine("language")
+//        case .aboutUs: hasher.combine("aboutUs")
+//        case .createAccount: hasher.combine("createAccount")
+//        case .login: hasher.combine("login")
+//        case .reauthenticate: hasher.combine("reauthenticate")
+//        case .userInfoEdit(let profile):
+//            hasher.combine("userInfoEdit")
+////            hasher.combine(profile.uid)
+//        }
+//    }
+//}
 
 
 

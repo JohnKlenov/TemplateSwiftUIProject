@@ -26,6 +26,7 @@ struct SignInView: View {
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var accountCoordinator:AccountCoordinator
     
+    
     var body: some View {
         let _ = Self._printChanges()
         ScrollView(.vertical, showsIndicators: false) {
@@ -123,6 +124,7 @@ struct SignInView: View {
                     Button(action: {
                         // Обработка нажатия "Forgot Password?"
                         print("Forgot Password tapped")
+                        accountCoordinator.navigateTo(page: .forgotPassword)
                     }) {
                         Text("Forgot Password?")
                             .foregroundColor(.blue)
@@ -140,6 +142,8 @@ struct SignInView: View {
                                 .progressViewStyle(CircularProgressViewStyle())
                         } else {
                             Text("Login")
+                                .animation(nil, value: viewModel.emailError)
+                                .animation(nil, value: viewModel.passwordError)
                         }
                     }
                     .frame(maxWidth: .infinity)

@@ -97,6 +97,7 @@ struct SignUpView: View {
                             }
                         }
                         
+                        
                         // Поле "Пароль" с кнопкой-переключателем "eye"
                         VStack(alignment: .leading, spacing: 5) {
                             Text(Localized.SignUpView.password.localized())
@@ -164,6 +165,8 @@ struct SignUpView: View {
                                     .progressViewStyle(CircularProgressViewStyle())
                             } else {
                                 Text(Localized.SignUpView.register.localized())
+                                    .animation(nil, value: viewModel.emailError)
+                                    .animation(nil, value: viewModel.passwordError)
                             }
                         }
                         .frame(maxWidth: orientationService.orientation == .landscape  ? 300 : .infinity)
@@ -258,7 +261,6 @@ struct SignUpView: View {
         }
     }
     
-    
     private func register() {
         
         // Обновляем валидацию полей
@@ -274,6 +276,7 @@ struct SignUpView: View {
         }
     }
 }
+
 
 
 

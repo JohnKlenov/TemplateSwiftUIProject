@@ -45,6 +45,9 @@
 		5E8F9CD12D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */; };
 		5EA082972EA5107C00E244B8 /* FirebaseAuthUserProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082962EA5107C00E244B8 /* FirebaseAuthUserProvider.swift */; };
 		5EA0829A2EAFAD8300E244B8 /* UserInfoCellManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082992EAFAD8300E244B8 /* UserInfoCellManager.swift */; };
+		5EA0829F2ECF401D00E244B8 /* ForgotPasswordViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA0829E2ECF401D00E244B8 /* ForgotPasswordViewModel.swift */; };
+		5EA082A12ECF40A900E244B8 /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082A02ECF40A900E244B8 /* ForgotPasswordView.swift */; };
+		5EA082A32ECF410300E244B8 /* ForgotPasswordViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082A22ECF410300E244B8 /* ForgotPasswordViewInjected.swift */; };
 		5EA2E5F32DDC8A5D00C53E52 /* String+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F22DDC8A5D00C53E52 /* String+Ext.swift */; };
 		5EA2E5F52DDCB1CC00C53E52 /* HideKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */; };
 		5EA2E5F82DDCB28D00C53E52 /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */; };
@@ -180,6 +183,9 @@
 		5E8F9CD02D9BD358004036F6 /* UIFont+DynamicTypeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+DynamicTypeMetrics.swift"; sourceTree = "<group>"; };
 		5EA082962EA5107C00E244B8 /* FirebaseAuthUserProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAuthUserProvider.swift; sourceTree = "<group>"; };
 		5EA082992EAFAD8300E244B8 /* UserInfoCellManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfoCellManager.swift; sourceTree = "<group>"; };
+		5EA0829E2ECF401D00E244B8 /* ForgotPasswordViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordViewModel.swift; sourceTree = "<group>"; };
+		5EA082A02ECF40A900E244B8 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
+		5EA082A22ECF410300E244B8 /* ForgotPasswordViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordViewInjected.swift; sourceTree = "<group>"; };
 		5EA2E5F22DDC8A5D00C53E52 /* String+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Ext.swift"; sourceTree = "<group>"; };
 		5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HideKeyboard.swift; sourceTree = "<group>"; };
 		5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
@@ -401,6 +407,32 @@
 				5EA082992EAFAD8300E244B8 /* UserInfoCellManager.swift */,
 			);
 			path = Service;
+			sourceTree = "<group>";
+		};
+		5EA0829B2ECF3D2800E244B8 /* ForgotPassword */ = {
+			isa = PBXGroup;
+			children = (
+				5EA0829D2ECF3D3E00E244B8 /* ViewModel */,
+				5EA0829C2ECF3D3300E244B8 /* View */,
+			);
+			path = ForgotPassword;
+			sourceTree = "<group>";
+		};
+		5EA0829C2ECF3D3300E244B8 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5EA082A02ECF40A900E244B8 /* ForgotPasswordView.swift */,
+				5EA082A22ECF410300E244B8 /* ForgotPasswordViewInjected.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EA0829D2ECF3D3E00E244B8 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5EA0829E2ECF401D00E244B8 /* ForgotPasswordViewModel.swift */,
+			);
+			path = ViewModel;
 			sourceTree = "<group>";
 		};
 		5EA2E5F62DDCB26000C53E52 /* ViewModel */ = {
@@ -761,6 +793,7 @@
 		5EC88EF92DD4A51A00A95224 /* Authorization */ = {
 			isa = PBXGroup;
 			children = (
+				5EA0829B2ECF3D2800E244B8 /* ForgotPassword */,
 				5EC332D42E3E49650051BE5B /* Reauthenticate */,
 				5EA2E60C2DFFF7A300C53E52 /* Service */,
 				5EA2E5F92DDF355700C53E52 /* SignIn */,
@@ -1125,6 +1158,7 @@
 			files = (
 				5EA4FE242CE61ED8001CA401 /* DatabaseCRUDService.swift in Sources */,
 				5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */,
+				5EA082A32ECF410300E244B8 /* ForgotPasswordViewInjected.swift in Sources */,
 				5E8F9C6E2D537A57004036F6 /* ViewBuilderModel.swift in Sources */,
 				5E8F9CC52D81A4CB004036F6 /* ShopCell.swift in Sources */,
 				5EC332F72E8C01A10051BE5B /* AnonAccountTrackerService.swift in Sources */,
@@ -1181,6 +1215,7 @@
 				5E8F9CA12D7CDFB7004036F6 /* GalleryContentViewModel(test).swift in Sources */,
 				5EA082972EA5107C00E244B8 /* FirebaseAuthUserProvider.swift in Sources */,
 				5EC332E12E48D3470051BE5B /* UserInfoEditViewInjected.swift in Sources */,
+				5EA082A12ECF40A900E244B8 /* ForgotPasswordView.swift in Sources */,
 				5EA4FE2F2D05B89B001CA401 /* SheetManager.swift in Sources */,
 				5EAF5B032D2D552900D96FD6 /* HomeViewModel.swift in Sources */,
 				5EC88EF12DCE234D00A95224 /* HapticFeedbackModifier.swift in Sources */,
@@ -1203,6 +1238,7 @@
 				5EC332E52E48D3B40051BE5B /* UserInfoEditView.swift in Sources */,
 				5E8F9C902D634EA4004036F6 /* ContentErrorView.swift in Sources */,
 				5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */,
+				5EA0829F2ECF401D00E244B8 /* ForgotPasswordViewModel.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
 				5EC332E32E48D3700051BE5B /* UserInfoEditViewModel.swift in Sources */,
 				5E8F9CA92D7ED71D004036F6 /* GalleryCoordinator.swift in Sources */,

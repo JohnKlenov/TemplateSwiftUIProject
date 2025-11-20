@@ -269,6 +269,7 @@ enum DeleteAccountError: Error {
     case underlying(Error)
 }
 
+
 final class AuthorizationService {
     
     // MARK: - Dependencies
@@ -480,6 +481,24 @@ extension AuthorizationService {
         .eraseToAnyPublisher()
     }
 }
+
+// MARK: - SendPasswordReset
+extension AuthorizationService {
+    /// Отправка письма для сброса пароля
+    func sendPasswordReset(email: String) -> AnyPublisher<Void, Error> {
+        Future { promise in
+            Auth.auth().sendPasswordReset(withEmail: email) { error in
+                if let error = error {
+                    promise(.failure(error))
+                } else {
+                    promise(.success(()))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+}
+
 
 // MARK: - Verification
 extension AuthorizationService {

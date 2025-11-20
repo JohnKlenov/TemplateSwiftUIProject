@@ -71,6 +71,7 @@ class SignUpViewModel: ObservableObject {
         }
     }
     
+    
     func updateValidationPassword() {
         switch password.validatePassword() {
         case .failure(let message):

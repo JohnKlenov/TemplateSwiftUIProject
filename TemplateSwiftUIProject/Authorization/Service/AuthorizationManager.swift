@@ -67,6 +67,7 @@ final class AuthorizationManager: ObservableObject {
     @Published private(set) var signUpState: State = .idle
     @Published private(set) var deleteAccountState: State = .idle
     @Published private(set) var reauthState: State = .idle
+    @Published private(set) var forgotPasswordState: State = .idle
     
     // User info
     @Published private(set) var isUserAnonymous: Bool = true
@@ -337,6 +338,35 @@ final class AuthorizationManager: ObservableObject {
                     }
                 case .failure(let error):
                     self.handleAuthenticationError(error, operationDescription: "Аутентификация")
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
+    
+    func forgotPassword(email: String) {
+        guard !isAuthOperationInProgress else { return }
+        
+        isAuthOperationInProgress = true
+        forgotPasswordState = .loading
+        
+        authService.sendPasswordReset(email: email)
+            .sink { [weak self] completion in
+                guard let self = self else { return }
+                
+                self.forgotPasswordState = .idle
+                self.isAuthOperationInProgress = false
+                
+                switch completion {
+                case .failure(let error):
+                    self.handleAuthenticationError(error, operationDescription: "Forgot Password")
+                case .finished:
+                    DispatchQueue.main.async {
+                        self.alertManager.showGlobalAlert(
+                            message: "Письмо для сброса пароля отправлено!",
+                            operationDescription: "Forgot Password",
+                            alertType: .ok
+                        )
+                    }
                 }
             } receiveValue: { _ in }
             .store(in: &cancellables)
