@@ -258,6 +258,65 @@
 
 
 
+// MARK: - func sendPasswordReset(email: String)
+
+/*
+ 
+ Firebase Email Templates
+
+ В консоли Firebase есть раздел Authentication → Templates (Email Templates).
+ Там настраиваются тексты и оформление писем, которые Firebase рассылает пользователям:
+
+ - Password reset email — письмо со ссылкой для сброса пароля
+ - Email verification — письмо для подтверждения email при регистрации
+ - Email change — письмо при смене email
+
+ Что можно настроить:
+ - Заголовок письма (subject)
+ - Текст письма (body), включая динамические плейсхолдеры вроде {email} или {url}
+ - Логотип и цветовую схему
+ - Язык письма (Firebase поддерживает локализацию)
+
+ 👉 Если шаблон не настроен, Firebase всё равно отправит письмо,
+    но оно будет стандартным (английский текст, базовый вид).
+*/
+
+
+/*
+ Добавление логотипа в шаблоны писем Firebase
+
+ Чтобы вставить логотип в письмо (например, для сброса пароля), добавьте HTML‑тег <img> в тело шаблона:
+
+ <img src="https://yourdomain.com/logo.png" alt="Logo" width="120" />
+
+ Требования:
+ - Картинка должна быть размещена по публичному HTTPS‑адресу
+ - Firebase не хранит изображения — он просто ссылается на внешний URL
+ - Рекомендуется использовать Firebase Hosting, GitHub Pages или CDN
+
+ Тег можно разместить над или под основным текстом письма, чтобы визуально брендировать сообщение.
+*/
+
+
+/*
+ Локализация писем Firebase (Password Reset, Verification)
+
+ 1. В консоли Firebase (Authentication → Templates) создайте шаблон письма для каждого языка:
+    - Выберите язык в выпадающем списке ("Set template language")
+    - Отредактируйте Subject и Body с плейсхолдерами (%EMAIL%, %APP_NAME%, %LINK%)
+    - Сохраните шаблон для каждого языка (ru, en, es)
+
+ 2. В коде перед вызовом метода укажите нужный язык:
+    Auth.auth().languageCode = "ru"
+    Auth.auth().sendPasswordReset(withEmail: email) { ... }
+
+ Firebase автоматически выберет шаблон нужного языка и отправит письмо с локализованным текстом.
+*/
+
+
+
+
+
 import FirebaseAuth
 import Combine
 
@@ -483,10 +542,16 @@ extension AuthorizationService {
 }
 
 // MARK: - SendPasswordReset
+
+// MARK: - SendPasswordReset
 extension AuthorizationService {
     /// Отправка письма для сброса пароля
     func sendPasswordReset(email: String) -> AnyPublisher<Void, Error> {
-        Future { promise in
+        // Установка языка письма через Firebase на основе текущего языка приложения
+        // Используем singleton LocalizationService.shared, доступный глобально
+        Auth.auth().languageCode = LocalizationService.shared.currentLanguage
+
+        return Future<Void, Error> { promise in
             Auth.auth().sendPasswordReset(withEmail: email) { error in
                 if let error = error {
                     promise(.failure(error))
@@ -498,6 +563,26 @@ extension AuthorizationService {
         .eraseToAnyPublisher()
     }
 }
+
+
+//extension AuthorizationService {
+//    /// Отправка письма для сброса пароля
+//    func sendPasswordReset(email: String) -> AnyPublisher<Void, Error> {
+//        // Устанавливаем язык письма Firebase на основе текущего языка приложения
+//        // Используем singleton LocalizationService.shared, доступный глобально
+////        Auth.auth().languageCode = LocalizationService.shared.currentLanguage
+//        Future { promise in
+//            Auth.auth().sendPasswordReset(withEmail: email) { error in
+//                if let error = error {
+//                    promise(.failure(error))
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//}
 
 
 // MARK: - Verification
