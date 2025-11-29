@@ -74,7 +74,8 @@ class ViewBuilderService: ObservableObject {
         case .userInfo:
             SomeView()
         case .language:
-            SomeView()
+//            SomeView()
+            ChangeLanguageViewInjected()
         case .aboutUs:
             SomeView()
         case .createAccount:

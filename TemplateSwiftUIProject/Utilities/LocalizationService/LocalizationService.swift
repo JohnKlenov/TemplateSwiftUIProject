@@ -41,7 +41,6 @@
 
 
 
-
 import Foundation
 import SwiftUI
 
@@ -56,64 +55,55 @@ final class LocalizationService: ObservableObject {
         didSet {
             // Сохраняем выбранный язык в UserDefaults
             UserDefaults.standard.set(currentLanguage, forKey: "selectedLanguage")
-            print("currentLanguage - \(currentLanguage)")
+            
         }
     }
     
     // Инициализация: загружаем язык из UserDefaults или используем системный
     private init() {
-            // Удаляем сохранённый язык при первом запуске (опционально)
-            UserDefaults.standard.removeObject(forKey: "selectedLanguage")
-            
-        print("Locale.current.language.languageCode?.identifier - \(String(describing: Locale.current.language.languageCode?.identifier))")
+        // Удаляем сохранённый язык при первом запуске (опционально)
+        //            UserDefaults.standard.removeObject(forKey: "selectedLanguage")
         
-            // Получаем системный язык
-            let systemLanguage: String
-            if #available(iOS 16.0, *) {
-                systemLanguage = Locale.current.language.languageCode?.identifier ?? "en"
-            } else {
-                print("Locale.current.languageCode")
-                systemLanguage = Locale.current.languageCode ?? "en"
-            }
-            
-            // Получаем список доступных локализаций из .lproj
-            let supportedLanguages = Bundle.main.localizations
-            
-            // Проверяем сохранённый язык
-            let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage")
-            
-            // Выбираем язык:
-            // 1. Если сохранён — используем
-            // 2. Если системный поддерживается — используем
-            // 3. Иначе — fallback на английский
-            if let saved = savedLanguage {
-                currentLanguage = saved
-                print(" saved = savedLanguage")
-            } else if supportedLanguages.contains(systemLanguage) {
-                print(" supportedLanguages.contains(systemLanguage)")
-                currentLanguage = systemLanguage
-            } else {
-                print("fallback en")
-                currentLanguage = "en"
-            }
-            
-            print("systemLanguage = \(systemLanguage)")
-            print("supportedLanguages = \(supportedLanguages)")
-            print("selected currentLanguage = \(currentLanguage)")
+        // Получаем системный язык
+        let systemLanguage: String
+        if #available(iOS 16.0, *) {
+            systemLanguage = Locale.current.language.languageCode?.identifier ?? "en"
+        } else {
+            systemLanguage = Locale.current.languageCode ?? "en"
         }
+        
+        // Получаем список доступных локализаций из .lproj
+        let supportedLanguages = Bundle.main.localizations
+        
+        // Проверяем сохранённый язык
+        let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage")
+        
+        // Выбираем язык:
+        // 1. Если сохранён — используем
+        // 2. Если системный поддерживается — используем
+        // 3. Иначе — fallback на английский
+        if let saved = savedLanguage {
+            currentLanguage = saved
+        } else if supportedLanguages.contains(systemLanguage) {
+            currentLanguage = systemLanguage
+        } else {
+            currentLanguage = "en"
+        }
+    }
     
-    // Метод для смены языка
-//    func setLanguage(_ code: String) {
-//        currentLanguage = code
-//    }
     func setLanguage(_ code: String) {
         let supported = Bundle.main.localizations
         currentLanguage = supported.contains(code) ? code : "en"
     }
-    /// Возвращает список всех локализаций, доступных в приложении (.lproj), исключая Base
-        func availableLanguages() -> [String] {
-            Bundle.main.localizations.filter { $0 != "Base" }
-        }
+    
+    // Возвращает список всех локализаций, доступных в приложении (.lproj), исключая Base
+    /// Возвращает список доступных локализаций приложения.
+    /// Фильтруем "Base", так как это техническая локализация Xcode для UI‑ресурсов,
+    /// она не предназначена для выбора пользователем и может появиться в проекте автоматически.
+    func availableLanguages() -> [String] {
+        Bundle.main.localizations.filter { $0 != "Base" }
+    }
+    
 }
 
 //Это расширение позволяет использовать метод .localized() для получения перевода.
@@ -132,6 +122,17 @@ extension String {
         return bundle.localizedString(forKey: self, value: nil, table: nil)
     }
 }
+
+
+
+//print("currentLanguage - \(currentLanguage)")
+//print("Locale.current.language.languageCode?.identifier - \(String(describing: Locale.current.language.languageCode?.identifier))")
+//print("Locale.current.languageCode")
+//
+//
+//print("systemLanguage = \(systemLanguage)")
+//print("supportedLanguages = \(supportedLanguages)")
+//print("selected currentLanguage = \(currentLanguage)")
 
 
 

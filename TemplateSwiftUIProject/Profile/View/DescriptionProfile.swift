@@ -148,7 +148,7 @@
 // add new provaider auth (Apple + Google)
 
 // second queue
-// Добавить локализацию текста (использовать Localizable.strings) Profile views + child class.
+// Добавить локализацию текста (использовать Localizable.strings) Profile views + child class. (локализаций текстов в nextButton для ChangeLanguageView)
 // Адаптировать UI под разные устройства (Auto Layout, Dynamic Type).
 // Локализовать Color (через Asset Catalog с поддержкой локализаций).
 

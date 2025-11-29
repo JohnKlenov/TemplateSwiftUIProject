@@ -48,6 +48,9 @@
 		5EA0829F2ECF401D00E244B8 /* ForgotPasswordViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA0829E2ECF401D00E244B8 /* ForgotPasswordViewModel.swift */; };
 		5EA082A12ECF40A900E244B8 /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082A02ECF40A900E244B8 /* ForgotPasswordView.swift */; };
 		5EA082A32ECF410300E244B8 /* ForgotPasswordViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082A22ECF410300E244B8 /* ForgotPasswordViewInjected.swift */; };
+		5EA082A82EDB0E8300E244B8 /* ChangeLanguageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082A72EDB0E8300E244B8 /* ChangeLanguageViewModel.swift */; };
+		5EA082AA2EDB0EFE00E244B8 /* ChangeLanguageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082A92EDB0EFE00E244B8 /* ChangeLanguageView.swift */; };
+		5EA082AC2EDB0F5C00E244B8 /* ChangeLanguageViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA082AB2EDB0F5C00E244B8 /* ChangeLanguageViewInjected.swift */; };
 		5EA2E5F32DDC8A5D00C53E52 /* String+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F22DDC8A5D00C53E52 /* String+Ext.swift */; };
 		5EA2E5F52DDCB1CC00C53E52 /* HideKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */; };
 		5EA2E5F82DDCB28D00C53E52 /* SignUpViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */; };
@@ -186,6 +189,9 @@
 		5EA0829E2ECF401D00E244B8 /* ForgotPasswordViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordViewModel.swift; sourceTree = "<group>"; };
 		5EA082A02ECF40A900E244B8 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		5EA082A22ECF410300E244B8 /* ForgotPasswordViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordViewInjected.swift; sourceTree = "<group>"; };
+		5EA082A72EDB0E8300E244B8 /* ChangeLanguageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeLanguageViewModel.swift; sourceTree = "<group>"; };
+		5EA082A92EDB0EFE00E244B8 /* ChangeLanguageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeLanguageView.swift; sourceTree = "<group>"; };
+		5EA082AB2EDB0F5C00E244B8 /* ChangeLanguageViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeLanguageViewInjected.swift; sourceTree = "<group>"; };
 		5EA2E5F22DDC8A5D00C53E52 /* String+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Ext.swift"; sourceTree = "<group>"; };
 		5EA2E5F42DDCB1CC00C53E52 /* HideKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HideKeyboard.swift; sourceTree = "<group>"; };
 		5EA2E5F72DDCB28D00C53E52 /* SignUpViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewModel.swift; sourceTree = "<group>"; };
@@ -431,6 +437,32 @@
 			isa = PBXGroup;
 			children = (
 				5EA0829E2ECF401D00E244B8 /* ForgotPasswordViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		5EA082A42EDB0E2F00E244B8 /* ChangeLanguage */ = {
+			isa = PBXGroup;
+			children = (
+				5EA082A62EDB0E4000E244B8 /* ViewModel */,
+				5EA082A52EDB0E3700E244B8 /* View */,
+			);
+			path = ChangeLanguage;
+			sourceTree = "<group>";
+		};
+		5EA082A52EDB0E3700E244B8 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5EA082A92EDB0EFE00E244B8 /* ChangeLanguageView.swift */,
+				5EA082AB2EDB0F5C00E244B8 /* ChangeLanguageViewInjected.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5EA082A62EDB0E4000E244B8 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5EA082A72EDB0E8300E244B8 /* ChangeLanguageViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -840,6 +872,7 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5EA082A42EDB0E2F00E244B8 /* ChangeLanguage */,
 				5EC332DD2E48D2AE0051BE5B /* UserInfoEdit */,
 				5EC88EF92DD4A51A00A95224 /* Authorization */,
 				5EC88EF22DD0B6D800A95224 /* LaunchScreen */,
@@ -1160,6 +1193,7 @@
 				5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */,
 				5EA082A32ECF410300E244B8 /* ForgotPasswordViewInjected.swift in Sources */,
 				5E8F9C6E2D537A57004036F6 /* ViewBuilderModel.swift in Sources */,
+				5EA082AC2EDB0F5C00E244B8 /* ChangeLanguageViewInjected.swift in Sources */,
 				5E8F9CC52D81A4CB004036F6 /* ShopCell.swift in Sources */,
 				5EC332F72E8C01A10051BE5B /* AnonAccountTrackerService.swift in Sources */,
 				5EC88EE82DBD815900A95224 /* GlobalRetryHandler.swift in Sources */,
@@ -1237,6 +1271,7 @@
 				5EAF5B132D367E7E00D96FD6 /* ContentViewModel.swift in Sources */,
 				5EC332E52E48D3B40051BE5B /* UserInfoEditView.swift in Sources */,
 				5E8F9C902D634EA4004036F6 /* ContentErrorView.swift in Sources */,
+				5EA082AA2EDB0EFE00E244B8 /* ChangeLanguageView.swift in Sources */,
 				5EC88ED62DAA8A8500A95224 /* CrashlyticsLoggingService.swift in Sources */,
 				5EA0829F2ECF401D00E244B8 /* ForgotPasswordViewModel.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
@@ -1262,6 +1297,7 @@
 				5EA4FDBB2CD51037001CA401 /* AppColors.swift in Sources */,
 				5E8F9C672D537949004036F6 /* TabSwitcher.swift in Sources */,
 				5EC949E02CBA88F2003736A9 /* OnboardingPage.swift in Sources */,
+				5EA082A82EDB0E8300E244B8 /* ChangeLanguageViewModel.swift in Sources */,
 				5EC949E32CBA89FC003736A9 /* OnboardingService .swift in Sources */,
 				5E8F9C762D537CC5004036F6 /* BookDetailsViewModel.swift in Sources */,
 				5EC88EEE2DBF92A600A95224 /* NetworkStatusBanner.swift in Sources */,
