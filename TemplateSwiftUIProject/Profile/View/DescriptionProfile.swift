@@ -143,7 +143,7 @@
 //   логина к Telegram-аккаунту нет — это фича auth-платформ (например, Firebase).
 //
 
-// forgot password for ReauthenticateView and SignIn
+// ✅ forgot password for ReauthenticateView and SignIn
 
 // add new provaider auth (Apple + Google)
 

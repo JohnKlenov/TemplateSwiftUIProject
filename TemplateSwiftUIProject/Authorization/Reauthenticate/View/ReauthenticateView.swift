@@ -114,6 +114,7 @@ struct ReauthenticateView: View {
             Spacer()
             Button(action: {
                 print("Forgot Password tapped")
+                accountCoordinator.navigateTo(page: .forgotPassword)
             }) {
                 Text("Forgot Password?")
                     .foregroundColor(.blue)

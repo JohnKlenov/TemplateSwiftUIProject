@@ -310,15 +310,55 @@
     Auth.auth().languageCode = "ru"
     Auth.auth().sendPasswordReset(withEmail: email) { ... }
 
- Firebase автоматически выберет шаблон нужного языка и отправит письмо с локализованным текстом.
+ Firebase автоматически выберет шаблон нужного языка и отправит письмо с локализованным текстом - так и есть - если в Auth.auth().languageCode = "es" то письмо приходит на испанском. 
 */
 
 
 
+// MARK: - Sign in with Google
+
+/*
+ SignIn (Google) → Permanent
+ Сценарий: у нас есть перманентный пользователь (например, email/password), и он нажимает «Sign in with Google».
+
+ 🔹 Если в Firebase ещё нет ни одного пользователя с этим Google‑аккаунтом —
+    Firebase создаст нового пользователя с новым UID, привязанным к Google.
+    Текущая сессия переключится на него, а старый перманентный аккаунт останется в системе, но будет «брошен» (UID сменится).
+
+ 🔹 Если Google‑аккаунт уже существует в Firebase —
+    Firebase просто выполнит вход в существующего пользователя (UID того Google‑аккаунта).
+    Текущий перманентный аккаунт будет заменён в сессии, и ты окажешься в уже существующем Google‑пользователе.
+
+ 👉 Итог: SignIn всегда переключает сессию на Google‑аккаунт.
+    Если его нет — создаётся новый. Если он есть — вход в существующий.
+
+
+ SignUp (Google) → Permanent
+ Сценарий: у нас есть перманентный пользователь (например, email/password), и он нажимает «Sign up with Google».
+
+ 🔹 Если Google‑аккаунт ещё не существует в Firebase —
+    Firebase создаст нового пользователя с новым UID, и текущая сессия переключится на него.
+    Старый перманентный аккаунт останется в системе, но сессия уйдёт в новый Google‑аккаунт.
+
+ 🔹 Если Google‑аккаунт уже существует в Firebase —
+    Попытка «создать» приведёт к ошибке AuthErrorCode.credentialAlreadyInUse.
+    Это значит, что такой Google‑аккаунт уже привязан к другому UID.
+    В этом случае правильное поведение:
+      • показать пользователю сообщение «Этот Google‑аккаунт уже зарегистрирован, войдите через Sign In»,
+      • либо автоматически переключить сессию на существующий Google‑аккаунт (fallback в SignIn).
+
+ 👉 Итог: SignUp при перманентном пользователе всегда создаёт новый Google‑аккаунт,
+    но если он уже есть в системе, мы получаем ошибку и должны обработать её как «аккаунт уже существует».
+*/
+
 
 
 import FirebaseAuth
+import FirebaseCore
+import GoogleSignIn
+import UIKit
 import Combine
+
 
 // Ошибка, специфичная для deleteAccount()
 enum DeleteAccountError: Error {
@@ -328,6 +368,11 @@ enum DeleteAccountError: Error {
     case underlying(Error)
 }
 
+// Google intents: SignIn / SignUp (без мульти-провайдерной линковки)
+enum GoogleAuthIntent {
+    case signIn     // заменить текущую сессию Google-аккаунтом
+    case signUp     // аноним → линк; перманент → создать/войти в Google-аккаунт (новый/существующий)
+}
 
 final class AuthorizationService {
     
@@ -367,6 +412,21 @@ extension AuthorizationService {
     }
     
     private func updateAuthState(from user: FirebaseAuth.User) {
+        // Распечатываем ключевые поля для отладки
+            print("🔄 updateAuthState called")
+            print("UID: \(user.uid)")
+            print("isAnonymous: \(user.isAnonymous)")
+            print("email: \(user.email ?? "nil")")
+            print("displayName: \(user.displayName ?? "nil")")
+            print("providerData:")
+        // ⚡️ Важно:
+        // user.email — это основной email, который Firebase хранит для аккаунта.
+        // provider.email — это email, полученный от конкретного провайдера (например, google.com).
+        // Они могут совпадать, но при нескольких провайдерах или смене email — различаться.
+
+            for provider in user.providerData {
+                print(" - providerID: \(provider.providerID), email: \(provider.email ?? "nil"), displayName: \(provider.displayName ?? "nil")")
+            }
         let authUser = AuthUser(uid: user.uid, isAnonymous: user.isAnonymous)
         authStateSubject.send(authUser)
     }
@@ -542,13 +602,12 @@ extension AuthorizationService {
 }
 
 // MARK: - SendPasswordReset
-
-// MARK: - SendPasswordReset
 extension AuthorizationService {
     /// Отправка письма для сброса пароля
     func sendPasswordReset(email: String) -> AnyPublisher<Void, Error> {
         // Установка языка письма через Firebase на основе текущего языка приложения
         // Используем singleton LocalizationService.shared, доступный глобально
+//        print("sendPasswordReset / LocalizationService.shared.currentLanguage - \(LocalizationService.shared.currentLanguage)")
         Auth.auth().languageCode = LocalizationService.shared.currentLanguage
 
         return Future<Void, Error> { promise in
@@ -563,26 +622,6 @@ extension AuthorizationService {
         .eraseToAnyPublisher()
     }
 }
-
-
-//extension AuthorizationService {
-//    /// Отправка письма для сброса пароля
-//    func sendPasswordReset(email: String) -> AnyPublisher<Void, Error> {
-//        // Устанавливаем язык письма Firebase на основе текущего языка приложения
-//        // Используем singleton LocalizationService.shared, доступный глобально
-////        Auth.auth().languageCode = LocalizationService.shared.currentLanguage
-//        Future { promise in
-//            Auth.auth().sendPasswordReset(withEmail: email) { error in
-//                if let error = error {
-//                    promise(.failure(error))
-//                } else {
-//                    promise(.success(()))
-//                }
-//            }
-//        }
-//        .eraseToAnyPublisher()
-//    }
-//}
 
 
 // MARK: - Verification
@@ -612,7 +651,7 @@ extension AuthorizationService {
     }
 }
 
-// MARK: - Helpers
+// MARK: - currentUser
 extension AuthorizationService {
     
     /// Текущий Firebase User как publisher (ошибка, если не залогинен)
@@ -627,7 +666,500 @@ extension AuthorizationService {
 }
 
 
+// MARK: - Google Auth
+extension AuthorizationService {
 
+    func signInWithGoogle(intent: GoogleAuthIntent) -> AnyPublisher<Void, Error> {
+        currentUserPublisher()
+            .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
+                guard let self else {
+                    return Fail(error: FirebaseInternalError.defaultError).eraseToAnyPublisher()
+                }
+                return self.getGoogleCredential()
+                    .flatMap { credential -> AnyPublisher<Void, Error> in
+                        switch intent {
+                        case .signIn:
+                            // Anonymous/Permanent → вход: создаст новый аккаунт, если его нет; войдёт, если есть
+                            return self.googleSignInReplacingSession(credential: credential)
+
+                        case .signUp:
+                            if user.isAnonymous {
+                                // Anonymous → линк (сохранить UID и данные)
+                                return self.googleLinkAnonymous(user: user, credential: credential)
+                            } else {
+                                // Permanent → создаём/входим в Google-аккаунт (UID меняется; старый остаётся)
+                                return self.googleSignInReplacingSession(credential: credential)
+                            }
+                        }
+                    }
+                    .eraseToAnyPublisher()
+            }
+            .eraseToAnyPublisher()
+    }
+
+    // MARK: - Получение Google credential
+    private func getGoogleCredential() -> AnyPublisher<AuthCredential, Error> {
+        Future<AuthCredential, Error> { promise in
+            guard let clientID = FirebaseApp.app()?.options.clientID else {
+                return promise(.failure(FirebaseInternalError.defaultError))
+            }
+            let config = GIDConfiguration(clientID: clientID)
+            GIDSignIn.sharedInstance.configuration = config
+
+            guard let presentingVC = Self.topViewController() else {
+                return promise(.failure(FirebaseInternalError.defaultError))
+            }
+
+            GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
+                if let error = error { return promise(.failure(error)) }
+                guard
+                    let gUser = result?.user,
+                    let idToken = gUser.idToken?.tokenString
+                else {
+                    return promise(.failure(FirebaseInternalError.defaultError))
+                }
+                let accessToken = gUser.accessToken.tokenString
+                let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+                promise(.success(credential))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+
+    // MARK: - Replace session (SignIn/SignUp permanent)
+    private func googleSignInReplacingSession(credential: AuthCredential) -> AnyPublisher<Void, Error> {
+        Future<Void, Error> { [weak self] promise in
+/*
+         ⚠️ Важно:
+         Вызов Auth.auth().signIn(with:) ведёт себя как "Sign In + Sign Up".
+         - Если Google‑аккаунт уже существует в Firebase → произойдёт вход в существующего пользователя (UID того аккаунта).
+         - Если аккаунта ещё нет → Firebase автоматически создаст нового пользователя с новым UID и выполнит вход.
+         
+         ❌ Ошибка credentialAlreadyInUse здесь НЕ возникает.
+         Она характерна только для link(with:), когда пытаешься привязать Google‑аккаунт к текущему UID.
+         
+         👉 Итог: этот метод всегда переключает текущую сессию на Google‑аккаунт —
+         либо существующий, либо новый.
+        */
+            Auth.auth().signIn(with: credential) { res, err in
+                if let err = err { return promise(.failure(err)) }
+                guard let self, let user = res?.user else {
+                    return promise(.failure(FirebaseInternalError.defaultError))
+                }
+// тут не нужно так как  Auth.auth().signIn(with: credential) вызовет блок в addStateDidChangeListener
+//                self.updateAuthState(from: user)
+                promise(.success(()))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+
+    // MARK: - Anonymous → Link (SignUp)
+    private func googleLinkAnonymous(user: User, credential: AuthCredential) -> AnyPublisher<Void, Error> {
+        Future<Void, Error> { [weak self] promise in
+            user.link(with: credential) { res, err in
+                if let err = err {
+                    // Если credential уже используется другим UID → это не линковка; в твоей политике линковку не продолжаем
+                    // Можно сообщить пользователю, что этот Google-аккаунт уже зарегистрирован — используйте Sign In.
+                    return promise(.failure(err))
+                } else if let result = res {
+                    self?.updateAuthState(from: result.user) // listener не гарантирован
+                    promise(.success(()))
+                } else {
+                    promise(.failure(FirebaseInternalError.defaultError))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Google Reauthenticate
+extension AuthorizationService {
+
+    func reauthenticateWithGoogle() -> AnyPublisher<Void, Error> {
+        Future<Void, Error> { promise in
+            guard let currentUser = Auth.auth().currentUser else {
+                return promise(.failure(FirebaseInternalError.notSignedIn))
+            }
+            guard let clientID = FirebaseApp.app()?.options.clientID else {
+                return promise(.failure(FirebaseInternalError.defaultError))
+            }
+            let config = GIDConfiguration(clientID: clientID)
+            GIDSignIn.sharedInstance.configuration = config
+
+            guard let presentingVC = Self.topViewController() else {
+                return promise(.failure(FirebaseInternalError.defaultError))
+            }
+
+            GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
+                if let error = error {
+                    return promise(.failure(error))
+                }
+                guard let gUser = result?.user,
+                      let idToken = gUser.idToken?.tokenString else {
+                    return promise(.failure(FirebaseInternalError.defaultError))
+                }
+                let accessToken = gUser.accessToken.tokenString
+                let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+                currentUser.reauthenticate(with: credential) { _, error in
+                    if let error = error {
+                        return promise(.failure(error))
+                    }
+                    return promise(.success(()))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+}
+
+// MARK: - Top ViewController Utilities
+extension AuthorizationService {
+    static func topViewController(base: UIViewController? = {
+        let scenes = UIApplication.shared.connectedScenes
+        let windowScene = scenes.first { $0.activationState == .foregroundActive } as? UIWindowScene
+        let window = windowScene?.windows.first { $0.isKeyWindow }
+        return window?.rootViewController
+    }()) -> UIViewController? {
+        if let nav = base as? UINavigationController { return topViewController(base: nav.visibleViewController) }
+        if let tab = base as? UITabBarController { return topViewController(base: tab.selectedViewController) }
+        if let presented = base?.presentedViewController { return topViewController(base: presented) }
+        return base
+    }
+}
+
+
+// MARK: - before Google credential
+
+//import FirebaseAuth
+//import Combine
+//
+//
+//// Ошибка, специфичная для deleteAccount()
+//enum DeleteAccountError: Error {
+//    /// Firebase вернул код .requiresRecentLogin
+//    case reauthenticationRequired(Error)
+//    /// Любая другая ошибка — оборачиваем оригинальный Error
+//    case underlying(Error)
+//}
+//
+//
+//
+//final class AuthorizationService {
+//    
+//    // MARK: - Dependencies
+//    private let userProvider: CurrentUserProvider
+//    
+//    // MARK: - Publishers & Storage
+//    private var cancellable: AnyCancellable?
+//    private let authStateSubject = PassthroughSubject<AuthUser?, Never>()
+//    
+//    // MARK: - Init
+//    init(userProvider: CurrentUserProvider) {
+//        print("AuthorizationService init")
+//        self.userProvider = userProvider
+//        observeUserChanges()
+//    }
+//    
+//    deinit {
+//        print("AuthorizationService deinit")
+//    }
+//}
+//
+//// MARK: - User state
+//extension AuthorizationService {
+//    
+//    /// Паблишер, который эмитит AuthUser или nil при logout/удалении.
+//    var authStatePublisher: AnyPublisher<AuthUser?, Never> {
+//        authStateSubject.eraseToAnyPublisher()
+//    }
+//    
+//    func observeUserChanges() {
+//        cancellable = userProvider.currentUserPublisher
+//            .sink { [weak self] authUser in
+//                print("🔄 AuthorizationService получил нового пользователя: \(String(describing: authUser))")
+//                self?.authStateSubject.send(authUser)
+//            }
+//    }
+//    
+//    private func updateAuthState(from user: FirebaseAuth.User) {
+//        // Распечатываем ключевые поля для отладки
+//            print("🔄 updateAuthState called")
+//            print("UID: \(user.uid)")
+//            print("isAnonymous: \(user.isAnonymous)")
+//            print("email: \(user.email ?? "nil")")
+//            print("displayName: \(user.displayName ?? "nil")")
+//            print("providerData:")
+//        // ⚡️ Важно:
+//        // user.email — это основной email, который Firebase хранит для аккаунта.
+//        // provider.email — это email, полученный от конкретного провайдера (например, google.com).
+//        // Они могут совпадать, но при нескольких провайдерах или смене email — различаться.
+//
+//            for provider in user.providerData {
+//                print(" - providerID: \(provider.providerID), email: \(provider.email ?? "nil"), displayName: \(provider.displayName ?? "nil")")
+//            }
+//        let authUser = AuthUser(uid: user.uid, isAnonymous: user.isAnonymous)
+//        authStateSubject.send(authUser)
+//    }
+//}
+//
+//// MARK: - Sign up / Link
+//extension AuthorizationService {
+//    
+//    /// Регистрация или линковка анонимного пользователя
+//    func signUpBasic(email: String, password: String) -> AnyPublisher<Void, Error> {
+//        currentUserPublisher()
+//            .flatMap { user -> AnyPublisher<AuthDataResult, Error> in
+//                if user.isAnonymous {
+//                    let cred = EmailAuthProvider.credential(withEmail: email, password: password)
+//                    return self.linkPublisher(user: user, credential: cred)
+//                } else {
+//                    return self.createUserPublisher(email: email, password: password)
+//                }
+//            }
+//            .map { _ in () }
+//            .eraseToAnyPublisher()
+//    }
+//    
+//    private func createUserPublisher(email: String, password: String) -> AnyPublisher<AuthDataResult, Error> {
+//        Future { promise in
+//            Auth.auth().createUser(withEmail: email, password: password) { res, err in
+//                if let error = err {
+//                    promise(.failure(error))
+//                } else if let result = res {
+//                    promise(.success(result))
+//                } else {
+//                    // Обязательно логировать: неизвестное состояние
+//                    promise(.failure(FirebaseInternalError.defaultError))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//    
+//    private func linkPublisher(user: User, credential: AuthCredential) -> AnyPublisher<AuthDataResult, Error> {
+//        Future { [weak self] promise in
+//            user.link(with: credential) { res, err in
+//                print("linkPublisher res - \(String(describing: res)), error - \(String(describing: err))")
+//                if let error = err {
+//                    promise(.failure(error))
+//                } else if let result = res {
+//                    // 💡 Обновляем authState сразу — при успешной линковке addStateDidChangeListener может не отработать
+//                    self?.updateAuthState(from: result.user)
+//                    promise(.success(result))
+//                } else {
+//                    // Обязательно логировать: неизвестное состояние
+//                    promise(.failure(FirebaseInternalError.defaultError))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//}
+//
+//// MARK: - Sign in / Out
+//extension AuthorizationService {
+//    
+//    /// Логирование; при необходимости удаление анонимного пользователя после входа
+//    func signInBasic(email: String, password: String) -> AnyPublisher<Void, Error> {
+//        currentUserPublisher()
+//            .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
+//                guard let self = self else {
+//                    return Fail(error: FirebaseInternalError.defaultError).eraseToAnyPublisher()
+//                }
+//                if user.isAnonymous {
+//                    // Сохраняем UID анонима (если далее понадобится cleanup)
+//                    let anonUid = user.uid
+//                    print("anonUid func signInBasic - \(anonUid)")
+//                    return self.signInPublisher(email: email, password: password)
+//                        // .flatMap { _ in self.cleanupAnonymous(anonUid: anonUid) }
+//                        .map { _ in () }
+//                        .eraseToAnyPublisher()
+//                } else {
+//                    print("permanentUser func signInBasic - \(user.uid)")
+//                    return self.signInPublisher(email: email, password: password)
+//                        .map { _ in () }
+//                        .eraseToAnyPublisher()
+//                }
+//            }
+//            .eraseToAnyPublisher()
+//    }
+//    
+//    private func signInPublisher(email: String, password: String) -> AnyPublisher<AuthDataResult, Error> {
+//        Future { promise in
+//            Auth.auth().signIn(withEmail: email, password: password) { res, err in
+//                if let err = err {
+//                    promise(.failure(err))
+//                } else if let result = res {
+//                    promise(.success(result))
+//                } else {
+//                    // Обязательно логировать: неизвестное состояние
+//                    promise(.failure(FirebaseInternalError.defaultError))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//    
+//    /// Выход (локально)
+//    func signOut() -> AnyPublisher<Void, Error> {
+//        Future { promise in
+//            do {
+//                try Auth.auth().signOut()
+//                promise(.success(()))
+//            } catch {
+//                promise(.failure(error))
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//}
+//
+//// MARK: - Account deletion
+//extension AuthorizationService {
+//    
+//    /// Удаление аккаунта с маппингом ошибок, требующих реаутентификации
+//    func deleteAccount() -> AnyPublisher<Void, DeleteAccountError> {
+//        Future<Void, DeleteAccountError> { promise in
+//            guard let user = Auth.auth().currentUser else {
+//                promise(.failure(.underlying(FirebaseInternalError.notSignedIn)))
+//                return
+//            }
+//            user.delete { error in
+//                if let nsError = error as NSError? {
+//                    if let code = AuthErrorCode(rawValue: nsError.code) {
+//                        switch code {
+//                        case .requiresRecentLogin,
+//                             .userTokenExpired,
+//                             .invalidUserToken,
+//                             .invalidCredential:
+//                            // Все эти ошибки требуют повторной аутентификации
+//                            promise(.failure(.reauthenticationRequired(nsError)))
+//                        default:
+//                            promise(.failure(.underlying(nsError)))
+//                        }
+//                    } else {
+//                        promise(.failure(.underlying(nsError)))
+//                    }
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//}
+//
+//// MARK: - Reauthentication
+//extension AuthorizationService {
+//    
+//    /// Повторная аутентификация через email+password
+//    func reauthenticate(email: String, password: String) -> AnyPublisher<Void, Error> {
+//        Future<Void, Error> { promise in
+//            guard let user = Auth.auth().currentUser else {
+//                return promise(.failure(FirebaseInternalError.notSignedIn))
+//            }
+//            let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+//            user.reauthenticate(with: credential) { _, error in
+//                if let error = error {
+//                    promise(.failure(error))
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//}
+//
+//// MARK: - SendPasswordReset
+//extension AuthorizationService {
+//    /// Отправка письма для сброса пароля
+//    func sendPasswordReset(email: String) -> AnyPublisher<Void, Error> {
+//        // Установка языка письма через Firebase на основе текущего языка приложения
+//        // Используем singleton LocalizationService.shared, доступный глобально
+////        print("sendPasswordReset / LocalizationService.shared.currentLanguage - \(LocalizationService.shared.currentLanguage)")
+//        Auth.auth().languageCode = LocalizationService.shared.currentLanguage
+//
+//        return Future<Void, Error> { promise in
+//            Auth.auth().sendPasswordReset(withEmail: email) { error in
+//                if let error = error {
+//                    promise(.failure(error))
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//}
+//
+//
+//// MARK: - Verification
+//extension AuthorizationService {
+//    
+//    /// Отправка письма подтверждения
+//    func sendVerificationEmail() {
+//        Auth.auth().currentUser?.sendEmailVerification(completion: nil)
+//    }
+//}
+//
+//// MARK: - Auth providers
+//extension AuthorizationService {
+//    
+//    /// Publisher, который эмитит список всех провайдеров текущего пользователя
+//    func authProvidersPublisher() -> AnyPublisher<[String], Never> {
+//        let providers = Auth.auth().currentUser?.providerData.map { $0.providerID } ?? []
+//        return Just(providers)
+//            .eraseToAnyPublisher()
+//    }
+//    
+//    /// Publisher, который эмитит основной провайдер (обычно первый)
+//    func primaryAuthProviderPublisher() -> AnyPublisher<String?, Never> {
+//        let provider = Auth.auth().currentUser?.providerData.first?.providerID
+//        return Just(provider)
+//            .eraseToAnyPublisher()
+//    }
+//}
+//
+//// MARK: - Helpers
+//extension AuthorizationService {
+//    
+//    /// Текущий Firebase User как publisher (ошибка, если не залогинен)
+//    private func currentUserPublisher() -> AnyPublisher<User, Error> {
+//        guard let user = Auth.auth().currentUser else {
+//            return Fail(error: FirebaseInternalError.notSignedIn).eraseToAnyPublisher()
+//        }
+//        return Just(user)
+//            .setFailureType(to: Error.self)
+//            .eraseToAnyPublisher()
+//    }
+//}
+
+
+
+
+
+
+//extension AuthorizationService {
+//    /// Отправка письма для сброса пароля
+//    func sendPasswordReset(email: String) -> AnyPublisher<Void, Error> {
+//        // Устанавливаем язык письма Firebase на основе текущего языка приложения
+//        // Используем singleton LocalizationService.shared, доступный глобально
+////        Auth.auth().languageCode = LocalizationService.shared.currentLanguage
+//        Future { promise in
+//            Auth.auth().sendPasswordReset(withEmail: email) { error in
+//                if let error = error {
+//                    promise(.failure(error))
+//                } else {
+//                    promise(.success(()))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//}
 
 
 // MARK: - Before mark extension

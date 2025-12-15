@@ -60,6 +60,7 @@ class SignInViewModel: ObservableObject {
         }
     }
     
+    
     func updateValidationPassword() {
         if password.isEmpty {
             passwordError = Localized.ValidSignUp.passwordEmpty

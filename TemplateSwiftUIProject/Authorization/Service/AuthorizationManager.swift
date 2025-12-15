@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 16.06.25.
 //
 
+
 // AuthorizationManager мы будем использовать в нескольких View из разных навигационных стеков
 // у нас есть возможность не дождавшись ответа от сервера покинуть View (и если бы не было единого AuthorizationManager мы не смогли бы дождаться ответа) если есть ошибка она будет выбрашена через глобальный алерт если success то мы будем оповещены алертом глобальным
 // если мы введем данные в SignUp и нажмем кнопку регистрации и не дождавшись ответа перейдем на экран SignIn то так как AuthorizationManager общий с общей state машиной мы и на экране SignIn увидим что идет загрузка и не сможем перегруждать сервер различными операциями авторизации пока не дождемся последовательного выполнения каждого из них
@@ -58,7 +59,6 @@ final class AuthorizationManager: ObservableObject {
         case idle, loading, success, failure
     }
     
-//    @Published private(set) var state: State = .idle
     // Global flag
     @Published private(set) var isAuthOperationInProgress: Bool = false
     
@@ -174,6 +174,8 @@ final class AuthorizationManager: ObservableObject {
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
     
+    // MARK: Authorization email/password
+    
     func signUp(email: String, password: String) {
         guard !isAuthOperationInProgress else { return } // defensive programming: мы не доверяем только UI, а дублируем проверку в бизнес‑логике.
         isAuthOperationInProgress = true
@@ -181,9 +183,9 @@ final class AuthorizationManager: ObservableObject {
         
         authService.signUpBasic(email: email, password: password)
             .sink { [weak self] completion in
-                self?.signUpState = .idle
-                self?.isAuthOperationInProgress = false
                 guard let self = self else { return }
+                self.signInState = .idle
+                self.isAuthOperationInProgress = false
                 switch completion {
                 case .failure(let err):
                     self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
@@ -212,9 +214,9 @@ final class AuthorizationManager: ObservableObject {
         
         authService.signInBasic(email: email, password: password)
             .sink { [weak self] completion in
-                self?.signInState = .idle
-                self?.isAuthOperationInProgress = false
                 guard let self = self else { return }
+                self.signInState = .idle
+                self.isAuthOperationInProgress = false
                 switch completion {
                 case .failure(let err):
                     self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn)
@@ -234,6 +236,171 @@ final class AuthorizationManager: ObservableObject {
             } receiveValue: { _ in }
             .store(in: &cancellables)
     }
+    
+    func confirmIdentity(email: String, password: String) {
+        // Глобальная защита от параллельных операций
+        guard !isAuthOperationInProgress else { return }
+        
+        isAuthOperationInProgress = true
+        reauthState = .loading
+        
+        authService.reauthenticate(email: email, password: password)
+            .sink { [weak self] completion in
+                guard let self = self else { return }
+                
+                // Сбрасываем состояния
+                self.reauthState = .idle
+                self.isAuthOperationInProgress = false
+                
+                switch completion {
+                case .finished:
+                    NotificationCenter.default.post(
+                        name: .authDidSucceed,
+                        object: AuthNotificationPayload(authType: .reauthenticate)
+                    )
+                    DispatchQueue.main.async {
+                        self.alertManager.showGlobalAlert(
+                            message: "Повторная аутентификация прошла успешно!",
+                            operationDescription: "Аутентификация",
+                            alertType: .ok
+                        )
+                    }
+                case .failure(let error):
+                    self.handleAuthenticationError(error, operationDescription: "Аутентификация")
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
+    
+    func forgotPassword(email: String) {
+        guard !isAuthOperationInProgress else { return }
+        
+        isAuthOperationInProgress = true
+        forgotPasswordState = .loading
+        
+        authService.sendPasswordReset(email: email)
+            .sink { [weak self] completion in
+                guard let self = self else { return }
+                
+                self.forgotPasswordState = .idle
+                self.isAuthOperationInProgress = false
+                
+                switch completion {
+                case .failure(let error):
+                    self.handleAuthenticationError(error, operationDescription: "Forgot Password")
+                case .finished:
+                    DispatchQueue.main.async {
+                        self.alertManager.showGlobalAlert(
+                            message: "Письмо для сброса пароля отправлено!",
+                            operationDescription: "Forgot Password",
+                            alertType: .ok
+                        )
+                    }
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
+    
+    // MARK: Authorization google
+    
+    func signUpWithGoogle() {
+        guard !isAuthOperationInProgress else { return }
+        isAuthOperationInProgress = true
+        signUpState = .loading
+        
+        authService.signInWithGoogle(intent: .signUp)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                self.signUpState = .idle
+                self.isAuthOperationInProgress = false
+                switch completion {
+                case .failure(let err):
+                    // Если ошибка credentialAlreadyInUse при анонимной линковке — сообщаем пользователю использовать Sign In (то есть такой googleAccount уже есть и link выполняется с ошибкой)
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
+                case .finished:
+                    NotificationCenter.default.post(
+                        name: .authDidSucceed,
+                        object: AuthNotificationPayload(authType: .googleSignUp)
+                    )
+                    DispatchQueue.main.async {
+                        self.alertManager.showGlobalAlert(
+                            message: Localized.MessageOfSuccessOperationFirebase.signUp,
+                            operationDescription: Localized.TitleOfSuccessOperationFirebase.signUp,
+                            alertType: .ok
+                        )
+                    }
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
+    
+    func googleSignIn() {
+        guard !isAuthOperationInProgress else { return }
+        isAuthOperationInProgress = true
+        signInState = .loading
+        
+        authService.signInWithGoogle(intent: .signIn)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                self.signInState = .idle
+                self.isAuthOperationInProgress = false
+                
+                switch completion {
+                case .failure(let err):
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn)
+                case .finished:
+                    NotificationCenter.default.post(
+                        name: .authDidSucceed,
+                        object: AuthNotificationPayload(authType: .googleSignIn)
+                    )
+                    DispatchQueue.main.async {
+                        self.alertManager.showGlobalAlert(
+                            message: Localized.MessageOfSuccessOperationFirebase.signIn,
+                            operationDescription: Localized.TitleOfSuccessOperationFirebase.signIn,
+                            alertType: .ok
+                        )
+                    }
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
+    
+    func confirmIdentityWithGoogle() {
+        guard !isAuthOperationInProgress else { return }
+        isAuthOperationInProgress = true
+        reauthState = .loading
+        
+        authService.reauthenticateWithGoogle()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                guard let self else { return }
+                self.reauthState = .idle
+                self.isAuthOperationInProgress = false
+                
+                switch completion {
+                case .failure(let err):
+                    self.handleAuthenticationError(err, operationDescription: "Аутентификация")
+                case .finished:
+                    NotificationCenter.default.post(
+                        name: .authDidSucceed,
+                        object: AuthNotificationPayload(authType: .reauthenticate)
+                    )
+                    DispatchQueue.main.async {
+                        self.alertManager.showGlobalAlert(
+                            message: "Повторная аутентификация прошла успешно!",
+                            operationDescription: "Аутентификация",
+                            alertType: .ok
+                        )
+                    }
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+    }
+    
+    
+    // MARK: - Delete Account
     
     func deleteAccount() {
         // Глобальная защита от параллельных операций
@@ -307,70 +474,8 @@ final class AuthorizationManager: ObservableObject {
             alertType: .ok
         )
     }
-
-    func confirmIdentity(email: String, password: String) {
-        // Глобальная защита от параллельных операций
-        guard !isAuthOperationInProgress else { return }
-        
-        isAuthOperationInProgress = true
-        reauthState = .loading
-        
-        authService.reauthenticate(email: email, password: password)
-            .sink { [weak self] completion in
-                guard let self = self else { return }
-                
-                // Сбрасываем состояния
-                self.reauthState = .idle
-                self.isAuthOperationInProgress = false
-                
-                switch completion {
-                case .finished:
-                    NotificationCenter.default.post(
-                        name: .authDidSucceed,
-                        object: AuthNotificationPayload(authType: .reauthenticate)
-                    )
-                    DispatchQueue.main.async {
-                        self.alertManager.showGlobalAlert(
-                            message: "Повторная аутентификация прошла успешно!",
-                            operationDescription: "Аутентификация",
-                            alertType: .ok
-                        )
-                    }
-                case .failure(let error):
-                    self.handleAuthenticationError(error, operationDescription: "Аутентификация")
-                }
-            } receiveValue: { _ in }
-            .store(in: &cancellables)
-    }
     
-    func forgotPassword(email: String) {
-        guard !isAuthOperationInProgress else { return }
-        
-        isAuthOperationInProgress = true
-        forgotPasswordState = .loading
-        
-        authService.sendPasswordReset(email: email)
-            .sink { [weak self] completion in
-                guard let self = self else { return }
-                
-                self.forgotPasswordState = .idle
-                self.isAuthOperationInProgress = false
-                
-                switch completion {
-                case .failure(let error):
-                    self.handleAuthenticationError(error, operationDescription: "Forgot Password")
-                case .finished:
-                    DispatchQueue.main.async {
-                        self.alertManager.showGlobalAlert(
-                            message: "Письмо для сброса пароля отправлено!",
-                            operationDescription: "Forgot Password",
-                            alertType: .ok
-                        )
-                    }
-                }
-            } receiveValue: { _ in }
-            .store(in: &cancellables)
-    }
+    // MARK: - signOut
     
     func signOutAccount() {
         

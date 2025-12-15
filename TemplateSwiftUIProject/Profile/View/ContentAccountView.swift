@@ -47,6 +47,7 @@ extension AccountRow {
     }
 }
 
+
 struct ContentAccountView: View {
     @ObservedObject var viewModel: ContentAccountViewModel
     @State private var notificationsEnabled: Bool = true
