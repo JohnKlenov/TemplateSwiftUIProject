@@ -673,10 +673,13 @@ extension AuthorizationService {
         currentUserPublisher()
             .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
                 guard let self else {
+                    print("❌ [GoogleAuth] self = nil")
                     return Fail(error: FirebaseInternalError.defaultError).eraseToAnyPublisher()
                 }
+                print("👤 [GoogleAuth] Текущий пользователь: \(user.uid), isAnonymous = \(user.isAnonymous)")
                 return self.getGoogleCredential()
                     .flatMap { credential -> AnyPublisher<Void, Error> in
+                        print("🔑 [GoogleAuth] Получен credential, intent = \(intent)")
                         switch intent {
                         case .signIn:
                             // Anonymous/Permanent → вход: создаст новый аккаунт, если его нет; войдёт, если есть
@@ -684,9 +687,11 @@ extension AuthorizationService {
 
                         case .signUp:
                             if user.isAnonymous {
+                                print("🔗 [GoogleAuth] Anonymous → Link")
                                 // Anonymous → линк (сохранить UID и данные)
                                 return self.googleLinkAnonymous(user: user, credential: credential)
                             } else {
+                                print("🔄 [GoogleAuth] Permanent → SignInReplacingSession")
                                 // Permanent → создаём/входим в Google-аккаунт (UID меняется; старый остаётся)
                                 return self.googleSignInReplacingSession(credential: credential)
                             }
@@ -697,28 +702,37 @@ extension AuthorizationService {
             .eraseToAnyPublisher()
     }
 
+
     // MARK: - Получение Google credential
     private func getGoogleCredential() -> AnyPublisher<AuthCredential, Error> {
         Future<AuthCredential, Error> { promise in
+            print("➡️ [GoogleAuth] Запрос Google credential")
             guard let clientID = FirebaseApp.app()?.options.clientID else {
+                print("❌ [GoogleAuth] Нет clientID в FirebaseApp.options")
                 return promise(.failure(FirebaseInternalError.defaultError))
             }
             let config = GIDConfiguration(clientID: clientID)
             GIDSignIn.sharedInstance.configuration = config
 
             guard let presentingVC = Self.topViewController() else {
+                print("❌ [GoogleAuth] Не найден presentingVC")
                 return promise(.failure(FirebaseInternalError.defaultError))
             }
 
             GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
-                if let error = error { return promise(.failure(error)) }
+                if let error = error {
+                    print("❌ [GoogleAuth] Ошибка при signIn: \(error.localizedDescription)")
+                    return promise(.failure(error))
+                }
                 guard
                     let gUser = result?.user,
                     let idToken = gUser.idToken?.tokenString
                 else {
+                    print("❌ [GoogleAuth] Нет idToken")
                     return promise(.failure(FirebaseInternalError.defaultError))
                 }
                 let accessToken = gUser.accessToken.tokenString
+                print("✅ [GoogleAuth] Получены токены: idToken длина=\(idToken.count), accessToken длина=\(accessToken.count)")
                 let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
                 promise(.success(credential))
             }
@@ -726,9 +740,11 @@ extension AuthorizationService {
         .eraseToAnyPublisher()
     }
 
+
     // MARK: - Replace session (SignIn/SignUp permanent)
     private func googleSignInReplacingSession(credential: AuthCredential) -> AnyPublisher<Void, Error> {
         Future<Void, Error> { [weak self] promise in
+            print("➡️ [GoogleAuth] SignInReplacingSession")
 /*
          ⚠️ Важно:
          Вызов Auth.auth().signIn(with:) ведёт себя как "Sign In + Sign Up".
@@ -742,10 +758,15 @@ extension AuthorizationService {
          либо существующий, либо новый.
         */
             Auth.auth().signIn(with: credential) { res, err in
-                if let err = err { return promise(.failure(err)) }
+                if let err = err {
+                    print("❌ [GoogleAuth] Ошибка signIn: \(err.localizedDescription)")
+                    return promise(.failure(err))
+                }
                 guard let self, let user = res?.user else {
+                    print("❌ [GoogleAuth] Ошибка signIn: - нет self или user")
                     return promise(.failure(FirebaseInternalError.defaultError))
                 }
+                print("✅ [GoogleAuth] Успешный вход: uid=\(user.uid), email=\(user.email ?? "nil")")
 // тут не нужно так как  Auth.auth().signIn(with: credential) вызовет блок в addStateDidChangeListener
 //                self.updateAuthState(from: user)
                 promise(.success(()))
@@ -757,15 +778,19 @@ extension AuthorizationService {
     // MARK: - Anonymous → Link (SignUp)
     private func googleLinkAnonymous(user: User, credential: AuthCredential) -> AnyPublisher<Void, Error> {
         Future<Void, Error> { [weak self] promise in
+            print("➡️ [GoogleAuth] Anonymous → Link для uid=\(user.uid)")
             user.link(with: credential) { res, err in
                 if let err = err {
+                    print("❌ [GoogleAuth] Ошибка link: \(err.localizedDescription)")
                     // Если credential уже используется другим UID → это не линковка; в твоей политике линковку не продолжаем
                     // Можно сообщить пользователю, что этот Google-аккаунт уже зарегистрирован — используйте Sign In.
                     return promise(.failure(err))
                 } else if let result = res {
+                    print("✅ [GoogleAuth] Успешная линковка: новый uid=\(result.user.uid)")
                     self?.updateAuthState(from: result.user) // listener не гарантирован
                     promise(.success(()))
                 } else {
+                    print("❌ [GoogleAuth] Неизвестная ошибка при линковке")
                     promise(.failure(FirebaseInternalError.defaultError))
                 }
             }
@@ -779,33 +804,47 @@ extension AuthorizationService {
 
     func reauthenticateWithGoogle() -> AnyPublisher<Void, Error> {
         Future<Void, Error> { promise in
+            print("➡️ [GoogleAuth] Начало reauthenticateWithGoogle()")
             guard let currentUser = Auth.auth().currentUser else {
+                print("❌ [GoogleAuth] Нет текущего пользователя — reauth невозможен")
                 return promise(.failure(FirebaseInternalError.notSignedIn))
             }
+            print("👤 [GoogleAuth] Текущий пользователь: uid=\(currentUser.uid), email=\(currentUser.email ?? "nil")")
             guard let clientID = FirebaseApp.app()?.options.clientID else {
+                print("❌ [GoogleAuth] Нет clientID в FirebaseApp.options")
                 return promise(.failure(FirebaseInternalError.defaultError))
             }
+            print("🔑 [GoogleAuth] Получен clientID из FirebaseApp.options")
             let config = GIDConfiguration(clientID: clientID)
             GIDSignIn.sharedInstance.configuration = config
 
             guard let presentingVC = Self.topViewController() else {
+                print("❌ [GoogleAuth] Не найден presentingVC для показа Google Sign-In")
                 return promise(.failure(FirebaseInternalError.defaultError))
             }
 
+            print("📱 [GoogleAuth] presentingVC найден: \(presentingVC)")
+            
             GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
                 if let error = error {
+                    print("❌ [GoogleAuth] Ошибка при signIn: \(error.localizedDescription)")
                     return promise(.failure(error))
                 }
                 guard let gUser = result?.user,
                       let idToken = gUser.idToken?.tokenString else {
+                    print("❌ [GoogleAuth] Нет idToken в результате Google Sign-In")
                     return promise(.failure(FirebaseInternalError.defaultError))
                 }
                 let accessToken = gUser.accessToken.tokenString
+                print("✅ [GoogleAuth] Получены токены: idToken длина=\(idToken.count), accessToken длина=\(accessToken.count)")
                 let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+                print("🔑 [GoogleAuth] Сформирован credential для reauthenticate")
                 currentUser.reauthenticate(with: credential) { _, error in
                     if let error = error {
+                        print("❌ [GoogleAuth] Ошибка при reauthenticate: \(error.localizedDescription)")
                         return promise(.failure(error))
                     }
+                    print("✅ [GoogleAuth] Успешная reauthenticate для uid=\(currentUser.uid)")
                     return promise(.success(()))
                 }
             }

@@ -209,6 +209,7 @@ struct SignUpView: View {
                         // Кнопка Google
                         Button(action: {
                             print("googlelogo")
+                            viewModel.googleSignUp()
                         }) {
                             Image("googlelogo")
                                 .resizable()
@@ -260,6 +261,7 @@ struct SignUpView: View {
             isFieldFocus = nil
         }
     }
+    
     
     private func register() {
         

@@ -7,6 +7,7 @@
 
 
 
+
 import Combine
 import SwiftUI
 
@@ -127,6 +128,7 @@ final class ReauthenticateViewModel: ObservableObject {
         case .google:
             // TODO: вызвать Google flow
             print("⚠️ Реаутентификация через Google пока не реализована")
+            authorizationManager.confirmIdentityWithGoogle()
         case .apple:
             // TODO: вызвать Apple flow
             print("⚠️ Реаутентификация через Apple пока не реализована")

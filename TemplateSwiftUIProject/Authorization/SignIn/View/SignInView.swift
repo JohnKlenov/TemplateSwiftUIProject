@@ -186,6 +186,7 @@ struct SignInView: View {
                     // Кнопка Google
                     Button(action: {
                         print("googlelogo")
+                        viewModel.tryGoogleSignInWithWarningIfNeeded()
                     }) {
                         Image("googlelogo")
                             .resizable()
@@ -229,11 +230,21 @@ struct SignInView: View {
             titleVisibility: .visible
         ) {
             Button("Продолжить вход") {
-                viewModel.confirmAnonymousSignIn()
+                switch viewModel.anonymousActionType {
+                case .emailSignIn:
+                    viewModel.confirmAnonymousSignIn()
+                case .googleSignIn:
+                    viewModel.confirmAnonymousGoogleSignIn()
+                case .none:
+                    break
+                }
+                viewModel.anonymousActionType = nil
             }
-            Button("Отмена", role: .cancel) {}
+            Button("Отмена", role: .cancel) {
+                viewModel.anonymousActionType = nil
+            }
         } message: {
-            Text("Вы вошли как гость. После входа с email/password все несохранённые данные будут утеряны. Чтобы сохранить их — сначала зарегистрируйтесь.")
+            Text("Вы вошли как гость. После входа все несохранённые данные будут утеряны. Чтобы сохранить их — сначала зарегистрируйтесь.")
         }
 
     }

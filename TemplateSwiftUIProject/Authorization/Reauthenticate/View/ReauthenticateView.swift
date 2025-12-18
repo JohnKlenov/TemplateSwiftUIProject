@@ -18,6 +18,7 @@
 ///let providerID = Auth.auth().currentUser?.providerData.first?.providerID UserDefaults.standard.set(providerID, forKey: "authProvider")
 
 
+
 import SwiftUI
 
 struct ReauthenticateView: View {
@@ -195,6 +196,7 @@ struct ReauthenticateView: View {
     private var googleFullButton: some View {
         Button(action: {
             print("Google reauth tapped")
+            viewModel.reauthenticate()
         }) {
             HStack(spacing: 12) {
                 Image("googlelogo")

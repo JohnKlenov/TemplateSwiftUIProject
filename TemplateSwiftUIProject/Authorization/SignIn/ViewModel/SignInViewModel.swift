@@ -8,6 +8,10 @@
 import SwiftUI
 import Combine
 
+enum AnonymousActionType {
+    case emailSignIn
+    case googleSignIn
+}
 
 class SignInViewModel: ObservableObject {
     @Published var email: String = ""
@@ -20,6 +24,7 @@ class SignInViewModel: ObservableObject {
     @Published var isAuthOperationInProgress: Bool = false
     
     @Published var showAnonymousWarning = false
+    @Published var anonymousActionType: AnonymousActionType?
     
     private let authorizationManager: AuthorizationManager
     private var cancellables = Set<AnyCancellable>()
@@ -50,6 +55,8 @@ class SignInViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    // MARK: Authorization email/password
+    
     func updateValidationEmail() {
         if email.isEmpty {
             emailError = Localized.ValidSignUp.emailEmpty
@@ -75,6 +82,7 @@ class SignInViewModel: ObservableObject {
     
     func trySignInWithWarningIfNeeded() {
         if authorizationManager.isUserAnonymous {
+            anonymousActionType = .emailSignIn
             showAnonymousWarning = true
         } else {
             signIn()
@@ -85,6 +93,27 @@ class SignInViewModel: ObservableObject {
         showAnonymousWarning = false
         signIn()
     }
+    
+    // MARK: Authorization google
+    
+    func googleSignIn() {
+        authorizationManager.googleSignIn()
+    }
+    
+    func tryGoogleSignInWithWarningIfNeeded() {
+        if authorizationManager.isUserAnonymous {
+            anonymousActionType = .googleSignIn
+            showAnonymousWarning = true
+        } else {
+            googleSignIn()
+        }
+    }
+    
+    func confirmAnonymousGoogleSignIn() {
+        showAnonymousWarning = false
+        googleSignIn()
+    }
+    
     
     deinit {
         cancellables.removeAll()

@@ -83,7 +83,10 @@ class SignUpViewModel: ObservableObject {
     
     func signUp() {
         authorizationManager.signUp(email: email, password: password)
-        
+    }
+    
+    func googleSignUp() {
+        authorizationManager.signUpWithGoogle()
     }
     
     deinit {
