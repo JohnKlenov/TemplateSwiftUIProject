@@ -704,9 +704,35 @@ extension AuthorizationService {
 
 
     // MARK: - Получение Google credential
+    
+    /// Зачем нужен `presentingVC`:
+    /// - Google Sign-In показывает UI (экран выбора аккаунта / веб-страницу авторизации) **модально поверх текущего экрана**.
+    /// - Для корректной презентации модального интерфейса UIKit требует знать, **из какого контроллера** показывать этот UI.
+    /// - Поэтому SDK GoogleSignIn просит передать `UIViewController`, из которого он будет презентовать своё окно:
+    ///   `GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC, ...)`.
+    ///
+    /// Почему мы ищем именно «верхний» контроллер:
+    /// - В SwiftUI корневой контроллер — это `UIHostingController`, но фактически интерфейс может находиться:
+    ///   - внутри выбранной вкладки (`UITabBarController` → `selectedViewController`),
+    ///   - внутри навигационного стека (`UINavigationController` → `visibleViewController`),
+    ///   - в модально показанном представлении (`presentedViewController`).
+    /// - Если презентовать не из верхнего контроллера, модальное окно может не отобразиться или появиться «за кадром».
+    /// - Метод `topViewController()` поднимается по иерархии и возвращает **актуальный верхний VC**, доступный для презентации.
+    ///
+    /// Как это работает в iOS:
+    /// - При нажатии «Войти через Google» мы берём верхний VC активного окна/сцены и передаём его в GoogleSignIn.
+    /// - SDK открывает авторизацию поверх него (встроенный веб-контроллер/контроллер выбора аккаунта).
+    /// - После выбора аккаунта система возвращает результат обратно в приложение по URL‑схеме (`REVERSED_CLIENT_ID`),
+    ///   а `AppDelegate.application(_:open:options:)` передаёт URL в `GIDSignIn.sharedInstance.handle(url)` для завершения авторизации.
+    ///
+    /// Важно:
+    /// - Всегда выполняем получение `presentingVC` и вызов `signIn(withPresenting:)` на **главном потоке** — это требования UIKit.
+    /// - В многооконных сценариях (iPad, multiwindow) мы ищем контроллер **в активной сцене**, чтобы презентовать именно там,
+    ///   где пользователь взаимодействует с приложением.
     private func getGoogleCredential() -> AnyPublisher<AuthCredential, Error> {
         Future<AuthCredential, Error> { promise in
             print("➡️ [GoogleAuth] Запрос Google credential")
+
             guard let clientID = FirebaseApp.app()?.options.clientID else {
                 print("❌ [GoogleAuth] Нет clientID в FirebaseApp.options")
                 return promise(.failure(FirebaseInternalError.defaultError))
@@ -714,32 +740,75 @@ extension AuthorizationService {
             let config = GIDConfiguration(clientID: clientID)
             GIDSignIn.sharedInstance.configuration = config
 
-            guard let presentingVC = Self.topViewController() else {
-                print("❌ [GoogleAuth] Не найден presentingVC")
-                return promise(.failure(FirebaseInternalError.defaultError))
-            }
-
-            GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
-                if let error = error {
-                    print("❌ [GoogleAuth] Ошибка при signIn: \(error.localizedDescription)")
-                    return promise(.failure(error))
-                }
-                guard
-                    let gUser = result?.user,
-                    let idToken = gUser.idToken?.tokenString
-                else {
-                    print("❌ [GoogleAuth] Нет idToken")
+            // Гарантируем главный поток для UI-презентации
+            DispatchQueue.main.async {
+                guard let presentingVC = Self.topViewController() else {
+                    print("❌ [GoogleAuth] Не найден presentingVC")
                     return promise(.failure(FirebaseInternalError.defaultError))
                 }
-                let accessToken = gUser.accessToken.tokenString
-                print("✅ [GoogleAuth] Получены токены: idToken длина=\(idToken.count), accessToken длина=\(accessToken.count)")
-                let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
-                promise(.success(credential))
+                print("📱 [GoogleAuth] presentingVC найден: \(presentingVC)")
+
+                GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
+                    if let error = error {
+                        print("❌ [GoogleAuth] Ошибка при signIn: \(error.localizedDescription)")
+                        return promise(.failure(error))
+                    }
+                    guard
+                        let gUser = result?.user,
+                        let idToken = gUser.idToken?.tokenString
+                    else {
+                        print("❌ [GoogleAuth] Нет idToken")
+                        return promise(.failure(FirebaseInternalError.defaultError))
+                    }
+
+                    let accessToken = gUser.accessToken.tokenString
+                    print("✅ [GoogleAuth] Получены токены: idToken длина=\(idToken.count), accessToken длина=\(accessToken.count)")
+
+                    let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+                    print("🔑 [GoogleAuth] Сформирован credential")
+                    promise(.success(credential))
+                }
             }
         }
         .eraseToAnyPublisher()
     }
 
+//    private func getGoogleCredential() -> AnyPublisher<AuthCredential, Error> {
+//        Future<AuthCredential, Error> { promise in
+//            print("➡️ [GoogleAuth] Запрос Google credential")
+//            guard let clientID = FirebaseApp.app()?.options.clientID else {
+//                print("❌ [GoogleAuth] Нет clientID в FirebaseApp.options")
+//                return promise(.failure(FirebaseInternalError.defaultError))
+//            }
+//            let config = GIDConfiguration(clientID: clientID)
+//            GIDSignIn.sharedInstance.configuration = config
+//
+//            guard let presentingVC = Self.topViewController() else {
+//                print("❌ [GoogleAuth] Не найден presentingVC")
+//                return promise(.failure(FirebaseInternalError.defaultError))
+//            }
+//
+//            GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
+//                if let error = error {
+//                    print("❌ [GoogleAuth] Ошибка при signIn: \(error.localizedDescription)")
+//                    return promise(.failure(error))
+//                }
+//                guard
+//                    let gUser = result?.user,
+//                    let idToken = gUser.idToken?.tokenString
+//                else {
+//                    print("❌ [GoogleAuth] Нет idToken")
+//                    return promise(.failure(FirebaseInternalError.defaultError))
+//                }
+//                let accessToken = gUser.accessToken.tokenString
+//                print("✅ [GoogleAuth] Получены токены: idToken длина=\(idToken.count), accessToken длина=\(accessToken.count)")
+//                let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+//                promise(.success(credential))
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//
 
     // MARK: - Replace session (SignIn/SignUp permanent)
     private func googleSignInReplacingSession(credential: AuthCredential) -> AnyPublisher<Void, Error> {
@@ -854,19 +923,248 @@ extension AuthorizationService {
 }
 
 // MARK: - Top ViewController Utilities
+
+// это сложный поиск того UIViewController который сейчас на экране
+// можно передавать на прямую vc из экрана вызова google signIn
 extension AuthorizationService {
+
+    /// Определяет верхний UIViewController, подходящий для показа UI (например, Google Sign-In).
+    ///
+    /// Пошагово:
+    /// 1. Получаем все подключённые сцены из UIApplication.
+    /// 2. Фильтруем только активные (foregroundActive) UIWindowScene — именно из них можно презентовать UI.
+    /// 3. Пытаемся найти keyWindow среди активных сцен и берём его rootViewController.
+    /// 4. Если keyWindow не найден, используем первый видимый (не скрытый, alpha > 0) window и его rootViewController.
+    /// 5. Рекурсивно поднимаемся по иерархии контроллеров:
+    ///    - Если это UINavigationController → возвращаем visibleViewController.
+    ///    - Если UITabBarController → возвращаем selectedViewController.
+    ///    - Если есть presentedViewController → возвращаем его.
+    ///    - Иначе возвращаем базовый контроллер.
+    ///
+    /// Примечания:
+    /// - Метод устойчив к мульти-сценам (iPad, multi-window) и временным состояниям UI.
+    /// - Вызывать нужно на главном потоке перед показом UI.
+    /// - Логи помогают отследить путь выбора контроллера; в продакшене можно обернуть их в `#if DEBUG`.
     static func topViewController(base: UIViewController? = {
-        let scenes = UIApplication.shared.connectedScenes
-        let windowScene = scenes.first { $0.activationState == .foregroundActive } as? UIWindowScene
-        let window = windowScene?.windows.first { $0.isKeyWindow }
-        return window?.rootViewController
+        // MARK: Логи: сбор сцен
+        let allScenes = UIApplication.shared.connectedScenes
+        print("🔎 [TopVC] Количество подключённых сцен: \(allScenes.count)")
+
+        let activeScenes = allScenes
+            .compactMap { $0 as? UIWindowScene }
+            .filter { $0.activationState == .foregroundActive }
+
+        print("🔎 [TopVC] Активные UIWindowScene: \(activeScenes.count)")
+
+        // MARK: Попытка 1: keyWindow
+        if let keyWindow = activeScenes
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow }) {
+            print("✅ [TopVC] Используем keyWindow: \(keyWindow)")
+            let root = keyWindow.rootViewController
+            print("✅ [TopVC] keyWindow.rootViewController: \(String(describing: root))")
+            return root
+        }
+
+        // MARK: Попытка 2: первый видимый window
+        if let visibleWindow = activeScenes
+            .flatMap({ $0.windows })
+            .first(where: { !$0.isHidden && $0.alpha > 0 }) {
+            print("✅ [TopVC] Используем видимый window (fallback): \(visibleWindow)")
+            let root = visibleWindow.rootViewController
+            print("✅ [TopVC] visibleWindow.rootViewController: \(String(describing: root))")
+            return root
+        }
+
+        // MARK: Попытка 3: fallback без устаревшего API
+        print("⚠️ [TopVC] Не найдено активное окно, возвращаем nil")
+        return nil
     }()) -> UIViewController? {
-        if let nav = base as? UINavigationController { return topViewController(base: nav.visibleViewController) }
-        if let tab = base as? UITabBarController { return topViewController(base: tab.selectedViewController) }
-        if let presented = base?.presentedViewController { return topViewController(base: presented) }
+        // Рекурсивно определяем верхний VC
+        if let nav = base as? UINavigationController {
+            print("🔼 [TopVC] UINavigationController → visibleViewController: \(String(describing: nav.visibleViewController))")
+            return topViewController(base: nav.visibleViewController)
+        }
+        if let tab = base as? UITabBarController {
+            print("🔼 [TopVC] UITabBarController → selectedViewController: \(String(describing: tab.selectedViewController))")
+            return topViewController(base: tab.selectedViewController)
+        }
+        if let presented = base?.presentedViewController {
+            print("🔼 [TopVC] Presented → \(String(describing: presented))")
+            return topViewController(base: presented)
+        }
+        print("🏁 [TopVC] Итоговый VC: \(String(describing: base))")
         return base
     }
 }
+
+
+
+//extension AuthorizationService {
+//    static func topViewController(base: UIViewController? = {
+//        let scenes = UIApplication.shared.connectedScenes
+//        let windowScene = scenes.first { $0.activationState == .foregroundActive } as? UIWindowScene
+//        let window = windowScene?.windows.first { $0.isKeyWindow }
+//        return window?.rootViewController
+//    }()) -> UIViewController? {
+//        if let nav = base as? UINavigationController { return topViewController(base: nav.visibleViewController) }
+//        if let tab = base as? UITabBarController { return topViewController(base: tab.selectedViewController) }
+//        if let presented = base?.presentedViewController { return topViewController(base: presented) }
+//        return base
+//    }
+//}
+
+
+
+
+
+// MARK: -  Вариант с ViewControllerProvider
+
+// ViewControllerProvider даёт тебе реальный UIViewController из SwiftUI‑экрана.
+// Ты передаёшь его в viewModel, а дальше вниз в AuthorizationManager → AuthorizationService.
+// Таким образом, ты не ищешь глобально topViewController, а используешь именно тот VC (на самом деле ты создаешь новый VC), из которого пользователь нажал кнопку. Это надёжнее и проще, если у тебя ограниченное число экранов для входа.
+
+
+
+/// Вопрос про утечки памяти:
+/// - В случае с topViewController мы лишь получаем ссылку на уже существующий VC в иерархии UIKit.
+///   Он живёт пока экран активен и освобождается системой при закрытии — лишних удержаний нет.
+/// - В случае с ViewControllerProvider создаётся временный VC, встроенный в SwiftUI.
+///   Его жизненный цикл управляется самим SwiftUI: когда экран уничтожается, VC тоже освобождается.
+/// - Главное правило: не хранить VC в сильных (strong) свойствах менеджеров/сервисов.
+///   Если нужно сохранить — использовать weak, тогда утечек не будет.
+
+
+
+// View
+
+//struct SignInView: View {
+//    @State private var isPasswordVisible = false
+//    @FocusState var isFieldFocus: FieldToFocusAuth?
+//
+//    @ObservedObject var viewModel: SignInViewModel
+//    @EnvironmentObject var localization: LocalizationService
+//    @EnvironmentObject var accountCoordinator: AccountCoordinator
+//
+//    // локальное состояние для вызова VC
+//    @State private var isResolvingVC = false
+//
+//    var body: some View {
+//        ZStack {
+//            // твой UI...
+//
+//            Button(action: {
+//                print("googlelogo")
+//                isResolvingVC = true   // запускаем получение VC
+//            }) {
+//                Image("googlelogo")
+//                    .resizable()
+//                    .scaledToFit()
+//                    .padding()
+//                    .frame(width: 60, height: 60)
+//                    .background(Circle().stroke(Color.gray, lineWidth: 1))
+//            }
+//            .disabled(viewModel.isAuthOperationInProgress)
+//
+//            // Встраиваем ViewControllerProvider
+//            ViewControllerProvider { vc in
+//                // как только VC получен → сбрасываем флаг
+//                isResolvingVC = false
+//                // передаём VC в viewModel
+//                viewModel.googleSignInWithPresenting(vc)
+//            }
+//            .opacity(0) // делаем невидимым, чтобы не мешал UI
+//        }
+//    }
+//}
+
+
+
+// ViewModel
+
+//extension SignInViewModel {
+//    func googleSignInWithPresenting(_ vc: UIViewController) {
+//        guard !isAuthOperationInProgress else { return }
+//        isAuthOperationInProgress = true
+//        signInState = .loading
+//
+//        authorizationManager.googleSignIn(presentingVC: vc)
+//    }
+//}
+
+
+
+// AuthorizationManager и AuthorizationService
+
+//class AuthorizationManager {
+//    private let authService: AuthorizationService
+//    private var cancellables = Set<AnyCancellable>()
+//
+//    func googleSignIn(presentingVC: UIViewController) {
+//        authService.signInWithGoogle(intent: .signIn, presentingVC: presentingVC)
+//            .receive(on: DispatchQueue.main)
+//            .sink { completion in
+//                // обработка ошибок/успеха
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//}
+
+//func signInWithGoogle(intent: GoogleAuthIntent, presentingVC: UIViewController) -> AnyPublisher<Void, Error> {
+//    currentUserPublisher()
+//        .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
+//            guard let self else {
+//                return Fail(error: FirebaseInternalError.defaultError).eraseToAnyPublisher()
+//            }
+//            return self.getGoogleCredential(presentingVC: presentingVC)
+//                .flatMap { credential -> AnyPublisher<Void, Error> in
+//                    switch intent {
+//                    case .signIn:
+//                        return self.googleSignInReplacingSession(credential: credential)
+//                    case .signUp:
+//                        if user.isAnonymous {
+//                            return self.googleLinkAnonymous(user: user, credential: credential)
+//                        } else {
+//                            return self.googleSignInReplacingSession(credential: credential)
+//                        }
+//                    }
+//                }
+//                .eraseToAnyPublisher()
+//        }
+//        .eraseToAnyPublisher()
+//}
+
+//private func getGoogleCredential(presentingVC: UIViewController) -> AnyPublisher<AuthCredential, Error> {
+//    Future<AuthCredential, Error> { promise in
+//        guard let clientID = FirebaseApp.app()?.options.clientID else {
+//            return promise(.failure(FirebaseInternalError.defaultError))
+//        }
+//        let config = GIDConfiguration(clientID: clientID)
+//        GIDSignIn.sharedInstance.configuration = config
+//
+//        DispatchQueue.main.async {
+//            GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
+//                if let error = error {
+//                    return promise(.failure(error))
+//                }
+//                guard let gUser = result?.user,
+//                      let idToken = gUser.idToken?.tokenString else {
+//                    return promise(.failure(FirebaseInternalError.defaultError))
+//                }
+//                let accessToken = gUser.accessToken.tokenString
+//                let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+//                promise(.success(credential))
+//            }
+//        }
+//    }
+//    .eraseToAnyPublisher()
+//}
+
+
+
+
+
+
 
 
 // MARK: - before Google credential
