@@ -121,6 +121,7 @@ class UserInfoEditViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
+        
         editManager.$state
             .handleEvents(receiveOutput: { print("→ UserInfoEditViewModel подписка получила:", $0) })
             .receive(on: DispatchQueue.main)

@@ -206,6 +206,7 @@ struct SignUpView: View {
                         }
                         .disabled(viewModel.isAuthOperationInProgress)
                         
+                        
                         // Кнопка Google
                         Button(action: {
                             print("googlelogo")

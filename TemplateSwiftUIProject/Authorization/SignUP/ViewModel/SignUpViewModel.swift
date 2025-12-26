@@ -81,6 +81,7 @@ class SignUpViewModel: ObservableObject {
         }
     }
     
+    
     func signUp() {
         authorizationManager.signUp(email: email, password: password)
     }

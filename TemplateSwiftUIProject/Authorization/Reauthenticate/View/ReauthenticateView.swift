@@ -180,7 +180,8 @@ struct ReauthenticateView: View {
     
     private var googleButton: some View {
         Button(action: {
-            print("googlelogo")
+            print("googleButton")
+            viewModel.reauthenticate()
         }) {
             Image("googlelogo")
                 .resizable()
@@ -195,7 +196,7 @@ struct ReauthenticateView: View {
     // тут пока не понятно стоит ли блокировать нажатие при .disabled(viewModel.isAuthOperationInProgress)
     private var googleFullButton: some View {
         Button(action: {
-            print("Google reauth tapped")
+            print("googleFullButton reauth tapped")
             viewModel.reauthenticate()
         }) {
             HStack(spacing: 12) {

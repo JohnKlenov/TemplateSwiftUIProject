@@ -411,6 +411,17 @@ extension AuthorizationService {
             }
     }
     
+    // Для заполнения UI профиля:
+    /// - user.displayName может быть nil после линковки, поэтому имя лучше брать из providerData.
+    /// - В providerData[google.com] всегда есть displayName и email от Google.
+    /// - Для надёжности: email → user.email, имя → provider.displayName.
+    /// - Таким образом UI профиля заполняем комбинацией основных полей и providerData.
+    
+    // сдесь можно если мы захотим при линковки anon -> provider тригерить сохранение в CloudFirestore текущий profile
+    // тригерить сохранение в CloudFirestore текущий profile (из emailProvider, googleProvider ...)
+    // по тому что для обновления UI на UserInfoCellView мы обращаемся через UserInfoCellManager в userInfoCellManager.loadUserProfile(uid: uid)
+    // вызов loadUserProfile(uid: uid) делается либо вручную либо при смене пользователя через паблишер либо возможно через addSnapshotListener (нужно проверить и если да то тут можно инициировать func updateProfile)
+    
     private func updateAuthState(from user: FirebaseAuth.User) {
         // Распечатываем ключевые поля для отладки
             print("🔄 updateAuthState called")

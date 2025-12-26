@@ -114,6 +114,7 @@ final class FirestoreProfileService: ProfileServiceProtocol {
     private let db = Firestore.firestore()
     private var profileListener: ListenerRegistration?
     
+    
     func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error> {
         profileListener?.remove()
         profileListener = nil
@@ -137,6 +138,11 @@ final class FirestoreProfileService: ProfileServiceProtocol {
                 subject.send(completion: .failure(FirebaseInternalError.nilSnapshot))
                 return
             }
+            
+            let fromCache = snapshot.metadata.isFromCache
+            let pendingWrites = snapshot.metadata.hasPendingWrites
+            // 📡 Пояснение: // - snapshot.metadata.isFromCache → true, если данные пришли из локального кэша Firestore. // - snapshot.metadata.hasPendingWrites → true, если есть локальные изменения, ещё не подтверждённые сервером. // - Если оба значения false → данные получены напрямую с сервера и полностью подтверждены, // то есть это "чистый" серверный снимок без локальных правок.
+            print("📡 Source: \(fromCache ? "CACHE" : "SERVER"), pendingWrites=\(pendingWrites)")
             
             do {
                 if snapshot.exists {
