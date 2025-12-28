@@ -152,7 +152,7 @@
 // Адаптировать UI под разные устройства (Auto Layout, Dynamic Type).
 // Локализовать Color (через Asset Catalog с поддержкой локализаций).
 
-
+// централизованный Crashlytics через SharedErrorHandleк (мы должны найти все классы в которых мы используем SharedErrorHandleк (ErrorHandlerProtocol) значит именно туда в эти классы поступают ошибки ! как правило это Managers)
 
 
 // текущие тесты:

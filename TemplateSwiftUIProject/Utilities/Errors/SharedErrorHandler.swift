@@ -58,6 +58,282 @@
 // MARK: - тут мы еще не работали с ошибками которые нужно отображть через алерт а какие логировать
 // можно так же передавать в func handle(error: (any Error)?) description то есть откуда она пришла для краш листикса
 
+
+
+// MARK: - default error or description error ?
+
+// сейчас мы возвращаем описание ошибки даже те которые пользователю не понять !
+// может есть смысл разобрать ошибки на те которые стоит заменить на текст типа default error ?
+
+// MARK: - Crashlytics
+
+
+/// 📌 Подробный комментарий: централизованный Crashlytics через SharedErrorHandler
+///
+/// Идея:
+/// - Держать Crashlytics как зависимость внутри `SharedErrorHandler`, а из разных мест приложения
+///   передавать только ошибку и контекст. Это делает обработку ошибок единой и управляемой.
+///
+/// Почему это best practice:
+/// - Единая точка входа: все ошибки проходят через один сервис (меньше дублирования и рассеивания логики).
+/// - Чистота кода: UI/бизнес-логика используют `handle(error:context:)` без прямых вызовов Crashlytics.
+/// - Гибкость: можно заменить Crashlytics на другой провайдер, изменив реализацию в одном месте.
+/// - Богатый контекст: можно добавлять метаданные (operation, intent, uid, isAnonymous), чтобы отчёты были полезными.
+///
+/// Как использовать:
+/// - В местах, где происходит ошибка (например, при авторизации), передаём:
+///   `errorHandler.handle(error: err, context: "GoogleAuth: signInWithGoogle intent=signIn")`
+/// - Пользователь получит локализованный текст.
+/// - Crashlytics получит подробный отчёт с контекстом и самой ошибкой.
+///
+/// Рекомендации по контексту:
+/// - Передавать краткую, но точную строку: где и почему произошло (модуль, операция, ключевые флаги).
+/// - Добавлять пользовательские атрибуты при необходимости (uid, платформа, версия).
+///
+/// Мини-реализация:
+/// protocol ErrorHandlerProtocol {
+///     func handle(error: Error?, context: String?) -> String
+/// }
+///
+/// class SharedErrorHandler: ErrorHandlerProtocol {
+///     func handle(error: Error?, context: String? = nil) -> String {
+///         guard let error else { return Localized.FirebaseInternalError.defaultError }
+///
+///         // 📡 Логируем для разработчиков
+///         if let context { Crashlytics.crashlytics().log("Context: \(context)") }
+///         Crashlytics.crashlytics().record(error: error)
+///
+///         // 👤 Текст для пользователя (локализованный, без технических деталей)
+///         if let custom = error as? FirebaseInternalError {
+///             return custom.errorDescription ?? Localized.FirebaseInternalError.defaultError
+///         }
+///         return Localized.FirebaseInternalError.defaultError
+///     }
+/// }
+///
+/// Итог:
+/// - Централизованный `SharedErrorHandler` с Crashlytics — зрелый производственный подход.
+/// - UI получает понятное сообщение, разработчики — структурированный отчёт.
+/// - Масштабируется и остаётся заменяемым без касания всей кодовой базы.
+
+
+/// 📌 Подробный комментарий: как видеть полный стек ошибки в Crashlytics
+///
+/// Проблема:
+/// - Вызов `Crashlytics.crashlytics().record(error:)` для обработанных ошибок (не крашей)
+///   по умолчанию НЕ прикрепляет полный стек вызовов. Crashlytics автоматически собирает стек
+///   только для необработанных исключений (настоящих крашей).
+///
+/// Цель:
+/// - Получать полноценный стек для "ручных" ошибок, чтобы разработчики могли видеть,
+///   где именно в коде произошёл сбой, без необходимости передавать подробный `context: String?`.
+///
+/// Рабочие решения:
+/// 1) Прикрепить стек вручную через `Thread.callStackSymbols`
+///    - Собираем текущий стек, кладём его в `userInfo` у `NSError`, и отправляем в Crashlytics.
+///    Пример:
+///    ```swift
+///    let stack = Thread.callStackSymbols.joined(separator: "\n")
+///    let nsError = NSError(
+///        domain: "HandledError",
+///        code: 999,
+///        userInfo: [NSLocalizedDescriptionKey: error.localizedDescription,
+///                   "stackTrace": stack]
+///    )
+///    Crashlytics.crashlytics().record(error: nsError)
+///    ```
+///    → В отчёте будет и описание, и ваш кастомный стек.
+///
+/// 2) Использовать `record(exceptionModel:)`
+///    - Создаём `ExceptionModel` и явно задаём `stackTrace`, имитируя отчёт как у краша,
+///      но без падения приложения.
+///    Пример (идея, может отличаться в зависимости от версии SDK):
+///    ```swift
+///    let exception = ExceptionModel(name: "GoogleAuthError",
+///                                   reason: error.localizedDescription)
+///    exception.stackTrace = Thread.callStackSymbols.map { StackFrame(symbol: $0) }
+///    Crashlytics.crashlytics().record(exceptionModel: exception)
+///    ```
+///    → Crashlytics отобразит полноценный стек и метаданные исключения.
+///
+/// 3) Логировать стек отдельно рядом с ошибкой
+///    - Добавляем стек как обычный лог, затем пишем `record(error:)`.
+///    Пример:
+///    ```swift
+///    Crashlytics.crashlytics().log("Stack:\n\(Thread.callStackSymbols.joined(separator: "\n"))")
+///    Crashlytics.crashlytics().record(error: error)
+///    ```
+///    → В консоли Crashlytics будет виден лог со стеком рядом с записью об ошибке.
+///
+/// Итог:
+/// - `record(error:)` сам по себе не даёт полный стек для обработанных ошибок.
+/// - Чтобы стек был виден, используйте один из вариантов выше:
+///   • вручную приложить `Thread.callStackSymbols`,
+///   • или `ExceptionModel` со `stackTrace`,
+///   • или отдельный лог стека.
+/// - Это индустриальная практика: пользователю показываем простой алерт,
+///   а в Crashlytics отправляем детальный отчёт со стеком для диагностики.
+
+/// 📌 Подробный комментарий к реализации блока в SharedErrorHandler:
+///
+/// if let error = error {
+///     if let context = context {
+///         Crashlytics.crashlytics().log("Context: \(context)")
+///     }
+///     let stack = Thread.callStackSymbols.joined(separator: "\n")
+///     Crashlytics.crashlytics().log("Stack:\n\(stack)")
+///     Crashlytics.crashlytics().record(error: error)
+/// }
+///
+/// 🔎 Что здесь происходит:
+/// 1. Проверяем, что ошибка действительно есть (`if let error = error`).
+///
+/// 2. Если передан дополнительный контекст (`context`), логируем его в Crashlytics:
+///    - Это строка, которую мы можем задать из вызывающего кода (например, "GoogleAuth: signInWithGoogle").
+///    - В отчёте Crashlytics будет видно, в каком месте приложения произошла ошибка.
+///
+/// 3. Получаем текущий стек вызовов через `Thread.callStackSymbols`:
+///    - Это массив строк, описывающих последовательность вызовов функций до текущего места.
+///    - Склеиваем его в одну строку с разделителем `\n`, чтобы стек был читаемым.
+///
+/// 4. Логируем стек в Crashlytics (`Crashlytics.crashlytics().log("Stack:\n\(stack)")`):
+///    - В отчёте разработчики увидят полный стек вызовов на момент обработки ошибки.
+///    - Это помогает понять, из какого экрана/менеджера/операции ошибка пришла.
+///
+/// 5. Записываем саму ошибку (`Crashlytics.crashlytics().record(error: error)`):
+///    - В Crashlytics фиксируется тип ошибки, её описание и связанный контекст.
+///    - Таким образом, отчёт содержит и саму ошибку, и дополнительную информацию (context + stack).
+///
+/// 📌 Итог:
+/// - Пользователь получает локализованное сообщение об ошибке (через return из handle).
+/// - Разработчики в Crashlytics видят:
+///   • контекст (например, "GoogleAuth: signInWithGoogle"),
+///   • полный стек вызовов,
+///   • сам объект ошибки.
+/// - Такой подход даёт централизованную и максимально информативную диагностику ошибок в продакшене.
+
+/// 📌 Контекст: централизованная обработка ошибок через SharedErrorHandler в связке SwiftUI → ViewBuilderService → HomeViewModel → AuthorizationManager
+///
+/// Что делает `Thread.callStackSymbols`:
+/// - Собирает текущий стек вызовов в момент, когда мы попали в `SharedErrorHandler.handle(error:context:)`.
+/// - Это список «откуда пришли» до точки обработки, включая ваши методы, Combine/SwiftUI слои и системные фреймы.
+///
+/// Зачем логировать стек в Crashlytics:
+/// - Для команды разработки стек показывает полный путь ошибки: из какого экрана, какого менеджера,
+///   какой операции она пришла, и где была обработана.
+/// - Пользователь получает лаконичное сообщение, а Crashlytics — подробный технический след.
+///
+/// Как это выглядит в вашем кейсе (примерная структура стека):
+/// Stack:
+/// 0   MyApp      SharedErrorHandler.handle(error:context:)                   // централизованная точка обработки
+/// 1   MyApp      AuthorizationManager.signInWithGoogle(intent:)              // источник: операция авторизации
+/// 2   MyApp      HomeViewModel.googleSignIn()                                // инициатор из ViewModel
+/// 3   MyApp      HomeContentView.body.getter                                 // экран Home, где вызвано действие
+/// 4   MyApp      ViewBuilderService.homeViewBuild(page:)                     // сборка UI через ваш билдер
+/// 5   SwiftUI    ViewGraph.update(...) / CombinePublisher.sink(...)          // системные слои SwiftUI/Combine
+/// 6   UIKitCore  UIApplicationMain                                           // вход в цикл событий приложения
+///
+/// Важно:
+/// - Стек формируется на момент вызова `handle(error:context:)`. Поэтому он отражает «путь» до централизованного обработчика,
+///   что достаточно для диагностики «где в продуктовой цепочке возникла ошибка».
+///
+/// Как логировать:
+/// let stack = Thread.callStackSymbols.joined(separator: "\n")
+/// Crashlytics.crashlytics().log("Stack:\n\(stack)")
+/// Crashlytics.crashlytics().record(error: error)
+///
+/// Результат:
+/// - В отчёте Crashlytics вы увидите и саму ошибку, и полный стек вызовов, который ведёт к `SharedErrorHandler`.
+/// - Это позволяет быстро сопоставить ошибку с конкретным экраном (Home), менеджером (AuthorizationManager),
+///   и местом её обработки (SharedErrorHandler) в вашей архитектуре.
+
+
+
+
+
+
+
+//class SharedErrorHandler: ErrorHandlerProtocol {
+//    
+//    private let RealtimeDatabaseErrorDomain = "com.firebase.database"
+//    private let GoogleSignInErrorDomain = "com.google.GIDSignIn"
+//    
+//    func handle(error: (any Error)?) -> String {
+//        print("SharedErrorHandler shared error - \(String(describing: error?.localizedDescription))")
+//        
+//        guard let error = error else {
+//            return Localized.FirebaseInternalError.defaultError
+//        }
+//        
+//        if let decodingError = error as? DecodingError {
+//            return handleDecodingError(decodingError)
+//        }
+//        
+//        if let pickerError = error as? PhotoPickerError {
+//            return handlePhotoPickerError(pickerError)
+//        }
+//        
+//        if let nsError = error as NSError? {
+//            if let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
+//                return handleAuthError(authErrorCode)
+//            }
+//            if nsError.domain == FirestoreErrorDomain {
+//                return handleFirestoreError(nsError)
+//            }
+//            if let storageErrorCode = StorageErrorCode(rawValue: nsError.code) {
+//                return handleStorageError(storageErrorCode)
+//            }
+//            if nsError.domain == RealtimeDatabaseErrorDomain {
+//                return handleRealtimeDatabaseError(nsError)
+//            }
+//            if nsError.domain == "Anonymous Auth" {
+//                return Localized.FirebaseInternalError.anonymousAuthError
+//            }
+//            if nsError.domain == GoogleSignInErrorDomain {
+//                return handleGoogleSignInError(nsError)
+//            }
+//        }
+//        
+//        if let customError = error as? FirebaseInternalError {
+//            return customError.errorDescription ?? Localized.FirebaseInternalError.defaultError
+//        }
+//        
+//        return Localized.FirebaseInternalError.defaultError
+//    }
+//    
+//    // 🔹 Вынесенная реализация для Google Sign-In
+//    private func handleGoogleSignInError(_ nsError: NSError) -> String {
+//        switch nsError.code {
+//        case -1:
+//            return Localized.GoogleSignInError.cancelled
+//        case -2:
+//            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
+//            return Localized.GoogleSignInError.keychainError
+//        case -3:
+//            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
+//            return Localized.GoogleSignInError.noHandlers
+//        case -4:
+//            return Localized.GoogleSignInError.noValidTokens
+//        case -5:
+//            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
+//            return Localized.GoogleSignInError.invalidClientID
+//        case -6:
+//            return Localized.GoogleSignInError.networkError
+//        case -7:
+//            return Localized.GoogleSignInError.serverError
+//        case -8:
+//            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
+//            return Localized.GoogleSignInError.tokenExchangeFailed
+//        case -9:
+//            return Localized.GoogleSignInError.scopeError
+//        default:
+//            Crashlytics.crashlytics().record(error: nsError) // ❗ неизвестная ошибка → логируем
+//            return Localized.FirebaseInternalError.defaultError
+//        }
+//    }
+//}
+
+
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseStorage

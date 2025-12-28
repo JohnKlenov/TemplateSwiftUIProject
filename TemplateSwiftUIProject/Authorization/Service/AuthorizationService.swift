@@ -352,6 +352,131 @@
 */
 
 
+// MARK: -  Вариант с ViewControllerProvider
+
+// ViewControllerProvider даёт тебе реальный UIViewController из SwiftUI‑экрана.
+// Ты передаёшь его в viewModel, а дальше вниз в AuthorizationManager → AuthorizationService.
+// Таким образом, ты не ищешь глобально topViewController, а используешь именно тот VC (на самом деле ты создаешь новый VC), из которого пользователь нажал кнопку. Это надёжнее и проще, если у тебя ограниченное число экранов для входа.
+/// Вопрос про утечки памяти:
+/// - В случае с topViewController мы лишь получаем ссылку на уже существующий VC в иерархии UIKit.
+///   Он живёт пока экран активен и освобождается системой при закрытии — лишних удержаний нет.
+/// - В случае с ViewControllerProvider создаётся временный VC, встроенный в SwiftUI.
+///   Его жизненный цикл управляется самим SwiftUI: когда экран уничтожается, VC тоже освобождается.
+/// - Главное правило: не хранить VC в сильных (strong) свойствах менеджеров/сервисов.
+///   Если нужно сохранить — использовать weak, тогда утечек не будет.
+// View
+//struct SignInView: View {
+//    @State private var isPasswordVisible = false
+//    @FocusState var isFieldFocus: FieldToFocusAuth?
+//
+//    @ObservedObject var viewModel: SignInViewModel
+//    @EnvironmentObject var localization: LocalizationService
+//    @EnvironmentObject var accountCoordinator: AccountCoordinator
+//
+//    // локальное состояние для вызова VC
+//    @State private var isResolvingVC = false
+//
+//    var body: some View {
+//        ZStack {
+//            // твой UI...
+//
+//            Button(action: {
+//                print("googlelogo")
+//                isResolvingVC = true   // запускаем получение VC
+//            }) {
+//                Image("googlelogo")
+//                    .resizable()
+//                    .scaledToFit()
+//                    .padding()
+//                    .frame(width: 60, height: 60)
+//                    .background(Circle().stroke(Color.gray, lineWidth: 1))
+//            }
+//            .disabled(viewModel.isAuthOperationInProgress)
+//
+//            // Встраиваем ViewControllerProvider
+//            ViewControllerProvider { vc in
+//                // как только VC получен → сбрасываем флаг
+//                isResolvingVC = false
+//                // передаём VC в viewModel
+//                viewModel.googleSignInWithPresenting(vc)
+//            }
+//            .opacity(0) // делаем невидимым, чтобы не мешал UI
+//        }
+//    }
+//}
+// ViewModel
+//extension SignInViewModel {
+//    func googleSignInWithPresenting(_ vc: UIViewController) {
+//        guard !isAuthOperationInProgress else { return }
+//        isAuthOperationInProgress = true
+//        signInState = .loading
+//
+//        authorizationManager.googleSignIn(presentingVC: vc)
+//    }
+//}
+// AuthorizationManager и AuthorizationService
+//class AuthorizationManager {
+//    private let authService: AuthorizationService
+//    private var cancellables = Set<AnyCancellable>()
+//
+//    func googleSignIn(presentingVC: UIViewController) {
+//        authService.signInWithGoogle(intent: .signIn, presentingVC: presentingVC)
+//            .receive(on: DispatchQueue.main)
+//            .sink { completion in
+//                // обработка ошибок/успеха
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//}
+//func signInWithGoogle(intent: GoogleAuthIntent, presentingVC: UIViewController) -> AnyPublisher<Void, Error> {
+//    currentUserPublisher()
+//        .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
+//            guard let self else {
+//                return Fail(error: FirebaseInternalError.defaultError).eraseToAnyPublisher()
+//            }
+//            return self.getGoogleCredential(presentingVC: presentingVC)
+//                .flatMap { credential -> AnyPublisher<Void, Error> in
+//                    switch intent {
+//                    case .signIn:
+//                        return self.googleSignInReplacingSession(credential: credential)
+//                    case .signUp:
+//                        if user.isAnonymous {
+//                            return self.googleLinkAnonymous(user: user, credential: credential)
+//                        } else {
+//                            return self.googleSignInReplacingSession(credential: credential)
+//                        }
+//                    }
+//                }
+//                .eraseToAnyPublisher()
+//        }
+//        .eraseToAnyPublisher()
+//}
+//private func getGoogleCredential(presentingVC: UIViewController) -> AnyPublisher<AuthCredential, Error> {
+//    Future<AuthCredential, Error> { promise in
+//        guard let clientID = FirebaseApp.app()?.options.clientID else {
+//            return promise(.failure(FirebaseInternalError.defaultError))
+//        }
+//        let config = GIDConfiguration(clientID: clientID)
+//        GIDSignIn.sharedInstance.configuration = config
+//
+//        DispatchQueue.main.async {
+//            GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
+//                if let error = error {
+//                    return promise(.failure(error))
+//                }
+//                guard let gUser = result?.user,
+//                      let idToken = gUser.idToken?.tokenString else {
+//                    return promise(.failure(FirebaseInternalError.defaultError))
+//                }
+//                let accessToken = gUser.accessToken.tokenString
+//                let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+//                promise(.success(credential))
+//            }
+//        }
+//    }
+//    .eraseToAnyPublisher()
+//}
+
 
 import FirebaseAuth
 import FirebaseCore
@@ -680,6 +805,39 @@ extension AuthorizationService {
 // MARK: - Google Auth
 extension AuthorizationService {
 
+    /// 🔎 Подробное описание последовательности работы Google Sign-In:
+    ///
+    /// 1. Вызов `signInWithGoogle(intent:)`
+    ///    - Получаем текущего пользователя через `currentUserPublisher()`.
+    ///    - Логируем его UID и статус (анонимный или постоянный).
+    ///
+    /// 2. Запускаем `getGoogleCredential()`
+    ///    - Проверяем наличие `clientID` в FirebaseApp.options.
+    ///    - Конфигурируем `GIDSignIn` с этим clientID.
+    ///    - На главном потоке ищем верхний UIViewController (`presentingVC`).
+    ///    - Вызываем `GIDSignIn.sharedInstance.signIn(withPresenting:)`.
+    ///
+    /// 3. На экране Google пользователь выбирает аккаунт и подтверждает вход.
+    ///    - После подтверждения отрабатывает completion-блок `signIn(...)`.
+    ///    - В блоке получаем `idToken` и `accessToken` от Google.
+    ///    - Формируем `AuthCredential` через `GoogleAuthProvider.credential(...)`.
+    ///    - Возвращаем credential в publisher.
+    ///
+    /// 4. Возврат в `signInWithGoogle(intent:)`
+    ///    - В зависимости от intent:
+    ///      • `.signIn`: выполняем `googleSignInReplacingSession(credential:)`
+    ///        → создаём новый аккаунт, если его нет, или входим в существующий.
+    ///      • `.signUp`: проверяем статус пользователя:
+    ///          ◦ Если анонимный → выполняем `googleLinkAnonymous(user, credential)`
+    ///            → линковка: сохраняем UID и данные, превращаем анонимного в постоянного.
+    ///          ◦ Если уже постоянный → выполняем `googleSignInReplacingSession(credential:)`
+    ///            → создаём/входим в Google-аккаунт, UID меняется, старый остаётся.
+    ///
+    /// 📌 Таким образом:
+    /// - `getGoogleCredential()` отвечает за получение токенов и формирование Firebase credential.
+    /// - `signInWithGoogle(intent:)` решает, что делать с этим credential:
+    ///   либо линковать анонимного пользователя, либо заменить текущую сессию входом через Google.
+
     func signInWithGoogle(intent: GoogleAuthIntent) -> AnyPublisher<Void, Error> {
         currentUserPublisher()
             .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
@@ -784,42 +942,6 @@ extension AuthorizationService {
         .eraseToAnyPublisher()
     }
 
-//    private func getGoogleCredential() -> AnyPublisher<AuthCredential, Error> {
-//        Future<AuthCredential, Error> { promise in
-//            print("➡️ [GoogleAuth] Запрос Google credential")
-//            guard let clientID = FirebaseApp.app()?.options.clientID else {
-//                print("❌ [GoogleAuth] Нет clientID в FirebaseApp.options")
-//                return promise(.failure(FirebaseInternalError.defaultError))
-//            }
-//            let config = GIDConfiguration(clientID: clientID)
-//            GIDSignIn.sharedInstance.configuration = config
-//
-//            guard let presentingVC = Self.topViewController() else {
-//                print("❌ [GoogleAuth] Не найден presentingVC")
-//                return promise(.failure(FirebaseInternalError.defaultError))
-//            }
-//
-//            GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
-//                if let error = error {
-//                    print("❌ [GoogleAuth] Ошибка при signIn: \(error.localizedDescription)")
-//                    return promise(.failure(error))
-//                }
-//                guard
-//                    let gUser = result?.user,
-//                    let idToken = gUser.idToken?.tokenString
-//                else {
-//                    print("❌ [GoogleAuth] Нет idToken")
-//                    return promise(.failure(FirebaseInternalError.defaultError))
-//                }
-//                let accessToken = gUser.accessToken.tokenString
-//                print("✅ [GoogleAuth] Получены токены: idToken длина=\(idToken.count), accessToken длина=\(accessToken.count)")
-//                let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
-//                promise(.success(credential))
-//            }
-//        }
-//        .eraseToAnyPublisher()
-//    }
-//
 
     // MARK: - Replace session (SignIn/SignUp permanent)
     private func googleSignInReplacingSession(credential: AuthCredential) -> AnyPublisher<Void, Error> {
@@ -1011,6 +1133,9 @@ extension AuthorizationService {
 
 
 
+
+
+
 //extension AuthorizationService {
 //    static func topViewController(base: UIViewController? = {
 //        let scenes = UIApplication.shared.connectedScenes
@@ -1028,148 +1153,45 @@ extension AuthorizationService {
 
 
 
-
-// MARK: -  Вариант с ViewControllerProvider
-
-// ViewControllerProvider даёт тебе реальный UIViewController из SwiftUI‑экрана.
-// Ты передаёшь его в viewModel, а дальше вниз в AuthorizationManager → AuthorizationService.
-// Таким образом, ты не ищешь глобально topViewController, а используешь именно тот VC (на самом деле ты создаешь новый VC), из которого пользователь нажал кнопку. Это надёжнее и проще, если у тебя ограниченное число экранов для входа.
-
-
-
-/// Вопрос про утечки памяти:
-/// - В случае с topViewController мы лишь получаем ссылку на уже существующий VC в иерархии UIKit.
-///   Он живёт пока экран активен и освобождается системой при закрытии — лишних удержаний нет.
-/// - В случае с ViewControllerProvider создаётся временный VC, встроенный в SwiftUI.
-///   Его жизненный цикл управляется самим SwiftUI: когда экран уничтожается, VC тоже освобождается.
-/// - Главное правило: не хранить VC в сильных (strong) свойствах менеджеров/сервисов.
-///   Если нужно сохранить — использовать weak, тогда утечек не будет.
-
-
-
-// View
-
-//struct SignInView: View {
-//    @State private var isPasswordVisible = false
-//    @FocusState var isFieldFocus: FieldToFocusAuth?
-//
-//    @ObservedObject var viewModel: SignInViewModel
-//    @EnvironmentObject var localization: LocalizationService
-//    @EnvironmentObject var accountCoordinator: AccountCoordinator
-//
-//    // локальное состояние для вызова VC
-//    @State private var isResolvingVC = false
-//
-//    var body: some View {
-//        ZStack {
-//            // твой UI...
-//
-//            Button(action: {
-//                print("googlelogo")
-//                isResolvingVC = true   // запускаем получение VC
-//            }) {
-//                Image("googlelogo")
-//                    .resizable()
-//                    .scaledToFit()
-//                    .padding()
-//                    .frame(width: 60, height: 60)
-//                    .background(Circle().stroke(Color.gray, lineWidth: 1))
+//    private func getGoogleCredential() -> AnyPublisher<AuthCredential, Error> {
+//        Future<AuthCredential, Error> { promise in
+//            print("➡️ [GoogleAuth] Запрос Google credential")
+//            guard let clientID = FirebaseApp.app()?.options.clientID else {
+//                print("❌ [GoogleAuth] Нет clientID в FirebaseApp.options")
+//                return promise(.failure(FirebaseInternalError.defaultError))
 //            }
-//            .disabled(viewModel.isAuthOperationInProgress)
+//            let config = GIDConfiguration(clientID: clientID)
+//            GIDSignIn.sharedInstance.configuration = config
 //
-//            // Встраиваем ViewControllerProvider
-//            ViewControllerProvider { vc in
-//                // как только VC получен → сбрасываем флаг
-//                isResolvingVC = false
-//                // передаём VC в viewModel
-//                viewModel.googleSignInWithPresenting(vc)
+//            guard let presentingVC = Self.topViewController() else {
+//                print("❌ [GoogleAuth] Не найден presentingVC")
+//                return promise(.failure(FirebaseInternalError.defaultError))
 //            }
-//            .opacity(0) // делаем невидимым, чтобы не мешал UI
-//        }
-//    }
-//}
-
-
-
-// ViewModel
-
-//extension SignInViewModel {
-//    func googleSignInWithPresenting(_ vc: UIViewController) {
-//        guard !isAuthOperationInProgress else { return }
-//        isAuthOperationInProgress = true
-//        signInState = .loading
 //
-//        authorizationManager.googleSignIn(presentingVC: vc)
-//    }
-//}
-
-
-
-// AuthorizationManager и AuthorizationService
-
-//class AuthorizationManager {
-//    private let authService: AuthorizationService
-//    private var cancellables = Set<AnyCancellable>()
-//
-//    func googleSignIn(presentingVC: UIViewController) {
-//        authService.signInWithGoogle(intent: .signIn, presentingVC: presentingVC)
-//            .receive(on: DispatchQueue.main)
-//            .sink { completion in
-//                // обработка ошибок/успеха
-//            } receiveValue: { _ in }
-//            .store(in: &cancellables)
-//    }
-//}
-
-//func signInWithGoogle(intent: GoogleAuthIntent, presentingVC: UIViewController) -> AnyPublisher<Void, Error> {
-//    currentUserPublisher()
-//        .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
-//            guard let self else {
-//                return Fail(error: FirebaseInternalError.defaultError).eraseToAnyPublisher()
-//            }
-//            return self.getGoogleCredential(presentingVC: presentingVC)
-//                .flatMap { credential -> AnyPublisher<Void, Error> in
-//                    switch intent {
-//                    case .signIn:
-//                        return self.googleSignInReplacingSession(credential: credential)
-//                    case .signUp:
-//                        if user.isAnonymous {
-//                            return self.googleLinkAnonymous(user: user, credential: credential)
-//                        } else {
-//                            return self.googleSignInReplacingSession(credential: credential)
-//                        }
-//                    }
-//                }
-//                .eraseToAnyPublisher()
-//        }
-//        .eraseToAnyPublisher()
-//}
-
-//private func getGoogleCredential(presentingVC: UIViewController) -> AnyPublisher<AuthCredential, Error> {
-//    Future<AuthCredential, Error> { promise in
-//        guard let clientID = FirebaseApp.app()?.options.clientID else {
-//            return promise(.failure(FirebaseInternalError.defaultError))
-//        }
-//        let config = GIDConfiguration(clientID: clientID)
-//        GIDSignIn.sharedInstance.configuration = config
-//
-//        DispatchQueue.main.async {
 //            GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
 //                if let error = error {
+//                    print("❌ [GoogleAuth] Ошибка при signIn: \(error.localizedDescription)")
 //                    return promise(.failure(error))
 //                }
-//                guard let gUser = result?.user,
-//                      let idToken = gUser.idToken?.tokenString else {
+//                guard
+//                    let gUser = result?.user,
+//                    let idToken = gUser.idToken?.tokenString
+//                else {
+//                    print("❌ [GoogleAuth] Нет idToken")
 //                    return promise(.failure(FirebaseInternalError.defaultError))
 //                }
 //                let accessToken = gUser.accessToken.tokenString
+//                print("✅ [GoogleAuth] Получены токены: idToken длина=\(idToken.count), accessToken длина=\(accessToken.count)")
 //                let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
 //                promise(.success(credential))
 //            }
 //        }
+//        .eraseToAnyPublisher()
 //    }
-//    .eraseToAnyPublisher()
-//}
+//
+
+
+
 
 
 
