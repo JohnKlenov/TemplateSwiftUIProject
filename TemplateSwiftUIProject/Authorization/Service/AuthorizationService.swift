@@ -918,6 +918,7 @@ extension AuthorizationService {
                 print("📱 [GoogleAuth] presentingVC найден: \(presentingVC)")
 
                 GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
+                    print("GIDSignIn.sharedInstance.signIn")
                     if let error = error {
                         print("❌ [GoogleAuth] Ошибка при signIn: \(error.localizedDescription)")
                         return promise(.failure(error))

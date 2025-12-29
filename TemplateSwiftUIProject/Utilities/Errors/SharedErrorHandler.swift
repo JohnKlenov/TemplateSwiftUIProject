@@ -249,89 +249,16 @@
 
 
 
+/// 📌 Кратко: варианты тестирования ошибок Google Sign-In
+///
+/// - Отмена: пользователь закрывает окно входа → NSError code -1
+/// - Неверный clientID: указать неправильный clientID в GIDConfiguration → NSError code -5
+/// - Нет валидных токенов: очистить Keychain или вызвать restorePreviousSignIn после signOut → NSError code -4
+/// - Ошибка сети: отключить интернет во время входа → NSError code -6
+/// - Ошибка scope: запросить дополнительные разрешения и отклонить их на экране согласия → NSError code -9
+///
+/// 👉 Для unit-тестов можно замокать GIDSignIn и вернуть NSError(domain: "com.google.GIDSignIn", code: X)
 
-
-
-
-//class SharedErrorHandler: ErrorHandlerProtocol {
-//    
-//    private let RealtimeDatabaseErrorDomain = "com.firebase.database"
-//    private let GoogleSignInErrorDomain = "com.google.GIDSignIn"
-//    
-//    func handle(error: (any Error)?) -> String {
-//        print("SharedErrorHandler shared error - \(String(describing: error?.localizedDescription))")
-//        
-//        guard let error = error else {
-//            return Localized.FirebaseInternalError.defaultError
-//        }
-//        
-//        if let decodingError = error as? DecodingError {
-//            return handleDecodingError(decodingError)
-//        }
-//        
-//        if let pickerError = error as? PhotoPickerError {
-//            return handlePhotoPickerError(pickerError)
-//        }
-//        
-//        if let nsError = error as NSError? {
-//            if let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
-//                return handleAuthError(authErrorCode)
-//            }
-//            if nsError.domain == FirestoreErrorDomain {
-//                return handleFirestoreError(nsError)
-//            }
-//            if let storageErrorCode = StorageErrorCode(rawValue: nsError.code) {
-//                return handleStorageError(storageErrorCode)
-//            }
-//            if nsError.domain == RealtimeDatabaseErrorDomain {
-//                return handleRealtimeDatabaseError(nsError)
-//            }
-//            if nsError.domain == "Anonymous Auth" {
-//                return Localized.FirebaseInternalError.anonymousAuthError
-//            }
-//            if nsError.domain == GoogleSignInErrorDomain {
-//                return handleGoogleSignInError(nsError)
-//            }
-//        }
-//        
-//        if let customError = error as? FirebaseInternalError {
-//            return customError.errorDescription ?? Localized.FirebaseInternalError.defaultError
-//        }
-//        
-//        return Localized.FirebaseInternalError.defaultError
-//    }
-//    
-//    // 🔹 Вынесенная реализация для Google Sign-In
-//    private func handleGoogleSignInError(_ nsError: NSError) -> String {
-//        switch nsError.code {
-//        case -1:
-//            return Localized.GoogleSignInError.cancelled
-//        case -2:
-//            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
-//            return Localized.GoogleSignInError.keychainError
-//        case -3:
-//            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
-//            return Localized.GoogleSignInError.noHandlers
-//        case -4:
-//            return Localized.GoogleSignInError.noValidTokens
-//        case -5:
-//            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
-//            return Localized.GoogleSignInError.invalidClientID
-//        case -6:
-//            return Localized.GoogleSignInError.networkError
-//        case -7:
-//            return Localized.GoogleSignInError.serverError
-//        case -8:
-//            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
-//            return Localized.GoogleSignInError.tokenExchangeFailed
-//        case -9:
-//            return Localized.GoogleSignInError.scopeError
-//        default:
-//            Crashlytics.crashlytics().record(error: nsError) // ❗ неизвестная ошибка → логируем
-//            return Localized.FirebaseInternalError.defaultError
-//        }
-//    }
-//}
 
 
 import FirebaseAuth
@@ -346,6 +273,7 @@ protocol ErrorHandlerProtocol {
 class SharedErrorHandler: ErrorHandlerProtocol {
     
     private let RealtimeDatabaseErrorDomain = "com.firebase.database"
+    private let GoogleSignInErrorDomain = "com.google.GIDSignIn"
 
     func handle(error: (any Error)?) -> String {
         print("SharedErrorHandler shared error - \(String(describing: error?.localizedDescription))")
@@ -366,6 +294,7 @@ class SharedErrorHandler: ErrorHandlerProtocol {
         
         // Преобразуем ошибку в NSError для работы с кодами и доменами
         if let nsError = error as NSError? {
+            print("📥 [SharedErrorHandler] Получен NSError: domain=\(nsError.domain), code=\(nsError.code), description=\(nsError.localizedDescription)")
             if let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
                 return handleAuthError(authErrorCode)
             }
@@ -380,6 +309,9 @@ class SharedErrorHandler: ErrorHandlerProtocol {
             }
             if nsError.domain == "Anonymous Auth" {
                 return Localized.FirebaseInternalError.anonymousAuthError
+            }
+            if nsError.domain == GoogleSignInErrorDomain {
+                return handleGoogleSignInError(nsError)
             }
         }
         
@@ -420,6 +352,78 @@ class SharedErrorHandler: ErrorHandlerProtocol {
 
         // Возвращаем пользователю нейтральное сообщение
         return Localized.FirebaseInternalError.defaultError
+    }
+    
+    // Вынесенная реализация для GIDSignIn.sharedInstance.signIn
+    private func handleGoogleSignInError(_ nsError: NSError) -> String {
+        // ✅ Логируем входящие данные
+        print("🔍 [GoogleSignInError] domain=\(nsError.domain), code=\(nsError.code), description=\(nsError.localizedDescription)")
+        
+        switch nsError.code {
+        case -1:
+            // unknown — неизвестная ошибка
+            return Localized.FirebaseInternalError.defaultError
+
+        case -2:
+            // keychain — ошибка доступа к Keychain
+            return Localized.GoogleSignInError.keychainError
+
+        case -3:
+            // noCurrentUser — нет текущего пользователя (например, вызов API без авторизации)
+            return Localized.GoogleSignInError.noHandlers
+
+        case -4:
+            // hasNoAuthInKeychain — нет сохранённых токенов в Keychain
+            return Localized.GoogleSignInError.noValidTokens
+
+        case -5:
+            // canceled — пользователь отменил вход
+            return Localized.GoogleSignInError.cancelled
+
+        case -6:
+            // EMM — ошибка Enterprise Mobility Management (ограничения корпоративной политики)
+            return Localized.GoogleSignInError.networkError // ⚠️ можно завести отдельный ключ, если нужно различать
+
+        case -7:
+            // scopesAlreadyGranted — запрошенные scope уже были предоставлены
+            return Localized.GoogleSignInError.serverError // ⚠️ лучше завести отдельный ключ, например .scopesAlreadyGranted
+
+        case -8:
+            // mismatchWithCurrentUser — несоответствие текущему пользователю
+            return Localized.GoogleSignInError.tokenExchangeFailed // ⚠️ лучше завести отдельный ключ, например .userMismatch
+
+        default:
+            // неизвестная ошибка → логируем
+            return Localized.FirebaseInternalError.defaultError
+        }
+
+//        switch nsError.code {
+//        case -1:
+//            return Localized.GoogleSignInError.cancelled
+//        case -2:
+////            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
+//            return Localized.GoogleSignInError.keychainError
+//        case -3:
+////            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
+//            return Localized.GoogleSignInError.noHandlers
+//        case -4:
+//            return Localized.GoogleSignInError.noValidTokens
+//        case -5:
+////            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
+//            return Localized.GoogleSignInError.invalidClientID
+//        case -6:
+//            return Localized.GoogleSignInError.networkError
+//        case -7:
+//            return Localized.GoogleSignInError.serverError
+//        case -8:
+////            Crashlytics.crashlytics().record(error: nsError) // ❗ обязательно логировать
+//            return Localized.GoogleSignInError.tokenExchangeFailed
+//        case -9:
+//            return Localized.GoogleSignInError.scopeError
+//        default:
+////            Crashlytics.crashlytics().record(error: nsError) // ❗ неизвестная ошибка → логируем
+//            return Localized.FirebaseInternalError.defaultError
+//        }
     }
     
     private func handlePhotoPickerError(_ pickerError: PhotoPickerError) -> String {

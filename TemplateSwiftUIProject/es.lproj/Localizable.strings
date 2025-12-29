@@ -227,6 +227,20 @@
 "error.realtime_database.authentication_required" = "Se requiere autenticación del usuario. Por favor, inicie sesión e inténtelo de nuevo.";
 "error.realtime_database.generic" = "Ocurrió un error en la base de datos en tiempo real. Por favor, inténtelo de nuevo.";
 
+
+/* Errores de Google Sign-In */
+"error.google_signin.default_error" = "Ocurrió un error durante el inicio de sesión con Google.";
+"error.google_signin.cancelled" = "El inicio de sesión fue cancelado por el usuario.";
+"error.google_signin.keychain_error" = "No se pudo acceder a las credenciales guardadas.";
+"error.google_signin.no_handlers" = "No hay métodos de inicio de sesión configurados.";
+"error.google_signin.no_valid_tokens" = "No se encontraron tokens de autenticación válidos.";
+"error.google_signin.invalid_client_id" = "ID de cliente o configuración inválida.";
+"error.google_signin.network_error" = "Error de red durante el inicio de sesión.";
+"error.google_signin.server_error" = "El servidor de Google devolvió un error.";
+"error.google_signin.token_exchange_failed" = "Error al intercambiar los tokens de autenticación.";
+"error.google_signin.scope_error" = "Los permisos solicitados fueron denegados.";
+
+
 /* PhotoPickerError */
 "error.photo_picker.no_item_available" = "El elemento seleccionado no está disponible.";
 "error.photo_picker.item_unavailable" = "No se puede cargar el elemento.";

@@ -256,7 +256,20 @@ enum Localized {
         static let generic = "error.realtime_database.generic"
     }
     
-    
+    // MARK: - Google SignIn Errors
+    enum GoogleSignInError {
+        static var defaultError = "error.google_signin.default_error"
+        static var cancelled = "error.google_signin.cancelled"
+        static var keychainError = "error.google_signin.keychain_error"
+        static var noHandlers = "error.google_signin.no_handlers"
+        static var noValidTokens = "error.google_signin.no_valid_tokens"
+        static var invalidClientID = "error.google_signin.invalid_client_id"
+        static var networkError = "error.google_signin.network_error"
+        static var serverError = "error.google_signin.server_error"
+        static var tokenExchangeFailed = "error.google_signin.token_exchange_failed"
+        static var scopeError = "error.google_signin.scope_error"
+    }
+
         
         // MARK: - PhotoPickerError
         enum PhotoPickerError {
