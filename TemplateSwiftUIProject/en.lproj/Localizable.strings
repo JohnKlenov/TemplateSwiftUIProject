@@ -229,16 +229,24 @@
 "error.realtime_database.generic" = "An realtime database error occurred. Please try again.";
 
 /* Google Sign-In Errors */
-"error.google_signin.default_error" = "Something went wrong during Google Sign-In.";
+//по документации iOS SDK
+"error.google_signin.default_error" = "An unknown error occurred during Google Sign-In.";
+"error.google_signin.keychain_error" = "Keychain access error.";
+"error.google_signin.no_handlers" = "No current user.";
+"error.google_signin.no_auth_in_keychain" = "No authentication tokens found in Keychain.";
 "error.google_signin.cancelled" = "Sign-In was cancelled by the user.";
-"error.google_signin.keychain_error" = "Failed to access saved credentials.";
-"error.google_signin.no_handlers" = "No available sign-in methods configured.";
+"error.google_signin.emm_error" = "Enterprise policy restrictions prevented sign-in.";
+"error.google_signin.scopes_already_granted" = "Requested scopes have already been granted.";
+"error.google_signin.user_mismatch" = "The signed-in user does not match the current user.";
+// Возможные/кастомные ошибки Google Sign-In
 "error.google_signin.no_valid_tokens" = "No valid authentication tokens found.";
 "error.google_signin.invalid_client_id" = "Invalid client ID or configuration.";
 "error.google_signin.network_error" = "Network error occurred during sign-in.";
 "error.google_signin.server_error" = "Google server returned an error.";
 "error.google_signin.token_exchange_failed" = "Failed to exchange authentication tokens.";
 "error.google_signin.scope_error" = "Requested permissions were denied.";
+
+
 
 
 /* PhotoPickerError */

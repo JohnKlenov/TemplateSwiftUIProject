@@ -230,10 +230,16 @@
 "error.realtime_database.generic" = "Произошла ошибка базы данных в реальном времени. Пожалуйста, попробуйте еще раз.";
 
 /* Ошибки Google Sign-In */
-"error.google_signin.default_error" = "Произошла ошибка при входе через Google.";
+//по документации iOS SDK
+"error.google_signin.default_error" = "Произошла неизвестная ошибка при входе через Google.";
+"error.google_signin.keychain_error" = "Ошибка доступа к Keychain.";
+"error.google_signin.no_handlers" = "Нет текущего пользователя.";
+"error.google_signin.no_auth_in_keychain" = "В Keychain не найдено токенов авторизации.";
 "error.google_signin.cancelled" = "Вход был отменён пользователем.";
-"error.google_signin.keychain_error" = "Не удалось получить сохранённые данные.";
-"error.google_signin.no_handlers" = "Нет доступных способов входа.";
+"error.google_signin.emm_error" = "Корпоративная политика запретила вход.";
+"error.google_signin.scopes_already_granted" = "Запрошенные права уже были предоставлены.";
+"error.google_signin.user_mismatch" = "Вошедший пользователь не совпадает с текущим.";
+// Возможные/кастомные ошибки Google Sign-In
 "error.google_signin.no_valid_tokens" = "Не найдены действительные токены авторизации.";
 "error.google_signin.invalid_client_id" = "Неверный client ID или конфигурация.";
 "error.google_signin.network_error" = "Ошибка сети при входе.";

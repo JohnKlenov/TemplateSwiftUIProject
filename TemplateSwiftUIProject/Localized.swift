@@ -158,6 +158,7 @@ enum Localized {
     
     
     // MARK: - Custom Firebase Error -
+
     
     enum FirebaseInternalError {
         static var defaultError = "error.custom_firebase.default_error"
@@ -257,17 +258,25 @@ enum Localized {
     }
     
     // MARK: - Google SignIn Errors
+    
     enum GoogleSignInError {
-        static var defaultError = "error.google_signin.default_error"
-        static var cancelled = "error.google_signin.cancelled"
-        static var keychainError = "error.google_signin.keychain_error"
-        static var noHandlers = "error.google_signin.no_handlers"
-        static var noValidTokens = "error.google_signin.no_valid_tokens"
-        static var invalidClientID = "error.google_signin.invalid_client_id"
-        static var networkError = "error.google_signin.network_error"
-        static var serverError = "error.google_signin.server_error"
+        // 📌 Основные ошибки (строго по документации iOS SDK)
+        static var defaultError        = "error.google_signin.default_error"          // -1 → unknown
+        static var keychainError       = "error.google_signin.keychain_error"         // -2 → keychain
+        static var noHandlers          = "error.google_signin.no_handlers"            // -3 → noCurrentUser
+        static var noAuthInKeychain    = "error.google_signin.no_auth_in_keychain"    // -4 → hasNoAuthInKeychain
+        static var cancelled           = "error.google_signin.cancelled"              // -5 → canceled
+        static var emmError            = "error.google_signin.emm_error"              // -6 → emmError
+        static var scopesAlreadyGranted = "error.google_signin.scopes_already_granted"// -7 → scopesAlreadyGranted
+        static var userMismatch        = "error.google_signin.user_mismatch"          // -8 → mismatchWithCurrentUser
+
+        // 📌 Возможные/кастомные ошибки (оставляем для совместимости)
+        static var noValidTokens       = "error.google_signin.no_valid_tokens"
+        static var invalidClientID     = "error.google_signin.invalid_client_id"
+        static var networkError        = "error.google_signin.network_error"
+        static var serverError         = "error.google_signin.server_error"
         static var tokenExchangeFailed = "error.google_signin.token_exchange_failed"
-        static var scopeError = "error.google_signin.scope_error"
+        static var scopeError          = "error.google_signin.scope_error"
     }
 
         

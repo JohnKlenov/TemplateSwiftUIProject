@@ -317,6 +317,11 @@ final class AuthorizationManager: ObservableObject {
                 switch completion {
                 case .failure(let err):
                     // Если ошибка credentialAlreadyInUse при анонимной линковке — сообщаем пользователю использовать Sign In (то есть такой googleAccount уже есть и link выполняется с ошибкой)
+                    if self.isGoogleSignInCancelled(err) { 
+                        // Пользователь отменил вход → ничего не делаем
+                        print("Пользователь нажал Отмена → ничего не делаем")
+                        return
+                    }
                     self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
                 case .finished:
                     NotificationCenter.default.post(
@@ -381,6 +386,11 @@ final class AuthorizationManager: ObservableObject {
                 
                 switch completion {
                 case .failure(let err):
+                    if self.isGoogleSignInCancelled(err) {
+                        // Пользователь отменил вход → ничего не делаем
+                        print("Пользователь нажал Отмена → ничего не делаем")
+                        return
+                    }
                     self.handleAuthenticationError(err, operationDescription: "Аутентификация")
                 case .finished:
                     NotificationCenter.default.post(
@@ -398,6 +408,18 @@ final class AuthorizationManager: ObservableObject {
             } receiveValue: { _ in }
             .store(in: &cancellables)
     }
+    
+    // Google Sign-In Error Helpers
+    private func isGoogleSignInCancelled(_ error: Error) -> Bool {
+        guard let nsError = error as NSError?,
+              nsError.domain == "com.google.GIDSignIn",
+              let code = GoogleSignInErrorCode(rawValue: nsError.code),
+              code == .canceled else {
+            return false
+        }
+        return true
+    }
+
     
     
     // MARK: - Delete Account
