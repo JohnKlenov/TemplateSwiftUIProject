@@ -55,6 +55,48 @@
 /* Profile Navigation Stack */
 
 
+
+/* Profile View */
+"profile.title" = "Аккаунт";
+
+/* ToggleCellView */
+"profile.toggleCellView.notification" = "Уведомления";
+"profile.toggleCellView.dark_mode" = "Тёмная тема";
+
+/* NavigationCellView */
+"profile.navigationCellView.change_language" = "Сменить язык";
+"profile.navigationCellView.about_us" = "О нас";
+"profile.navigationCellView.create_account" = "Создать аккаунт";
+
+/* DeleteAccountCellView */
+"profile.deleteAccountCellView.delete_account" = "Удалить аккаунт";
+"profile.deleteAccountCellView.confirmation_title" = "Удалить аккаунт";
+"profile.deleteAccountCellView.confirmation_message" = "Вы уверены, что хотите удалить аккаунт? Это действие нельзя отменить.";
+"profile.deleteAccountCellView.confirmation_delete_button" = "Удалить";
+"profile.deleteAccountCellView.confirmation_cancel_button" = "Отмена";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Gallery Navigation Stack */
 
 "gallery.title" = "Галерея";

@@ -56,6 +56,43 @@
 /* Profile Navigation Stack */
 
 
+
+
+/* Profile View */
+"profile.title" = "Cuenta";
+
+/* ToggleCellView */
+"profile.toggleCellView.notification" = "Notificaciones";
+"profile.toggleCellView.dark_mode" = "Modo oscuro";
+
+/* NavigationCellView */
+"profile.navigationCellView.change_language" = "Cambiar idioma";
+"profile.navigationCellView.about_us" = "Sobre nosotros";
+"profile.navigationCellView.create_account" = "Crear cuenta";
+
+/* DeleteAccountCellView */
+"profile.deleteAccountCellView.delete_account" = "Eliminar cuenta";
+"profile.deleteAccountCellView.confirmation_title" = "Eliminar cuenta";
+"profile.deleteAccountCellView.confirmation_message" = "¿Está seguro de que desea eliminar su cuenta? Esta acción no se puede deshacer.";
+"profile.deleteAccountCellView.confirmation_delete_button" = "Eliminar";
+"profile.deleteAccountCellView.confirmation_cancel_button" = "Cancelar";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Gallery Navigation Stack */
 
 "gallery.title" = "Galería";

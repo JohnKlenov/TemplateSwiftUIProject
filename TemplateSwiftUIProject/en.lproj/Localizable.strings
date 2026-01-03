@@ -58,6 +58,36 @@
 /* Profile Navigation Stack */
 
 
+/* Profile View */
+"profile.title" = "Account";
+
+/* ToggleCellView */
+"profile.toggleCellView.notification" = "Notification";
+"profile.toggleCellView.dark_mode" = "Dark mode";
+
+/* NavigationCellView */
+"profile.navigationCellView.change_language" = "Change language";
+"profile.navigationCellView.about_us" = "About Us";
+"profile.navigationCellView.create_account" = "Create Account";
+
+/* DeleteAccountCellView */
+"profile.deleteAccountCellView.delete_account" = "Delete Account";
+"profile.deleteAccountCellView.confirmation_title" = "Delete Account";
+"profile.deleteAccountCellView.confirmation_message" = "Are you sure you want to delete your account? This action cannot be undone.";
+"profile.deleteAccountCellView.confirmation_delete_button" = "Delete";
+"profile.deleteAccountCellView.confirmation_cancel_button" = "Cancel";
+
+
+
+
+
+
+
+
+
+
+
+
 /* Gallery Navigation Stack */
 
 "gallery.title" = "Gallery";

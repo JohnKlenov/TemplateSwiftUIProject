@@ -145,7 +145,7 @@
 
 // ✅ forgot password for ReauthenticateView and SignIn
 
-// add new provaider auth (Apple + Google)
+// ✅ add new provaider auth (Apple(account developer) + Google)
 
 // second queue
 // Добавить локализацию текста (использовать Localizable.strings) Profile views + child class. (локализаций текстов в nextButton для ChangeLanguageView)

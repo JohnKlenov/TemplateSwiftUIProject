@@ -6,6 +6,8 @@
 //
 //        static let homeTest = "tab.home"
 
+
+
 import Foundation
 
 enum Localized {
@@ -87,8 +89,32 @@ enum Localized {
     }
     
     // MARK: - Profile Navigation Stack
-    // (Добавьте локализованные строки для Profile, если они будут)
     
+        // MARK: - Profile View
+        enum Profile {
+            static let title = "profile.title"
+            
+            enum ToggleCellView {
+                static let notification = "profile.toggleCellView.notification"
+                static let darkMode = "profile.toggleCellView.dark_mode"
+            }
+            
+            enum NavigationCellView {
+                static let changeLanguage = "profile.navigationCellView.change_language"
+                static let aboutUs = "profile.navigationCellView.about_us"
+                static let createAccount = "profile.navigationCellView.create_account"
+            }
+            
+            enum DeleteAccountCellView {
+                static let deleteAccount = "profile.deleteAccountCellView.delete_account"
+                static let confirmationTitle = "profile.deleteAccountCellView.confirmation_title"
+                static let confirmationMessage = "profile.deleteAccountCellView.confirmation_message"
+                static let confirmationDeleteButton = "profile.deleteAccountCellView.confirmation_delete_button"
+                static let confirmationCancelButton = "profile.deleteAccountCellView.confirmation_cancel_button"
+            }
+        }
+    
+
     // MARK: - Gallery Navigation Stack
     // (Добавьте локализованные строки для Gallery, если они будут)
     
