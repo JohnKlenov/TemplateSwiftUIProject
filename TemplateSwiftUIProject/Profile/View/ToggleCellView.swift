@@ -10,7 +10,9 @@ import SwiftUI
 
 
 struct ToggleCellView: View {
+    
     @EnvironmentObject var localization: LocalizationService
+    
     let title: AccountRowTitle
     @Binding var isOn: Bool
 

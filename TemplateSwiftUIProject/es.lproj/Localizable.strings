@@ -77,6 +77,17 @@
 "profile.deleteAccountCellView.confirmation_delete_button" = "Eliminar";
 "profile.deleteAccountCellView.confirmation_cancel_button" = "Cancelar";
 
+/* UserInfoCellView */
+"profile.userInfoCellView.guest" = "Invitado";
+"profile.userInfoCellView.no_name" = "Sin nombre";
+"profile.userInfoCellView.anonymous_mode" = "Modo anónimo";
+"profile.userInfoCellView.error" = "Error al cargar el perfil";
+"profile.userInfoCellView.loading" = "Cargando...";
+"profile.userInfoCellView.no_last_name" = "Apellido no especificado";
+
+
+/* ChangeLanguageView */
+"profile.changeLanguageView.title" = "Cambiar idioma";
 
 
 

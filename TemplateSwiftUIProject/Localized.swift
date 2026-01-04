@@ -112,7 +112,22 @@ enum Localized {
                 static let confirmationDeleteButton = "profile.deleteAccountCellView.confirmation_delete_button"
                 static let confirmationCancelButton = "profile.deleteAccountCellView.confirmation_cancel_button"
             }
+            
+            enum UserInfoCellView {
+                static let guest = "profile.userInfoCellView.guest"
+                static let noName = "profile.userInfoCellView.no_name"
+                static let anonymousMode = "profile.userInfoCellView.anonymous_mode"
+                static let error = "profile.userInfoCellView.error"
+                static let loading = "profile.userInfoCellView.loading"
+                static let noLastName = "profile.userInfoCellView.no_last_name"
+            }
         }
+    
+    // ChangeLanguageView
+    enum ChangeLanguageView {
+        static let title = "profile.changeLanguageView.title"
+    }
+
     
 
     // MARK: - Gallery Navigation Stack

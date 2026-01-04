@@ -5,9 +5,11 @@
 //  Created by Evgenyi on 29.11.25.
 //
 
+
 import SwiftUI
 
 struct ChangeLanguageView: View {
+    
     @ObservedObject var viewModel: ChangeLanguageViewModel
     @EnvironmentObject var localization: LocalizationService
     
@@ -20,12 +22,12 @@ struct ChangeLanguageView: View {
                     Text(viewModel.displayName(for: code))
                     Spacer()
                     if code == viewModel.selectedLanguage {
-                        Image(systemName: "checkmark")
+                        Image(systemName: AppIcons.ChangeLanguageView.checkmark)
                     }
                 }
             }
         }
-        .navigationTitle("Change Language")
+        .navigationTitle(Localized.ChangeLanguageView.title.localized())
     }
 }
 

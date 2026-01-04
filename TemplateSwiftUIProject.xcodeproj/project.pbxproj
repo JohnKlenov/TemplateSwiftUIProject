@@ -90,6 +90,7 @@
 		5EAF5B132D367E7E00D96FD6 /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B122D367E7E00D96FD6 /* ContentViewModel.swift */; };
 		5EAF5B1B2D4B863B00D96FD6 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */; };
 		5EB96B552EF4213500C7CDBC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5EB96B542EF4213500C7CDBC /* GoogleService-Info.plist */; };
+		5EB96B582F0A9E8900C7CDBC /* AppIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB96B572F0A9E8900C7CDBC /* AppIcons.swift */; };
 		5EBFD5C22E055CBC00A3C74C /* SignUpViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */; };
 		5EBFD5C42E1008C000A3C74C /* LifeCycleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */; };
 		5EBFD5C62E1A868E00A3C74C /* RunLoopSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */; };
@@ -225,6 +226,7 @@
 		5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		5EB96B542EF4213500C7CDBC /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5EB96B562EF422DB00C7CDBC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5EB96B572F0A9E8900C7CDBC /* AppIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIcons.swift; sourceTree = "<group>"; };
 		5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewInjected.swift; sourceTree = "<group>"; };
 		5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeCycleView.swift; sourceTree = "<group>"; };
 		5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLoopSetting.swift; sourceTree = "<group>"; };
@@ -901,6 +903,7 @@
 				5EC949F42CBBF5F7003736A9 /* AppDelegate.swift */,
 				5E8F9C942D65F4F2004036F6 /* Localizable.strings */,
 				5E8F9C992D65F573004036F6 /* Localized.swift */,
+				5EB96B572F0A9E8900C7CDBC /* AppIcons.swift */,
 			);
 			path = TemplateSwiftUIProject;
 			sourceTree = "<group>";
@@ -1240,6 +1243,7 @@
 				5E8F9C9D2D6F53E3004036F6 /* LocalizationService.swift in Sources */,
 				5EBFD5CE2E1D015000A3C74C /* DeleteAccountCellView.swift in Sources */,
 				5EBFD5C82E1AA15400A3C74C /* SignInViewInjected.swift in Sources */,
+				5EB96B582F0A9E8900C7CDBC /* AppIcons.swift in Sources */,
 				5EBFD5CA2E1CFF4A00A3C74C /* ContentAccountViewInjected.swift in Sources */,
 				5EC88EE32DB2347800A95224 /* NavigationCellView.swift in Sources */,
 				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,

@@ -75,7 +75,17 @@
 "profile.deleteAccountCellView.confirmation_delete_button" = "Удалить";
 "profile.deleteAccountCellView.confirmation_cancel_button" = "Отмена";
 
+/* UserInfoCellView */
+"profile.userInfoCellView.guest" = "Гость";
+"profile.userInfoCellView.no_name" = "Без имени";
+"profile.userInfoCellView.anonymous_mode" = "Анонимный режим";
+"profile.userInfoCellView.error" = "Ошибка загрузки профиля";
+"profile.userInfoCellView.loading" = "Загрузка...";
+"profile.userInfoCellView.no_last_name" = "Фамилия не указана";
 
+
+/* ChangeLanguageView */
+"profile.changeLanguageView.title" = "Сменить язык";
 
 
 

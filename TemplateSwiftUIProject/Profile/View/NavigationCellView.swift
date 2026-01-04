@@ -11,10 +11,12 @@ import SwiftUI
 import FirebaseAuth
 
 struct NavigationCellView: View {
-    let title: AccountRowTitle
-    let destination: AccountFlow
+    
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var accountCoordinator: AccountCoordinator
+    
+    let title: AccountRowTitle
+    let destination: AccountFlow
 
     var body: some View {
         HStack {
@@ -28,7 +30,7 @@ struct NavigationCellView: View {
             
             Spacer()
             
-            Image(systemName: "chevron.right")
+            Image(systemName: AppIcons.Profile.NavigationCellView.chevron)
                 .foregroundColor(AppColors.gray)
                 .imageScale(.small)
         }

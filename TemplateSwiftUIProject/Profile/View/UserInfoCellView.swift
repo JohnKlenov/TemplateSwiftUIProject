@@ -12,7 +12,9 @@ import SwiftUI
 
 
 struct UserInfoCellView: View {
+    
     @ObservedObject var viewModel: ContentAccountViewModel
+    @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var accountCoordinator: AccountCoordinator
     
     private var isLoading: Bool {
@@ -80,7 +82,7 @@ struct UserInfoCellView: View {
             )
             .clipShape(Circle())
         } else {
-            Image(systemName: "person.circle.fill")
+            Image(systemName: AppIcons.Profile.UserInfoCellView.avatarPlaceholder)
                 .resizable()
                 .frame(width: 60, height: 60)
                 .foregroundColor(.gray)
@@ -92,14 +94,14 @@ struct UserInfoCellView: View {
     private var stateIndicatorView: some View {
         if isError {
             Button(action: viewModel.retryUserProfile) {
-                Image(systemName: "arrow.clockwise.circle.fill")
+                Image(systemName: AppIcons.Profile.UserInfoCellView.retry)
                     .resizable()
                     .frame(width: 24, height: 24)
                     .foregroundColor(.red)
             }
             .buttonStyle(.plain)
         } else {
-            Image(systemName: "chevron.right")
+            Image(systemName: AppIcons.Profile.UserInfoCellView.chevron)
                 .foregroundColor(AppColors.gray)
         }
     }
@@ -110,7 +112,7 @@ struct UserInfoCellView: View {
     
     private var displayName: String? {
         if viewModel.isUserAnonymous {
-            return "Гость"
+            return Localized.Profile.UserInfoCellView.guest.localized()
         }
         if case .failure = viewModel.profileLoadingState {
             return nil // В случае ошибки скроем displayName
@@ -119,20 +121,20 @@ struct UserInfoCellView: View {
         if case .loading = viewModel.profileLoadingState {
             return nil // В случае первой или retry загрузки
         }
-        return viewModel.userProfile?.name ?? "Без имени"
+        return viewModel.userProfile?.name ?? Localized.Profile.UserInfoCellView.noName.localized()
     }
     
     private var lastName: String {  // Делаем опциональным
         if viewModel.isUserAnonymous {
-            return "Анонимный режим"
+            return Localized.Profile.UserInfoCellView.anonymousMode.localized()
         }
         if case .failure = viewModel.profileLoadingState {
-            return "Ошибка загрузки профиля"
+            return Localized.Profile.UserInfoCellView.error.localized()
         }
         if viewModel.profileLoadingState == .loading {
-            return "Загрузка..."
+            return Localized.Profile.UserInfoCellView.loading.localized()
         }
-        return viewModel.userProfile?.lastName ?? "Фамилия не указана"
+        return viewModel.userProfile?.lastName ?? Localized.Profile.UserInfoCellView.noLastName.localized()
     }
 }
 

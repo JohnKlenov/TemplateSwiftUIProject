@@ -38,12 +38,12 @@ enum AccountRowTitle: String, CaseIterable, Identifiable {
 
     var iconName: String {
         switch self {
-        case .notification: return "bell.fill"
-        case .darkMode: return "moon.fill"
-        case .changeLanguage: return "globe"
-        case .aboutUs: return "info.circle"
-        case .createAccount: return "person.crop.circle.badge.plus"
-        case .deleteAccount: return "trash"
+        case .notification: return AppIcons.Profile.ToggleCellView.notification
+        case .darkMode: return AppIcons.Profile.ToggleCellView.darkMode
+        case .changeLanguage: return AppIcons.Profile.NavigationCellView.changeLanguage
+        case .aboutUs: return AppIcons.Profile.NavigationCellView.aboutUs
+        case .createAccount: return AppIcons.Profile.NavigationCellView.createAccount
+        case .deleteAccount: return AppIcons.Profile.DeleteAccountCellView.deleteAccount
         }
     }
 }
@@ -83,6 +83,7 @@ extension AccountRow {
 
 
 struct ContentAccountView: View {
+    
     @EnvironmentObject var localization: LocalizationService
     @ObservedObject var viewModel: ContentAccountViewModel
     @State private var notificationsEnabled: Bool = true
@@ -143,6 +144,40 @@ struct ContentAccountView: View {
 
 
 
+
+
+//enum AccountRowTitle: String, CaseIterable, Identifiable {
+//    case notification
+//    case darkMode
+//    case changeLanguage
+//    case aboutUs
+//    case createAccount
+//    case deleteAccount
+//
+//    var id: String { rawValue }
+//
+//    var localizedKey: String {
+//        switch self {
+//        case .notification: return Localized.Profile.ToggleCellView.notification
+//        case .darkMode: return Localized.Profile.ToggleCellView.darkMode
+//        case .changeLanguage: return Localized.Profile.NavigationCellView.changeLanguage
+//        case .aboutUs: return Localized.Profile.NavigationCellView.aboutUs
+//        case .createAccount: return Localized.Profile.NavigationCellView.createAccount
+//        case .deleteAccount: return Localized.Profile.DeleteAccountCellView.deleteAccount
+//        }
+//    }
+//
+//    var iconName: String {
+//        switch self {
+//        case .notification: return "bell.fill"
+//        case .darkMode: return "moon.fill"
+//        case .changeLanguage: return "globe"
+//        case .aboutUs: return "info.circle"
+//        case .createAccount: return "person.crop.circle.badge.plus"
+//        case .deleteAccount: return "trash"
+//        }
+//    }
+//}
 
 // MARK: - before AccountRowTitle
 

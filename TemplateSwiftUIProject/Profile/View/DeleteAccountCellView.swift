@@ -13,16 +13,19 @@ import SwiftUI
 /// ведь let accountDeletionState не State не Binding?
 
 struct DeleteAccountCellView: View {
-    let accountDeletionState: AuthorizationManager.State
+    
     @EnvironmentObject var localization: LocalizationService
+    
+    let accountDeletionState: AuthorizationManager.State
+    let title: AccountRowTitle = .deleteAccount
     
     var body: some View {
         HStack {
-            Image(systemName: "trash")
+            Image(systemName: title.iconName)
                 .foregroundColor(.red)
                 .frame(width: 24, height: 24)
             
-            Text(Localized.Profile.DeleteAccountCellView.deleteAccount.localized())
+            Text(title.localizedKey.localized())
                 .foregroundColor(.red)
                 .padding(.leading, 8)
             
@@ -36,6 +39,34 @@ struct DeleteAccountCellView: View {
         .contentShape(Rectangle())
     }
 }
+
+
+
+
+//struct DeleteAccountCellView: View {
+//    let accountDeletionState: AuthorizationManager.State
+//    @EnvironmentObject var localization: LocalizationService
+//    
+//    var body: some View {
+//        HStack {
+//            Image(systemName: "trash")
+//                .foregroundColor(.red)
+//                .frame(width: 24, height: 24)
+//            
+//            Text(Localized.Profile.DeleteAccountCellView.deleteAccount.localized())
+//                .foregroundColor(.red)
+//                .padding(.leading, 8)
+//            
+//            Spacer()
+//            
+//            if accountDeletionState == .loading {
+//                ProgressView()
+//                    .progressViewStyle(CircularProgressViewStyle(tint: .red))
+//            }
+//        }
+//        .contentShape(Rectangle())
+//    }
+//}
 
 
 // MARK: - before AccountRowTitle
