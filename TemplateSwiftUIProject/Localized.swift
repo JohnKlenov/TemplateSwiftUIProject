@@ -127,6 +127,15 @@ enum Localized {
     enum ChangeLanguageView {
         static let title = "profile.changeLanguageView.title"
     }
+    
+    enum ReauthenticateView {
+        static let title = "profile.reauthenticateView.title"
+        static let forgotPassword = "profile.reauthenticateView.forgot_password"
+        static let confirm = "profile.reauthenticateView.confirm"
+        static let reauthGoogle = "profile.reauthenticateView.reauth_google"
+        static let reauthApple = "profile.reauthenticateView.reauth_apple"
+    }
+
 
     
 

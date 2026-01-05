@@ -57,6 +57,12 @@ enum AppIcons {
     enum ChangeLanguageView {
         static let checkmark = "checkmark"
     }
-
+    
+    enum ReauthenticateView {
+        static let appleLogo = "applelogo"
+        static let googleLogo = "googlelogo"
+        static let eye = "eye"
+        static let eyeSlash = "eye.slash"
+    }
 }
 

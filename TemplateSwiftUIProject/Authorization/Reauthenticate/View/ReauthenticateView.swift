@@ -37,7 +37,7 @@ struct ReauthenticateView: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     contentSection
                         .navigationBarTitleDisplayMode(.inline)
-                        .navigationTitle("Reauth")
+                        .navigationTitle(Localized.ReauthenticateView.title.localized())
                 }
 
             case .google, .apple:
@@ -50,7 +50,7 @@ struct ReauthenticateView: View {
                 }
                 .frame(maxHeight: .infinity)
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationTitle("Reauth")
+                .navigationTitle(Localized.ReauthenticateView.title.localized())
 
             case .none:
                 EmptyView()
@@ -114,10 +114,9 @@ struct ReauthenticateView: View {
         HStack {
             Spacer()
             Button(action: {
-                print("Forgot Password tapped")
                 accountCoordinator.navigateTo(page: .forgotPassword)
             }) {
-                Text("Forgot Password?")
+                Text(Localized.ReauthenticateView.forgotPassword.localized())
                     .foregroundColor(.blue)
                     .fontWeight(.semibold)
             }
@@ -133,7 +132,7 @@ struct ReauthenticateView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle())
                 } else {
-                    Text("Confirm")
+                    Text(Localized.ReauthenticateView.confirm.localized())
                         .animation(nil, value: viewModel.emailError)
                         .animation(nil, value: viewModel.passwordError)
                 }
@@ -164,10 +163,8 @@ struct ReauthenticateView: View {
     }
     
     private var appleButton: some View {
-        Button(action: {
-            print("applelogo")
-        }) {
-            Image(systemName: "applelogo")
+        Button(action: { }) {
+            Image(systemName: AppIcons.ReauthenticateView.appleLogo)
                 .resizable()
                 .scaledToFit()
                 .padding()
@@ -180,10 +177,9 @@ struct ReauthenticateView: View {
     
     private var googleButton: some View {
         Button(action: {
-            print("googleButton")
             viewModel.reauthenticate()
         }) {
-            Image("googlelogo")
+            Image(AppIcons.ReauthenticateView.googleLogo)
                 .resizable()
                 .scaledToFit()
                 .padding()
@@ -196,15 +192,14 @@ struct ReauthenticateView: View {
     // тут пока не понятно стоит ли блокировать нажатие при .disabled(viewModel.isAuthOperationInProgress)
     private var googleFullButton: some View {
         Button(action: {
-            print("googleFullButton reauth tapped")
             viewModel.reauthenticate()
         }) {
             HStack(spacing: 12) {
-                Image("googlelogo")
+                Image(AppIcons.ReauthenticateView.googleLogo)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
-                Text("Reauthenticate with Google")
+                Text(Localized.ReauthenticateView.reauthGoogle.localized())
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
             }
@@ -217,16 +212,14 @@ struct ReauthenticateView: View {
     }
 
     private var appleFullButton: some View {
-        Button(action: {
-            print("Apple reauth tapped")
-        }) {
+        Button(action: { }) {
             HStack(spacing: 12) {
-                Image(systemName: "applelogo")
+                Image(systemName: AppIcons.ReauthenticateView.appleLogo)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
                     .tint(AppColors.primary)
-                Text("Reauthenticate with Apple")
+                Text(Localized.ReauthenticateView.reauthApple.localized())
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
             }
@@ -303,7 +296,7 @@ struct ReauthenticateView: View {
                     isPasswordVisible.toggle()
                     isFieldFocus = isPasswordVisible ? .passwordField : .securePasswordField
                 }) {
-                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                    Image(systemName: isPasswordVisible ? AppIcons.ReauthenticateView.eyeSlash : AppIcons.ReauthenticateView.eye)
                         .foregroundColor(.gray)
                 }
             }
