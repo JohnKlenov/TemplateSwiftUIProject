@@ -90,6 +90,58 @@
 "profile.changeLanguageView.title" = "Cambiar idioma";
 
 
+/* Auth View */
+
+
+/* SignUpView */
+"signup.email" = "Correo electrónico";
+"signup.email_placeholder" = "Ingrese correo electrónico";
+"signup.password" = "Contraseña";
+"signup.password_placeholder" = "Ingrese contraseña";
+"signup.register" = "Registrarse";
+"signup.or" = "O";
+"signup.already_have_account" = "¿Ya tienes una cuenta?";
+"signup.sign_in" = "Iniciar sesión";
+"signup.navigation_title" = "Crear cuenta";
+
+
+/* SignInView */
+"profile.signInView.title" = "Iniciar sesión";
+"profile.signInView.email" = "Correo electrónico";
+"profile.signInView.email_placeholder" = "Introduce tu correo";
+"profile.signInView.password" = "Contraseña";
+"profile.signInView.password_placeholder" = "Introduce tu contraseña";
+"profile.signInView.forgot_password" = "¿Olvidaste tu contraseña?";
+"profile.signInView.login" = "Acceder";
+"profile.signInView.or" = "O";
+"profile.signInView.no_account" = "¿No tienes una cuenta?";
+"profile.signInView.sign_up" = "Registrarse";
+"profile.signInView.anonymous_warning_title" = "Atención";
+"profile.signInView.anonymous_warning_message" = "Has iniciado sesión como invitado. Después de iniciar sesión, todos los datos no guardados se perderán. Para conservarlos, regístrate primero.";
+"profile.signInView.anonymous_warning_continue" = "Continuar inicio de sesión";
+"profile.signInView.anonymous_warning_cancel" = "Cancelar";
+
+
+/* ReauthenticateView */
+"profile.reauthenticateView.title" = "Reautenticación";
+"profile.reauthenticateView.forgot_password" = "¿Olvidaste tu contraseña?";
+"profile.reauthenticateView.confirm" = "Confirmar";
+"profile.reauthenticateView.reauth_google" = "Reautenticarse con Google";
+"profile.reauthenticateView.reauth_apple" = "Reautenticarse con Apple";
+"profile.reauthenticateView.email" = "Correo electrónico";
+"profile.reauthenticateView.email_placeholder" = "Introduce tu correo";
+"profile.reauthenticateView.password" = "Contraseña";
+"profile.reauthenticateView.password_placeholder" = "Introduce tu contraseña";
+"profile.reauthenticateView.or" = "O";
+
+
+/* ForgotPasswordView */
+"profile.forgotPasswordView.title" = "¿Olvidaste tu contraseña?";
+"profile.forgotPasswordView.email" = "Correo electrónico";
+"profile.forgotPasswordView.email_placeholder" = "Introduce tu correo";
+"profile.forgotPasswordView.send_reset_link" = "Enviar enlace de restablecimiento";
+
+
 
 
 
@@ -127,19 +179,6 @@
 "onboarding.page_discover.description" = "Descubre nuevas funciones";
 "onboarding.page_get_started.title" = "Comenzar";
 "onboarding.page_get_started.description" = "¡Vamos a empezar!";
-
-/* Auth View */
-
-/* SignUpView */
-"signup.email" = "Correo electrónico";
-"signup.email_placeholder" = "Ingrese correo electrónico";
-"signup.password" = "Contraseña";
-"signup.password_placeholder" = "Ingrese contraseña";
-"signup.register" = "Registrarse";
-"signup.or" = "O";
-"signup.already_have_account" = "¿Ya tienes una cuenta?";
-"signup.sign_in" = "Iniciar sesión";
-"signup.navigation_title" = "Crear cuenta";
 
 
 

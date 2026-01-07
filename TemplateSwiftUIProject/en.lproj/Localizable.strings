@@ -91,6 +91,64 @@
 
 
 
+/* Auth View */
+
+
+/* ReauthenticateView */
+"profile.reauthenticateView.title" = "Reauthenticate";
+"profile.reauthenticateView.forgot_password" = "Forgot Password?";
+"profile.reauthenticateView.confirm" = "Confirm";
+"profile.reauthenticateView.reauth_google" = "Reauthenticate with Google";
+"profile.reauthenticateView.reauth_apple" = "Reauthenticate with Apple";
+"profile.reauthenticateView.email" = "Email";
+"profile.reauthenticateView.email_placeholder" = "Enter your email";
+"profile.reauthenticateView.password" = "Password";
+"profile.reauthenticateView.password_placeholder" = "Enter your password";
+"profile.reauthenticateView.or" = "OR";
+
+
+/* ForgotPasswordView */
+"profile.forgotPasswordView.title" = "Forgot Password";
+"profile.forgotPasswordView.email" = "Email";
+"profile.forgotPasswordView.email_placeholder" = "Enter your email";
+"profile.forgotPasswordView.send_reset_link" = "Send Reset Link";
+
+
+/* SignUpView */
+"signup.email" = "Email";
+"signup.email_placeholder" = "Enter email";
+"signup.password" = "Password";
+"signup.password_placeholder" = "Enter password";
+"signup.register" = "Register";
+"signup.or" = "OR";
+"signup.already_have_account" = "Already have an account?";
+"signup.sign_in" = "Sign In";
+"signup.navigation_title" = "Create Account";
+
+
+/* SignInView */
+"profile.signInView.title" = "Sign In";
+"profile.signInView.email" = "Email";
+"profile.signInView.email_placeholder" = "Enter your email";
+"profile.signInView.password" = "Password";
+"profile.signInView.password_placeholder" = "Enter your password";
+"profile.signInView.forgot_password" = "Forgot Password?";
+"profile.signInView.login" = "Login";
+"profile.signInView.or" = "OR";
+"profile.signInView.no_account" = "Don't have an account?";
+"profile.signInView.sign_up" = "Sign Up";
+"profile.signInView.anonymous_warning_title" = "Attention";
+"profile.signInView.anonymous_warning_message" = "You are signed in as a guest. After login, all unsaved data will be lost. To save them, please register first.";
+"profile.signInView.anonymous_warning_continue" = "Continue login";
+"profile.signInView.anonymous_warning_cancel" = "Cancel";
+
+
+
+
+
+
+
+
 
 
 
@@ -111,6 +169,12 @@
 "gallery.galleryCompositView.productHeader" = "Popular Products";
 
 
+
+
+
+
+
+
 /* OnboardingView */
 
 "onboarding.back_button" = "Back";
@@ -122,19 +186,6 @@
 "onboarding.page_discover.description" = "Discover new features";
 "onboarding.page_get_started.title" = "Get started";
 "onboarding.page_get_started.description" = "Let's get started!";
-
-/* Auth View */
-
-/* SignUpView */
-"signup.email" = "Email";
-"signup.email_placeholder" = "Enter email";
-"signup.password" = "Password";
-"signup.password_placeholder" = "Enter password";
-"signup.register" = "Register";
-"signup.or" = "OR";
-"signup.already_have_account" = "Already have an account?";
-"signup.sign_in" = "Sign In";
-"signup.navigation_title" = "Create Account";
 
 
 /* Alerts - Global */

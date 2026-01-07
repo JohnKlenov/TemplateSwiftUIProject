@@ -154,7 +154,7 @@ struct ReauthenticateView: View {
     private var divider: some View {
         HStack {
             VStack { Divider().frame(height: 1).background(Color.primary) }
-            Text(Localized.SignUpView.or.localized())
+            Text(Localized.ReauthenticateView.or.localized())
                 .font(.footnote)
                 .foregroundColor(.primary)
             VStack { Divider().frame(height: 1).background(Color.primary) }
@@ -164,7 +164,7 @@ struct ReauthenticateView: View {
     
     private var appleButton: some View {
         Button(action: { }) {
-            Image(systemName: AppIcons.ReauthenticateView.appleLogo)
+            Image(systemName: AppIcons.Common.appleLogo)
                 .resizable()
                 .scaledToFit()
                 .padding()
@@ -179,7 +179,7 @@ struct ReauthenticateView: View {
         Button(action: {
             viewModel.reauthenticate()
         }) {
-            Image(AppIcons.ReauthenticateView.googleLogo)
+            Image(AppIcons.Common.googleLogo)
                 .resizable()
                 .scaledToFit()
                 .padding()
@@ -195,7 +195,7 @@ struct ReauthenticateView: View {
             viewModel.reauthenticate()
         }) {
             HStack(spacing: 12) {
-                Image(AppIcons.ReauthenticateView.googleLogo)
+                Image(AppIcons.Common.googleLogo)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
@@ -214,7 +214,7 @@ struct ReauthenticateView: View {
     private var appleFullButton: some View {
         Button(action: { }) {
             HStack(spacing: 12) {
-                Image(systemName: AppIcons.ReauthenticateView.appleLogo)
+                Image(systemName: AppIcons.Common.appleLogo)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
@@ -236,10 +236,10 @@ struct ReauthenticateView: View {
     
     private var emailField: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(Localized.SignUpView.email.localized())
+            Text(Localized.ReauthenticateView.email.localized())
                 .font(.subheadline)
                 .foregroundColor(AppColors.primary)
-            TextField(Localized.SignUpView.emailPlaceholder.localized(), text: $viewModel.email)
+            TextField(Localized.ReauthenticateView.emailPlaceholder.localized(), text: $viewModel.email)
                 .submitLabel(.next)
                 .focused($isFieldFocus, equals: .emailField)
                 .onSubmit { focusNextField() }
@@ -260,13 +260,13 @@ struct ReauthenticateView: View {
     
     private var passwordField: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(Localized.SignUpView.password.localized())
+            Text(Localized.ReauthenticateView.password.localized())
                 .font(.subheadline)
                 .foregroundColor(AppColors.primary)
             HStack {
                 Group {
                     if isPasswordVisible {
-                        TextField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
+                        TextField(Localized.ReauthenticateView.passwordPlaceholder.localized(), text: $viewModel.password)
                             .submitLabel(.done)
                             .focused($isFieldFocus, equals: .passwordField)
                             .textContentType(.password)
@@ -278,7 +278,7 @@ struct ReauthenticateView: View {
                             }
                             .onTapGesture { viewModel.passwordError = nil }
                     } else {
-                        SecureField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
+                        SecureField(Localized.ReauthenticateView.passwordPlaceholder.localized(), text: $viewModel.password)
                             .submitLabel(.done)
                             .focused($isFieldFocus, equals: .securePasswordField)
                             .textContentType(.password)
@@ -296,7 +296,7 @@ struct ReauthenticateView: View {
                     isPasswordVisible.toggle()
                     isFieldFocus = isPasswordVisible ? .passwordField : .securePasswordField
                 }) {
-                    Image(systemName: isPasswordVisible ? AppIcons.ReauthenticateView.eyeSlash : AppIcons.ReauthenticateView.eye)
+                    Image(systemName: isPasswordVisible ? AppIcons.Common.eyeSlash : AppIcons.Common.eye)
                         .foregroundColor(.gray)
                 }
             }

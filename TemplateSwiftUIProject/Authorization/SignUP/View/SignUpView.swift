@@ -140,7 +140,7 @@ struct SignUpView: View {
                                     isPasswordVisible.toggle()
                                     isFieldFocus = isPasswordVisible ? .passwordField : .securePasswordField
                                 }) {
-                                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                                    Image(systemName: isPasswordVisible ? AppIcons.Common.eyeSlash : AppIcons.Common.eye)
                                         .foregroundColor(.gray)
                                 }
                             }
@@ -193,10 +193,8 @@ struct SignUpView: View {
                     // Блок альтернативной регистрации
                     HStack(spacing: 40) {
                         // Кнопка Apple
-                        Button(action: {
-                            print("applelogo")
-                        })  {
-                            Image(systemName: "applelogo")
+                        Button(action: { })  {
+                            Image(systemName: AppIcons.Common.appleLogo)
                                 .resizable()
                                 .scaledToFit()
                                 .padding()
@@ -209,10 +207,9 @@ struct SignUpView: View {
                         
                         // Кнопка Google
                         Button(action: {
-                            print("googlelogo")
                             viewModel.googleSignUp()
                         }) {
-                            Image("googlelogo")
+                            Image(AppIcons.Common.googleLogo)
                                 .resizable()
                                 .scaledToFit()
                                 .padding()

@@ -35,10 +35,10 @@ struct SignInView: View {
                 VStack(spacing: 15) {
                     // Поле "Email"
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(Localized.SignUpView.email.localized())
+                        Text(Localized.SignInView.email.localized())
                             .font(.subheadline)
                             .foregroundColor(AppColors.primary)
-                        TextField(Localized.SignUpView.emailPlaceholder.localized(), text: $viewModel.email)
+                        TextField(Localized.SignInView.emailPlaceholder.localized(), text: $viewModel.email)
                             .submitLabel(.next)
                             .focused($isFieldFocus, equals: .emailField)
                             .onSubmit { focusNextField() }
@@ -61,13 +61,13 @@ struct SignInView: View {
                     
                     // Поле "Пароль" с кнопкой-переключателем "eye"
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(Localized.SignUpView.password.localized())
+                        Text(Localized.SignInView.password.localized())
                             .font(.subheadline)
                             .foregroundColor(AppColors.primary)
                         HStack {
                             Group {
                                 if isPasswordVisible {
-                                    TextField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
+                                    TextField(Localized.SignInView.passwordPlaceholder.localized(), text: $viewModel.password)
                                         .submitLabel(.done)
                                         .focused($isFieldFocus, equals: .passwordField)
                                         .textContentType(.password)
@@ -81,7 +81,7 @@ struct SignInView: View {
                                             viewModel.passwordError = nil
                                         }
                                 } else {
-                                    SecureField(Localized.SignUpView.passwordPlaceholder.localized(), text: $viewModel.password)
+                                    SecureField(Localized.SignInView.passwordPlaceholder.localized(), text: $viewModel.password)
                                         .submitLabel(.done)
                                         .focused($isFieldFocus, equals: .securePasswordField)
                                         .textContentType(.password)
@@ -101,7 +101,7 @@ struct SignInView: View {
                                 isPasswordVisible.toggle()
                                 isFieldFocus = isPasswordVisible ? .passwordField : .securePasswordField
                             }) {
-                                Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                                Image(systemName: isPasswordVisible ? AppIcons.Common.eyeSlash : AppIcons.Common.eye)
                                     .foregroundColor(.gray)
                             }
                         }
@@ -123,10 +123,9 @@ struct SignInView: View {
                     Spacer()
                     Button(action: {
                         // Обработка нажатия "Forgot Password?"
-                        print("Forgot Password tapped")
                         accountCoordinator.navigateTo(page: .forgotPassword)
                     }) {
-                        Text("Forgot Password?")
+                        Text(Localized.SignInView.forgotPassword.localized())
                             .foregroundColor(.blue)
                             .fontWeight(.semibold)
                     }
@@ -141,7 +140,7 @@ struct SignInView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle())
                         } else {
-                            Text("Login")
+                            Text(Localized.SignInView.login.localized())
                                 .animation(nil, value: viewModel.emailError)
                                 .animation(nil, value: viewModel.passwordError)
                         }
@@ -160,7 +159,7 @@ struct SignInView: View {
                 // Разделитель между регистрацией и альтернативными способами входа
                 HStack {
                     VStack { Divider().frame(height: 1).background(Color.primary) }
-                    Text(Localized.SignUpView.or.localized())
+                    Text(Localized.SignInView.or.localized())
                         .font(.footnote)
                         .foregroundColor(.primary)
                     VStack { Divider().frame(height: 1).background(Color.primary) }
@@ -170,10 +169,8 @@ struct SignInView: View {
                 // Блок альтернативной регистрации
                 HStack(spacing: 40) {
                     // Кнопка Apple
-                    Button(action: {
-                        print("applelogo")
-                    })  {
-                        Image(systemName: "applelogo")
+                    Button(action: { })  {
+                        Image(systemName: AppIcons.Common.appleLogo)
                             .resizable()
                             .scaledToFit()
                             .padding()
@@ -185,10 +182,9 @@ struct SignInView: View {
                     
                     // Кнопка Google
                     Button(action: {
-                        print("googlelogo")
                         viewModel.tryGoogleSignInWithWarningIfNeeded()
                     }) {
-                        Image("googlelogo")
+                        Image(AppIcons.Common.googleLogo)
                             .resizable()
                             .scaledToFit()
                             .padding()
@@ -201,12 +197,12 @@ struct SignInView: View {
                 
                 // Ссылка для входа
                 HStack {
-                    Text("Don't have an account?")
+                    Text(Localized.SignInView.noAccount.localized())
                     Button(action: {
                         // Переход на экран регистрации
                         accountCoordinator.pop()
                     }) {
-                        Text("SignUp")
+                        Text(Localized.SignInView.signUp.localized())
                             .foregroundColor(.blue)
                             .fontWeight(.semibold)
                     }
@@ -214,7 +210,7 @@ struct SignInView: View {
                 .padding(.bottom, 20)
             }
             .navigationBarTitleDisplayMode(.inline)
-            .navigationTitle("SignIn")
+            .navigationTitle(Localized.SignInView.title.localized())
         }
         // Применяем жест, который срабатывает одновременно с другими
         ///первым отрабатывает simultaneousGesture затем все другие обработчики
@@ -225,11 +221,11 @@ struct SignInView: View {
             }
         )
         .confirmationDialog(
-            "Внимание",
+            Localized.SignInView.anonymousWarningTitle.localized(),
             isPresented: $viewModel.showAnonymousWarning,
             titleVisibility: .visible
         ) {
-            Button("Продолжить вход") {
+            Button(Localized.SignInView.anonymousWarningContinue.localized()) {
                 switch viewModel.anonymousActionType {
                 case .emailSignIn:
                     viewModel.confirmAnonymousSignIn()
@@ -240,11 +236,11 @@ struct SignInView: View {
                 }
                 viewModel.anonymousActionType = nil
             }
-            Button("Отмена", role: .cancel) {
+            Button(Localized.SignInView.anonymousWarningCancel.localized(), role: .cancel) {
                 viewModel.anonymousActionType = nil
             }
         } message: {
-            Text("Вы вошли как гость. После входа все несохранённые данные будут утеряны. Чтобы сохранить их — сначала зарегистрируйтесь.")
+            Text(Localized.SignInView.anonymousWarningMessage.localized())
         }
 
     }

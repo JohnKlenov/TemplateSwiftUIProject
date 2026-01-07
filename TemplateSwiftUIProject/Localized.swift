@@ -128,16 +128,68 @@ enum Localized {
         static let title = "profile.changeLanguageView.title"
     }
     
+    
+    // MARK: - Auth View -
+    
+    
+    // SignUpView
+    enum SignUpView {
+        static let email = "signup.email"
+        static let emailPlaceholder = "signup.email_placeholder"
+        static let password = "signup.password"
+        static let passwordPlaceholder = "signup.password_placeholder"
+        static let register = "signup.register"
+        static let or = "signup.or"
+        static let alreadyHaveAccount = "signup.already_have_account"
+        static let signIn = "signup.sign_in"
+        static let navigationTitle = "signup.navigation_title"
+    }
+    
+    
+    // SignInView
+    enum SignInView {
+        static let title = "profile.signInView.title"
+        static let email = "profile.signInView.email"
+        static let emailPlaceholder = "profile.signInView.email_placeholder"
+        static let password = "profile.signInView.password"
+        static let passwordPlaceholder = "profile.signInView.password_placeholder"
+        static let forgotPassword = "profile.signInView.forgot_password"
+        static let login = "profile.signInView.login"
+        static let or = "profile.signInView.or"
+        static let noAccount = "profile.signInView.no_account"
+        static let signUp = "profile.signInView.sign_up"
+        static let anonymousWarningTitle = "profile.signInView.anonymous_warning_title"
+        static let anonymousWarningMessage = "profile.signInView.anonymous_warning_message"
+        static let anonymousWarningContinue = "profile.signInView.anonymous_warning_continue"
+        static let anonymousWarningCancel = "profile.signInView.anonymous_warning_cancel"
+    }
+
+    
+    // ReauthenticateView
     enum ReauthenticateView {
         static let title = "profile.reauthenticateView.title"
         static let forgotPassword = "profile.reauthenticateView.forgot_password"
         static let confirm = "profile.reauthenticateView.confirm"
         static let reauthGoogle = "profile.reauthenticateView.reauth_google"
         static let reauthApple = "profile.reauthenticateView.reauth_apple"
+        
+        static let email = "profile.reauthenticateView.email"
+        static let emailPlaceholder = "profile.reauthenticateView.email_placeholder"
+        static let password = "profile.reauthenticateView.password"
+        static let passwordPlaceholder = "profile.reauthenticateView.password_placeholder"
+        static let or = "profile.reauthenticateView.or"
+    }
+    
+    
+    // ForgotPasswordView
+    enum ForgotPasswordView {
+        static let title = "profile.forgotPasswordView.title"
+        static let email = "profile.forgotPasswordView.email"
+        static let emailPlaceholder = "profile.forgotPasswordView.email_placeholder"
+        static let sendResetLink = "profile.forgotPasswordView.send_reset_link"
     }
 
 
-    
 
     // MARK: - Gallery Navigation Stack
     // (Добавьте локализованные строки для Gallery, если они будут)
@@ -339,23 +391,6 @@ enum Localized {
             static let loadFailed = "error.photo_picker.load_failed"
             static let unknown = "error.photo_picker.unknown"
         }
-
-    
-    // MARK: - Auth View -
-    
-    
-    // MARK: - SignUpView
-    enum SignUpView {
-        static let email = "signup.email"
-        static let emailPlaceholder = "signup.email_placeholder"
-        static let password = "signup.password"
-        static let passwordPlaceholder = "signup.password_placeholder"
-        static let register = "signup.register"
-        static let or = "signup.or"
-        static let alreadyHaveAccount = "signup.already_have_account"
-        static let signIn = "signup.sign_in"
-        static let navigationTitle = "signup.navigation_title"
-    }
     
     
     // MARK: - Validation string

@@ -9,6 +9,8 @@
 import SwiftUI
 
 struct ForgotPasswordView: View {
+    
+    @EnvironmentObject var localization: LocalizationService
     @ObservedObject var viewModel: ForgotPasswordViewModel
     @FocusState private var isFieldFocus: FieldToFocusAuth?
     
@@ -17,11 +19,11 @@ struct ForgotPasswordView: View {
             VStack(spacing: 20) {
                 // Поле "Email"
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Email")
+                    Text(Localized.ForgotPasswordView.email.localized())
                         .font(.subheadline)
                         .foregroundColor(AppColors.primary)
                     
-                    TextField("Enter your email", text: $viewModel.email)
+                    TextField(Localized.ForgotPasswordView.emailPlaceholder.localized(), text: $viewModel.email)
                         .submitLabel(.done)
                         .focused($isFieldFocus, equals: .emailField)
                         .padding()
@@ -50,7 +52,7 @@ struct ForgotPasswordView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle())
                         } else {
-                            Text("Send Reset Link")
+                            Text(Localized.ForgotPasswordView.sendResetLink.localized())
                             // Отключаем implicit‑анимацию при появлении/исчезновении текста ошибки,
                             // чтобы кнопка не "прыгала" и содержимое не смещалось с задержкой
                                 .animation(nil, value: viewModel.emailError)
@@ -68,7 +70,7 @@ struct ForgotPasswordView: View {
                 .disabled(viewModel.isAuthOperationInProgress)
             }
             .navigationBarTitleDisplayMode(.inline)
-            .navigationTitle("Forgot Password")
+            .navigationTitle(Localized.ForgotPasswordView.title.localized())
         }
         .simultaneousGesture(
             TapGesture().onEnded {

@@ -9,6 +9,14 @@ import SwiftUI
 
 enum AppIcons {
     
+    // MARK: - Common icons (shared across multiple views)
+    enum Common {
+        static let appleLogo = "applelogo"
+        static let googleLogo = "googlelogo" // кастомный ассет
+        static let eye = "eye"
+        static let eyeSlash = "eye.slash"
+    }
+    
     // MARK: - Home View Navigation Stack
 //    enum Home {
 //        static let homeTab = "house.fill"
@@ -58,11 +66,11 @@ enum AppIcons {
         static let checkmark = "checkmark"
     }
     
-    enum ReauthenticateView {
-        static let appleLogo = "applelogo"
-        static let googleLogo = "googlelogo"
-        static let eye = "eye"
-        static let eyeSlash = "eye.slash"
-    }
+//    enum ReauthenticateView {
+//        static let appleLogo = "applelogo"
+//        static let googleLogo = "googlelogo"
+//        static let eye = "eye"
+//        static let eyeSlash = "eye.slash"
+//    }
 }
 
