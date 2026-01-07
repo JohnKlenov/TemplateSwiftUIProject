@@ -88,6 +88,19 @@
 "profile.changeLanguageView.title" = "Сменить язык";
 
 
+/* UserInfoEditView */
+"profile.userInfoEditView.title" = "Редактировать профиль";
+"profile.userInfoEditView.edit_photo" = "Изменить фото";
+"profile.userInfoEditView.name" = "Имя";
+"profile.userInfoEditView.last_name" = "Фамилия";
+"profile.userInfoEditView.done" = "Готово";
+"profile.userInfoEditView.dialog_edit_photo" = "Изменить фото";
+"profile.userInfoEditView.choose_from_library" = "Выбрать из библиотеки";
+"profile.userInfoEditView.take_photo" = "Сделать фото";
+"profile.userInfoEditView.delete_photo" = "Удалить фото";
+"profile.userInfoEditView.camera_placeholder" = "Заглушка камеры";
+
+
 /* Auth View */
 
 

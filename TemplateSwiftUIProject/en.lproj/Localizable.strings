@@ -90,6 +90,18 @@
 "profile.changeLanguageView.title" = "Change Language";
 
 
+/* UserInfoEditView */
+"profile.userInfoEditView.title" = "Edit Profile";
+"profile.userInfoEditView.edit_photo" = "Edit Photo";
+"profile.userInfoEditView.name" = "Name";
+"profile.userInfoEditView.last_name" = "Last Name";
+"profile.userInfoEditView.done" = "Done";
+"profile.userInfoEditView.dialog_edit_photo" = "Edit Photo";
+"profile.userInfoEditView.choose_from_library" = "Choose from Library";
+"profile.userInfoEditView.take_photo" = "Take Photo";
+"profile.userInfoEditView.delete_photo" = "Delete Photo";
+"profile.userInfoEditView.camera_placeholder" = "Camera View Placeholder";
+
 
 /* Auth View */
 

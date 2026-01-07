@@ -128,6 +128,20 @@ enum Localized {
         static let title = "profile.changeLanguageView.title"
     }
     
+    // UserInfoEditView
+    enum UserInfoEditView {
+        static let title = "profile.userInfoEditView.title"
+        static let editPhoto = "profile.userInfoEditView.edit_photo"
+        static let name = "profile.userInfoEditView.name"
+        static let lastName = "profile.userInfoEditView.last_name"
+        static let done = "profile.userInfoEditView.done"
+        static let dialogEditPhoto = "profile.userInfoEditView.dialog_edit_photo"
+        static let chooseFromLibrary = "profile.userInfoEditView.choose_from_library"
+        static let takePhoto = "profile.userInfoEditView.take_photo"
+        static let deletePhoto = "profile.userInfoEditView.delete_photo"
+        static let cameraPlaceholder = "profile.userInfoEditView.camera_placeholder"
+    }
+
     
     // MARK: - Auth View -
     

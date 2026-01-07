@@ -19,6 +19,7 @@ struct UserInfoEditView: View {
     @ObservedObject var viewModel: UserInfoEditViewModel
     @EnvironmentObject var accountCoordinator: AccountCoordinator
     @FocusState var isFieldFocus: FieldToFocusProfileEdit?
+    @EnvironmentObject var localization: LocalizationService
     
     var body: some View {
         let _ = Self._printChanges()
@@ -29,7 +30,7 @@ struct UserInfoEditView: View {
                     VStack(spacing: 12) {
                         avatarButton
                         
-                        Text("Edit Photo")
+                        Text(Localized.UserInfoEditView.editPhoto.localized())
                             .foregroundColor(.blue)
                             .onTapGesture {
                                 if !viewModel.isAvatarLoading {
@@ -43,8 +44,8 @@ struct UserInfoEditView: View {
                 
                 
                 // MARK: Name
-                Section(header: Text("Name")) {
-                    TextField("Name", text: $viewModel.name)
+                Section(header: Text(Localized.UserInfoEditView.name.localized())) {
+                    TextField(Localized.UserInfoEditView.name.localized(), text: $viewModel.name)
                         .submitLabel(.next)
                         .focused($isFieldFocus, equals: .nameField)
                         .onSubmit { focusNextField() }
@@ -54,8 +55,8 @@ struct UserInfoEditView: View {
                 }
                 
                 // MARK: LastName
-                Section(header: Text("LastName")) {
-                    TextField("LastName", text: $viewModel.lastName)
+                Section(header: Text(Localized.UserInfoEditView.lastName.localized())) {
+                    TextField(Localized.UserInfoEditView.lastName.localized(), text: $viewModel.lastName)
                         .submitLabel(.done)
                         .focused($isFieldFocus, equals: .lastNameField)
                         .onSubmit { focusNextField() }
@@ -65,22 +66,22 @@ struct UserInfoEditView: View {
                         .clearButton(text: $viewModel.lastName, isFocused: focusBinding(.lastNameField))
                 }
             }
-            .navigationTitle("Edit Profile")
+            .navigationTitle(Localized.UserInfoEditView.title.localized())
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                    Button(Localized.UserInfoEditView.done.localized()) {
                         viewModel.updateProfile()
                         accountCoordinator.popToRoot()
                     }
                     .disabled(!viewModel.canSave)
                 }
             }
-            .confirmationDialog("Edit Photo", isPresented: $viewModel.showImageOptions, titleVisibility: .visible) {
-                Button("Choose from Library") { viewModel.chooseFromLibrary() }
-                Button("Take Photo") { viewModel.takePhoto() }
+            .confirmationDialog(Localized.UserInfoEditView.dialogEditPhoto.localized(), isPresented: $viewModel.showImageOptions, titleVisibility: .visible) {
+                Button(Localized.UserInfoEditView.chooseFromLibrary.localized()) { viewModel.chooseFromLibrary() }
+                Button(Localized.UserInfoEditView.takePhoto.localized()) { viewModel.takePhoto() }
                 /// так как при  viewModel.isAvatarLoading = true confirmationDialog не открыть то удаление сделать не получится во время загрузки
                 if viewModel.initialPhotoURL != nil {
-                    Button("Delete Photo", role: .destructive) { viewModel.deletePhoto() }
+                    Button(Localized.UserInfoEditView.deletePhoto.localized(), role: .destructive) { viewModel.deletePhoto() }
                 }
             }
             .sheet(isPresented: $viewModel.showPhotoPicker) {
@@ -101,7 +102,7 @@ struct UserInfoEditView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showCamera) {
-                Text("Camera View Placeholder")
+                Text(Localized.UserInfoEditView.cameraPlaceholder.localized())
             }
     }
     
@@ -173,7 +174,7 @@ struct UserInfoEditView: View {
                 displayStyle: .fixedFrame(width: 120, height: 120)
             )
         } else {
-            Image(systemName: "person.crop.circle.fill")
+            Image(systemName: AppIcons.UserInfoEditView.avatarPlaceholder)
                 .resizable()
                 .foregroundColor(.gray)
         }

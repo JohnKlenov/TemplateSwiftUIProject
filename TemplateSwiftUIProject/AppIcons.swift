@@ -66,11 +66,8 @@ enum AppIcons {
         static let checkmark = "checkmark"
     }
     
-//    enum ReauthenticateView {
-//        static let appleLogo = "applelogo"
-//        static let googleLogo = "googlelogo"
-//        static let eye = "eye"
-//        static let eyeSlash = "eye.slash"
-//    }
+    enum UserInfoEditView {
+        static let avatarPlaceholder = "person.crop.circle.fill"
+    }
 }
 
