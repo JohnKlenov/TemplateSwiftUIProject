@@ -163,6 +163,37 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //extension AuthorizationService {
 //    /// Отправка письма для сброса пароля
 //    func sendPasswordReset(email: String) -> AnyPublisher<Void, Error> {

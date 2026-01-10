@@ -23,7 +23,7 @@ struct ContentErrorView: View {
             Spacer()
             ContentUnavailableView(
                 label: {
-                    Label(Localized.Home.ContentErrorView.title.localized(), systemImage: "exclamationmark.triangle")
+                    Label(Localized.Home.ContentErrorView.title.localized(), systemImage: AppIcons.ContentErrorView.warning)
                 },
                 description: {
                     Text(Localized.Home.ContentErrorView.description.localized())

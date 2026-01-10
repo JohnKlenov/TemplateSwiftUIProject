@@ -80,7 +80,7 @@ struct ContentView: View {
                 TabView(selection: $selection) {
                     homeView
                         .tabItem {
-                            Label(Localized.TabBar.home.localized(), systemImage: "house.fill")
+                            Label(Localized.TabBar.home.localized(), systemImage: AppIcons.TabBar.home)
                         }
                         .tag(0)
                         .environmentObject(mainCoordinator)
@@ -89,7 +89,7 @@ struct ContentView: View {
                     
                     galleryView
                         .tabItem {
-                            Label(Localized.TabBar.gallery.localized(), systemImage: "photo.on.rectangle.fill")
+                            Label(Localized.TabBar.gallery.localized(), systemImage: AppIcons.TabBar.gallery)
                         }
                         .tag(1)
                         .environmentObject(mainCoordinator)
@@ -98,7 +98,7 @@ struct ContentView: View {
                     
                     accountView
                         .tabItem {
-                            Label(Localized.TabBar.profile.localized(), systemImage: "person.crop.circle.fill")
+                            Label(Localized.TabBar.profile.localized(), systemImage: AppIcons.TabBar.profile)
                         }
                         .tag(2)
                         .environmentObject(viewBuilderService)

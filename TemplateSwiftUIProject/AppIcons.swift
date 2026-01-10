@@ -9,6 +9,13 @@ import SwiftUI
 
 enum AppIcons {
     
+    // MARK: - TabBar icons
+    enum TabBar {
+        static let home = "house.fill"
+        static let gallery = "photo.on.rectangle.fill"
+        static let profile = "person.crop.circle.fill"
+    }
+    
     // MARK: - Common icons (shared across multiple views)
     enum Common {
         static let appleLogo = "applelogo"
@@ -17,12 +24,30 @@ enum AppIcons {
         static let eyeSlash = "eye.slash"
     }
     
+    /// ContentErrorView — заглушка при критичной системной ошибке,
+    /// которая делает невозможным дальнейшее использование стека View.
+    enum ContentErrorView {
+        static let warning = "exclamationmark.triangle"
+    }
+    
+    
+    
     // MARK: - Home View Navigation Stack
-//    enum Home {
-//        static let homeTab = "house.fill"
-//        static let search = "magnifyingglass"
-//        static let favorites = "star.fill"
-//    }
+
+    enum Home {
+        enum EmptyStateView {
+            static let documentPlaceholder = "swift"
+        }
+    }
+
+    enum BookEditView {
+        static let swift = "swift"
+    }
+    
+    
+    
+    
+    
     
     // MARK: - Gallery Navigation Stack
 //    enum Gallery {
@@ -30,6 +55,12 @@ enum AppIcons {
 //        static let addPhoto = "plus.circle.fill"
 //        static let share = "square.and.arrow.up"
 //    }
+    
+    
+    
+    
+    
+    
     
     // MARK: - Profile Navigation Stack
     enum Profile {

@@ -11,11 +11,10 @@ struct EmptyStateView: View {
     // Опционально можно сделать параметризуемым,
     // например, передавать название изображения и текст.
     @EnvironmentObject var localization: LocalizationService
-    var imageName: String = "doc.plaintext"
 
     var body: some View {
         VStack(alignment: .center, spacing: 16) {
-            Image(systemName: imageName)
+            Image(systemName: AppIcons.Home.EmptyStateView.documentPlaceholder)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 80, height: 80)

@@ -15,6 +15,18 @@
 "tab.gallery" = "Галерея";
 "tab.profile" = "Профиль";
 
+
+
+
+
+
+
+
+
+
+
+
+
 /* Home Navigation Stack */
 
 /* Home View */
@@ -49,6 +61,17 @@
 "book_edit.author" = "Автор";
 "book_edit.delete_book" = "Удалить книгу";
 "book_edit.confirmation_dialog" = "Вы уверены?";
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -163,12 +186,6 @@
 
 
 
-
-
-
-
-
-
 /* Gallery Navigation Stack */
 
 "gallery.title" = "Галерея";
@@ -196,9 +213,23 @@
 
 
 
-/* Alerts - Global */
-"alert.title" = "Ошибка";
-"alert.default_message" = "Произошла ошибка. Пожалуйста, попробуйте снова.";
+
+
+
+
+
+
+
+
+
+/* Alert */
+
+
+/* AlertViewGlobal */
+"global.alertView.try_again" = "Попробовать снова";
+"global.alertView.ok" = "Ок";
+
+
 
 
 

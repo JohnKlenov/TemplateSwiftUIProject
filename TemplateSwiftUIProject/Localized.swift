@@ -229,11 +229,23 @@ enum Localized {
     
     
     
-    // MARK: - Alerts Global -
-    enum Alerts {
-        static let title = "alert.title"
-        static let defaultMessage = "alert.default_message"
+    
+    
+    
+    
+    // MARK: - Alerts -
+    
+    
+    // Alerts Global
+    enum AlertViewGlobal {
+        static let tryAgain = "global.alertView.try_again"
+        static let ok = "global.alertView.ok"
     }
+
+    
+    
+    
+    
     
     // MARK: - Firebase Errors -
     
@@ -271,6 +283,13 @@ enum Localized {
         static let signIn = "message.success.sign_in"
         static let accountDeletion = "message.success.account_deletion"
     }
+    
+    
+    
+    
+    
+    
+    
     
     
     // MARK: - Custom Firebase Error -

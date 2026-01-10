@@ -200,9 +200,22 @@
 "onboarding.page_get_started.description" = "Let's get started!";
 
 
-/* Alerts - Global */
-"alert.title" = "Error";
-"alert.default_message" = "Something went wrong. Please try again.";
+
+
+
+
+
+
+/* Alert */
+
+
+/* AlertViewGlobal */
+"global.alertView.try_again" = "Try again";
+"global.alertView.ok" = "Ok";
+
+
+
+
 
 
 

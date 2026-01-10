@@ -15,6 +15,7 @@ struct AlertViewGlobal: View {
     
     @StateObject private var viewModel: AlertViewModel
     @EnvironmentObject var retryHandler: GlobalRetryHandler
+    @EnvironmentObject var localization: LocalizationService
     
     @Binding var isShowAlert: Bool
     @Binding var alertMessage: String
@@ -39,9 +40,9 @@ struct AlertViewGlobal: View {
     var alertButtonText: String {
         switch alertType {
         case .tryAgain:
-            return "Try again"
+            return Localized.AlertViewGlobal.tryAgain.localized()
         case .ok:
-            return "Ok"
+            return Localized.AlertViewGlobal.ok.localized()
         }
     }
     
