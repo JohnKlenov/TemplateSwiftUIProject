@@ -35,6 +35,7 @@ import PhotosUI
 import Photos
 import UniformTypeIdentifiers
 
+
 // MARK: - Ошибки фотопикера
 
 enum PhotoPickerError: Error {
@@ -47,20 +48,21 @@ enum PhotoPickerError: Error {
 }
 
 extension PhotoPickerError {
-    var localizedDescription: String {
-        switch self {
-        case .noItemAvailable:
-            return "Выбранный элемент недоступен."
-        case .itemUnavailable:
-            return "Элемент нельзя загрузить."
-        case .unsupportedType:
-            return "Неподдерживаемый тип медиа."
-        case .iCloudRequired:
-            return "Требуется подключение к сети для загрузки из iCloud."
-        case .loadFailed(let error), .unknown(let error):
-            return (error as NSError).localizedDescription
-        }
-    }
+    // на сколько я понял этот localizedDescription был сделан для тестов
+//    var localizedDescription: String {
+//        switch self {
+//        case .noItemAvailable:
+//            return "Выбранный элемент недоступен."
+//        case .itemUnavailable:
+//            return "Элемент нельзя загрузить."
+//        case .unsupportedType:
+//            return "Неподдерживаемый тип медиа."
+//        case .iCloudRequired:
+//            return "Требуется подключение к сети для загрузки из iCloud."
+//        case .loadFailed(let error), .unknown(let error):
+//            return (error as NSError).localizedDescription
+//        }
+//    }
 
     static func map(_ error: Error) -> PhotoPickerError {
         let nsError = error as NSError

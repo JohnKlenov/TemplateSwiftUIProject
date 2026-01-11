@@ -9,6 +9,20 @@ import SwiftUI
 
 enum AppIcons {
     
+    
+    // MARK: - Onboarding View
+    enum Onboarding {
+        /// Иконка для приветственного экрана
+        static let welcome = "house.fill"
+        
+        /// Иконка для экрана Discover
+        static let discover = "safari.fill"
+        
+        /// Иконка для экрана Get Started
+        static let getStarted = "flag.fill"
+    }
+
+    
     // MARK: - TabBar icons
     enum TabBar {
         static let home = "house.fill"
@@ -31,12 +45,15 @@ enum AppIcons {
     }
     
     
-    
     // MARK: - Home View Navigation Stack
 
     enum Home {
         enum EmptyStateView {
             static let documentPlaceholder = "swift"
+        }
+        enum BookRowView {
+            /// Иконка удаления книги в списке
+            static let deleteBook = "trash.fill"
         }
     }
 
@@ -65,20 +82,17 @@ enum AppIcons {
     // MARK: - Profile Navigation Stack
     enum Profile {
         
-        // MARK: - UserInfoCellView
         enum UserInfoCellView {
             static let avatarPlaceholder = "person.circle.fill"
             static let retry = "arrow.clockwise.circle.fill"
             static let chevron = "chevron.right"
         }
         
-        // MARK: - ToggleCellView
         enum ToggleCellView {
             static let notification = "bell.fill"
             static let darkMode = "moon.fill"
         }
         
-        // MARK: - NavigationCellView
         enum NavigationCellView {
             static let changeLanguage = "globe"
             static let aboutUs = "info.circle"
@@ -86,7 +100,6 @@ enum AppIcons {
             static let chevron = "chevron.right"
         }
         
-        // MARK: - DeleteAccountCellView
         enum DeleteAccountCellView {
             static let deleteAccount = "trash"
             static let loading = "hourglass"

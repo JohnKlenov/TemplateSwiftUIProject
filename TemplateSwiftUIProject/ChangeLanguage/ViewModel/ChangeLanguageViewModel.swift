@@ -7,6 +7,7 @@
 
 import Foundation
 
+
 final class ChangeLanguageViewModel: ObservableObject {
     @Published var selectedLanguage: String
     let availableLanguages: [String]

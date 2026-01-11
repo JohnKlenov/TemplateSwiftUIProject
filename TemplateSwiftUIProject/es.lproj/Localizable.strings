@@ -153,6 +153,9 @@
 "profile.forgotPasswordView.email" = "Correo electrónico";
 "profile.forgotPasswordView.email_placeholder" = "Introduce tu correo";
 "profile.forgotPasswordView.send_reset_link" = "Enviar enlace de restablecimiento";
+/* ForgotPasswordViewModel */
+"profile.forgotPasswordViewModel.empty_email_error" = "Introduce tu correo";
+"profile.forgotPasswordViewModel.invalid_email_error" = "Correo electrónico no válido";
 
 
 

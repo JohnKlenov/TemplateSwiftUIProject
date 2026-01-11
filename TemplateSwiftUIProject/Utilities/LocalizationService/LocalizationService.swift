@@ -107,6 +107,7 @@ final class LocalizationService: ObservableObject {
 }
 
 
+
 //Это расширение позволяет использовать метод .localized() для получения перевода.
 extension String {
     func localized() -> String {

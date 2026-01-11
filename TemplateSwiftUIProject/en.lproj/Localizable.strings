@@ -124,6 +124,10 @@
 "profile.forgotPasswordView.email" = "Email";
 "profile.forgotPasswordView.email_placeholder" = "Enter your email";
 "profile.forgotPasswordView.send_reset_link" = "Send Reset Link";
+/* ForgotPasswordViewModel */
+"profile.forgotPasswordViewModel.empty_email_error" = "Enter email";
+"profile.forgotPasswordViewModel.invalid_email_error" = "Invalid email";
+
 
 
 /* SignUpView */

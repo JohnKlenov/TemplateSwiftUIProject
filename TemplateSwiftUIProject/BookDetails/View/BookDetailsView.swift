@@ -21,6 +21,7 @@ struct BookDetailsView: View {
         print("init BookDetailsView - \(String(describing: book.id))")
     }
     
+    
     var body: some View {
 //        let _ = Self._printChanges()
       content(book: book)
@@ -98,6 +99,8 @@ struct BookDetailsView: View {
                         case .success(let action):
                             handleEditCompletion(action: action)
                         case .failure(let error):
+                            // данный case не реализуется в BookEditView
+                            // поэтому ошибка сюда в данной реализации никода не придет
                             print("Error: \(error)")
                         }
                     })

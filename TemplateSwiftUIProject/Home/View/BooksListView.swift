@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct BooksListView: View {
     @EnvironmentObject var localization: LocalizationService
     let data: [BookCloud]
@@ -19,7 +20,7 @@ struct BooksListView: View {
                     Button(role: .destructive) {
                         removeBookAction(book)
                     } label: {
-                        Label(Localized.Home.BookRowView.swipeActionsDelete.localized(), systemImage: "trash.fill")
+                        Label(Localized.Home.BookRowView.swipeActionsDelete.localized(), systemImage: AppIcons.Home.BookRowView.deleteBook)
                     }
                 }
         }

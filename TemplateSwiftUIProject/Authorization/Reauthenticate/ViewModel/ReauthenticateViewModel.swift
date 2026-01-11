@@ -139,6 +139,7 @@ final class ReauthenticateViewModel: ObservableObject {
         }
     }
     
+    
     deinit {
         cancellables.removeAll()
         print("deinit ReauthenticateViewModel")

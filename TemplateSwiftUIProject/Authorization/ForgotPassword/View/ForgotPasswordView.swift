@@ -37,7 +37,7 @@ struct ForgotPasswordView: View {
                         }
                     
                     if let error = viewModel.emailError {
-                        Text(error)
+                        Text(error.localized())
                             .font(.caption)
                             .foregroundColor(.red)
                     }
@@ -84,7 +84,6 @@ struct ForgotPasswordView: View {
         viewModel.updateValidationEmail()
         
         if viewModel.emailError == nil {
-            print("Email валиден. Отправляем reset link.")
             viewModel.sendResetLink()
         } else {
             print("Email некорректный.")

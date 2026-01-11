@@ -203,6 +203,11 @@ enum Localized {
         static let sendResetLink = "profile.forgotPasswordView.send_reset_link"
     }
 
+    enum ForgotPasswordViewModel {
+        static let emptyEmailError = "profile.forgotPasswordViewModel.empty_email_error"
+        static let invalidEmailError = "profile.forgotPasswordViewModel.invalid_email_error"
+    }
+
 
 
     // MARK: - Gallery Navigation Stack

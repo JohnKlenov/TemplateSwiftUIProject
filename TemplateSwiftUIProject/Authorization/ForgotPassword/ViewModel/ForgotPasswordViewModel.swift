@@ -7,6 +7,7 @@
 import Combine
 import SwiftUI
 
+
 final class ForgotPasswordViewModel: ObservableObject {
     @Published var email: String = ""
     @Published var emailError: String?
@@ -36,9 +37,9 @@ final class ForgotPasswordViewModel: ObservableObject {
     
     func updateValidationEmail() {
         if email.isEmpty {
-            emailError = "Введите email"
+            emailError = Localized.ForgotPasswordViewModel.emptyEmailError
         } else if !email.isValidEmail {
-            emailError = "Некорректный email"
+            emailError = Localized.ForgotPasswordViewModel.invalidEmailError
         } else {
             emailError = nil
         }
