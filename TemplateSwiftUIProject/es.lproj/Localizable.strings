@@ -232,6 +232,9 @@
 "error.editing_profile_fields" = "Error al modificar los campos de texto del perfil";
 "error.fetching_profile_data" = "Error al obtener los datos del perfil";
 "error.deleting_profile_avatar" = "No se pudo eliminar el avatar";
+"error.reauthenticate" = "Error de reautenticación";
+"error.forgot_password_operation" = "Error en la operación de recuperación de contraseña";
+
 
 
 
@@ -240,12 +243,16 @@
 "title.success.sign_up" = "Registro";
 "title.success.sign_in" = "Inicio de sesión";
 "title.success.account_deletion" = "Eliminación de cuenta";
+"title.success.reauthenticate" = "Reautenticación";
+"title.success.forgot_password" = "Restablecer contraseña";
 
 /* Message Of Success Operation Firebase */
 
 "message.success.sign_up" = "¡Registro exitoso!";
 "message.success.sign_in" = "¡Has iniciado sesión con éxito!";
 "message.success.account_deletion" = "Tu cuenta ha sido eliminada con éxito.";
+"message.success.reauthenticate" = "¡La reautenticación se completó con éxito!";
+"message.success.forgot_password" = "¡El correo para restablecer la contraseña ha sido enviado!";
 
 
 /* Custom Firebase Errors */

@@ -260,13 +260,13 @@ final class AuthorizationManager: ObservableObject {
                     )
                     DispatchQueue.main.async {
                         self.alertManager.showGlobalAlert(
-                            message: "Повторная аутентификация прошла успешно!",
-                            operationDescription: "Аутентификация",
+                            message: Localized.MessageOfSuccessOperationFirebase.reauthenticate,
+                            operationDescription: Localized.TitleOfSuccessOperationFirebase.reauthenticate,
                             alertType: .ok
                         )
                     }
                 case .failure(let error):
-                    self.handleAuthenticationError(error, operationDescription: "Аутентификация")
+                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate)
                 }
             } receiveValue: { _ in }
             .store(in: &cancellables)
@@ -287,12 +287,12 @@ final class AuthorizationManager: ObservableObject {
                 
                 switch completion {
                 case .failure(let error):
-                    self.handleAuthenticationError(error, operationDescription: "Forgot Password")
+                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.forgotPasswordOperation)
                 case .finished:
                     DispatchQueue.main.async {
                         self.alertManager.showGlobalAlert(
-                            message: "Письмо для сброса пароля отправлено!",
-                            operationDescription: "Forgot Password",
+                            message: Localized.MessageOfSuccessOperationFirebase.forgotPassword,
+                            operationDescription: Localized.TitleOfSuccessOperationFirebase.forgotPassword,
                             alertType: .ok
                         )
                     }
@@ -391,7 +391,7 @@ final class AuthorizationManager: ObservableObject {
                         print("Пользователь нажал Отмена → ничего не делаем")
                         return
                     }
-                    self.handleAuthenticationError(err, operationDescription: "Аутентификация")
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate)
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
@@ -399,8 +399,8 @@ final class AuthorizationManager: ObservableObject {
                     )
                     DispatchQueue.main.async {
                         self.alertManager.showGlobalAlert(
-                            message: "Повторная аутентификация прошла успешно!",
-                            operationDescription: "Аутентификация",
+                            message: Localized.MessageOfSuccessOperationFirebase.reauthenticate,
+                            operationDescription: Localized.TitleOfSuccessOperationFirebase.reauthenticate,
                             alertType: .ok
                         )
                     }

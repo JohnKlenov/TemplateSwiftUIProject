@@ -269,12 +269,17 @@ enum Localized {
         static let editingProfileFields = "error.editing_profile_fields"
         static let fetchingProfileData = "error.fetching_profile_data"
         static let deletingProfileAvatar = "error.deleting_profile_avatar"
+        static let reauthenticate = "error.reauthenticate"
+        static let forgotPasswordOperation = "error.forgot_password_operation"
+
     }
     
     enum TitleOfSuccessOperationFirebase {
         static let signUp = "title.success.sign_up"
         static let signIn = "title.success.sign_in"
         static let accountDeletion = "title.success.account_deletion"
+        static let reauthenticate = "title.success.reauthenticate"
+        static let forgotPassword = "title.success.forgot_password"
     }
     
     enum TitleOfFailedOperationPickingImage {
@@ -287,6 +292,8 @@ enum Localized {
         static let signUp = "message.success.sign_up"
         static let signIn = "message.success.sign_in"
         static let accountDeletion = "message.success.account_deletion"
+        static let reauthenticate = "message.success.reauthenticate"
+        static let forgotPassword = "message.success.forgot_password"
     }
     
     

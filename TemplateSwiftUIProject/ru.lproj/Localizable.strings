@@ -251,6 +251,9 @@
 "error.editing_profile_fields" = "Ошибка при изменении текстовых данных профиля";
 "error.fetching_profile_data" = "Ошибка при получении данных профиля";
 "error.deleting_profile_avatar" = "Не удалось удалить аватар";
+"error.reauthenticate" = "Ошибка повторной аутентификации";
+"error.forgot_password_operation" = "Ошибка операции восстановления пароля";
+
 
 
 
@@ -259,6 +262,8 @@
 "title.success.sign_up" = "Регистрация";
 "title.success.sign_in" = "Вход";
 "title.success.account_deletion" = "Удаление аккаунта";
+"title.success.reauthenticate" = "Аутентификация";
+"title.success.forgot_password" = "Сброс пароля";
 
 
 /* Message Of Success Operation Firebase */
@@ -266,6 +271,8 @@
 "message.success.sign_up" = "Регистрация прошла успешно!";
 "message.success.sign_in" = "Вы успешно вошли в аккаунт!";
 "message.success.account_deletion" = "Ваш аккаунт был успешно удалён.";
+"message.success.reauthenticate" = "Повторная аутентификация прошла успешно!";
+"message.success.forgot_password" = "Письмо для сброса пароля отправлено!";
 
 
 /* Custom Firebase Errors */

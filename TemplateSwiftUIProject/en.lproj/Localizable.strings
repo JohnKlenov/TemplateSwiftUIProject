@@ -238,6 +238,9 @@
 "error.editing_profile_fields" = "Failed to update profile text fields";
 "error.fetching_profile_data" = "Failed to fetch profile data";
 "error.deleting_profile_avatar" = "Failed to delete avatar";
+"error.reauthenticate" = "Reauthentication error";
+"error.forgot_password_operation" = "Password recovery operation error";
+
 
 
 
@@ -246,6 +249,8 @@
 "title.success.sign_up" = "Sign Up";
 "title.success.sign_in" = "Sign In";
 "title.success.account_deletion" = "Account Deletion";
+"title.success.reauthenticate" = "Reauthentication";
+"title.success.forgot_password" = "Password Reset";
 
 
 /* Message Of Success Operation Firebase */
@@ -253,6 +258,8 @@
 "message.success.sign_up" = "You have successfully signed up!";
 "message.success.sign_in" = "You have successfully signed in!";
 "message.success.account_deletion" = "Your account has been successfully deleted.";
+"message.success.reauthenticate" = "Reauthentication completed successfully!";
+"message.success.forgot_password" = "Password reset email has been sent!";
 
 
 
