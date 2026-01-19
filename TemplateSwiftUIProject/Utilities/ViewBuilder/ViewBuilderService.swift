@@ -14,13 +14,15 @@ import SwiftUI
 //@MainActor
 class ViewBuilderService: ObservableObject {
     
+    private let profileService:FirestoreProfileService
+    private let storageProfileService: StorageProfileServiceProtocol
+    private let authService: AuthenticationServiceProtocol
+    
     private let crudManager: CRUDSManager
     private let authorizationManager: AuthorizationManager
     private let userInfoCellManager: UserInfoCellManager
-    private let profileService:FirestoreProfileService
-    private let storageProfileService: StorageProfileServiceProtocol
     private let userInfoEditManager:UserInfoEditManager
-    private let authService: AuthenticationServiceProtocol
+    private let homeManager: HomeManager
 
     init() {
         let userProvider: CurrentUserProvider = FirebaseAuthUserProvider()
@@ -43,13 +45,21 @@ class ViewBuilderService: ObservableObject {
             errorHandler: SharedErrorHandler(),
             databaseService: FirestoreDatabaseCRUDService()
         )
+        
+        self.homeManager = HomeManager(
+            authService: authService,
+            firestoreService: FirestoreCollectionObserverService(),
+            errorHandler: SharedErrorHandler(),
+            alertManager: AlertManager.shared
+        )
     }
     
-    @ViewBuilder 
+    
+    @ViewBuilder
     func homeViewBuild(page: HomeFlow) -> some View {
         switch page {
         case .home:
-            HomeContentView(managerCRUDS: crudManager, authenticationService: authService)
+            HomeContentViewInjected( managerCRUDS: crudManager, homeManager: homeManager )
         case .bookDetails(let book):
             BookDetailsView(managerCRUDS: crudManager, book: book)
         case .someHomeView:
@@ -110,7 +120,23 @@ class ViewBuilderService: ObservableObject {
 
 
 
-//before ForgotPasswordView
+// before refactoring View → ViewModel → Manager → Service
+
+
+//@ViewBuilder
+//func homeViewBuild(page: HomeFlow) -> some View {
+//    switch page {
+//    case .home:
+//        HomeContentView(managerCRUDS: crudManager, authenticationService: authService)
+//    case .bookDetails(let book):
+//        BookDetailsView(managerCRUDS: crudManager, book: book)
+//    case .someHomeView:
+//        SomeView()
+//    }
+//}
+
+
+// before ForgotPasswordView
 
 //@ViewBuilder
 //func accountViewBuild(page: AccountFlow) -> some View {

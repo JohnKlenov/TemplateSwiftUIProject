@@ -77,6 +77,8 @@
 //        }
 
 
+
+
 import Combine
 import SwiftUI
 
@@ -102,125 +104,204 @@ enum StateError {
 }
 
 
-protocol HomeViewModelProtocol: ObservableObject {
-    var viewState: ViewState { get set }
-    var alertManager:AlertManager { get set }
-    func removeBook(book: BookCloud, forView:String, operationDescription: String)
-    func retry()
-}
-
-
-class HomeContentViewModel: HomeViewModelProtocol {
+final class HomeContentViewModel: ObservableObject {
     
-    /// может просто var alertManager:AlertManager ???@ObservedObject
-    var alertManager:AlertManager
     @Published var viewState: ViewState = .loading
     
-    private var stateError:StateError = .localError
+    private let homeManager: HomeManager
+    let managerCRUDS: CRUDSManager
     private var cancellables = Set<AnyCancellable>()
-    private var authenticationService: AuthenticationServiceProtocol
-    private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
-    var managerCRUDS: CRUDSManager
-    private let errorHandler: ErrorHandlerProtocol
-    private(set) var globalRetryHandler: GlobalRetryHandler?
     
-    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: CRUDSManager, errorHandler: ErrorHandlerProtocol) {
-        self.alertManager = alertManager
-        self.authenticationService = authenticationService
-        self.firestorColletionObserverService = firestorColletionObserverService
-        self.errorHandler = errorHandler
+    init(homeManager: HomeManager,
+         managerCRUDS: CRUDSManager) {
+        self.homeManager = homeManager
         self.managerCRUDS = managerCRUDS
-        print("init HomeContentViewModel")
-
-    }
-
-    func setRetryHandler(_ handler: GlobalRetryHandler) {
-            self.globalRetryHandler = handler
-        }
-    
-    // можно обернуть Services HomeViewModel в Manager как в Profile
-    // bind() имеет самоисправляемый баг при котором firestorColletionObserverService.observeCollection
-    // выбрасывает ошибку правил безопасности когда мы deleteAccount/signOut
-    private func bind() {
-        print(" private func bind() ")
-        viewState = .loading
-        authenticationService.authenticate()
-            .flatMap { [weak self] result -> AnyPublisher<Result<[BookCloud], Error>, Never> in
-                guard let self = self else {
-                    return Just(.success([])).eraseToAnyPublisher()
-                }
-                switch result {
-                case .success(let userId):
-                    
-                    return firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
-                case .failure(let error):
-                    /// это ошибка может возникнуть только если createAnonymousUser вернет ошибку
-                    /// она может возникнуть (при первом старте, если мы удалили account и не удадось createAnonymousUser ... )
-                    /// так как HomeContentViewModel это единственная точка создания createAnonymousUser
-                    /// refresh из любой точки приложения нужно делать сдесь через globalAlert и notification
-                    /// может получится так что при первом старте время ответа от Firebase Auth будет долгим из за плохой сети
-                    /// и пользователь перейдет на другую вкладку TabBar
-                    /// тогда при ошибки создания createAnonymousUser мы должны через globalAlert на любом другом экране refresh
-                    /// тут важно что бы globalAlert всегда первым отображался на экране ()
-                    /// Таймауты Firebase Auth: Стандартный таймаут: 10-60 секунд (зависит от версии SDK и сетевых условий)
-                    /// 3G: 2-8 секунд / Edge-сети (2G): 12-30 секунд / После 15 сек 60% пользователей закрывают приложение
-                    stateError = .globalError
-                    return Just(.failure(error)).eraseToAnyPublisher()
-                }
-            }
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] result in
-                switch result {
-                case .success(let data):
-                    self?.viewState = .content(data)
-                case .failure(let error):
-                    self?.handleStateError(error)
-                }
-            }
-            .store(in: &cancellables)
     }
     
     func setupViewModel() {
-        bind()
+        observe()
+    }
+    
+    func setRetryHandler(_ handler: GlobalRetryHandler) {
+        homeManager.setRetryHandler(handler)
     }
     
     func retry() {
-        authenticationService.reset()
-        bind()
+        homeManager.retry()
+        observe()
     }
     
-    private func handleStateError(_ error: Error) {
-        switch stateError {
-        case .localError: 
-            handleFirestoreError(error)
-        case .globalError:
-            handleAuthenticationError(error)
-        }
-        stateError = .localError
+    func removeBook(book: BookCloud,
+                    forView: String,
+                    operationDescription: String) {
+        managerCRUDS.removeBook(
+            book: book,
+            forView: forView,
+            operationDescription: operationDescription
+        )
     }
     
-    func removeBook(book: BookCloud, forView:String, operationDescription: String) {
-        managerCRUDS.removeBook(book: book, forView: forView, operationDescription: operationDescription)
-    }
-    
-    private func handleAuthenticationError(_ error: Error) {
-        let errorMessage = errorHandler.handle(error: error)
-        // Устанавливаем актуальный обработчик
-        globalRetryHandler?.setAuthenticationRetryHandler { [weak self] in
-            self?.retry()
-        }
-        alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.TitleOfFailedOperationFirebase.authentication, alertType: .tryAgain)
-        viewState = .error(errorMessage)
-    }
-    
-    /// когда мы signOut в момент когда user == nil отрабатывает firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
-    /// и выбрасывает [FirebaseFirestore][I-FST000001] Listen for query at users/Sni6ad3yp4U3bnkamD1SpevQiVs2/data failed: Missing or insufficient permissions.
-    private func handleFirestoreError(_ error: Error) {
-        print("HomeContentViewModel func handleFirestoreError - \(error.localizedDescription)")
-        let errorMessage = errorHandler.handle(error: error)
-        viewState = .error(errorMessage)
+    private func observe() {
+        viewState = .loading
+        
+        homeManager.observeBooks()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                self?.viewState = state
+            }
+            .store(in: &cancellables)
     }
 }
+
+
+// MARK: - before refactoring View → ViewModel → Manager → Service
+
+
+
+//import Combine
+//import SwiftUI
+//
+//
+//enum ViewState {
+//    case loading
+//    case error(String)
+//    case content([BookCloud])
+//}
+//
+//extension ViewState {
+//    var isError:Bool {
+//        if case .error = self {
+//            return true
+//        }
+//        return false
+//    }
+//}
+//
+//enum StateError {
+//    case localError
+//    case globalError
+//}
+//
+//
+//protocol HomeViewModelProtocol: ObservableObject {
+//    var viewState: ViewState { get set }
+//    var alertManager:AlertManager { get set }
+//    func removeBook(book: BookCloud, forView:String, operationDescription: String)
+//    func retry()
+//}
+//
+//
+//class HomeContentViewModel: HomeViewModelProtocol {
+//    
+//    /// может просто var alertManager:AlertManager ???@ObservedObject
+//    var alertManager:AlertManager
+//    @Published var viewState: ViewState = .loading
+//    
+//    private var stateError:StateError = .localError
+//    private var cancellables = Set<AnyCancellable>()
+//    private var authenticationService: AuthenticationServiceProtocol
+//    private var firestorColletionObserverService: FirestoreCollectionObserverProtocol
+//    var managerCRUDS: CRUDSManager
+//    private let errorHandler: ErrorHandlerProtocol
+//    private(set) var globalRetryHandler: GlobalRetryHandler?
+//    
+//    init(alertManager: AlertManager = AlertManager.shared, authenticationService: AuthenticationServiceProtocol, firestorColletionObserverService: FirestoreCollectionObserverProtocol, managerCRUDS: CRUDSManager, errorHandler: ErrorHandlerProtocol) {
+//        self.alertManager = alertManager
+//        self.authenticationService = authenticationService
+//        self.firestorColletionObserverService = firestorColletionObserverService
+//        self.errorHandler = errorHandler
+//        self.managerCRUDS = managerCRUDS
+//        print("init HomeContentViewModel")
+//
+//    }
+//
+//    func setRetryHandler(_ handler: GlobalRetryHandler) {
+//            self.globalRetryHandler = handler
+//        }
+//    
+//    // можно обернуть Services HomeViewModel в Manager как в Profile
+//    // bind() имеет самоисправляемый баг при котором firestorColletionObserverService.observeCollection
+//    // выбрасывает ошибку правил безопасности когда мы deleteAccount/signOut
+//    private func bind() {
+//        print(" private func bind() ")
+//        viewState = .loading
+//        authenticationService.authenticate()
+//            .flatMap { [weak self] result -> AnyPublisher<Result<[BookCloud], Error>, Never> in
+//                guard let self = self else {
+//                    return Just(.success([])).eraseToAnyPublisher()
+//                }
+//                switch result {
+//                case .success(let userId):
+//                    
+//                    return firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
+//                case .failure(let error):
+//                    /// это ошибка может возникнуть только если createAnonymousUser вернет ошибку
+//                    /// она может возникнуть (при первом старте, если мы удалили account и не удадось createAnonymousUser ... )
+//                    /// так как HomeContentViewModel это единственная точка создания createAnonymousUser
+//                    /// refresh из любой точки приложения нужно делать сдесь через globalAlert и notification
+//                    /// может получится так что при первом старте время ответа от Firebase Auth будет долгим из за плохой сети
+//                    /// и пользователь перейдет на другую вкладку TabBar
+//                    /// тогда при ошибки создания createAnonymousUser мы должны через globalAlert на любом другом экране refresh
+//                    /// тут важно что бы globalAlert всегда первым отображался на экране ()
+//                    /// Таймауты Firebase Auth: Стандартный таймаут: 10-60 секунд (зависит от версии SDK и сетевых условий)
+//                    /// 3G: 2-8 секунд / Edge-сети (2G): 12-30 секунд / После 15 сек 60% пользователей закрывают приложение
+//                    stateError = .globalError
+//                    return Just(.failure(error)).eraseToAnyPublisher()
+//                }
+//            }
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] result in
+//                switch result {
+//                case .success(let data):
+//                    self?.viewState = .content(data)
+//                case .failure(let error):
+//                    self?.handleStateError(error)
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func setupViewModel() {
+//        bind()
+//    }
+//    
+//    func retry() {
+//        authenticationService.reset()
+//        bind()
+//    }
+//    
+//    private func handleStateError(_ error: Error) {
+//        switch stateError {
+//        case .localError:
+//            handleFirestoreError(error)
+//        case .globalError:
+//            handleAuthenticationError(error)
+//        }
+//        stateError = .localError
+//    }
+//    
+//    func removeBook(book: BookCloud, forView:String, operationDescription: String) {
+//        managerCRUDS.removeBook(book: book, forView: forView, operationDescription: operationDescription)
+//    }
+//    
+//    private func handleAuthenticationError(_ error: Error) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        // Устанавливаем актуальный обработчик
+//        globalRetryHandler?.setAuthenticationRetryHandler { [weak self] in
+//            self?.retry()
+//        }
+//        alertManager.showGlobalAlert(message: errorMessage, operationDescription: Localized.TitleOfFailedOperationFirebase.authentication, alertType: .tryAgain)
+//        viewState = .error(errorMessage)
+//    }
+//    
+//    /// когда мы signOut в момент когда user == nil отрабатывает firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
+//    /// и выбрасывает [FirebaseFirestore][I-FST000001] Listen for query at users/Sni6ad3yp4U3bnkamD1SpevQiVs2/data failed: Missing or insufficient permissions.
+//    private func handleFirestoreError(_ error: Error) {
+//        print("HomeContentViewModel func handleFirestoreError - \(error.localizedDescription)")
+//        let errorMessage = errorHandler.handle(error: error)
+//        viewState = .error(errorMessage)
+//    }
+//}
 
 
 

@@ -17,46 +17,37 @@
 
 ///Используйте модификатор .dynamicTypeSize или .font с поддержкой динамического шрифта.
 
+
 import SwiftUI
 
-struct HomeContentView:View {
+struct HomeContentView: View {
     
+    @ObservedObject var viewModel: HomeContentViewModel
     
-    @StateObject private var viewModel: HomeContentViewModel
-    @EnvironmentObject var homeCoordinator:HomeCoordinator
+    @EnvironmentObject var homeCoordinator: HomeCoordinator
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var retryHandler: GlobalRetryHandler
     
-    
-    init(managerCRUDS: CRUDSManager, authenticationService: AuthenticationServiceProtocol) {
-        _viewModel = StateObject(wrappedValue: HomeContentViewModel(
-            authenticationService: authenticationService,
-            firestorColletionObserverService: FirestoreCollectionObserverService(),
-            managerCRUDS: managerCRUDS, 
-            errorHandler: SharedErrorHandler()))
-        print("init HomeContentView")
-    }
-    
     var body: some View {
-//         let _ = Self._printChanges()
-        
         ZStack {
             switch viewModel.viewState {
             case .loading:
                 ProgressView(Localized.Home.loading.localized())
+                
             case .content(let data):
                 if data.isEmpty {
-                    // Используем EmptyStateView для заполнителя
                     EmptyStateView()
                 } else {
                     BooksListView(data: data) { book in
-                        viewModel.removeBook(book: book,
-                                             forView: "HomeView",
-                                             operationDescription: Localized.TitleOfFailedOperationFirebase.deletingBook)
+                        viewModel.removeBook(
+                            book: book,
+                            forView: "HomeView",
+                            operationDescription: Localized.TitleOfFailedOperationFirebase.deletingBook
+                        )
                     }
                 }
+                
             case .error(let error):
-                ///error на ContentErrorView не распечатывается
                 ContentErrorView(error: error) {
                     viewModel.retry()
                 }
@@ -64,11 +55,15 @@ struct HomeContentView:View {
         }
         .background(AppColors.background)
         .navigationTitle(Localized.Home.title.localized())
-        .toolbar{
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(Localized.Home.addButton.localized()) {
-                    // перенести BookEditView во ViewBuilder ??? 
-                    let sheetContent = AnyView(BookEditView(managerCRUDS: viewModel.managerCRUDS, presentEditView: "HomeView"))
+                    let sheetContent = AnyView(
+                        BookEditView(
+                            managerCRUDS: viewModel.managerCRUDS,
+                            presentEditView: "HomeView"
+                        )
+                    )
                     homeCoordinator.presentSheet(SheetItem(content: sheetContent))
                 }
                 .foregroundStyle(AppColors.activeColor)
@@ -77,7 +72,6 @@ struct HomeContentView:View {
             }
         }
         .onFirstAppear {
-            print("onFirstAppear HomeContentView")
             viewModel.setRetryHandler(retryHandler)
             viewModel.setupViewModel()
         }
@@ -96,6 +90,87 @@ struct HomeContentView:View {
 
 
 
+
+
+
+// MARK: - before refactoring View → ViewModel → Manager → Service
+
+//import SwiftUI
+//
+//struct HomeContentView:View {
+//    
+//    
+//    @StateObject private var viewModel: HomeContentViewModel
+//    @EnvironmentObject var homeCoordinator:HomeCoordinator
+//    @EnvironmentObject var localization: LocalizationService
+//    @EnvironmentObject var retryHandler: GlobalRetryHandler
+//    
+//    
+//    init(managerCRUDS: CRUDSManager, authenticationService: AuthenticationServiceProtocol) {
+//        _viewModel = StateObject(wrappedValue: HomeContentViewModel(
+//            authenticationService: authenticationService,
+//            firestorColletionObserverService: FirestoreCollectionObserverService(),
+//            managerCRUDS: managerCRUDS,
+//            errorHandler: SharedErrorHandler()))
+//        print("init HomeContentView")
+//    }
+//    
+//    var body: some View {
+////         let _ = Self._printChanges()
+//        
+//        ZStack {
+//            switch viewModel.viewState {
+//            case .loading:
+//                ProgressView(Localized.Home.loading.localized())
+//            case .content(let data):
+//                if data.isEmpty {
+//                    // Используем EmptyStateView для заполнителя
+//                    EmptyStateView()
+//                } else {
+//                    BooksListView(data: data) { book in
+//                        viewModel.removeBook(book: book,
+//                                             forView: "HomeView",
+//                                             operationDescription: Localized.TitleOfFailedOperationFirebase.deletingBook)
+//                    }
+//                }
+//            case .error(let error):
+//                ///error на ContentErrorView не распечатывается
+//                ContentErrorView(error: error) {
+//                    viewModel.retry()
+//                }
+//            }
+//        }
+//        .background(AppColors.background)
+//        .navigationTitle(Localized.Home.title.localized())
+//        .toolbar{
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button(Localized.Home.addButton.localized()) {
+//                    // перенести BookEditView во ViewBuilder ???
+//                    let sheetContent = AnyView(BookEditView(managerCRUDS: viewModel.managerCRUDS, presentEditView: "HomeView"))
+//                    homeCoordinator.presentSheet(SheetItem(content: sheetContent))
+//                }
+//                .foregroundStyle(AppColors.activeColor)
+//                .padding()
+//                .disabled(viewModel.viewState.isError)
+//            }
+//        }
+//        .onFirstAppear {
+//            print("onFirstAppear HomeContentView")
+//            viewModel.setRetryHandler(retryHandler)
+//            viewModel.setupViewModel()
+//        }
+//        .onAppear {
+//            print("onAppear HomeContentView")
+//        }
+//        .onDisappear {
+//            print("onDisappear HomeContentView")
+//            
+//        }
+//        .task {
+//            print("task HomeContentView")
+//        }
+//    }
+//}
 
 
 

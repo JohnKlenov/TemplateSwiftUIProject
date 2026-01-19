@@ -18,14 +18,13 @@
 
 
 
+
 import Combine
 import FirebaseAuth
 
 protocol AuthenticationServiceProtocol {
     func authenticate() -> AnyPublisher<Result<String, Error>, Never>
-    func getCurrentUserID() -> AnyPublisher<Result<String,Error>, Never>
     func reset()
-    func signOutUser()
 }
 
 
@@ -85,29 +84,37 @@ class AuthenticationService: AuthenticationServiceProtocol {
         authenticationPublisher = PassthroughSubject<Result<String, Error>, Never>()
         addListeners()
     }
-    
-    /// в нем нет необходимости для HomeView так как вся логика CRUDS  в  CRUDSManager
-    func getCurrentUserID() -> AnyPublisher<Result<String, any Error>, Never> {
-        Future { promise in
-            if let user = Auth.auth().currentUser {
-                promise(.success(.success(user.uid)))
-            } else {
-                promise(.success(.failure(FirebaseInternalError.notSignedIn)))
-            }
-        }
-        .eraseToAnyPublisher()
-    }
-    
-    func signOutUser() {
-        do {
-            try Auth.auth().signOut()
-            print("Success signOut!")
-        } catch let error {
-            print("Failed signOut - \(error.localizedDescription)")
-        }
-    }
 }
 
+
+
+//protocol AuthenticationServiceProtocol {
+//    func authenticate() -> AnyPublisher<Result<String, Error>, Never>
+//    func getCurrentUserID() -> AnyPublisher<Result<String,Error>, Never>
+//    func reset()
+//    func signOutUser()
+//}
+
+/// в нем нет необходимости для HomeView так как вся логика CRUDS  в  CRUDSManager
+//    func getCurrentUserID() -> AnyPublisher<Result<String, any Error>, Never> {
+//        Future { promise in
+//            if let user = Auth.auth().currentUser {
+//                promise(.success(.success(user.uid)))
+//            } else {
+//                promise(.success(.failure(FirebaseInternalError.notSignedIn)))
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+
+//    func signOutUser() {
+//        do {
+//            try Auth.auth().signOut()
+//            print("Success signOut!")
+//        } catch let error {
+//            print("Failed signOut - \(error.localizedDescription)")
+//        }
+//    }
 
 
 // MARK: - before AnonAccountTrackerService
