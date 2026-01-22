@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		5E00EE112F1E2C8900A521AC /* HomeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE102F1E2C8900A521AC /* HomeManager.swift */; };
 		5E00EE132F1E354100A521AC /* HomeContentViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE122F1E354100A521AC /* HomeContentViewInjected.swift */; };
+		5E00EE152F2220CD00A521AC /* BookDetailsViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE142F2220CD00A521AC /* BookDetailsViewInjected.swift */; };
+		5E00EE172F22368700A521AC /* GalleryContentViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE162F22368700A521AC /* GalleryContentViewInjected.swift */; };
+		5E00EE192F22385200A521AC /* GalleryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE182F22385200A521AC /* GalleryManager.swift */; };
 		5E8F9C672D537949004036F6 /* TabSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C662D537949004036F6 /* TabSwitcher.swift */; };
 		5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */; };
 		5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */; };
@@ -154,6 +157,9 @@
 /* Begin PBXFileReference section */
 		5E00EE102F1E2C8900A521AC /* HomeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeManager.swift; sourceTree = "<group>"; };
 		5E00EE122F1E354100A521AC /* HomeContentViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContentViewInjected.swift; sourceTree = "<group>"; };
+		5E00EE142F2220CD00A521AC /* BookDetailsViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailsViewInjected.swift; sourceTree = "<group>"; };
+		5E00EE162F22368700A521AC /* GalleryContentViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryContentViewInjected.swift; sourceTree = "<group>"; };
+		5E00EE182F22385200A521AC /* GalleryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryManager.swift; sourceTree = "<group>"; };
 		5E8F9C662D537949004036F6 /* TabSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSwitcher.swift; sourceTree = "<group>"; };
 		5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCoordinator.swift; sourceTree = "<group>"; };
 		5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewBuilderService.swift; sourceTree = "<group>"; };
@@ -406,6 +412,7 @@
 			isa = PBXGroup;
 			children = (
 				5E8F9CC92D81AC47004036F6 /* FirestoreGetService.swift */,
+				5E00EE182F22385200A521AC /* GalleryManager.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -687,6 +694,7 @@
 			isa = PBXGroup;
 			children = (
 				5EA4FE282CF5B557001CA401 /* BookDetailsView.swift */,
+				5E00EE142F2220CD00A521AC /* BookDetailsViewInjected.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1012,6 +1020,7 @@
 				5E8F9CB02D819EB6004036F6 /* GalleryView.swift */,
 				5E8F9CB42D819F68004036F6 /* GalleryContentView.swift */,
 				5E8F9CB82D81A276004036F6 /* GalleryCompositView.swift */,
+				5E00EE162F22368700A521AC /* GalleryContentViewInjected.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1217,6 +1226,7 @@
 				5EC88EE82DBD815900A95224 /* GlobalRetryHandler.swift in Sources */,
 				5E8F9CCF2D99777A004036F6 /* ImageCacheManager.swift in Sources */,
 				5EC94A002CC291DB003736A9 /* ContentAccountView.swift in Sources */,
+				5E00EE152F2220CD00A521AC /* BookDetailsViewInjected.swift in Sources */,
 				5EAF5B0C2D2D56D400D96FD6 /* AlertViewModel.swift in Sources */,
 				5EA4FE362D21C8D7001CA401 /* HomeContentView.swift in Sources */,
 				5EA4FE322D09CF87001CA401 /* CRUDSManager.swift in Sources */,
@@ -1234,6 +1244,7 @@
 				5E8F9CBF2D81A451004036F6 /* ShopsSectionView.swift in Sources */,
 				5EC332E82E5C43820051BE5B /* ClearButtonModifier.swift in Sources */,
 				5EC88EDC2DB136F500A95224 /* AccountView.swift in Sources */,
+				5E00EE172F22368700A521AC /* GalleryContentViewInjected.swift in Sources */,
 				5EC332EC2E5C76020051BE5B /* PhotoPickerError.swift in Sources */,
 				5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */,
 				5E8F9CCC2D81AF68004036F6 /* GalleryContentViewModel.swift in Sources */,
@@ -1259,6 +1270,7 @@
 				5EC88EE12DB2342700A95224 /* UserInfoCellView.swift in Sources */,
 				5EC88EDF2DB1377B00A95224 /* AccountViewModel.swift in Sources */,
 				5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */,
+				5E00EE192F22385200A521AC /* GalleryManager.swift in Sources */,
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
 				5EBFD5D02E228D5200A3C74C /* FirestoreProfileService.swift in Sources */,
 				5EC88EEB2DBF8CEE00A95224 /* NetworkMonitor.swift in Sources */,

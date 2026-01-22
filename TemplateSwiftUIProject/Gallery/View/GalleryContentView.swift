@@ -21,28 +21,25 @@
 /// В данном случае, оборачивать await viewModel.fetchData() в Task не обязательно. Это связано с тем, что метод refreshAction в GalleryCompositView уже передан как асинхронное замыкание(let refreshAction: () async -> Void).
 //print("did tap GalleryCompositView")
 
+
 import SwiftUI
 
 struct GalleryContentView: View {
     
     @EnvironmentObject var localization: LocalizationService
-    @StateObject private var viewModel: GalleryContentViewModel
-    
-    init() {
-        _viewModel = StateObject(wrappedValue: GalleryContentViewModel(firestoreService: FirestoreGetService(), errorHandler: SharedErrorHandler()))
-        print("init GalleryContentView")
-    }
-
+    @ObservedObject var viewModel: GalleryContentViewModel
     
     var body: some View {
         ZStack {
             switch viewModel.viewState {
             case .loading:
                 ProgressView(Localized.Gallery.loading.localized())
+                
             case .error(let error):
                 ContentErrorView(error: error) {
                     refreshData()
                 }
+                
             case .content(let data):
                 GalleryCompositView(data: data, refreshAction: {
                     print("did tap GalleryCompositView")
@@ -64,6 +61,54 @@ struct GalleryContentView: View {
     }
 }
 
+
+
+
+
+// MARK: - before refactoring View → ViewModel → Manager → Service
+
+//import SwiftUI
+//
+//struct GalleryContentView: View {
+//    
+//    @EnvironmentObject var localization: LocalizationService
+//    @StateObject private var viewModel: GalleryContentViewModel
+//    
+//    init() {
+//        _viewModel = StateObject(wrappedValue: GalleryContentViewModel(firestoreService: FirestoreGetService(), errorHandler: SharedErrorHandler()))
+//        print("init GalleryContentView")
+//    }
+//
+//    
+//    var body: some View {
+//        ZStack {
+//            switch viewModel.viewState {
+//            case .loading:
+//                ProgressView(Localized.Gallery.loading.localized())
+//            case .error(let error):
+//                ContentErrorView(error: error) {
+//                    refreshData()
+//                }
+//            case .content(let data):
+//                GalleryCompositView(data: data, refreshAction: {
+//                    print("did tap GalleryCompositView")
+//                    await viewModel.fetchData()
+//                })
+//            }
+//        }
+//        .background(AppColors.background)
+//        .navigationTitle(Localized.Gallery.title.localized())
+//        .onAppear {
+//            refreshData()
+//        }
+//    }
+//    
+//    private func refreshData() {
+//        Task {
+//            await viewModel.checkAndRefreshIfNeeded()
+//        }
+//    }
+//}
 
 
 

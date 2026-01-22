@@ -23,6 +23,7 @@ class ViewBuilderService: ObservableObject {
     private let userInfoCellManager: UserInfoCellManager
     private let userInfoEditManager:UserInfoEditManager
     private let homeManager: HomeManager
+    private let galleryManager: GalleryManager
 
     init() {
         let userProvider: CurrentUserProvider = FirebaseAuthUserProvider()
@@ -52,6 +53,12 @@ class ViewBuilderService: ObservableObject {
             errorHandler: SharedErrorHandler(),
             alertManager: AlertManager.shared
         )
+        
+        self.galleryManager = GalleryManager(
+            firestoreService: FirestoreGetService(),
+            errorHandler: SharedErrorHandler(),
+            alertManager: AlertManager.shared
+        )
     }
     
     
@@ -61,7 +68,7 @@ class ViewBuilderService: ObservableObject {
         case .home:
             HomeContentViewInjected( managerCRUDS: crudManager, homeManager: homeManager )
         case .bookDetails(let book):
-            BookDetailsView(managerCRUDS: crudManager, book: book)
+            BookDetailsViewInjected( managerCRUDS: crudManager, book: book )
         case .someHomeView:
             SomeView()
         }
@@ -71,7 +78,7 @@ class ViewBuilderService: ObservableObject {
     func galleryViewBuild(page: GalleryFlow) -> some View {
         switch page {
         case .gallery:
-            GalleryContentView()
+            GalleryContentViewInjected(galleryManager: galleryManager)
         case .someHomeView:
             SomeView()
         }

@@ -5,22 +5,16 @@
 //  Created by Evgenyi on 26.11.24.
 //
 //
+
 import SwiftUI
 
 struct BookDetailsView: View {
     
     @EnvironmentObject var homeCoordinator:HomeCoordinator
     @EnvironmentObject var localization: LocalizationService
-    @StateObject var viewModel:BookDetailsViewModel
+    @ObservedObject var viewModel: BookDetailsViewModel
     @Environment(\.dismiss) var dismiss
     @State var book: BookCloud
-    
-    init(managerCRUDS: CRUDSManager, book: BookCloud) {
-        _viewModel = StateObject(wrappedValue: BookDetailsViewModel(managerCRUDS: managerCRUDS))
-        self.book = book
-        print("init BookDetailsView - \(String(describing: book.id))")
-    }
-    
     
     var body: some View {
 //        let _ = Self._printChanges()
@@ -127,6 +121,138 @@ struct BookDetailsView: View {
         }
     }
 }
+
+
+
+// MARK: - before BookDetailsViewInjected
+
+
+//import SwiftUI
+//
+//struct BookDetailsView: View {
+//    
+//    @EnvironmentObject var homeCoordinator:HomeCoordinator
+//    @EnvironmentObject var localization: LocalizationService
+//    @StateObject var viewModel:BookDetailsViewModel
+//    @Environment(\.dismiss) var dismiss
+//    @State var book: BookCloud
+//    
+//    init(managerCRUDS: CRUDSManager, book: BookCloud) {
+//        _viewModel = StateObject(wrappedValue: BookDetailsViewModel(managerCRUDS: managerCRUDS))
+//        self.book = book
+//        print("init BookDetailsView - \(String(describing: book.id))")
+//    }
+//    
+//    
+//    var body: some View {
+////        let _ = Self._printChanges()
+//      content(book: book)
+//    }
+//    
+//    private func content(book:BookCloud) -> some View {
+//        ZStack {
+////            Color(UIColor.systemGroupedBackground)
+//            AppColors.systemGroupedBackground
+//                .ignoresSafeArea()
+//            
+//            ScrollView {
+//                VStack(alignment: .leading, spacing: 16) {
+//                    // Title Section
+//                    Text(Localized.BookDetailsView.title.localized())
+//                        .font(.headline)
+//                        .foregroundColor(AppColors.secondary)
+//                    
+//                    Text(book.title)
+//                        .font(.system(.title, design: .rounded, weight: .bold))
+//                        .foregroundColor(AppColors.primary)
+//                    
+//                    // Description Section
+//                    Text(Localized.BookDetailsView.description.localized())
+//                        .font(.headline)
+//                        .foregroundColor(AppColors.secondary)
+//                    
+//                    Text(book.description)
+//                        .font(.system(.body, design: .rounded, weight: .regular))
+//                        .foregroundColor(AppColors.primary)
+//                        .multilineTextAlignment(.leading)
+//                    
+//                    // Author Section
+//                    Text(Localized.BookDetailsView.author.localized())
+//                        .font(.headline)
+//                        .foregroundColor(AppColors.secondary)
+//                    
+//                    Text(book.author)
+//                        .font(.system(.body, design: .rounded, weight: .regular))
+//                        .foregroundColor(AppColors.primary)
+//                    
+//                    // Image Section
+//                    WebImageView(
+//                        url: URL(string: book.urlImage),
+//                        placeholderColor: AppColors.secondarySystemBackground,
+//                        displayStyle: .fixedFrame(width: 300, height: 300)
+//                    )
+//                        .aspectRatio(contentMode: .fill)
+//                        .frame(maxWidth: .infinity)
+//                        .cornerRadius(10)
+//                        .shadow(radius: 10)
+//                        .padding(.vertical, 16)
+//                    
+//                    // Navigation Button
+//                    Button(Localized.BookDetailsView.goToSomeViewButton.localized()) {
+//                        homeCoordinator.navigateTo(page: .someHomeView)
+//                    }
+//                    .buttonStyle(.borderedProminent)
+//                    .frame(maxWidth: .infinity)
+//                    .padding(.top, 16)
+//                }
+//                .padding()
+//                .background(AppColors.clear) // Удален белый фон карточки
+//            }
+//        }
+//        .navigationBarTitleDisplayMode(.inline)
+//        .navigationTitle(Localized.BookDetailsView.navigationTitle.localized())
+//        .toolbar {
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button(Localized.BookDetailsView.editButton.localized()) {
+//                    ///Для struct использование [weak self] не требуется, так как они не создают циклов удержания.
+//                    ///Замыкания в вашем коде безопасны, если они не создают сильных ссылок на объекты (class) внутри себя.
+//                    let sheetContent = AnyView(BookEditView(book: book, mode: .edit, managerCRUDS: viewModel.crudManager, presentEditView: "HomeView") {  result in
+//                        switch result {
+//                        case .success(let action):
+//                            handleEditCompletion(action: action)
+//                        case .failure(let error):
+//                            // данный case не реализуется в BookEditView
+//                            // поэтому ошибка сюда в данной реализации никода не придет
+//                            print("Error: \(error)")
+//                        }
+//                    })
+//                    homeCoordinator.presentSheet(SheetItem(content: sheetContent))
+//                }
+//            }
+//        }
+//        .onAppear {
+//            print("BookDetailsView onAppear")
+//        }
+//        .onDisappear {
+//            print("BookDetailsView onDisappear")
+//        }
+//    }
+//    
+//    private func handleEditCompletion(action: Action) {
+//        switch action {
+//        case .done(let updatedBook):
+//            self.book = updatedBook
+//        case .delete:
+//            dismiss() // Например, если нужно закрыть текущий экран
+//        case .cancel:
+//            break
+//        }
+//    }
+//}
+
+
+
+
 
 // MARK: - Cancel HomeBookDataStore
 

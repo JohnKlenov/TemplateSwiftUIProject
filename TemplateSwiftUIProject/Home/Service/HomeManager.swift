@@ -10,11 +10,6 @@ import Foundation
 
 final class HomeManager {
     
-//    enum StateError {
-//        case localError
-//        case globalError
-//    }
-    
     private let authService: AuthenticationServiceProtocol
     private let firestoreService: FirestoreCollectionObserverProtocol
     private let errorHandler: ErrorHandlerProtocol
