@@ -12,6 +12,8 @@
 		5E00EE152F2220CD00A521AC /* BookDetailsViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE142F2220CD00A521AC /* BookDetailsViewInjected.swift */; };
 		5E00EE172F22368700A521AC /* GalleryContentViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE162F22368700A521AC /* GalleryContentViewInjected.swift */; };
 		5E00EE192F22385200A521AC /* GalleryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE182F22385200A521AC /* GalleryManager.swift */; };
+		5E00EE1C2F27691B00A521AC /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5E00EE1B2F27691B00A521AC /* FirebaseCrashlytics */; };
+		5E00EE1E2F27692400A521AC /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5E00EE1D2F27692400A521AC /* FirebaseAnalytics */; };
 		5E8F9C672D537949004036F6 /* TabSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C662D537949004036F6 /* TabSwitcher.swift */; };
 		5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */; };
 		5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */; };
@@ -303,9 +305,11 @@
 			files = (
 				5EA4FE082CDCE960001CA401 /* FirebaseDatabase in Frameworks */,
 				5EA4FE102CDCE960001CA401 /* FirebaseStorageCombine-Community in Frameworks */,
+				5E00EE1E2F27692400A521AC /* FirebaseAnalytics in Frameworks */,
 				5EA4FE0A2CDCE960001CA401 /* FirebaseFirestore in Frameworks */,
 				5EA4FE062CDCE960001CA401 /* FirebaseCore in Frameworks */,
 				5E8F9C792D54EC92004036F6 /* SDWebImageSwiftUI in Frameworks */,
+				5E00EE1C2F27691B00A521AC /* FirebaseCrashlytics in Frameworks */,
 				5EA082B12EED86E300E244B8 /* GoogleSignInSwift in Frameworks */,
 				5EA4FE0C2CDCE960001CA401 /* FirebaseFirestoreCombine-Community in Frameworks */,
 				5EA4FE042CDCE960001CA401 /* FirebaseAuth in Frameworks */,
@@ -317,6 +321,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5E00EE1A2F27691B00A521AC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		5E8F9C6A2D5379E6004036F6 /* ViewBuilder */ = {
 			isa = PBXGroup;
 			children = (
@@ -877,6 +888,7 @@
 			children = (
 				5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */,
 				5EC949CD2CB526E5003736A9 /* Products */,
+				5E00EE1A2F27691B00A521AC /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1151,6 +1163,8 @@
 				5E8F9C782D54EC92004036F6 /* SDWebImageSwiftUI */,
 				5EA082AE2EED86E300E244B8 /* GoogleSignIn */,
 				5EA082B02EED86E300E244B8 /* GoogleSignInSwift */,
+				5E00EE1B2F27691B00A521AC /* FirebaseCrashlytics */,
+				5E00EE1D2F27692400A521AC /* FirebaseAnalytics */,
 			);
 			productName = TemplateSwiftUIProject;
 			productReference = 5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */;
@@ -1465,7 +1479,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1597,6 +1611,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5E00EE1B2F27691B00A521AC /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5EA4FE022CDCE960001CA401 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		5E00EE1D2F27692400A521AC /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5EA4FE022CDCE960001CA401 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
 		5E8F9C782D54EC92004036F6 /* SDWebImageSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5E8F9C772D54EC92004036F6 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;

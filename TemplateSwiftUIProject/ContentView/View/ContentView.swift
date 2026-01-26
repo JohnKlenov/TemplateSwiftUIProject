@@ -38,6 +38,9 @@
 import SwiftUI
 import Combine
 
+import FirebaseCrashlytics
+import FirebaseAnalytics
+
 
 struct ContentView: View {
     
@@ -71,6 +74,11 @@ struct ContentView: View {
     
     init() {
         print("init ContentView")
+//        fatalError("Test crash")
+
+//        Crashlytics.crashlytics().log("Before test crash")
+//        Crashlytics.crashlytics().record(error: NSError(domain: "Test3", code: 999, userInfo: [NSLocalizedDescriptionKey: "Test crash"]))
+
         _viewModel = StateObject(wrappedValue: ContentViewModel(alertManager: AlertManager.shared))
 
     }

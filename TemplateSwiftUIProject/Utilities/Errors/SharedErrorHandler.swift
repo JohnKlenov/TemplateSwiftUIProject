@@ -6,6 +6,13 @@
 //
 
 
+
+
+
+
+
+
+
 // мы можем отлавить эту ошибку в блоке catch двумя способами:
 
 //if nsError.domain == NSCocoaErrorDomain {
@@ -252,6 +259,11 @@
 ///   и местом её обработки (SharedErrorHandler) в вашей архитектуре.
 
 
+// MARK: - в проде из func handle(error: (any Error)?) -> String
+// должна выходить локализованный тект ошибки для алерта (понятный пользователю)
+// а под капотом всегда поступать реальная ошибка из сервиса и контекст это для Crashlytics
+
+
 
 /// Google Sign-In error codes (iOS SDK)
 enum GoogleSignInErrorCode: Int {
@@ -267,19 +279,336 @@ enum GoogleSignInErrorCode: Int {
 
 
 
+//
+//  ErrorDiagnosticsCenter.swift
+//
+//  Централизованный обработчик ошибок приложения.
+//  Выполняет:
+//  • классификацию ошибок,
+//  • логирование,
+//  • отправку критичных ошибок в Crashlytics,
+//  • вывод подробной информации в Debug,
+//  • возврат локализованных сообщений пользователю.
+//
+//  ----------------------------------------------------------------------
+//  ВАЖНО: Привязка ошибок к конкретному пользователю
+//
+//  Если нужно видеть в Crashlytics, какой пользователь получил ошибку,
+//  вызываем:
+//
+//      Crashlytics.crashlytics().setUserID(uid)
+//
+//  Делать это нужно сразу после успешной авторизации.
+//  Тогда все ошибки и краши будут привязаны к конкретному пользователю.
+//
+//  ----------------------------------------------------------------------
+//
+
+import Foundation
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseStorage
-import FirebaseDatabase
+import FirebaseCrashlytics
+
+// MARK: - FirebaseCrashReporter
+
+protocol CrashReporting {
+    func log(_ message: String)
+    func record(error: Error)
+}
+
+final class FirebaseCrashReporter: CrashReporting {
+    func log(_ message: String) {
+        Crashlytics.crashlytics().log(message)
+    }
+    
+    func record(error: Error) {
+        Crashlytics.crashlytics().record(error: error)
+    }
+}
+
+
+// MARK: - ErrorDiagnosticsCenter
+
+protocol ErrorDiagnosticsProtocol {
+    func handle(error: (any Error)?, context: String?) -> String
+}
+
+final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
+    
+    private let realtimeDomain = "com.firebase.database"
+    private let googleSignInDomain = "com.google.GIDSignIn"
+    private let crashReporter: CrashReporting
+    
+    init(crashReporter: CrashReporting = FirebaseCrashReporter()) {
+        self.crashReporter = crashReporter
+    }
+    
+    // MARK: - Основной метод обработки ошибок
+    
+    func handle(error: (any Error)?, context: String? = nil) -> String {
+        print("ErrorDiagnosticsCenter received error: \(String(describing: error?.localizedDescription))")
+        
+        guard let error = error else {
+            return Localized.FirebaseInternalError.defaultError
+        }
+        
+        // 1. Специальные типы до NSError
+        
+        if let decodingError = error as? DecodingError {
+            logCritical(error: error, context: context ?? "DecodingError: \(decodingError)")
+            return Localized.FirebaseInternalError.defaultError
+        }
+        
+        if let pickerError = error as? PhotoPickerError {
+            return handlePhotoPickerError(pickerError)
+        }
+        
+        // 2. NSError‑ветки
+        
+        if let nsError = error as NSError? {
+            crashReporter.log("NSError domain=\(nsError.domain) code=\(nsError.code) desc=\(nsError.localizedDescription)")
+            
+            // Auth
+            if let authCode = AuthErrorCode(rawValue: nsError.code) {
+                return handleAuthError(authCode, error: error, context: context)
+            }
+            
+            // Firestore
+            if nsError.domain == FirestoreErrorDomain {
+                return handleFirestoreError(nsError, error: error, context: context)
+            }
+            
+            // Storage
+            if let storageCode = StorageErrorCode(rawValue: nsError.code) {
+                return handleStorageError(storageCode, error: error, context: context)
+            }
+            
+            // Realtime Database
+            if nsError.domain == realtimeDomain {
+                return handleRealtimeDatabaseError(nsError, error: error, context: context)
+            }
+            
+            // Anonymous Auth
+            if nsError.domain == "Anonymous Auth" {
+                logCritical(error: error, context: context ?? "AnonymousAuth")
+                return Localized.FirebaseInternalError.anonymousAuthError
+            }
+            
+            // Google Sign-In
+            if nsError.domain == googleSignInDomain {
+                return handleGoogleSignInError(nsError, error: error, context: context)
+            }
+        }
+        
+        // 3. Пользовательские FirebaseInternalError
+        
+        if let custom = error as? FirebaseInternalError {
+            logCritical(error: error, context: context ?? "FirebaseInternalError")
+            return custom.errorDescription ?? Localized.FirebaseInternalError.defaultError
+        }
+        
+        // 4. Всё остальное — неизвестное → логируем
+        
+        logCritical(error: error, context: context ?? "UnknownError")
+        return Localized.FirebaseInternalError.defaultError
+    }
+    
+    // MARK: - Критичное логирование (Debug vs Release)
+    
+    /// В Debug печатаем всё в консоль.
+    /// В Release отправляем в Crashlytics.
+    private func logCritical(error: Error, context: String) {
+        #if DEBUG
+        print("⚠️ [DEBUG] Critical error context: \(context)")
+        print("⚠️ [DEBUG] Error: \(error.localizedDescription)")
+        print("⚠️ [DEBUG] Stack trace:")
+        Thread.callStackSymbols.forEach { print($0) }
+        #else
+        crashReporter.log("⚠️ Critical error context: \(context)")
+        let stack = Thread.callStackSymbols.joined(separator: "\n")
+        crashReporter.log("Stack:\n\(stack)")
+        crashReporter.record(error: error)
+        #endif
+    }
+    
+    // MARK: - Photo Picker
+    
+    private func handlePhotoPickerError(_ pickerError: PhotoPickerError) -> String {
+        switch pickerError {
+        case .noItemAvailable:
+            return Localized.PhotoPickerError.noItemAvailable
+        case .itemUnavailable:
+            return Localized.PhotoPickerError.itemUnavailable
+        case .unsupportedType:
+            return Localized.PhotoPickerError.unsupportedType
+        case .iCloudRequired:
+            return Localized.PhotoPickerError.iCloudRequired
+        case .loadFailed(let underlyingError),
+             .unknown(let underlyingError):
+            return (underlyingError as NSError).localizedDescription
+        }
+    }
+    
+    // MARK: - Auth
+    
+    private func handleAuthError(_ code: AuthErrorCode, error: Error, context: String?) -> String {
+        switch code {
+        case .invalidEmail:
+            return Localized.Auth.invalidEmail
+        case .weakPassword:
+            return Localized.Auth.weakPassword
+        case .wrongPassword:
+            return Localized.Auth.wrongPassword
+        case .emailAlreadyInUse:
+            return Localized.Auth.emailAlreadyInUse
+        case .tooManyRequests:
+            return Localized.Auth.tooManyRequests
+        case .networkError:
+            return Localized.Auth.networkError
+            
+        default:
+            logCritical(error: error, context: context ?? "AuthErrorCode.\(code.rawValue)")
+            return Localized.Auth.generic
+        }
+    }
+    
+    // MARK: - Firestore
+    
+    private func handleFirestoreError(_ nsError: NSError, error: Error, context: String?) -> String {
+        switch nsError.code {
+        case FirestoreErrorCode.cancelled.rawValue:
+            return Localized.Firestore.cancelled
+        case FirestoreErrorCode.unavailable.rawValue:
+            return Localized.Firestore.unavailable
+        case FirestoreErrorCode.deadlineExceeded.rawValue:
+            return Localized.Firestore.deadlineExceeded
+        case FirestoreErrorCode.notFound.rawValue:
+            return Localized.Firestore.notFound
+            
+        case FirestoreErrorCode.invalidArgument.rawValue,
+             FirestoreErrorCode.alreadyExists.rawValue,
+             FirestoreErrorCode.permissionDenied.rawValue,
+             FirestoreErrorCode.resourceExhausted.rawValue,
+             FirestoreErrorCode.failedPrecondition.rawValue,
+             FirestoreErrorCode.aborted.rawValue,
+             FirestoreErrorCode.outOfRange.rawValue,
+             FirestoreErrorCode.unimplemented.rawValue,
+             FirestoreErrorCode.internal.rawValue,
+             FirestoreErrorCode.dataLoss.rawValue,
+             FirestoreErrorCode.unauthenticated.rawValue:
+            logCritical(error: error, context: context ?? "Firestore.\(nsError.code)")
+            return Localized.Firestore.generic
+            
+        default:
+            logCritical(error: error, context: context ?? "Firestore.unknown(\(nsError.code))")
+            return Localized.Firestore.generic
+        }
+    }
+    
+    // MARK: - Storage
+    
+    private func handleStorageError(_ code: StorageErrorCode, error: Error, context: String?) -> String {
+        switch code {
+        case .cancelled:
+            return Localized.Storage.cancelled
+        case .unauthenticated:
+            return Localized.Storage.unauthenticated
+        case .unauthorized:
+            return Localized.Storage.unauthorized
+        case .downloadSizeExceeded:
+            return Localized.Storage.downloadSizeExceeded
+            
+        case .objectNotFound,
+             .bucketNotFound,
+             .projectNotFound,
+             .quotaExceeded,
+             .nonMatchingChecksum,
+             .invalidArgument,
+             .unknown,
+             .bucketMismatch,
+             .internalError,
+             .pathError,
+             .retryLimitExceeded:
+            logCritical(error: error, context: context ?? "Storage.\(code.rawValue)")
+            return Localized.Storage.generic
+            
+        @unknown default:
+            logCritical(error: error, context: context ?? "Storage.unknown")
+            return Localized.Storage.generic
+        }
+    }
+    
+    // MARK: - Realtime Database
+    
+    private func handleRealtimeDatabaseError(_ nsError: NSError, error: Error, context: String?) -> String {
+        switch nsError.code {
+        case NSURLErrorNotConnectedToInternet:
+            return Localized.RealtimeDatabase.networkError
+        case NSURLErrorTimedOut:
+            return Localized.RealtimeDatabase.timeout
+        case NSURLErrorCancelled:
+            return Localized.RealtimeDatabase.operationCancelled
+        case NSURLErrorCannotFindHost:
+            return Localized.RealtimeDatabase.hostNotFound
+        case NSURLErrorCannotConnectToHost:
+            return Localized.RealtimeDatabase.cannotConnectToHost
+        case NSURLErrorNetworkConnectionLost:
+            return Localized.RealtimeDatabase.networkConnectionLost
+        case NSURLErrorResourceUnavailable:
+            return Localized.RealtimeDatabase.resourceUnavailable
+        case NSURLErrorUserCancelledAuthentication:
+            return Localized.RealtimeDatabase.authenticationCancelled
+        case NSURLErrorUserAuthenticationRequired:
+            return Localized.RealtimeDatabase.authenticationRequired
+            
+        default:
+            logCritical(error: error, context: context ?? "RealtimeDatabase.\(nsError.code)")
+            return Localized.RealtimeDatabase.generic
+        }
+    }
+    
+    // MARK: - Google Sign-In
+    
+    private func handleGoogleSignInError(_ nsError: NSError, error: Error, context: String?) -> String {
+        guard let code = GoogleSignInErrorCode(rawValue: nsError.code) else {
+            logCritical(error: error, context: context ?? "GoogleSignIn.unknown(\(nsError.code))")
+            return Localized.GoogleSignInError.defaultError
+        }
+        
+        switch code {
+        case .canceled,
+             .scopesAlreadyGranted,
+             .noCurrentUser:
+            return Localized.GoogleSignInError.cancelled
+            
+        case .unknown,
+             .keychain,
+             .hasNoAuthInKeychain,
+             .emmError,
+             .mismatchWithCurrentUser:
+            logCritical(error: error, context: context ?? "GoogleSignIn.\(code.rawValue)")
+            return Localized.GoogleSignInError.defaultError
+        }
+    }
+}
+
+
+
+
+
+
+// MARK: - old implemintation
+
+
+
 
 protocol ErrorHandlerProtocol {
     func handle(error:Error?) -> String
 }
 
 
-// MARK: - в проде из func handle(error: (any Error)?) -> String
-// должна выходить локализованный тект ошибки для алерта (понятный пользователю)
-// а под капотом всегда поступать реальная ошибка из сервиса и контекст это для Crashlytics
+
 class SharedErrorHandler: ErrorHandlerProtocol {
     
     private let RealtimeDatabaseErrorDomain = "com.firebase.database"
@@ -568,6 +897,8 @@ class SharedErrorHandler: ErrorHandlerProtocol {
         }
     }
 }
+
+
 
 
 
