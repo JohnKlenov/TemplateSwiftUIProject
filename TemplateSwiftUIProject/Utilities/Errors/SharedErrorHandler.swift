@@ -13,218 +13,7 @@
 
 
 
-// мы можем отлавить эту ошибку в блоке catch двумя способами:
 
-//if nsError.domain == NSCocoaErrorDomain {
-//    return handleDecodingError(nsError)
-//}
-
-//private func handleDecodingError(_ error: NSError) -> String {
-//    switch error.code {
-//    case 4864: // типичная ошибка расшифровки JSON
-//        return Localized.FirebaseEnternalError.decodingTypeMismatch
-//    case 4860:
-//        return Localized.FirebaseEnternalError.missingRequiredKey
-//    default:
-//        return Localized.FirebaseEnternalError.decodingError // fallback
-//    }
-//}
-
-//или:
-
-//if let decodingError = error as? DecodingError {
-//    return handleDecodingError(decodingError)
-//}
-
-//private func handleDecodingError(_ error: DecodingError) -> String {
-//    switch error {
-//    case .typeMismatch(let type, let context):
-//        let path = context.codingPath.map(\.stringValue).joined(separator: ".")
-//        return "Тип данных не совпадает: ожидали \(type), путь: \(path)"
-//
-//    case .valueNotFound(let type, let context):
-//        let path = context.codingPath.map(\.stringValue).joined(separator: ".")
-//        return "Значение типа \(type) не найдено, путь: \(path)"
-//
-//    case .keyNotFound(let key, let context):
-//        let path = context.codingPath.map(\.stringValue).joined(separator: ".")
-//        return "Отсутствует ключ '\(key.stringValue)', путь: \(path)"
-//
-//    case .dataCorrupted(let context):
-//        let path = context.codingPath.map(\.stringValue).joined(separator: ".")
-//        return "Данные повреждены: \(context.debugDescription), путь: \(path)"
-//
-//    @unknown default:
-//        return "Неизвестная ошибка расшифровки данных"
-//    }
-//}
-
-//as NSError + domain - Упрощённую классификацию через NSCocoaErrorDomain, но без деталей
-//as? DecodingError  - Доступ к case, codingPath, debugDescription и конкретному типу
-
-// MARK: - тут мы еще не работали с ошибками которые нужно отображть через алерт а какие логировать
-// можно так же передавать в func handle(error: (any Error)?) description то есть откуда она пришла для краш листикса
-
-
-
-// MARK: - default error or description error ?
-
-// сейчас мы возвращаем описание ошибки даже те которые пользователю не понять !
-// может есть смысл разобрать ошибки на те которые стоит заменить на текст типа default error ?
-
-// MARK: - Crashlytics
-
-
-// MARK: - из errorHandler.handle(error: error) 
-// должен возвращаться локализованный текст ошибки для алерта пользователя
-// а в SharedErrorHandler всегда поступать реальная ошибка из сервиса и контекст это для Crashlytics
-
-/// 📌 Подробный комментарий: централизованный Crashlytics через SharedErrorHandler
-///
-/// Идея:
-/// - Держать Crashlytics как зависимость внутри `SharedErrorHandler`, а из разных мест приложения
-///   передавать только ошибку и контекст. Это делает обработку ошибок единой и управляемой.
-///
-/// Почему это best practice:
-/// - Единая точка входа: все ошибки проходят через один сервис (меньше дублирования и рассеивания логики).
-/// - Чистота кода: UI/бизнес-логика используют `handle(error:context:)` без прямых вызовов Crashlytics.
-/// - Гибкость: можно заменить Crashlytics на другой провайдер, изменив реализацию в одном месте.
-/// - Богатый контекст: можно добавлять метаданные (operation, intent, uid, isAnonymous), чтобы отчёты были полезными.
-///
-/// Как использовать:
-/// - В местах, где происходит ошибка (например, при авторизации), передаём:
-///   `errorHandler.handle(error: err, context: "GoogleAuth: signInWithGoogle intent=signIn")`
-/// - Пользователь получит локализованный текст.
-/// - Crashlytics получит подробный отчёт с контекстом и самой ошибкой.
-///
-/// Рекомендации по контексту:
-/// - Передавать краткую, но точную строку: где и почему произошло (модуль, операция, ключевые флаги).
-/// - Добавлять пользовательские атрибуты при необходимости (uid, платформа, версия).
-///
-/// Мини-реализация:
-/// protocol ErrorHandlerProtocol {
-///     func handle(error: Error?, context: String?) -> String
-/// }
-///
-/// class SharedErrorHandler: ErrorHandlerProtocol {
-///     func handle(error: Error?, context: String? = nil) -> String {
-///         guard let error else { return Localized.FirebaseInternalError.defaultError }
-///
-///         // 📡 Логируем для разработчиков
-///         if let context { Crashlytics.crashlytics().log("Context: \(context)") }
-///         Crashlytics.crashlytics().record(error: error)
-///
-///         // 👤 Текст для пользователя (локализованный, без технических деталей)
-///         if let custom = error as? FirebaseInternalError {
-///             return custom.errorDescription ?? Localized.FirebaseInternalError.defaultError
-///         }
-///         return Localized.FirebaseInternalError.defaultError
-///     }
-/// }
-///
-/// Итог:
-/// - Централизованный `SharedErrorHandler` с Crashlytics — зрелый производственный подход.
-/// - UI получает понятное сообщение, разработчики — структурированный отчёт.
-/// - Масштабируется и остаётся заменяемым без касания всей кодовой базы.
-
-
-/// 📌 Подробный комментарий: как видеть полный стек ошибки в Crashlytics
-///
-/// Проблема:
-/// - Вызов `Crashlytics.crashlytics().record(error:)` для обработанных ошибок (не крашей)
-///   по умолчанию НЕ прикрепляет полный стек вызовов. Crashlytics автоматически собирает стек
-///   только для необработанных исключений (настоящих крашей).
-///
-/// Цель:
-/// - Получать полноценный стек для "ручных" ошибок, чтобы разработчики могли видеть,
-///   где именно в коде произошёл сбой, без необходимости передавать подробный `context: String?`.
-///
-/// Рабочие решения:
-/// 1) Прикрепить стек вручную через `Thread.callStackSymbols`
-///    - Собираем текущий стек, кладём его в `userInfo` у `NSError`, и отправляем в Crashlytics.
-///    Пример:
-///    ```swift
-///    let stack = Thread.callStackSymbols.joined(separator: "\n")
-///    let nsError = NSError(
-///        domain: "HandledError",
-///        code: 999,
-///        userInfo: [NSLocalizedDescriptionKey: error.localizedDescription,
-///                   "stackTrace": stack]
-///    )
-///    Crashlytics.crashlytics().record(error: nsError)
-///    ```
-///    → В отчёте будет и описание, и ваш кастомный стек.
-///
-/// 2) Использовать `record(exceptionModel:)`
-///    - Создаём `ExceptionModel` и явно задаём `stackTrace`, имитируя отчёт как у краша,
-///      но без падения приложения.
-///    Пример (идея, может отличаться в зависимости от версии SDK):
-///    ```swift
-///    let exception = ExceptionModel(name: "GoogleAuthError",
-///                                   reason: error.localizedDescription)
-///    exception.stackTrace = Thread.callStackSymbols.map { StackFrame(symbol: $0) }
-///    Crashlytics.crashlytics().record(exceptionModel: exception)
-///    ```
-///    → Crashlytics отобразит полноценный стек и метаданные исключения.
-///
-/// 3) Логировать стек отдельно рядом с ошибкой
-///    - Добавляем стек как обычный лог, затем пишем `record(error:)`.
-///    Пример:
-///    ```swift
-///    Crashlytics.crashlytics().log("Stack:\n\(Thread.callStackSymbols.joined(separator: "\n"))")
-///    Crashlytics.crashlytics().record(error: error)
-///    ```
-///    → В консоли Crashlytics будет виден лог со стеком рядом с записью об ошибке.
-///
-/// Итог:
-/// - `record(error:)` сам по себе не даёт полный стек для обработанных ошибок.
-/// - Чтобы стек был виден, используйте один из вариантов выше:
-///   • вручную приложить `Thread.callStackSymbols`,
-///   • или `ExceptionModel` со `stackTrace`,
-///   • или отдельный лог стека.
-/// - Это индустриальная практика: пользователю показываем простой алерт,
-///   а в Crashlytics отправляем детальный отчёт со стеком для диагностики.
-
-/// 📌 Подробный комментарий к реализации блока в SharedErrorHandler:
-///
-/// if let error = error {
-///     if let context = context {
-///         Crashlytics.crashlytics().log("Context: \(context)")
-///     }
-///     let stack = Thread.callStackSymbols.joined(separator: "\n")
-///     Crashlytics.crashlytics().log("Stack:\n\(stack)")
-///     Crashlytics.crashlytics().record(error: error)
-/// }
-///
-/// 🔎 Что здесь происходит:
-/// 1. Проверяем, что ошибка действительно есть (`if let error = error`).
-///
-/// 2. Если передан дополнительный контекст (`context`), логируем его в Crashlytics:
-///    - Это строка, которую мы можем задать из вызывающего кода (например, "GoogleAuth: signInWithGoogle").
-///    - В отчёте Crashlytics будет видно, в каком месте приложения произошла ошибка.
-///
-/// 3. Получаем текущий стек вызовов через `Thread.callStackSymbols`:
-///    - Это массив строк, описывающих последовательность вызовов функций до текущего места.
-///    - Склеиваем его в одну строку с разделителем `\n`, чтобы стек был читаемым.
-///
-/// 4. Логируем стек в Crashlytics (`Crashlytics.crashlytics().log("Stack:\n\(stack)")`):
-///    - В отчёте разработчики увидят полный стек вызовов на момент обработки ошибки.
-///    - Это помогает понять, из какого экрана/менеджера/операции ошибка пришла.
-///
-/// 5. Записываем саму ошибку (`Crashlytics.crashlytics().record(error: error)`):
-///    - В Crashlytics фиксируется тип ошибки, её описание и связанный контекст.
-///    - Таким образом, отчёт содержит и саму ошибку, и дополнительную информацию (context + stack).
-///
-/// 📌 Итог:
-/// - Пользователь получает локализованное сообщение об ошибке (через return из handle).
-/// - Разработчики в Crashlytics видят:
-///   • контекст (например, "GoogleAuth: signInWithGoogle"),
-///   • полный стек вызовов,
-///   • сам объект ошибки.
-/// - Такой подход даёт централизованную и максимально информативную диагностику ошибок в продакшене.
-
-/// 📌 Контекст: централизованная обработка ошибок через SharedErrorHandler в связке SwiftUI → ViewBuilderService → HomeViewModel → AuthorizationManager
-///
 /// Что делает `Thread.callStackSymbols`:
 /// - Собирает текущий стек вызовов в момент, когда мы попали в `SharedErrorHandler.handle(error:context:)`.
 /// - Это список «откуда пришли» до точки обработки, включая ваши методы, Combine/SwiftUI слои и системные фреймы.
@@ -259,10 +48,192 @@
 ///   и местом её обработки (SharedErrorHandler) в вашей архитектуре.
 
 
+
+
+
+//
+//  Пояснение: какие ошибки Crashlytics показывает полностью,
+//  а какие — нет. Краткое резюме для разработчика.
+//
+//  ----------------------------------------------------------------------
+//  ✔ Что Crashlytics показывает полностью
+//
+//  Crashlytics отлично работает с NSError, поэтому если ошибка
+//  является NSError (или автоматически конвертируется в NSError),
+//  то в консоли Crashlytics будут видны:
+//
+//  • domain
+//  • code
+//  • localizedDescription
+//  • userInfo
+//  • stacktrace (если мы логируем его вручную)
+//
+//  Firebase‑ошибки (Auth, Firestore, Storage) ВСЕ являются NSError,
+//  поэтому Crashlytics показывает их полностью.
+//
+//  ----------------------------------------------------------------------
+//  ❌ Что Crashlytics НЕ показывает полностью
+//
+//  Crashlytics НЕ умеет сериализовать чистые Swift‑ошибки,
+//  которые НЕ являются NSError.
+//
+//  Это означает, что Crashlytics НЕ покажет:
+//
+//  • весь объект Swift‑ошибки
+//  • enum‑ошибки с associated values
+//  • вложенные структуры
+//  • кастомные поля, которых нет в NSError
+//
+//  Crashlytics просто создаёт минимальный NSError:
+//
+//      domain = "Swift.Error"
+//      code = 1
+//      userInfo = пустой
+//      message = имя типа ошибки
+//
+//  ----------------------------------------------------------------------
+//  ❗ Примеры ошибок, которые НЕ будут полностью видны
+//
+//  1) Swift enum:
+//
+//      enum PhotoPickerError: Error {
+//          case unsupportedType
+//          case loadFailed(underlying: Error)
+//      }
+//
+//  В Crashlytics будет видно только:
+//
+//      domain: Swift.Error
+//      code: 1
+//      message: "unsupportedType"
+//
+//  Но НЕ будет видно:
+//      • что это enum
+//      • что это case .unsupportedType
+//      • что есть underlying error
+//
+//  ----------------------------------------------------------------------
+//
+//  2) Кастомная структура:
+//
+//      struct APIError: Error {
+//          let statusCode: Int
+//          let message: String
+//          let metadata: [String: Any]
+//      }
+//
+//  В Crashlytics НЕ будет видно:
+//      • statusCode
+//      • message
+//      • metadata
+//
+//  ----------------------------------------------------------------------
+//
+//  ✔ Как передать дополнительные данные вручную
+//
+//  Если нужно, чтобы Crashlytics видел дополнительные поля,
+//  их нужно передавать вручную:
+//
+//      Crashlytics.crashlytics().setCustomValue(value, forKey: key)
+//
+//  или:
+//
+//      Crashlytics.crashlytics().setCustomKeysAndValues([:])
+//
+//  ----------------------------------------------------------------------
+//
+//  ИТОГ:
+//
+//  • NSError → Crashlytics показывает полностью
+//  • Firebase ошибки → показываются полностью
+//  • Swift enum / struct ошибки → Crashlytics НЕ видит их внутренности
+//  • Для кастомных данных → используем setCustomValue / setCustomKeysAndValues
+//
+//  ----------------------------------------------------------------------
+//
+
+
+
+//
+//  Почему мы вызываем writeCustomKeys(userInfo),
+//  даже если уже передали userInfo в crashlytics.record(error: nsError)
+//
+//  ----------------------------------------------------------------------
+//  КРАТКИЙ ОТВЕТ:
+//
+//  • crashlytics.record(error:) использует userInfo ТОЛЬКО для текста ошибки
+//  • но НЕ сохраняет userInfo как Custom Keys
+//  • Custom Keys — это единственный способ видеть данные в UI Crashlytics,
+//    фильтровать по ним, искать, анализировать и группировать ошибки
+//
+//  Поэтому writeCustomKeys(userInfo) — обязательный шаг.
+//
+//  ----------------------------------------------------------------------
+//  ПОДРОБНО:
+//
+//  Когда мы вызываем:
+//
+//      crashlytics.record(error: nsError)
+//
+//  Crashlytics:
+//
+//  ✔ показывает domain
+//  ✔ показывает code
+//  ✔ показывает localizedDescription
+//  ✔ может включить часть userInfo в текст ошибки
+//
+//  НО:
+//
+//  ❌ НЕ сохраняет userInfo как Custom Keys
+//  ❌ НЕ позволяет фильтровать ошибки по userInfo
+//  ❌ НЕ показывает userInfo как отдельные поля
+//  ❌ НЕ даёт искать по userInfo
+//  ❌ НЕ сохраняет userInfo в аналитике
+//
+//  То есть userInfo → это просто текст, а не структурированные данные.
+//
+//  ----------------------------------------------------------------------
+//  ЗАЧЕМ writeCustomKeys(userInfo):
+//
+//  Метод:
+//
+//      writeCustomKeys(userInfo)
+//
+//  делает каждое поле userInfo отдельным Custom Key:
+//
+//      log_domain = Firestore
+//      log_source = GalleryManager
+//      log_severity = error
+//      log_message = "Failed to fetch"
+//      log_error_code = 7
+//
+//  Теперь в Crashlytics можно:
+//
+//  ✔ фильтровать ошибки по домену
+//  ✔ смотреть, какие модули чаще всего падают
+//  ✔ сортировать по severity
+//  ✔ искать по message
+//  ✔ анализировать error_code
+//
+//  Это превращает Crashlytics из “свалки ошибок” в полноценную систему аналитики.
+//
+//  ----------------------------------------------------------------------
+//  ИТОГ:
+//
+//  • record(error:) → отправляет ошибку
+//  • userInfo → используется только для текста
+//  • writeCustomKeys → делает данные структурированными и доступными в UI
+//
+//  Оба вызова нужны, потому что они решают разные задачи.
+//
+//  ----------------------------------------------------------------------
+//
+
+
+
 // MARK: - в проде из func handle(error: (any Error)?) -> String
 // должна выходить локализованный тект ошибки для алерта (понятный пользователю)
 // а под капотом всегда поступать реальная ошибка из сервиса и контекст это для Crashlytics
-
 
 
 /// Google Sign-In error codes (iOS SDK)
@@ -310,23 +281,87 @@ import FirebaseFirestore
 import FirebaseStorage
 import FirebaseCrashlytics
 
-// MARK: - FirebaseCrashReporter
 
-protocol CrashReporting {
-    func log(_ message: String)
-    func record(error: Error)
+// MARK: - Severity
+
+enum ErrorSeverityLevel: String {
+    case fatal
+    case error
+    case warning
+    case info
 }
 
-final class FirebaseCrashReporter: CrashReporting {
-    func log(_ message: String) {
-        Crashlytics.crashlytics().log(message)
-    }
+// MARK: - Logging Protocol
+
+protocol ErrorLoggingServiceProtocol {
+    func logError(
+        _ error: Error,
+        domain: String,
+        source: String,
+        message: String?,
+        params: [String: Any]?,   // params: дополнительные параметры, которые мы хотим передать в Crashlytics
+        severity: ErrorSeverityLevel
+    )
+}
+
+// MARK: - Crashlytics Logging Service
+
+final class CrashlyticsLoggingService: ErrorLoggingServiceProtocol {
     
-    func record(error: Error) {
-        Crashlytics.crashlytics().record(error: error)
+    static let shared = CrashlyticsLoggingService()
+    private let crashlytics = Crashlytics.crashlytics()
+    
+    private init() {}
+    
+    func logError(
+        _ error: Error,
+        domain: String,
+        source: String,
+        message: String?,
+        params: [String: Any]?,
+        severity: ErrorSeverityLevel
+    ) {
+        var userInfo: [String: Any] = [
+            "domain": domain,
+            "source": source,
+            "severity": severity.rawValue,
+            "localized_description": error.localizedDescription,
+            "error_code": (error as NSError).code
+        ]
+        
+        if let message = message {
+            userInfo["message"] = message
+        }
+        
+        // params — дополнительные параметры, которые разработчик может передать вручную
+        // merge(params) — объединяет словари, НЕ перезаписывая существующие ключи userInfo
+        if let params = params {
+            userInfo.merge(params) { current, _ in current }
+        }
+        
+        // Добавляем stacktrace
+        let stack = Thread.callStackSymbols.joined(separator: "\n")
+        userInfo["stacktrace"] = stack
+        
+        // Превращаем в NSError, чтобы Crashlytics корректно отобразил domain/code/userInfo
+        let nsError = NSError(
+            domain: domain,
+            code: (error as NSError).code,
+            userInfo: userInfo
+        )
+        
+        // Отправляем ошибку
+        crashlytics.record(error: nsError)
+        
+        // Custom Keys для фильтрации и аналитики
+        userInfo.forEach { key, value in
+            crashlytics.setCustomValue(value, forKey: "log_\(key)")
+        }
+        
+        // Текстовый лог
+        crashlytics.log("[\(severity.rawValue.uppercased())] \(source): \(message ?? error.localizedDescription)")
     }
 }
-
 
 // MARK: - ErrorDiagnosticsCenter
 
@@ -338,10 +373,10 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
     
     private let realtimeDomain = "com.firebase.database"
     private let googleSignInDomain = "com.google.GIDSignIn"
-    private let crashReporter: CrashReporting
+    private let logger: ErrorLoggingServiceProtocol
     
-    init(crashReporter: CrashReporting = FirebaseCrashReporter()) {
-        self.crashReporter = crashReporter
+    init(logger: ErrorLoggingServiceProtocol = CrashlyticsLoggingService.shared) {
+        self.logger = logger
     }
     
     // MARK: - Основной метод обработки ошибок
@@ -367,7 +402,18 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         // 2. NSError‑ветки
         
         if let nsError = error as NSError? {
-            crashReporter.log("NSError domain=\(nsError.domain) code=\(nsError.code) desc=\(nsError.localizedDescription)")
+#if DEBUG
+            print("NSError domain=\(nsError.domain) code=\(nsError.code) desc=\(nsError.localizedDescription)")
+#else
+            logger.logError(
+                error,
+                domain: nsError.domain,
+                source: context ?? "NSError",
+                message: nsError.localizedDescription,
+                params: ["nsError_code": nsError.code],
+                severity: .warning
+            )
+#endif
             
             // Auth
             if let authCode = AuthErrorCode(rawValue: nsError.code) {
@@ -417,19 +463,27 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
     // MARK: - Критичное логирование (Debug vs Release)
     
     /// В Debug печатаем всё в консоль.
-    /// В Release отправляем в Crashlytics.
+    /// В Release отправляем в Crashlytics через CrashlyticsLoggingService.
     private func logCritical(error: Error, context: String) {
-        #if DEBUG
+#if DEBUG
         print("⚠️ [DEBUG] Critical error context: \(context)")
         print("⚠️ [DEBUG] Error: \(error.localizedDescription)")
         print("⚠️ [DEBUG] Stack trace:")
         Thread.callStackSymbols.forEach { print($0) }
-        #else
-        crashReporter.log("⚠️ Critical error context: \(context)")
-        let stack = Thread.callStackSymbols.joined(separator: "\n")
-        crashReporter.log("Stack:\n\(stack)")
-        crashReporter.record(error: error)
-        #endif
+#else
+        let params: [String: Any] = [
+            "context": context
+        ]
+        
+        logger.logError(
+            error,
+            domain: "Critical",
+            source: context,
+            message: error.localizedDescription,
+            params: params,
+            severity: .error
+        )
+#endif
     }
     
     // MARK: - Photo Picker
@@ -445,128 +499,182 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         case .iCloudRequired:
             return Localized.PhotoPickerError.iCloudRequired
         case .loadFailed(let underlyingError),
-             .unknown(let underlyingError):
+                .unknown(let underlyingError):
             return (underlyingError as NSError).localizedDescription
         }
     }
     
     // MARK: - Auth
     
+    
     private func handleAuthError(_ code: AuthErrorCode, error: Error, context: String?) -> String {
         switch code {
-        case .invalidEmail:
+            
+        case .providerAlreadyLinked:                 // Провайдер (Google/Apple) уже привязан к аккаунту
+            return Localized.Auth.providerAlreadyLinked
+            
+        case .credentialAlreadyInUse:                // Эти credentials уже используются другим аккаунтом
+            return Localized.Auth.credentialAlreadyInUse
+            
+        case .userMismatch:                          // Credentials принадлежат другому пользователю (ошибка reauth)
+            return Localized.Auth.userMismatch
+            
+        case .requiresRecentLogin:                   // Операция требует недавнего входа (смена email/пароля)
+            return Localized.Auth.requiresRecentLogin
+            
+        case .userNotFound:                          // Пользователь с таким email не существует
+            return Localized.Auth.userNotFound
+            
+        case .invalidRecipientEmail:                 // Email получателя недействителен
+            return Localized.Auth.invalidRecipientEmail
+            
+        case .missingEmail:                          // Email отсутствует (например, при регистрации)
+            return Localized.Auth.missingEmail
+            
+        case .accountExistsWithDifferentCredential:  // Аккаунт существует, но с другим провайдером (email vs Google)
+            return Localized.Auth.accountExistsWithDifferentCredential
+            
+            // --- Остальные пользовательские ошибки (не критичные) ---
+            
+        case .invalidEmail:                          // Неверный формат email
             return Localized.Auth.invalidEmail
-        case .weakPassword:
+            
+        case .weakPassword:                          // Пароль слишком слабый
             return Localized.Auth.weakPassword
-        case .wrongPassword:
+            
+        case .wrongPassword:                         // Неверный пароль
             return Localized.Auth.wrongPassword
-        case .emailAlreadyInUse:
+            
+        case .emailAlreadyInUse:                     // Email уже зарегистрирован
             return Localized.Auth.emailAlreadyInUse
-        case .tooManyRequests:
+            
+        case .tooManyRequests:                       // Слишком много попыток — временная блокировка Firebase
             return Localized.Auth.tooManyRequests
-        case .networkError:
+            
+        case .networkError:                          // Проблема с интернет‑соединением
             return Localized.Auth.networkError
             
-        default:
+            // --- Всё остальное считаем критичным и логируем ---
+            
+        default:                                     // Неизвестная/новая ошибка Firebase Auth → критично
             logCritical(error: error, context: context ?? "AuthErrorCode.\(code.rawValue)")
             return Localized.Auth.generic
         }
     }
     
+    
     // MARK: - Firestore
     
     private func handleFirestoreError(_ nsError: NSError, error: Error, context: String?) -> String {
         switch nsError.code {
-        case FirestoreErrorCode.cancelled.rawValue:
-            return Localized.Firestore.cancelled
-        case FirestoreErrorCode.unavailable.rawValue:
-            return Localized.Firestore.unavailable
-        case FirestoreErrorCode.deadlineExceeded.rawValue:
-            return Localized.Firestore.deadlineExceeded
-        case FirestoreErrorCode.notFound.rawValue:
-            return Localized.Firestore.notFound
             
-        case FirestoreErrorCode.invalidArgument.rawValue,
-             FirestoreErrorCode.alreadyExists.rawValue,
-             FirestoreErrorCode.permissionDenied.rawValue,
-             FirestoreErrorCode.resourceExhausted.rawValue,
-             FirestoreErrorCode.failedPrecondition.rawValue,
-             FirestoreErrorCode.aborted.rawValue,
-             FirestoreErrorCode.outOfRange.rawValue,
-             FirestoreErrorCode.unimplemented.rawValue,
-             FirestoreErrorCode.internal.rawValue,
-             FirestoreErrorCode.dataLoss.rawValue,
-             FirestoreErrorCode.unauthenticated.rawValue:
+        case FirestoreErrorCode.cancelled.rawValue:          // Операция отменена (клиентом или сервером), не критично
+            return Localized.Firestore.cancelled
+            
+        case FirestoreErrorCode.unavailable.rawValue:        // Firestore временно недоступен (сервер перегружен / проблемы сети)
+            return Localized.Firestore.unavailable
+            
+        case FirestoreErrorCode.deadlineExceeded.rawValue:   // Сервер не успел выполнить операцию (таймаут)
+            return Localized.Firestore.deadlineExceeded
+            
+            // --- Критичные ошибки Firestore (логируем через одну ветку) ---
+            
+        case FirestoreErrorCode.invalidArgument.rawValue,    // Клиент передал некорректные аргументы
+            FirestoreErrorCode.notFound.rawValue,           // Документ/ресурс не найден → ошибка данных
+            FirestoreErrorCode.alreadyExists.rawValue,      // Попытка создать ресурс, который уже существует
+            FirestoreErrorCode.permissionDenied.rawValue,   // Правила безопасности Firestore запретили операцию
+            FirestoreErrorCode.resourceExhausted.rawValue,  // Превышены квоты/лимиты Firestore
+            FirestoreErrorCode.failedPrecondition.rawValue, // Нарушено предусловие (неверное состояние документа)
+            FirestoreErrorCode.aborted.rawValue,            // Операция прервана (конфликт транзакций)
+            FirestoreErrorCode.outOfRange.rawValue,         // Запрошены данные вне допустимого диапазона
+            FirestoreErrorCode.unimplemented.rawValue,      // Операция не поддерживается сервером или SDK
+            FirestoreErrorCode.internal.rawValue,           // Внутренняя ошибка Firestore (сбой сервера/SDK)
+            FirestoreErrorCode.dataLoss.rawValue,           // Потеря или повреждение данных
+            FirestoreErrorCode.unauthenticated.rawValue:    // Клиент не аутентифицирован или токен недействителен
+            
             logCritical(error: error, context: context ?? "Firestore.\(nsError.code)")
             return Localized.Firestore.generic
             
-        default:
+            // --- Неизвестная ошибка Firestore ---
+            
+        default:                                             // Новый/неизвестный код Firestore → считаем критичным
             logCritical(error: error, context: context ?? "Firestore.unknown(\(nsError.code))")
             return Localized.Firestore.generic
         }
     }
     
+    
+    
     // MARK: - Storage
     
     private func handleStorageError(_ code: StorageErrorCode, error: Error, context: String?) -> String {
         switch code {
-        case .cancelled:
-            return Localized.Storage.cancelled
-        case .unauthenticated:
-            return Localized.Storage.unauthenticated
-        case .unauthorized:
-            return Localized.Storage.unauthorized
-        case .downloadSizeExceeded:
-            return Localized.Storage.downloadSizeExceeded
             
-        case .objectNotFound,
-             .bucketNotFound,
-             .projectNotFound,
-             .quotaExceeded,
-             .nonMatchingChecksum,
-             .invalidArgument,
-             .unknown,
-             .bucketMismatch,
-             .internalError,
-             .pathError,
-             .retryLimitExceeded:
+        case .cancelled:                     // Операция отменена пользователем или системой (не критично)
+            return Localized.Storage.cancelled
+            
+            // --- Остальные критичные ошибки Storage (логируем через одну ветку) ---
+            
+        case .unauthenticated,              // Пользователь не авторизован → в нашем приложении быть не может → критично
+                .unauthorized,                 // Правила безопасности запретили доступ → ошибка конфигурации/логики
+                .downloadSizeExceeded,         // Запрошенный файл превышает лимит → ошибка логики загрузки
+                .objectNotFound,               // Файл не найден по указанному пути
+                .bucketNotFound,               // Bucket отсутствует (ошибка конфигурации Firebase)
+                .projectNotFound,              // Firebase-проект не найден
+                .quotaExceeded,                // Превышена квота Storage
+                .nonMatchingChecksum,          // Контрольная сумма не совпала → файл повреждён
+                .invalidArgument,              // Клиент передал некорректные аргументы
+                .unknown,                      // Неизвестная ошибка Storage
+                .bucketMismatch,               // Файл в другом bucket, чем указано в конфигурации
+                .internalError,                // Внутренняя ошибка Firebase Storage
+                .pathError,                    // Неверный путь к файлу
+                .retryLimitExceeded:           // Firebase исчерпал количество попыток повторить операцию
+            
             logCritical(error: error, context: context ?? "Storage.\(code.rawValue)")
             return Localized.Storage.generic
             
-        @unknown default:
+        @unknown default:                   // Новый/неизвестный код Storage → критично
             logCritical(error: error, context: context ?? "Storage.unknown")
             return Localized.Storage.generic
         }
     }
     
+    
+    
     // MARK: - Realtime Database
     
     private func handleRealtimeDatabaseError(_ nsError: NSError, error: Error, context: String?) -> String {
         switch nsError.code {
-        case NSURLErrorNotConnectedToInternet:
-            return Localized.RealtimeDatabase.networkError
-        case NSURLErrorTimedOut:
-            return Localized.RealtimeDatabase.timeout
-        case NSURLErrorCancelled:
-            return Localized.RealtimeDatabase.operationCancelled
-        case NSURLErrorCannotFindHost:
-            return Localized.RealtimeDatabase.hostNotFound
-        case NSURLErrorCannotConnectToHost:
-            return Localized.RealtimeDatabase.cannotConnectToHost
-        case NSURLErrorNetworkConnectionLost:
-            return Localized.RealtimeDatabase.networkConnectionLost
-        case NSURLErrorResourceUnavailable:
-            return Localized.RealtimeDatabase.resourceUnavailable
-        case NSURLErrorUserCancelledAuthentication:
-            return Localized.RealtimeDatabase.authenticationCancelled
-        case NSURLErrorUserAuthenticationRequired:
-            return Localized.RealtimeDatabase.authenticationRequired
             
-        default:
+        case NSURLErrorNotConnectedToInternet:          // Нет интернет‑соединения (не критично)
+            return Localized.RealtimeDatabase.networkError
+            
+        case NSURLErrorTimedOut:                        // Сервер не ответил вовремя (таймаут)
+            return Localized.RealtimeDatabase.timeout
+            
+        case NSURLErrorCancelled:                       // Операция отменена пользователем или системой
+            return Localized.RealtimeDatabase.operationCancelled
+            
+            // --- Критичные ошибки Realtime Database (логируем через одну ветку) ---
+            
+        case NSURLErrorCannotFindHost,                  // Хост Firebase не найден (DNS/конфигурация)
+            NSURLErrorCannotConnectToHost,             // Невозможно установить соединение с хостом
+            NSURLErrorNetworkConnectionLost,           // Соединение потеряно во время операции
+            NSURLErrorResourceUnavailable,             // Ресурс временно недоступен
+            NSURLErrorUserCancelledAuthentication,     // Пользователь отменил системную аутентификацию
+        NSURLErrorUserAuthenticationRequired:      // Требуется аутентификация (токен недействителен)
+            
             logCritical(error: error, context: context ?? "RealtimeDatabase.\(nsError.code)")
+            return Localized.RealtimeDatabase.generic
+            
+            // --- Неизвестная ошибка Realtime Database ---
+            
+        default:                                        // Новый/неизвестный код → считаем критичным
+            logCritical(error: error, context: context ?? "RealtimeDatabase.unknown(\(nsError.code))")
             return Localized.RealtimeDatabase.generic
         }
     }
+    
     
     // MARK: - Google Sign-In
     
@@ -577,30 +685,44 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         }
         
         switch code {
-        case .canceled,
-             .scopesAlreadyGranted,
-             .noCurrentUser:
+            
+        case .canceled:                                  // Пользователь отменил вход (закрыл окно Google)
             return Localized.GoogleSignInError.cancelled
             
-        case .unknown,
-             .keychain,
-             .hasNoAuthInKeychain,
-             .emmError,
-             .mismatchWithCurrentUser:
+            // --- Критичные ошибки Google Sign‑In (логируем через одну ветку) ---
+            
+        case .scopesAlreadyGranted,                      // Scopes уже выданы → ошибка логики приложения
+                .noCurrentUser,                             // Нет текущего пользователя → сбой состояния SDK
+                .unknown,                                   // Неизвестная ошибка Google Sign‑In
+                .keychain,                                  // Ошибка Keychain при сохранении/чтении токена
+                .hasNoAuthInKeychain,                       // Нет сохранённой авторизации в Keychain
+                .emmError,                                  // Корпоративная политика запрещает вход
+                .mismatchWithCurrentUser:                   // Пользователь Google не совпадает с ожидаемым
+            
             logCritical(error: error, context: context ?? "GoogleSignIn.\(code.rawValue)")
             return Localized.GoogleSignInError.defaultError
         }
     }
 }
 
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 
 // MARK: - old implemintation
-
-
 
 
 protocol ErrorHandlerProtocol {
