@@ -18,6 +18,7 @@
 ///Используйте модификатор .dynamicTypeSize или .font с поддержкой динамического шрифта.
 
 
+
 import SwiftUI
 
 struct HomeContentView: View {

@@ -25,6 +25,7 @@
 
 
 
+
 import Combine
 import FirebaseDatabase
 import FirebaseFirestore
@@ -216,6 +217,99 @@ class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
         print("deinit FirestoreDatabaseCRUDService")
     }
 }
+
+
+
+
+
+//class FirestoreDatabaseCRUDService: DatabaseCRUDServiceProtocol {
+//
+//    private var db: Firestore
+//
+//    init(db: Firestore = Firestore.firestore()) {
+//        self.db = db
+//    }
+//
+//    func addBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
+//        Future { promise in
+//            do {
+//                let _ = try self.db.collection(path).addDocument(from: book) { error in
+//                    if let error = error {
+//                        promise(.success(.failure(error)))
+//                    } else {
+//                        promise(.success(.success(())))
+//                    }
+//                }
+//            } catch {
+//                promise(.success(.failure(error)))
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//
+//    func updateBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
+//        Future { [weak self] promise in
+//            guard let bookID = book.id else {
+//                promise(.success(.failure(AppInternalError.failedDeployOptionalID)))
+//                return
+//            }
+//
+//            do {
+//                let encodableBook = EncodableBook(from: book)
+//                let bookData = try JSONEncoder().encode(encodableBook)
+//                let bookDict = try JSONSerialization.jsonObject(with: bookData) as? [String: Any]
+//
+//                guard let bookDict = bookDict else {
+//                    promise(.success(.failure(AppInternalError.jsonConversionFailed)))
+//                    return
+//                }
+//
+//                self?.db.collection(path).document(bookID).updateData(bookDict) { error in
+//                    if let error = error {
+//                        promise(.success(.failure(error)))
+//                    } else {
+//                        promise(.success(.success(())))
+//                    }
+//                }
+//            } catch {
+//                promise(.success(.failure(error)))
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//
+//    func removeBook(path: String, _ book: BookCloud) -> AnyPublisher<Result<Void, any Error>, Never> {
+//        Future { [weak self] promise in
+//            guard let bookID = book.id else {
+//                promise(.success(.failure(AppInternalError.failedDeployOptionalID)))
+//                return
+//            }
+//
+//            self?.db.collection(path).document(bookID).delete { error in
+//                if let error = error {
+//                    promise(.success(.failure(error)))
+//                } else {
+//                    promise(.success(.success(())))
+//                }
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//
+//    deinit {
+//        print("deinit FirestoreDatabaseCRUDService")
+//    }
+//}
+
+
+
+
+
+
+
+
+
+
 
 
 

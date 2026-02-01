@@ -306,6 +306,20 @@ enum Localized {
     
     // MARK: - Custom Firebase Error -
 
+    enum AppInternalError {
+        static var defaultError = "error.custom_firebase.default_error"
+        static var invalidCollectionPath = "error.custom_firebase.invalid_collection_path"
+        static var failedDeployOptionalError = "error.custom_firebase.failed_deploy_optional_error"
+        static var failedDeployOptionalID = "error.custom_firebase.failed_deploy_optional_id"
+        static var jsonConversionFailed = "error.custom_firebase.json_conversion_failed"
+        static var notSignedIn = "error.custom_firebase.not_signed_in"
+        static var anonymousAuthError = "error.anonymous_auth"
+        static var emptyResult = "error.custom_firebase.empty_result"
+        static var nilSnapshot = "error.custom_firebase.nil_snapshot"
+        static var imageEncodingFailed = "error.custom_firebase.image_encoding_failed"
+        static var delayedConfirmation = "error.custom_firebase.delayed_confirmation"
+        static var staleUserSession = "error.custom_firebase.stale_user_session"
+    }
     
     enum FirebaseInternalError {
         static var defaultError = "error.custom_firebase.default_error"

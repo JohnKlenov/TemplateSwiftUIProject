@@ -365,6 +365,7 @@ final class CrashlyticsLoggingService: ErrorLoggingServiceProtocol {
 
 // MARK: - ErrorDiagnosticsCenter
 
+
 protocol ErrorDiagnosticsProtocol {
     func handle(error: (any Error)?, context: String?) -> String
 }
@@ -385,81 +386,131 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         print("ErrorDiagnosticsCenter received error: \(String(describing: error?.localizedDescription))")
         
         guard let error = error else {
-            return Localized.FirebaseInternalError.defaultError
+            return Localized.AppInternalError.defaultError
         }
         
         // 1. Специальные типы до NSError
         
         if let decodingError = error as? DecodingError {
             logCritical(error: error, context: context ?? "DecodingError: \(decodingError)")
-            return Localized.FirebaseInternalError.defaultError
+            return Localized.AppInternalError.defaultError
         }
         
         if let pickerError = error as? PhotoPickerError {
             return handlePhotoPickerError(pickerError)
         }
         
-        // 2. NSError‑ветки
+        // 2. Преобразуем в NSError
         
-        if let nsError = error as NSError? {
+        let nsError = error as NSError
+        
 #if DEBUG
-            print("NSError domain=\(nsError.domain) code=\(nsError.code) desc=\(nsError.localizedDescription)")
+        print("NSError domain=\(nsError.domain) code=\(nsError.code) desc=\(nsError.localizedDescription)")
 #else
-            logger.logError(
-                error,
-                domain: nsError.domain,
-                source: context ?? "NSError",
-                message: nsError.localizedDescription,
-                params: ["nsError_code": nsError.code],
-                severity: .warning
-            )
+        logger.logError(
+            error,
+            domain: nsError.domain,
+            source: context ?? "NSError",
+            message: nsError.localizedDescription,
+            params: ["nsError_code": nsError.code],
+            severity: .warning
+        )
 #endif
-            
-            // Auth
-            if let authCode = AuthErrorCode(rawValue: nsError.code) {
-                return handleAuthError(authCode, error: error, context: context)
-            }
-            
-            // Firestore
-            if nsError.domain == FirestoreErrorDomain {
-                return handleFirestoreError(nsError, error: error, context: context)
-            }
-            
-            // Storage
-            if let storageCode = StorageErrorCode(rawValue: nsError.code) {
-                return handleStorageError(storageCode, error: error, context: context)
-            }
-            
-            // Realtime Database
-            if nsError.domain == realtimeDomain {
-                return handleRealtimeDatabaseError(nsError, error: error, context: context)
-            }
-            
-            // Anonymous Auth
-            if nsError.domain == "Anonymous Auth" {
-                logCritical(error: error, context: context ?? "AnonymousAuth")
-                return Localized.FirebaseInternalError.anonymousAuthError
-            }
-            
-            // Google Sign-In
-            if nsError.domain == googleSignInDomain {
-                return handleGoogleSignInError(nsError, error: error, context: context)
-            }
+        
+        // 3. AppInternalError (Swift enum → NSError или уже NSError)
+        
+        if nsError.domain == AppInternalError.errorDomain {
+            return handleAppInternalError(nsError, context: context)
         }
         
-        // 3. Пользовательские FirebaseInternalError
+        // 4. Auth
         
-        if let custom = error as? FirebaseInternalError {
-            logCritical(error: error, context: context ?? "FirebaseInternalError")
-            return custom.errorDescription ?? Localized.FirebaseInternalError.defaultError
+        if let authCode = AuthErrorCode(rawValue: nsError.code) {
+            return handleAuthError(authCode, error: error, context: context)
         }
         
-        // 4. Всё остальное — неизвестное → логируем
+        // 5. Firestore
+        
+        if nsError.domain == FirestoreErrorDomain {
+            return handleFirestoreError(nsError, error: error, context: context)
+        }
+        
+        // 6. Storage
+        
+        if let storageCode = StorageErrorCode(rawValue: nsError.code) {
+            return handleStorageError(storageCode, error: error, context: context)
+        }
+        
+        // 7. Realtime Database
+        
+        if nsError.domain == realtimeDomain {
+            return handleRealtimeDatabaseError(nsError, error: error, context: context)
+        }
+        
+        // 8. Google Sign-In
+        
+        if nsError.domain == googleSignInDomain {
+            return handleGoogleSignInError(nsError, error: error, context: context)
+        }
+        
+        // 9. Всё остальное — неизвестное → логируем
         
         logCritical(error: error, context: context ?? "UnknownError")
-        return Localized.FirebaseInternalError.defaultError
+        return Localized.AppInternalError.defaultError
     }
     
+    
+    
+    // MARK: - AppInternalError Handler
+    
+    private func handleAppInternalError(_ error: NSError, context: String?) -> String {
+        /// не каждая ошибка тут требует logCritical !!!
+        logCritical(error: error, context: context ?? "AppInternalError.\(error.code)")
+        
+        switch error.code {
+                
+        case AppInternalError.invalidCollectionPath.rawValue:          // Указанный путь недействителен (ожидалась коллекция, а не документ)
+            return Localized.AppInternalError.invalidCollectionPath
+                
+        case AppInternalError.failedDeployOptionalError.rawValue:      // Не удалось обработать необязательную ошибку
+            return Localized.AppInternalError.failedDeployOptionalError
+                
+        case AppInternalError.failedDeployOptionalID.rawValue:         // Не удалось обработать необязательный идентификатор
+            return Localized.AppInternalError.failedDeployOptionalID
+                
+        case AppInternalError.jsonConversionFailed.rawValue:           // Сбой преобразования JSON
+            return Localized.AppInternalError.jsonConversionFailed
+                
+        case AppInternalError.notSignedIn.rawValue:                    // В настоящий момент ни один пользователь не вошёл в систему
+            return Localized.AppInternalError.notSignedIn
+                
+        case AppInternalError.emptyResult.rawValue:                    // Данные не найдены
+            return Localized.AppInternalError.emptyResult
+                
+        case AppInternalError.nilSnapshot.rawValue:                    // Снимок данных отсутствует
+            return Localized.AppInternalError.nilSnapshot
+                
+        case AppInternalError.imageEncodingFailed.rawValue:            // Не удалось обработать изображение
+            return Localized.AppInternalError.imageEncodingFailed
+                
+        case AppInternalError.delayedConfirmation.rawValue:            // Обновление аватара занимает больше времени, чем обычно
+            return Localized.AppInternalError.delayedConfirmation
+                
+        case AppInternalError.staleUserSession.rawValue:               // Текущий пользователь изменился (устаревшая сессия)
+            return Localized.AppInternalError.staleUserSession
+                
+        case AppInternalError.anonymousAuthFailed.rawValue:            // Неизвестная ошибка при анонимной аутентификации
+            return Localized.AppInternalError.anonymousAuthError
+                
+        case AppInternalError.defaultError.rawValue:                   // Общая ошибка Firebase (fallback)
+            return Localized.AppInternalError.defaultError
+                
+        default:                                                       // Неизвестная внутренняя ошибка приложения
+            return Localized.AppInternalError.defaultError
+        }
+    }
+
+
     // MARK: - Критичное логирование (Debug vs Release)
     
     /// В Debug печатаем всё в консоль.
@@ -505,7 +556,6 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
     }
     
     // MARK: - Auth
-    
     
     private func handleAuthError(_ code: AuthErrorCode, error: Error, context: String?) -> String {
         switch code {
@@ -562,7 +612,6 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         }
     }
     
-    
     // MARK: - Firestore
     
     private func handleFirestoreError(_ nsError: NSError, error: Error, context: String?) -> String {
@@ -603,8 +652,6 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         }
     }
     
-    
-    
     // MARK: - Storage
     
     private func handleStorageError(_ code: StorageErrorCode, error: Error, context: String?) -> String {
@@ -639,8 +686,6 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         }
     }
     
-    
-    
     // MARK: - Realtime Database
     
     private func handleRealtimeDatabaseError(_ nsError: NSError, error: Error, context: String?) -> String {
@@ -662,7 +707,7 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
             NSURLErrorNetworkConnectionLost,           // Соединение потеряно во время операции
             NSURLErrorResourceUnavailable,             // Ресурс временно недоступен
             NSURLErrorUserCancelledAuthentication,     // Пользователь отменил системную аутентификацию
-        NSURLErrorUserAuthenticationRequired:      // Требуется аутентификация (токен недействителен)
+            NSURLErrorUserAuthenticationRequired:      // Требуется аутентификация (токен недействителен)
             
             logCritical(error: error, context: context ?? "RealtimeDatabase.\(nsError.code)")
             return Localized.RealtimeDatabase.generic
@@ -674,7 +719,6 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
             return Localized.RealtimeDatabase.generic
         }
     }
-    
     
     // MARK: - Google Sign-In
     
@@ -704,21 +748,17 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         }
     }
 }
+    
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1022,6 +1062,357 @@ class SharedErrorHandler: ErrorHandlerProtocol {
 
 
 
+
+
+
+
+
+
+
+// MARK: - before if nsError.domain == AppInternalError.errorDomain
+
+//protocol ErrorDiagnosticsProtocol {
+//    func handle(error: (any Error)?, context: String?) -> String
+//}
+//
+//final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
+//
+//    private let realtimeDomain = "com.firebase.database"
+//    private let googleSignInDomain = "com.google.GIDSignIn"
+//    private let logger: ErrorLoggingServiceProtocol
+//
+//    init(logger: ErrorLoggingServiceProtocol = CrashlyticsLoggingService.shared) {
+//        self.logger = logger
+//    }
+//
+//    // MARK: - Основной метод обработки ошибок
+//
+//    func handle(error: (any Error)?, context: String? = nil) -> String {
+//        print("ErrorDiagnosticsCenter received error: \(String(describing: error?.localizedDescription))")
+//
+//        guard let error = error else {
+//            return Localized.FirebaseInternalError.defaultError
+//        }
+//
+//        // 1. Специальные типы до NSError
+//
+//        if let decodingError = error as? DecodingError {
+//            logCritical(error: error, context: context ?? "DecodingError: \(decodingError)")
+//            return Localized.FirebaseInternalError.defaultError
+//        }
+//
+//        if let pickerError = error as? PhotoPickerError {
+//            return handlePhotoPickerError(pickerError)
+//        }
+//
+//        // 2. NSError‑ветки
+//
+//        if let nsError = error as NSError? {
+//#if DEBUG
+//            print("NSError domain=\(nsError.domain) code=\(nsError.code) desc=\(nsError.localizedDescription)")
+//#else
+//            logger.logError(
+//                error,
+//                domain: nsError.domain,
+//                source: context ?? "NSError",
+//                message: nsError.localizedDescription,
+//                params: ["nsError_code": nsError.code],
+//                severity: .warning
+//            )
+//#endif
+//
+//            // Auth
+//            if let authCode = AuthErrorCode(rawValue: nsError.code) {
+//                return handleAuthError(authCode, error: error, context: context)
+//            }
+//
+//            // Firestore
+//            if nsError.domain == FirestoreErrorDomain {
+//                return handleFirestoreError(nsError, error: error, context: context)
+//            }
+//
+//            // Storage
+//            if let storageCode = StorageErrorCode(rawValue: nsError.code) {
+//                return handleStorageError(storageCode, error: error, context: context)
+//            }
+//
+//            // Realtime Database
+//            if nsError.domain == realtimeDomain {
+//                return handleRealtimeDatabaseError(nsError, error: error, context: context)
+//            }
+//
+//            // Anonymous Auth
+//            if nsError.domain == "Anonymous Auth" {
+//                logCritical(error: error, context: context ?? "AnonymousAuth")
+//                return Localized.FirebaseInternalError.anonymousAuthError
+//            }
+//
+//            // Google Sign-In
+//            if nsError.domain == googleSignInDomain {
+//                return handleGoogleSignInError(nsError, error: error, context: context)
+//            }
+//        }
+//
+//        // 3. Пользовательские FirebaseInternalError
+//
+//        if let custom = error as? FirebaseInternalError {
+//            logCritical(error: error, context: context ?? "FirebaseInternalError")
+//            return custom.errorDescription ?? Localized.FirebaseInternalError.defaultError
+//        }
+//
+//        // 4. Всё остальное — неизвестное → логируем
+//
+//        logCritical(error: error, context: context ?? "UnknownError")
+//        return Localized.FirebaseInternalError.defaultError
+//    }
+//
+//    // MARK: - Критичное логирование (Debug vs Release)
+//
+//    /// В Debug печатаем всё в консоль.
+//    /// В Release отправляем в Crashlytics через CrashlyticsLoggingService.
+//    private func logCritical(error: Error, context: String) {
+//#if DEBUG
+//        print("⚠️ [DEBUG] Critical error context: \(context)")
+//        print("⚠️ [DEBUG] Error: \(error.localizedDescription)")
+//        print("⚠️ [DEBUG] Stack trace:")
+//        Thread.callStackSymbols.forEach { print($0) }
+//#else
+//        let params: [String: Any] = [
+//            "context": context
+//        ]
+//
+//        logger.logError(
+//            error,
+//            domain: "Critical",
+//            source: context,
+//            message: error.localizedDescription,
+//            params: params,
+//            severity: .error
+//        )
+//#endif
+//    }
+//
+//    // MARK: - Photo Picker
+//
+//    private func handlePhotoPickerError(_ pickerError: PhotoPickerError) -> String {
+//        switch pickerError {
+//        case .noItemAvailable:
+//            return Localized.PhotoPickerError.noItemAvailable
+//        case .itemUnavailable:
+//            return Localized.PhotoPickerError.itemUnavailable
+//        case .unsupportedType:
+//            return Localized.PhotoPickerError.unsupportedType
+//        case .iCloudRequired:
+//            return Localized.PhotoPickerError.iCloudRequired
+//        case .loadFailed(let underlyingError),
+//                .unknown(let underlyingError):
+//            return (underlyingError as NSError).localizedDescription
+//        }
+//    }
+//
+//    // MARK: - Auth
+//
+//
+//    private func handleAuthError(_ code: AuthErrorCode, error: Error, context: String?) -> String {
+//        switch code {
+//
+//        case .providerAlreadyLinked:                 // Провайдер (Google/Apple) уже привязан к аккаунту
+//            return Localized.Auth.providerAlreadyLinked
+//
+//        case .credentialAlreadyInUse:                // Эти credentials уже используются другим аккаунтом
+//            return Localized.Auth.credentialAlreadyInUse
+//
+//        case .userMismatch:                          // Credentials принадлежат другому пользователю (ошибка reauth)
+//            return Localized.Auth.userMismatch
+//
+//        case .requiresRecentLogin:                   // Операция требует недавнего входа (смена email/пароля)
+//            return Localized.Auth.requiresRecentLogin
+//
+//        case .userNotFound:                          // Пользователь с таким email не существует
+//            return Localized.Auth.userNotFound
+//
+//        case .invalidRecipientEmail:                 // Email получателя недействителен
+//            return Localized.Auth.invalidRecipientEmail
+//
+//        case .missingEmail:                          // Email отсутствует (например, при регистрации)
+//            return Localized.Auth.missingEmail
+//
+//        case .accountExistsWithDifferentCredential:  // Аккаунт существует, но с другим провайдером (email vs Google)
+//            return Localized.Auth.accountExistsWithDifferentCredential
+//
+//            // --- Остальные пользовательские ошибки (не критичные) ---
+//
+//        case .invalidEmail:                          // Неверный формат email
+//            return Localized.Auth.invalidEmail
+//
+//        case .weakPassword:                          // Пароль слишком слабый
+//            return Localized.Auth.weakPassword
+//
+//        case .wrongPassword:                         // Неверный пароль
+//            return Localized.Auth.wrongPassword
+//
+//        case .emailAlreadyInUse:                     // Email уже зарегистрирован
+//            return Localized.Auth.emailAlreadyInUse
+//
+//        case .tooManyRequests:                       // Слишком много попыток — временная блокировка Firebase
+//            return Localized.Auth.tooManyRequests
+//
+//        case .networkError:                          // Проблема с интернет‑соединением
+//            return Localized.Auth.networkError
+//
+//            // --- Всё остальное считаем критичным и логируем ---
+//
+//        default:                                     // Неизвестная/новая ошибка Firebase Auth → критично
+//            logCritical(error: error, context: context ?? "AuthErrorCode.\(code.rawValue)")
+//            return Localized.Auth.generic
+//        }
+//    }
+//
+//
+//    // MARK: - Firestore
+//
+//    private func handleFirestoreError(_ nsError: NSError, error: Error, context: String?) -> String {
+//        switch nsError.code {
+//
+//        case FirestoreErrorCode.cancelled.rawValue:          // Операция отменена (клиентом или сервером), не критично
+//            return Localized.Firestore.cancelled
+//
+//        case FirestoreErrorCode.unavailable.rawValue:        // Firestore временно недоступен (сервер перегружен / проблемы сети)
+//            return Localized.Firestore.unavailable
+//
+//        case FirestoreErrorCode.deadlineExceeded.rawValue:   // Сервер не успел выполнить операцию (таймаут)
+//            return Localized.Firestore.deadlineExceeded
+//
+//            // --- Критичные ошибки Firestore (логируем через одну ветку) ---
+//
+//        case FirestoreErrorCode.invalidArgument.rawValue,    // Клиент передал некорректные аргументы
+//            FirestoreErrorCode.notFound.rawValue,           // Документ/ресурс не найден → ошибка данных
+//            FirestoreErrorCode.alreadyExists.rawValue,      // Попытка создать ресурс, который уже существует
+//            FirestoreErrorCode.permissionDenied.rawValue,   // Правила безопасности Firestore запретили операцию
+//            FirestoreErrorCode.resourceExhausted.rawValue,  // Превышены квоты/лимиты Firestore
+//            FirestoreErrorCode.failedPrecondition.rawValue, // Нарушено предусловие (неверное состояние документа)
+//            FirestoreErrorCode.aborted.rawValue,            // Операция прервана (конфликт транзакций)
+//            FirestoreErrorCode.outOfRange.rawValue,         // Запрошены данные вне допустимого диапазона
+//            FirestoreErrorCode.unimplemented.rawValue,      // Операция не поддерживается сервером или SDK
+//            FirestoreErrorCode.internal.rawValue,           // Внутренняя ошибка Firestore (сбой сервера/SDK)
+//            FirestoreErrorCode.dataLoss.rawValue,           // Потеря или повреждение данных
+//            FirestoreErrorCode.unauthenticated.rawValue:    // Клиент не аутентифицирован или токен недействителен
+//
+//            logCritical(error: error, context: context ?? "Firestore.\(nsError.code)")
+//            return Localized.Firestore.generic
+//
+//            // --- Неизвестная ошибка Firestore ---
+//
+//        default:                                             // Новый/неизвестный код Firestore → считаем критичным
+//            logCritical(error: error, context: context ?? "Firestore.unknown(\(nsError.code))")
+//            return Localized.Firestore.generic
+//        }
+//    }
+//
+//
+//
+//    // MARK: - Storage
+//
+//    private func handleStorageError(_ code: StorageErrorCode, error: Error, context: String?) -> String {
+//        switch code {
+//
+//        case .cancelled:                     // Операция отменена пользователем или системой (не критично)
+//            return Localized.Storage.cancelled
+//
+//            // --- Остальные критичные ошибки Storage (логируем через одну ветку) ---
+//
+//        case .unauthenticated,              // Пользователь не авторизован → в нашем приложении быть не может → критично
+//                .unauthorized,                 // Правила безопасности запретили доступ → ошибка конфигурации/логики
+//                .downloadSizeExceeded,         // Запрошенный файл превышает лимит → ошибка логики загрузки
+//                .objectNotFound,               // Файл не найден по указанному пути
+//                .bucketNotFound,               // Bucket отсутствует (ошибка конфигурации Firebase)
+//                .projectNotFound,              // Firebase-проект не найден
+//                .quotaExceeded,                // Превышена квота Storage
+//                .nonMatchingChecksum,          // Контрольная сумма не совпала → файл повреждён
+//                .invalidArgument,              // Клиент передал некорректные аргументы
+//                .unknown,                      // Неизвестная ошибка Storage
+//                .bucketMismatch,               // Файл в другом bucket, чем указано в конфигурации
+//                .internalError,                // Внутренняя ошибка Firebase Storage
+//                .pathError,                    // Неверный путь к файлу
+//                .retryLimitExceeded:           // Firebase исчерпал количество попыток повторить операцию
+//
+//            logCritical(error: error, context: context ?? "Storage.\(code.rawValue)")
+//            return Localized.Storage.generic
+//
+//        @unknown default:                   // Новый/неизвестный код Storage → критично
+//            logCritical(error: error, context: context ?? "Storage.unknown")
+//            return Localized.Storage.generic
+//        }
+//    }
+//
+//
+//
+//    // MARK: - Realtime Database
+//
+//    private func handleRealtimeDatabaseError(_ nsError: NSError, error: Error, context: String?) -> String {
+//        switch nsError.code {
+//
+//        case NSURLErrorNotConnectedToInternet:          // Нет интернет‑соединения (не критично)
+//            return Localized.RealtimeDatabase.networkError
+//
+//        case NSURLErrorTimedOut:                        // Сервер не ответил вовремя (таймаут)
+//            return Localized.RealtimeDatabase.timeout
+//
+//        case NSURLErrorCancelled:                       // Операция отменена пользователем или системой
+//            return Localized.RealtimeDatabase.operationCancelled
+//
+//            // --- Критичные ошибки Realtime Database (логируем через одну ветку) ---
+//
+//        case NSURLErrorCannotFindHost,                  // Хост Firebase не найден (DNS/конфигурация)
+//            NSURLErrorCannotConnectToHost,             // Невозможно установить соединение с хостом
+//            NSURLErrorNetworkConnectionLost,           // Соединение потеряно во время операции
+//            NSURLErrorResourceUnavailable,             // Ресурс временно недоступен
+//            NSURLErrorUserCancelledAuthentication,     // Пользователь отменил системную аутентификацию
+//        NSURLErrorUserAuthenticationRequired:      // Требуется аутентификация (токен недействителен)
+//
+//            logCritical(error: error, context: context ?? "RealtimeDatabase.\(nsError.code)")
+//            return Localized.RealtimeDatabase.generic
+//
+//            // --- Неизвестная ошибка Realtime Database ---
+//
+//        default:                                        // Новый/неизвестный код → считаем критичным
+//            logCritical(error: error, context: context ?? "RealtimeDatabase.unknown(\(nsError.code))")
+//            return Localized.RealtimeDatabase.generic
+//        }
+//    }
+//
+//
+//    // MARK: - Google Sign-In
+//
+//    private func handleGoogleSignInError(_ nsError: NSError, error: Error, context: String?) -> String {
+//        guard let code = GoogleSignInErrorCode(rawValue: nsError.code) else {
+//            logCritical(error: error, context: context ?? "GoogleSignIn.unknown(\(nsError.code))")
+//            return Localized.GoogleSignInError.defaultError
+//        }
+//
+//        switch code {
+//
+//        case .canceled:                                  // Пользователь отменил вход (закрыл окно Google)
+//            return Localized.GoogleSignInError.cancelled
+//
+//            // --- Критичные ошибки Google Sign‑In (логируем через одну ветку) ---
+//
+//        case .scopesAlreadyGranted,                      // Scopes уже выданы → ошибка логики приложения
+//                .noCurrentUser,                             // Нет текущего пользователя → сбой состояния SDK
+//                .unknown,                                   // Неизвестная ошибка Google Sign‑In
+//                .keychain,                                  // Ошибка Keychain при сохранении/чтении токена
+//                .hasNoAuthInKeychain,                       // Нет сохранённой авторизации в Keychain
+//                .emmError,                                  // Корпоративная политика запрещает вход
+//                .mismatchWithCurrentUser:                   // Пользователь Google не совпадает с ожидаемым
+//
+//            logCritical(error: error, context: context ?? "GoogleSignIn.\(code.rawValue)")
+//            return Localized.GoogleSignInError.defaultError
+//        }
+//    }
+//}
+//
+//
+//
 
 
 

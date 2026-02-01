@@ -8,6 +8,122 @@
 
 import Foundation
 
+/**
+ AppInternalError — единый тип внутренних ошибок приложения.
+
+ Этот enum одновременно работает как:
+  • обычная Swift‑ошибка (Error)
+  • полноценный NSError (через CustomNSError)
+  • источник локализованного текста (через LocalizedError)
+
+ Зачем это нужно:
+
+ 1. LocalizedError
+    Позволяет задать локализованный текст ошибки через `errorDescription`.
+    Swift автоматически делает:
+        error.localizedDescription → errorDescription
+    Поэтому UI всегда получает корректный локализованный текст.
+
+ 2. CustomNSError
+    Делает Swift‑ошибку полностью совместимой с NSError:
+        • задаёт собственный domain
+        • задаёт уникальный code
+        • помещает localizedDescription в userInfo
+    Благодаря этому Crashlytics корректно группирует ошибки
+    и показывает domain/code/description.
+
+ 3. Почему в ErrorDiagnosticsCenter теперь используется только один путь:
+        if nsError.domain == AppInternalError.errorDomain
+
+    Раньше приходилось проверять два варианта:
+        • Swift enum (AppInternalError)
+        • NSError (после bridging)
+
+    Теперь это не требуется, потому что Swift автоматически преобразует
+    любой Error → NSError при прохождении через:
+        • Combine
+        • async/await
+        • Firebase SDK
+        • Foundation API
+        • замыкания, возвращающие NSError
+
+    Благодаря CustomNSError каждая AppInternalError‑ошибка
+    уже содержит корректный domain/code/userInfo.
+    Поэтому ErrorDiagnosticsCenter может работать только через NSError,
+    не проверяя тип enum напрямую.
+
+ В итоге:
+  • UI всегда получает локализованный текст
+  • Crashlytics получает domain + code
+  • ErrorDiagnosticsCenter работает в едином формате (NSError)
+  • архитектура стала проще, чище и надёжнее
+ */
+
+
+enum AppInternalError: Int, Error {
+    case invalidCollectionPath
+    case failedDeployOptionalError
+    case failedDeployOptionalID
+    case jsonConversionFailed
+    case notSignedIn
+    case defaultError
+    case emptyResult
+    case nilSnapshot
+    case imageEncodingFailed
+    case delayedConfirmation
+    case staleUserSession
+    case anonymousAuthFailed
+}
+
+extension AppInternalError: CustomNSError {
+    static var errorDomain: String { "com.yourapp.internal" }
+
+    var errorCode: Int { self.rawValue }
+
+    var errorUserInfo: [String : Any] {
+        [NSLocalizedDescriptionKey: self.localizedDescription]
+    }
+}
+
+extension AppInternalError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .invalidCollectionPath:
+            return Localized.AppInternalError.invalidCollectionPath
+        case .failedDeployOptionalError:
+            return Localized.AppInternalError.failedDeployOptionalError
+        case .failedDeployOptionalID:
+            return Localized.AppInternalError.failedDeployOptionalID
+        case .jsonConversionFailed:
+            return Localized.AppInternalError.jsonConversionFailed
+        case .notSignedIn:
+            return Localized.AppInternalError.notSignedIn
+        case .defaultError:
+            return Localized.AppInternalError.defaultError
+        case .emptyResult:
+            return Localized.AppInternalError.emptyResult
+        case .nilSnapshot:
+            return Localized.AppInternalError.nilSnapshot
+        case .imageEncodingFailed:
+            return Localized.AppInternalError.imageEncodingFailed
+        case .delayedConfirmation:
+            return Localized.AppInternalError.delayedConfirmation
+        case .staleUserSession:
+            return Localized.AppInternalError.staleUserSession
+        case .anonymousAuthFailed:
+            return Localized.AppInternalError.anonymousAuthError
+
+        }
+    }
+}
+
+
+
+
+
+// MARK: - old implemintation
+
+
 enum FirebaseInternalError: Error, LocalizedError {
     case invalidCollectionPath
     case failedDeployOptionalError
