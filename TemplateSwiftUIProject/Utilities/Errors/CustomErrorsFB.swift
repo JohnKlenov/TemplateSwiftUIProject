@@ -60,6 +60,66 @@ import Foundation
  */
 
 
+/**
+ Почему мы НЕ используем:
+     if let appError = error as? AppInternalError
+
+ И почему ВСЕГДА восстанавливаем enum через:
+     let nsError = error as NSError
+     if nsError.domain == AppInternalError.errorDomain,
+        let appError = AppInternalError(rawValue: nsError.code)
+
+ ---------------------------------------------------------------
+ 1. После прохождения через Combine ошибка перестаёт быть enum
+ ---------------------------------------------------------------
+
+ Внутри Future ошибка может быть AppInternalError, но при попадании
+ в .sink Combine автоматически выполняет bridging:
+     Error → NSError
+
+ Поэтому:
+     (error as? AppInternalError) == nil
+
+ Это поведение встроено в Combine и не может быть отключено.
+
+ ---------------------------------------------------------------
+ 2. Firebase, async/await и Foundation тоже делают bridging
+ ---------------------------------------------------------------
+
+ Любая ошибка, прошедшая через Firebase SDK, async/await или
+ Foundation API, превращается в NSError. Enum теряется.
+
+ ---------------------------------------------------------------
+ 3. CustomNSError гарантирует domain + code, но НЕ enum
+ ---------------------------------------------------------------
+
+ Благодаря CustomNSError каждая AppInternalError‑ошибка превращается в:
+     NSError(domain: "com.yourapp.internal", code: rawValue)
+
+ Поэтому enum можно восстановить только так:
+     AppInternalError(rawValue: nsError.code)
+
+ ---------------------------------------------------------------
+ 4. Это единственный надёжный способ получить technicalDescription
+ ---------------------------------------------------------------
+
+ В CrashlyticsLoggingService мы должны использовать именно
+ восстановление через domain + code, иначе мы потеряем enum
+ и не сможем отправить корректное technicalDescription.
+
+ ---------------------------------------------------------------
+ 5. Итог
+ ---------------------------------------------------------------
+
+ • error as? AppInternalError — ненадёжно (enum теряется после bridging)
+ • nsError.domain + nsError.code — 100% надёжно
+ • AppInternalError(rawValue: code) — всегда восстанавливает enum
+ • Crashlytics получает стабильный английский technicalDescription
+ • UI получает локализованный текст через LocalizedError
+ */
+
+
+
 enum AppInternalError: Int, Error {
     case invalidCollectionPath
     case failedDeployOptionalError
@@ -86,6 +146,7 @@ extension AppInternalError: CustomNSError {
 }
 
 extension AppInternalError: LocalizedError {
+    /// Локализованный текст для UI
     var errorDescription: String? {
         switch self {
         case .invalidCollectionPath:
@@ -112,10 +173,102 @@ extension AppInternalError: LocalizedError {
             return Localized.AppInternalError.staleUserSession
         case .anonymousAuthFailed:
             return Localized.AppInternalError.anonymousAuthError
-
         }
     }
 }
+
+extension AppInternalError {
+    /// Англоязычное техническое описание для Crashlytics
+    var technicalDescription: String {
+        switch self {
+        case .invalidCollectionPath:
+            return "Invalid Firestore collection path"
+        case .failedDeployOptionalError:
+            return "Failed to unwrap optional error"
+        case .failedDeployOptionalID:
+            return "Failed to unwrap optional ID"
+        case .jsonConversionFailed:
+            return "JSON conversion failed"
+        case .notSignedIn:
+            return "User is not signed in"
+        case .defaultError:
+            return "Default internal error"
+        case .emptyResult:
+            return "Empty result"
+        case .nilSnapshot:
+            return "Snapshot is nil"
+        case .imageEncodingFailed:
+            return "Image encoding failed"
+        case .delayedConfirmation:
+            return "Avatar update delayed"
+        case .staleUserSession:
+            return "Stale user session"
+        case .anonymousAuthFailed:
+            return "Anonymous authentication failed"
+        }
+    }
+}
+
+
+
+
+
+//enum AppInternalError: Int, Error {
+//    case invalidCollectionPath
+//    case failedDeployOptionalError
+//    case failedDeployOptionalID
+//    case jsonConversionFailed
+//    case notSignedIn
+//    case defaultError
+//    case emptyResult
+//    case nilSnapshot
+//    case imageEncodingFailed
+//    case delayedConfirmation
+//    case staleUserSession
+//    case anonymousAuthFailed
+//}
+//
+//extension AppInternalError: CustomNSError {
+//    static var errorDomain: String { "com.yourapp.internal" }
+//
+//    var errorCode: Int { self.rawValue }
+//
+//    var errorUserInfo: [String : Any] {
+//        [NSLocalizedDescriptionKey: self.localizedDescription]
+//    }
+//}
+//
+//extension AppInternalError: LocalizedError {
+//    var errorDescription: String? {
+//        switch self {
+//        case .invalidCollectionPath:
+//            return Localized.AppInternalError.invalidCollectionPath
+//        case .failedDeployOptionalError:
+//            return Localized.AppInternalError.failedDeployOptionalError
+//        case .failedDeployOptionalID:
+//            return Localized.AppInternalError.failedDeployOptionalID
+//        case .jsonConversionFailed:
+//            return Localized.AppInternalError.jsonConversionFailed
+//        case .notSignedIn:
+//            return Localized.AppInternalError.notSignedIn
+//        case .defaultError:
+//            return Localized.AppInternalError.defaultError
+//        case .emptyResult:
+//            return Localized.AppInternalError.emptyResult
+//        case .nilSnapshot:
+//            return Localized.AppInternalError.nilSnapshot
+//        case .imageEncodingFailed:
+//            return Localized.AppInternalError.imageEncodingFailed
+//        case .delayedConfirmation:
+//            return Localized.AppInternalError.delayedConfirmation
+//        case .staleUserSession:
+//            return Localized.AppInternalError.staleUserSession
+//        case .anonymousAuthFailed:
+//            return Localized.AppInternalError.anonymousAuthError
+//
+//        }
+//    }
+//}
 
 
 

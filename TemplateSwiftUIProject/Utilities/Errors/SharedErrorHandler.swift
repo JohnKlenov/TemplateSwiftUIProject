@@ -231,6 +231,121 @@
 
 
 
+/**
+ Почему мы НЕ используем:
+     if let appError = error as? AppInternalError
+
+ И почему мы ВСЕГДА восстанавливаем AppInternalError через:
+     let nsError = error as NSError
+     if nsError.domain == AppInternalError.errorDomain,
+        let appError = AppInternalError(rawValue: nsError.code)
+
+ ---------------------------------------------------------------
+ 1. Swift НЕ гарантирует, что ошибка останется enum AppInternalError
+ ---------------------------------------------------------------
+
+ AppInternalError — это Swift enum, но в реальном приложении ошибка
+ почти всегда проходит через один или несколько механизмов, которые
+ автоматически преобразуют Error → NSError:
+
+    • Combine (Future, Publisher, sink)
+    • async/await
+    • Firebase SDK (Auth, Firestore, Storage)
+    • Foundation API (JSONEncoder, URLSession, FileManager)
+    • любые Objective‑C API
+
+ После такого bridging ошибка перестаёт быть enum и становится
+ обычным NSError. В этот момент:
+
+     (error as? AppInternalError) == nil
+
+ То есть прямое приведение типа НЕ сработает в большинстве случаев.
+
+
+ ---------------------------------------------------------------
+ 2. CustomNSError гарантирует domain + code, но НЕ гарантирует enum
+ ---------------------------------------------------------------
+
+ Благодаря CustomNSError каждая AppInternalError‑ошибка превращается в:
+
+     NSError(
+         domain: "com.yourapp.internal",
+         code: <rawValue>,
+         userInfo: [...]
+     )
+
+ Это означает, что мы ВСЕГДА можем восстановить enum по code:
+
+     AppInternalError(rawValue: nsError.code)
+
+ Но НЕ можем восстановить enum через:
+
+     error as? AppInternalError
+
+
+ ---------------------------------------------------------------
+ 3. Почему восстановление через domain + code — единственный надёжный путь
+ ---------------------------------------------------------------
+
+ Проверка:
+
+     if nsError.domain == AppInternalError.errorDomain
+
+ гарантирует, что ошибка действительно наша.
+
+ А проверка:
+
+     AppInternalError(rawValue: nsError.code)
+
+ гарантирует, что мы корректно восстановим enum независимо от того,
+ сколько раз ошибка прошла через bridging.
+
+ Это работает ВСЕГДА:
+    • для ошибок из сервисов
+    • для ошибок из Combine
+    • для ошибок из Firebase
+    • для ошибок из async/await
+    • для ошибок, которые уже стали NSError
+
+
+ ---------------------------------------------------------------
+ 4. Почему это важно для Crashlytics
+ ---------------------------------------------------------------
+
+ Crashlytics работает только с NSError. Поэтому:
+
+    • domain → используется для группировки ошибок
+    • code → уникальный идентификатор кейса
+    • userInfo → техническая информация
+    • message → техническое описание (technicalDescription)
+
+ Если бы мы полагались на:
+     error as? AppInternalError
+
+ то в 90% случаев мы бы НЕ получили enum и НЕ смогли бы
+ отправить корректное technicalDescription в Crashlytics.
+
+
+ ---------------------------------------------------------------
+ 5. Итог
+ ---------------------------------------------------------------
+
+ • error as? AppInternalError — НЕ надёжно (enum теряется после bridging)
+ • nsError.domain + nsError.code — 100% надёжно
+ • AppInternalError(rawValue: code) — всегда восстанавливает enum
+ • Crashlytics получает стабильный английский technicalDescription
+ • UI получает локализованный текст через LocalizedError
+
+ Это гарантирует:
+    • предсказуемую архитектуру
+    • корректную группировку ошибок
+    • стабильные Crashlytics‑логи
+    • чистый и расширяемый код
+ */
+
+
+
+
 // MARK: - в проде из func handle(error: (any Error)?) -> String
 // должна выходить локализованный тект ошибки для алерта (понятный пользователю)
 // а под капотом всегда поступать реальная ошибка из сервиса и контекст это для Crashlytics
@@ -275,6 +390,67 @@ enum GoogleSignInErrorCode: Int {
 //  ----------------------------------------------------------------------
 //
 
+
+/**
+ Почему мы НЕ используем:
+     if let appError = error as? AppInternalError
+
+ И почему ВСЕГДА восстанавливаем enum через:
+     let nsError = error as NSError
+     if nsError.domain == AppInternalError.errorDomain,
+        let appError = AppInternalError(rawValue: nsError.code)
+
+ ---------------------------------------------------------------
+ 1. После прохождения через Combine ошибка перестаёт быть enum
+ ---------------------------------------------------------------
+
+ Внутри Future ошибка может быть AppInternalError, но при попадании
+ в .sink Combine автоматически выполняет bridging:
+     Error → NSError
+
+ Поэтому:
+     (error as? AppInternalError) == nil
+
+ Это поведение встроено в Combine и не может быть отключено.
+
+ ---------------------------------------------------------------
+ 2. Firebase, async/await и Foundation тоже делают bridging
+ ---------------------------------------------------------------
+
+ Любая ошибка, прошедшая через Firebase SDK, async/await или
+ Foundation API, превращается в NSError. Enum теряется.
+
+ ---------------------------------------------------------------
+ 3. CustomNSError гарантирует domain + code, но НЕ enum
+ ---------------------------------------------------------------
+
+ Благодаря CustomNSError каждая AppInternalError‑ошибка превращается в:
+     NSError(domain: "com.yourapp.internal", code: rawValue)
+
+ Поэтому enum можно восстановить только так:
+     AppInternalError(rawValue: nsError.code)
+
+ ---------------------------------------------------------------
+ 4. Это единственный надёжный способ получить technicalDescription
+ ---------------------------------------------------------------
+
+ В CrashlyticsLoggingService мы должны использовать именно
+ восстановление через domain + code, иначе мы потеряем enum
+ и не сможем отправить корректное technicalDescription.
+
+ ---------------------------------------------------------------
+ 5. Итог
+ ---------------------------------------------------------------
+
+ • error as? AppInternalError — ненадёжно (enum теряется после bridging)
+ • nsError.domain + nsError.code — 100% надёжно
+ • AppInternalError(rawValue: code) — всегда восстанавливает enum
+ • Crashlytics получает стабильный английский technicalDescription
+ • UI получает локализованный текст через LocalizedError
+ */
+
+
+
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
@@ -296,7 +472,7 @@ enum ErrorSeverityLevel: String {
 protocol ErrorLoggingServiceProtocol {
     func logError(
         _ error: Error,
-        domain: String,
+        domain: String?,
         source: String,
         message: String?,
         params: [String: Any]?,   // params: дополнительные параметры, которые мы хотим передать в Crashlytics
@@ -307,61 +483,74 @@ protocol ErrorLoggingServiceProtocol {
 // MARK: - Crashlytics Logging Service
 
 final class CrashlyticsLoggingService: ErrorLoggingServiceProtocol {
-    
+
     static let shared = CrashlyticsLoggingService()
     private let crashlytics = Crashlytics.crashlytics()
-    
+
     private init() {}
-    
+
     func logError(
         _ error: Error,
-        domain: String,
+        domain: String? = nil,
         source: String,
         message: String?,
         params: [String: Any]?,
         severity: ErrorSeverityLevel
     ) {
+        let nsError = error as NSError
+
+        // Реальный домен ошибки
+        let realDomain = domain ?? nsError.domain
+        
+        // Техническое сообщение для Crashlytics (всегда английское)
+        let technicalMessage: String = {
+            if nsError.domain == AppInternalError.errorDomain,
+               let appError = AppInternalError(rawValue: nsError.code) {
+                return appError.technicalDescription
+            } else {
+                return message ?? error.localizedDescription
+            }
+        }()
+
         var userInfo: [String: Any] = [
-            "domain": domain,
+            "domain": realDomain,
             "source": source,
             "severity": severity.rawValue,
-            "localized_description": error.localizedDescription,
-            "error_code": (error as NSError).code
+            "localized_description": technicalMessage,
+            "error_code": nsError.code
         ]
         
-        if let message = message {
-            userInfo["message"] = message
-        }
-        
+        userInfo["message"] = technicalMessage
+
+
         // params — дополнительные параметры, которые разработчик может передать вручную
         // merge(params) — объединяет словари, НЕ перезаписывая существующие ключи userInfo
         if let params = params {
             userInfo.merge(params) { current, _ in current }
         }
-        
-        // Добавляем stacktrace
-        let stack = Thread.callStackSymbols.joined(separator: "\n")
-        userInfo["stacktrace"] = stack
-        
+
+        userInfo["stacktrace"] = Thread.callStackSymbols.joined(separator: "\n")
+
         // Превращаем в NSError, чтобы Crashlytics корректно отобразил domain/code/userInfo
-        let nsError = NSError(
-            domain: domain,
-            code: (error as NSError).code,
+        let wrappedError = NSError(
+            domain: realDomain,
+            code: nsError.code,
             userInfo: userInfo
         )
-        
-        // Отправляем ошибку
-        crashlytics.record(error: nsError)
-        
+
+        crashlytics.record(error: wrappedError)
+
         // Custom Keys для фильтрации и аналитики
         userInfo.forEach { key, value in
             crashlytics.setCustomValue(value, forKey: "log_\(key)")
         }
-        
+
         // Текстовый лог
-        crashlytics.log("[\(severity.rawValue.uppercased())] \(source): \(message ?? error.localizedDescription)")
+        crashlytics.log("[\(severity.rawValue.uppercased())] \(source): \(technicalMessage)")
     }
 }
+
+
 
 // MARK: - ErrorDiagnosticsCenter
 
@@ -516,25 +705,28 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
     /// В Debug печатаем всё в консоль.
     /// В Release отправляем в Crashlytics через CrashlyticsLoggingService.
     private func logCritical(error: Error, context: String) {
-#if DEBUG
+    #if DEBUG
         print("⚠️ [DEBUG] Critical error context: \(context)")
         print("⚠️ [DEBUG] Error: \(error.localizedDescription)")
         print("⚠️ [DEBUG] Stack trace:")
         Thread.callStackSymbols.forEach { print($0) }
-#else
+    #else
+        let nsError = error as NSError
+
         let params: [String: Any] = [
-            "context": context
+            "context": context,
+            "is_critical": true
         ]
-        
+
         logger.logError(
             error,
-            domain: "Critical",
+            domain: nsError.domain,     // ← сохраняем реальный домен ошибки
             source: context,
-            message: error.localizedDescription,
+            message: nil,
             params: params,
             severity: .error
         )
-#endif
+    #endif
     }
     
     // MARK: - Photo Picker
@@ -1070,6 +1262,66 @@ class SharedErrorHandler: ErrorHandlerProtocol {
 
 
 // MARK: - before if nsError.domain == AppInternalError.errorDomain
+
+
+//final class CrashlyticsLoggingService: ErrorLoggingServiceProtocol {
+//
+//    static let shared = CrashlyticsLoggingService()
+//    private let crashlytics = Crashlytics.crashlytics()
+//
+//    private init() {}
+//
+//    func logError(
+//        _ error: Error,
+//        domain: String,
+//        source: String,
+//        message: String?,
+//        params: [String: Any]?,
+//        severity: ErrorSeverityLevel
+//    ) {
+//        var userInfo: [String: Any] = [
+//            "domain": domain,
+//            "source": source,
+//            "severity": severity.rawValue,
+//            "localized_description": error.localizedDescription,
+//            "error_code": (error as NSError).code
+//        ]
+//
+//        if let message = message {
+//            userInfo["message"] = message
+//        }
+//
+        // params — дополнительные параметры, которые разработчик может передать вручную
+        // merge(params) — объединяет словари, НЕ перезаписывая существующие ключи userInfo
+//        if let params = params {
+//            userInfo.merge(params) { current, _ in current }
+//        }
+//
+//        // Добавляем stacktrace
+//        let stack = Thread.callStackSymbols.joined(separator: "\n")
+//        userInfo["stacktrace"] = stack
+//
+//        // Превращаем в NSError, чтобы Crashlytics корректно отобразил domain/code/userInfo
+//        let nsError = NSError(
+//            domain: domain,
+//            code: (error as NSError).code,
+//            userInfo: userInfo
+//        )
+//
+//        // Отправляем ошибку
+//        crashlytics.record(error: nsError)
+//
+//        // Custom Keys для фильтрации и аналитики
+//        userInfo.forEach { key, value in
+//            crashlytics.setCustomValue(value, forKey: "log_\(key)")
+//        }
+//
+//        // Текстовый лог
+//        crashlytics.log("[\(severity.rawValue.uppercased())] \(source): \(message ?? error.localizedDescription)")
+//    }
+//}
+
+
 
 //protocol ErrorDiagnosticsProtocol {
 //    func handle(error: (any Error)?, context: String?) -> String
