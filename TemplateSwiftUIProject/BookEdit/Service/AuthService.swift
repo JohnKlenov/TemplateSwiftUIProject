@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 15.11.24.
 //
 
+
 import Foundation
 import Combine
 import FirebaseAuth
@@ -20,7 +21,7 @@ class AuthService:AuthServiceProtocol {
             if let user = Auth.auth().currentUser {
                 promise(.success(.success(user.uid)))
             } else {
-                promise(.success(.failure(FirebaseInternalError.notSignedIn)))
+                promise(.success(.failure(AppInternalError.notSignedIn)))
             }
         }
         .eraseToAnyPublisher()

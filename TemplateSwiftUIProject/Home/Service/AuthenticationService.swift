@@ -66,7 +66,7 @@ class AuthenticationService: AuthenticationServiceProtocol {
     private func createAnonymousUser() {
         Auth.auth().signInAnonymously { [weak self] authResult, error in
             guard let self = self else { return }
-            guard let user = authResult?.user else {
+            guard let _ = authResult?.user else {
 //                let authenticationError = error ?? NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])
                 let authenticationError = error ?? AppInternalError.anonymousAuthFailed
                 self.authenticationPublisher.send(.failure(authenticationError))

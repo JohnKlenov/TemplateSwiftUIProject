@@ -44,14 +44,14 @@ class ViewBuilderService: ObservableObject {
         
         self.crudManager = CRUDSManager(
             authService: AuthService(),
-            errorHandler: SharedErrorHandler(),
+            errorHandler: ErrorDiagnosticsCenter(),
             databaseService: FirestoreDatabaseCRUDService()
         )
         
         self.homeManager = HomeManager(
             authService: authService,
             firestoreService: FirestoreCollectionObserverService(),
-            errorHandler: SharedErrorHandler(),
+            errorHandler: ErrorDiagnosticsCenter(),
             alertManager: AlertManager.shared
         )
         
