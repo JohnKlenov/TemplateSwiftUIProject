@@ -50,6 +50,7 @@ protocol CurrentUserProvider {
 }
 
 
+
 final class FirebaseAuthUserProvider: CurrentUserProvider {
     private let subject: CurrentValueSubject<AuthUser?, Never>
     private var handle: AuthStateDidChangeListenerHandle?

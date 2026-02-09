@@ -41,6 +41,7 @@ import FirebaseAuth
 protocol AuthenticationServiceProtocol {
     func authenticate() -> AnyPublisher<Result<String, Error>, Never>
     func reset()
+    func start()
 }
 
 class AuthenticationService: AuthenticationServiceProtocol {
@@ -56,14 +57,14 @@ class AuthenticationService: AuthenticationServiceProtocol {
     init(trackerService: AnonAccountTrackerServiceProtocol) {
         print("init AuthenticationService")
         self.trackerService = trackerService
-        addListeners()
+//        addListeners()
     }
     
     deinit {
         print("deinit AuthenticationService")
     }
     
-    private func addListeners() {
+    func addListeners() {
         
         if let handle = aythenticalSateHandler {
             Auth.auth().removeStateDidChangeListener(handle)
@@ -106,10 +107,88 @@ class AuthenticationService: AuthenticationServiceProtocol {
         authenticationPublisher = CurrentValueSubject<Result<String, Error>?, Never>(nil)
         addListeners()
     }
+    
+    func start() {
+        addListeners()
+    }
 }
 
 
+// MARK: - before viewBuilderService in TemplateSwiftUIProjectApp
 
+
+//import Combine
+//import FirebaseAuth
+//
+//protocol AuthenticationServiceProtocol {
+//    func authenticate() -> AnyPublisher<Result<String, Error>, Never>
+//    func reset()
+//}
+//
+//class AuthenticationService: AuthenticationServiceProtocol {
+//    
+//    private let trackerService: AnonAccountTrackerServiceProtocol
+//    
+//    // Храним последнее состояние (nil → ещё нет данных)
+//    private var authenticationPublisher =
+//        CurrentValueSubject<Result<String, Error>?, Never>(nil)
+//    
+//    private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
+//    
+//    init(trackerService: AnonAccountTrackerServiceProtocol) {
+//        print("init AuthenticationService")
+//        self.trackerService = trackerService
+//        addListeners()
+//    }
+//    
+//    deinit {
+//        print("deinit AuthenticationService")
+//    }
+//    
+//    private func addListeners() {
+//        
+//        if let handle = aythenticalSateHandler {
+//            Auth.auth().removeStateDidChangeListener(handle)
+//        }
+//        
+//        aythenticalSateHandler = Auth.auth().addStateDidChangeListener({ [weak self] _, user in
+//            guard let self = self else { return }
+//            
+//            if let user = user {
+//                if user.isAnonymous {
+//                    self.trackerService.updateLastActive(for: user.uid)
+//                }
+//                self.authenticationPublisher.send(.success(user.uid))
+//            } else {
+//                self.createAnonymousUser()
+//            }
+//        })
+//    }
+//    
+//    private func createAnonymousUser() {
+//        Auth.auth().signInAnonymously { [weak self] authResult, error in
+//            guard let self = self else { return }
+//            
+//            guard let _ = authResult?.user else {
+//                let authenticationError = error ?? AppInternalError.anonymousAuthFailed
+//                self.authenticationPublisher.send(.failure(authenticationError))
+//                return
+//            }
+//            // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
+//        }
+//    }
+//    
+//    func authenticate() -> AnyPublisher<Result<String, Error>, Never> {
+//        authenticationPublisher
+//            .compactMap { $0 } // пропускаем nil
+//            .eraseToAnyPublisher()
+//    }
+//    
+//    func reset() {
+//        authenticationPublisher = CurrentValueSubject<Result<String, Error>?, Never>(nil)
+//        addListeners()
+//    }
+//}
 
 // MARK: - before CurrentValueSubject
 

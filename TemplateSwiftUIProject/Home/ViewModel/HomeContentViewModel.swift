@@ -125,6 +125,7 @@ final class HomeContentViewModel: ObservableObject {
     }
     
     func setupViewModel() {
+        homeManager.start()
         observe()
     }
     

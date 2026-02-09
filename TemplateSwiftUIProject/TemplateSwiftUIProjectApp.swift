@@ -83,6 +83,7 @@ struct TemplateSwiftUIProjectApp: App {
     @StateObject private var retryHandler        = GlobalRetryHandler()
     @StateObject private var networkMonitor      = NetworkMonitor()
     @StateObject private var orientationService  = DeviceOrientationService()
+    @StateObject private var viewBuilderService = ViewBuilderService()
 //    @StateObject private var authorizationManager = AuthorizationManager(service: AuthorizationService())
 
     // MARK: – Scene phase
@@ -105,6 +106,7 @@ struct TemplateSwiftUIProjectApp: App {
                 .environmentObject(retryHandler)
                 .environmentObject(networkMonitor)
                 .environmentObject(orientationService)
+                .environmentObject(viewBuilderService)
                 .environment(\.sizeCategory, .medium)
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     //            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
