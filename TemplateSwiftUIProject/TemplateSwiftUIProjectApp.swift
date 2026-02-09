@@ -64,7 +64,6 @@
 // MARK: -  .receive(on: RunLoop.main) ???? обновление UI должно быть везде на главном потоке!!!! -
 // MARK: - проверить всех подписчиков на утечку памяти profileLoadCancellable?.cancel() (CombineSetting почитать тут)
 
-// MARK: - new implement
 
 
 import SwiftUI
@@ -192,6 +191,23 @@ private extension TemplateSwiftUIProjectApp {
         #endif
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

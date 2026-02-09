@@ -506,6 +506,9 @@ final class AuthorizationService {
     
     // MARK: - Publishers & Storage
     private var cancellable: AnyCancellable?
+    // тут тоже как и в AuthenticationService правельнее было бы использовать CurrentValueSubject
+    /// на authStateSubject подписываются позже чем мы вызываем  func observeUserChanges()
+    /// но так как мы делаем это асинхронно и в другом тике логика отрабатывает корректно
     private let authStateSubject = PassthroughSubject<AuthUser?, Never>()
     
     // MARK: - Init

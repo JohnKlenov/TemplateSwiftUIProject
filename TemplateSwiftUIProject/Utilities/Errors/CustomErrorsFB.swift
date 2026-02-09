@@ -133,6 +133,7 @@ enum AppInternalError: Int, Error {
     case delayedConfirmation
     case staleUserSession
     case anonymousAuthFailed
+    case entityDeallocated
 }
 
 extension AppInternalError: CustomNSError {
@@ -173,6 +174,8 @@ extension AppInternalError: LocalizedError {
             return Localized.AppInternalError.staleUserSession
         case .anonymousAuthFailed:
             return Localized.AppInternalError.anonymousAuthError
+        case .entityDeallocated:
+            return Localized.AppInternalError.entityDeallocated
         }
     }
 }
@@ -205,6 +208,8 @@ extension AppInternalError {
             return "Stale user session"
         case .anonymousAuthFailed:
             return "Anonymous authentication failed"
+        case .entityDeallocated:
+            return "Object was deallocated before handling the event"
         }
     }
 }

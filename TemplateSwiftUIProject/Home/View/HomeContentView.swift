@@ -29,6 +29,7 @@ struct HomeContentView: View {
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var retryHandler: GlobalRetryHandler
     
+    
     var body: some View {
         ZStack {
             switch viewModel.viewState {

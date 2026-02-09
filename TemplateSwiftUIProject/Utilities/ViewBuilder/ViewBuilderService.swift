@@ -60,6 +60,12 @@ class ViewBuilderService: ObservableObject {
             errorHandler: SharedErrorHandler(),
             alertManager: AlertManager.shared
         )
+        
+        print("init ViewBuilderService")
+    }
+    
+    deinit {
+        print("deinit ViewBuilderService")
     }
     
     

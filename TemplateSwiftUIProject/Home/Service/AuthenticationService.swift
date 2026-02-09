@@ -7,14 +7,30 @@
 
 
 
-///вызов authenticationService.authenticate() в bind() действительно произойдет раньше, чем любое authenticationPublisher.send в асинхронном коде. Это связано с порядком выполнения синхронного и асинхронного кода.
-///что синхронные операции выполняются сразу, а асинхронные операции могут начаться позже. Это означает, что если вы вызываете синхронную операцию, она завершится до того, как начнется асинхронная операция.
-///private var authenticationPublisher = CurrentValueSubject<Result<String, Error>, Never>(.success("nul"))
-///if userId == "nul" {
-///return Empty().eraseToAnyPublisher() // Завершение цепочки
-///} else {
-///return firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")}
+// MARK: - PassthroughSubject vs CurrentValueSubject
 
+
+// Почему PassthroughSubject раньше работал корректно:
+//
+// Вся цепочка SwiftUI → ViewModel → observeBooks() → authenticate()
+// выполнялась синхронно и очень быстро, тогда как Firebase Auth
+// вызывает addStateDidChangeListener callback строго асинхронно,
+// в следующем runloop. Это означало, что подписка на
+// authenticationPublisher почти всегда успевала установиться раньше,
+// чем Firebase отправлял событие. Поэтому PassthroughSubject
+// «работал», хотя теоретически мог потерять событие при редкой гонке.
+
+
+
+// Используем CurrentValueSubject вместо PassthroughSubject, чтобы:
+// 1) Хранить последнее состояние авторизации (успех/ошибка).
+// 2) Реплеить это состояние новым подписчикам (HomeManager.observeBooks),
+//    даже если Firebase Auth успел вызвать listener ДО того, как ViewModel
+//    подписался на authenticate().
+// 3) Полностью устранить гонку, при которой событие могло быть потеряно,
+//    а UI зависал бы в .loading. Теперь любой новый подписчик всегда
+//    получает актуальное состояние (success/failure), даже после
+//    пересоздания ContentView или ViewModel.
 
 
 
@@ -27,12 +43,14 @@ protocol AuthenticationServiceProtocol {
     func reset()
 }
 
-
-
 class AuthenticationService: AuthenticationServiceProtocol {
     
     private let trackerService: AnonAccountTrackerServiceProtocol
-    private var authenticationPublisher = PassthroughSubject<Result<String, Error>, Never>()
+    
+    // Храним последнее состояние (nil → ещё нет данных)
+    private var authenticationPublisher =
+        CurrentValueSubject<Result<String, Error>?, Never>(nil)
+    
     private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
     
     init(trackerService: AnonAccountTrackerServiceProtocol) {
@@ -41,14 +59,17 @@ class AuthenticationService: AuthenticationServiceProtocol {
         addListeners()
     }
     
+    deinit {
+        print("deinit AuthenticationService")
+    }
+    
     private func addListeners() {
         
         if let handle = aythenticalSateHandler {
             Auth.auth().removeStateDidChangeListener(handle)
         }
         
-        aythenticalSateHandler = Auth.auth().addStateDidChangeListener({ [weak self]  _, user in
-            print("AuthenticationService user.uid - \(String(describing: user?.uid))")
+        aythenticalSateHandler = Auth.auth().addStateDidChangeListener({ [weak self] _, user in
             guard let self = self else { return }
             
             if let user = user {
@@ -62,30 +83,103 @@ class AuthenticationService: AuthenticationServiceProtocol {
         })
     }
     
-    
     private func createAnonymousUser() {
         Auth.auth().signInAnonymously { [weak self] authResult, error in
             guard let self = self else { return }
+            
             guard let _ = authResult?.user else {
-//                let authenticationError = error ?? NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])
                 let authenticationError = error ?? AppInternalError.anonymousAuthFailed
                 self.authenticationPublisher.send(.failure(authenticationError))
                 return
             }
-//            self.trackerService.createOrUpdateTracker(for: user.uid)
             // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
         }
     }
     
-    func authenticate() -> AnyPublisher<Result<String, any Error>, Never> {
-        return authenticationPublisher.eraseToAnyPublisher()
+    func authenticate() -> AnyPublisher<Result<String, Error>, Never> {
+        authenticationPublisher
+            .compactMap { $0 } // пропускаем nil
+            .eraseToAnyPublisher()
     }
     
     func reset() {
-        authenticationPublisher = PassthroughSubject<Result<String, Error>, Never>()
+        authenticationPublisher = CurrentValueSubject<Result<String, Error>?, Never>(nil)
         addListeners()
     }
 }
+
+
+
+
+// MARK: - before CurrentValueSubject
+
+//import Combine
+//import FirebaseAuth
+//
+//protocol AuthenticationServiceProtocol {
+//    func authenticate() -> AnyPublisher<Result<String, Error>, Never>
+//    func reset()
+//}
+//
+//
+//
+//class AuthenticationService: AuthenticationServiceProtocol {
+//    
+//    private let trackerService: AnonAccountTrackerServiceProtocol
+//    private var authenticationPublisher = PassthroughSubject<Result<String, Error>, Never>()
+//    private var aythenticalSateHandler: AuthStateDidChangeListenerHandle?
+//    
+//    init(trackerService: AnonAccountTrackerServiceProtocol) {
+//        print("init AuthenticationService")
+//        self.trackerService = trackerService
+//        addListeners()
+//    }
+//    
+//    private func addListeners() {
+//        
+//        if let handle = aythenticalSateHandler {
+//            Auth.auth().removeStateDidChangeListener(handle)
+//        }
+//        
+//        aythenticalSateHandler = Auth.auth().addStateDidChangeListener({ [weak self]  _, user in
+//            print("AuthenticationService user.uid - \(String(describing: user?.uid))")
+//            guard let self = self else { return }
+//            
+//            if let user = user {
+//                if user.isAnonymous {
+//                    self.trackerService.updateLastActive(for: user.uid)
+//                }
+//                self.authenticationPublisher.send(.success(user.uid))
+//            } else {
+//                self.createAnonymousUser()
+//            }
+//        })
+//    }
+//    
+//    
+//    private func createAnonymousUser() {
+//        Auth.auth().signInAnonymously { [weak self] authResult, error in
+//            guard let self = self else { return }
+//            guard let _ = authResult?.user else {
+////                let authenticationError = error ?? NSError(domain: "Anonymous Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error occurred during anonymous authentication"])
+//                let authenticationError = error ?? AppInternalError.anonymousAuthFailed
+//                self.authenticationPublisher.send(.failure(authenticationError))
+//                return
+//            }
+////            self.trackerService.createOrUpdateTracker(for: user.uid)
+//            // Ничего не делаем, так как addStateDidChangeListener отработает снова и вызовет authPublisher.send(.success(user.uid))
+//        }
+//    }
+//    
+//    func authenticate() -> AnyPublisher<Result<String, any Error>, Never> {
+//        return authenticationPublisher.eraseToAnyPublisher()
+//    }
+//    
+//    func reset() {
+//        authenticationPublisher = PassthroughSubject<Result<String, Error>, Never>()
+//        addListeners()
+//    }
+//}
 
 
 

@@ -276,6 +276,8 @@
 "error.custom_firebase.image_encoding_failed" = "Failed to process the image. Please try a different photo.";
 "error.custom_firebase.delayed_confirmation" = "The avatar update is taking longer than usual. Confirmation may arrive later.";
 "error.custom_firebase.stale_user_session" = "The current user has changed. Please exit the current screen and try again.";
+"error.custom_firebase.entity_deallocated" = "Object was deallocated before handling the event.";
+
 
 
 

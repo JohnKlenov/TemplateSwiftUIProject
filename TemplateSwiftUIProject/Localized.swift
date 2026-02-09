@@ -319,6 +319,7 @@ enum Localized {
         static var imageEncodingFailed = "error.custom_firebase.image_encoding_failed"
         static var delayedConfirmation = "error.custom_firebase.delayed_confirmation"
         static var staleUserSession = "error.custom_firebase.stale_user_session"
+        static var entityDeallocated = "error.custom_firebase.entity_deallocated"
     }
     
     enum FirebaseInternalError {

@@ -12,6 +12,11 @@ class ContentViewModel:ObservableObject {
     
     init(alertManager:AlertManager) {
         self.alertManager = alertManager
+        print("init ContentViewModel")
+    }
+    
+    deinit {
+        print("deinit ContentView + ContentViewModel")
     }
 }
 

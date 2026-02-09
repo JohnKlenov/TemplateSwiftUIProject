@@ -5,6 +5,22 @@
 //  Created by Evgenyi on 19.01.26.
 //
 
+// Если HomeManager уничтожен, старая Combine-цепочка может ещё получать
+// события от Firebase/Firestore. Возвращая .error("Internal state lost"),
+// мы корректно завершаем старую цепочку и предотвращаем ситуацию, когда
+// старый поток данных успевает отправить ложное состояние в UI (например,
+// пустой список). Новый ContentView/ViewModel/HomeManager уже созданы и
+// имеют собственную подписку, поэтому ошибка гарантирует, что старый поток
+// не вмешается в работу нового стека.
+
+// Если self == nil, HomeManager уже уничтожен (например, при пересоздании
+// дерева SwiftUI). В этот момент его зависимости, включая errorHandler,
+// тоже недоступны, поэтому логировать ошибку здесь невозможно. Мы
+// возвращаем .error("Internal state lost") только для корректного
+// завершения старой Combine-цепочки, чтобы она не вмешалась в работу
+// нового стека сущностей.
+
+
 import Combine
 import Foundation
 
@@ -30,6 +46,11 @@ final class HomeManager {
         self.firestoreService = firestoreService
         self.errorHandler = errorHandler
         self.alertManager = alertManager
+        print("init HomeManager")
+    }
+    
+    deinit {
+        print("deinit HomeManager")
     }
     
     func setRetryHandler(_ handler: GlobalRetryHandler) {
@@ -40,7 +61,7 @@ final class HomeManager {
         authService.authenticate()
             .flatMap { [weak self] result -> AnyPublisher<ViewState, Never> in
                 guard let self = self else {
-                    return Just(.content([])).eraseToAnyPublisher()
+                    return Just(.error(AppInternalError.entityDeallocated.localizedDescription)).eraseToAnyPublisher()
                 }
                 
                 switch result {

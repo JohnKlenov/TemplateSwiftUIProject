@@ -117,6 +117,11 @@ final class HomeContentViewModel: ObservableObject {
          managerCRUDS: CRUDSManager) {
         self.homeManager = homeManager
         self.managerCRUDS = managerCRUDS
+        print("init HomeContentView + HomeContentViewModel")
+    }
+    
+    deinit {
+        print("deinit HomeContentView + HomeContentViewModel")
     }
     
     func setupViewModel() {
