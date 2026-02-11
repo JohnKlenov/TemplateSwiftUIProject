@@ -149,7 +149,6 @@ struct ContentView: View {
     }
     
     @StateObject private var viewModel:ContentViewModel
-    @StateObject private var mainCoordinator = MainCoordinator()
     
     @State private var selection: Int = 0
     @State private var isShowAlert: Bool = false
@@ -159,6 +158,7 @@ struct ContentView: View {
     @State private var cancellables = Set<AnyCancellable>()
     
     @EnvironmentObject var localization: LocalizationService
+    @EnvironmentObject var mainCoordinator: MainCoordinator
     
     init() {
         print("init ContentView")
@@ -176,24 +176,19 @@ struct ContentView: View {
                             Label(Localized.TabBar.home.localized(), systemImage: AppIcons.TabBar.home)
                         }
                         .tag(0)
-                        .environmentObject(mainCoordinator)
-                        .environmentObject(mainCoordinator.homeCoordinator)
                     
                     galleryView
                         .tabItem {
                             Label(Localized.TabBar.gallery.localized(), systemImage: AppIcons.TabBar.gallery)
                         }
                         .tag(1)
-                        .environmentObject(mainCoordinator)
-                        .environmentObject(mainCoordinator.galleryCoordinator)
-                    
+                        
                     accountView
                         .tabItem {
                             Label(Localized.TabBar.profile.localized(), systemImage: AppIcons.TabBar.profile)
                         }
                         .tag(2)
-                        .environmentObject(mainCoordinator)
-                        .environmentObject(mainCoordinator.accountCoordinator)
+                        
                 }
                 .background(
                     AlertViewGlobal(isShowAlert: $isShowAlert,

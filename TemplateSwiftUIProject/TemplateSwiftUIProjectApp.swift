@@ -84,7 +84,7 @@ struct TemplateSwiftUIProjectApp: App {
     @StateObject private var networkMonitor      = NetworkMonitor()
     @StateObject private var orientationService  = DeviceOrientationService()
     @StateObject private var viewBuilderService = ViewBuilderService()
-//    @StateObject private var authorizationManager = AuthorizationManager(service: AuthorizationService())
+    @StateObject private var mainCoordinator = MainCoordinator()
 
     // MARK: – Scene phase
     @Environment(\.scenePhase) private var scenePhase
@@ -101,12 +101,15 @@ struct TemplateSwiftUIProjectApp: App {
     var body: some Scene {
         WindowGroup {
             AppRootView(hasSeenOnboarding: hasSeenOnboarding)
-//                .environmentObject(authorizationManager)
                 .environmentObject(localizationService)
                 .environmentObject(retryHandler)
                 .environmentObject(networkMonitor)
                 .environmentObject(orientationService)
                 .environmentObject(viewBuilderService)
+                .environmentObject(mainCoordinator)
+                .environmentObject(mainCoordinator.homeCoordinator)
+                .environmentObject(mainCoordinator.galleryCoordinator)
+                .environmentObject(mainCoordinator.accountCoordinator)
                 .environment(\.sizeCategory, .medium)
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     //            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")
