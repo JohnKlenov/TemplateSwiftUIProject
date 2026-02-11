@@ -62,10 +62,13 @@ protocol FirestoreCollectionObserverProtocol {
 class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
     private let db: Firestore
     private var listener: ListenerRegistration?
+    private let errorHandler: ErrorDiagnosticsProtocol
     
     /// Инициализация с указанием контейнера Firestore (по умолчанию используется Firestore.firestore())
-    init(db: Firestore = Firestore.firestore()) {
+    init(db: Firestore = Firestore.firestore(), errorHandler: ErrorDiagnosticsProtocol) {
         self.db = db
+        self.errorHandler = errorHandler
+        
     }
     //addSnapshotListener(includeMetadataChanges: true)
     /// у нас сейчас includeMetadataChanges: false
@@ -85,10 +88,30 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
             if let error = error {
                 subject.send(.failure(error))
             } else {
+                
                 // Пытаемся преобразовать каждый документ в модель T
-                let data = querySnapshot?.documents.compactMap({ document in
-                    try? document.data(as: T.self)
-                }) ?? []
+                // Примечание:
+                // try? + compactMap означает, что документы, которые не удалось декодировать,
+                // будут отброшены (nil не попадёт в массив). Если из 10 документов декодируются
+                // только 9 — вернётся массив из 9 элементов. Если не декодируется ни один —
+                // compactMap вернёт пустой массив, но без ошибки.
+                // Причины, по которым документ может не декодироваться:
+                // 1) Структура данных в Firestore не совпадает с моделью T (отсутствуют поля, неверные типы).
+                // 2) Поля имеют неожиданный формат (например, строка вместо числа).
+                // 3) Документ содержит вложенные объекты, которые не соответствуют Decodable‑структуре.
+                // 4) Firestore вернул данные, которые были частично повреждены или изменены вручную.
+                // 5) Модель T требует обязательные поля, которых нет в документе.
+                // В таких случаях try? возвращает nil, и compactMap просто пропускает этот документ.
+                //в handleError передается ошибка с доменом nsError.domain == FirestoreErrorDomain
+                let data : [T] = querySnapshot?.documents.compactMap { document in
+                    do {
+                        return try document.data(as: T.self)
+                    } catch {
+                        print("❌ Firestore decode error for document \(document.documentID): \(error)")
+                        self.handleError( error, context: .FirestoreCollectionObserverService_decodeDocument, documentID: document.documentID )
+                        return nil
+                    }
+                } ?? []
                 
                 print("FirestoreCollectionObserverService Received objects: \(data)")
                 subject.send(.success(data))
@@ -97,7 +120,23 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
         
         return subject.eraseToAnyPublisher()
     }
+    
+    private func handleError(_ error: Error, context: ErrorContext, documentID: String) {
+        let fullContext = "\(context.rawValue) | documentID: \(documentID)"
+        let _ = errorHandler.handle(error: error, context: fullContext)
+    }
 }
+
+
+
+//let data = querySnapshot?.documents.compactMap({ document in
+//    try? document.data(as: T.self)
+//}) ?? []
+
+
+
+
+
 
 
 

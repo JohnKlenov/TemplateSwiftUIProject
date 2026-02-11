@@ -50,7 +50,7 @@ class ViewBuilderService: ObservableObject {
         
         self.homeManager = HomeManager(
             authService: authService,
-            firestoreService: FirestoreCollectionObserverService(),
+            firestoreService: FirestoreCollectionObserverService(errorHandler: ErrorDiagnosticsCenter()),
             errorHandler: ErrorDiagnosticsCenter(),
             alertManager: AlertManager.shared
         )

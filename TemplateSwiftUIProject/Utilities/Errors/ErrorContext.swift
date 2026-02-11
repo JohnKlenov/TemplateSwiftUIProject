@@ -9,6 +9,9 @@ import Foundation
 
 enum ErrorContext: String {
 
+    // MARK: - Managers -
+    
+    
     // MARK: - CRUDSManager
 
     case CRUDSManager_updateOrAddBook_authService_getCurrentUserID
@@ -26,4 +29,16 @@ enum ErrorContext: String {
     // MARK: - HomeManager
     case HomeManager_observeBooks_authService_authenticate
     case HomeManager_observeBooks_firestoreService_observeCollection
+    
+    
+    
+    
+    
+    
+    // MARK: - Services -
+    
+    
+    // MARK: - FirestoreCollectionObserverService
+    case FirestoreCollectionObserverService_decodeDocument
+
 }

@@ -255,6 +255,9 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
                 
         case AppInternalError.defaultError.rawValue:                   // Общая ошибка Firebase (fallback)
             return Localized.AppInternalError.defaultError
+        
+        case AppInternalError.entityDeallocated.rawValue:
+            return Localized.AppInternalError.entityDeallocated        // Объект был деинициализирован до обработки события. (guard let self)
                 
         default:                                                       // Неизвестная внутренняя ошибка приложения
             return Localized.AppInternalError.defaultError
