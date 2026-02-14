@@ -125,6 +125,7 @@ enum AppInternalError: Int, Error {
     case failedDeployOptionalError
     case failedDeployOptionalID
     case jsonConversionFailed
+    case invalidJSONStructure
     case notSignedIn
     case defaultError
     case emptyResult
@@ -176,6 +177,9 @@ extension AppInternalError: LocalizedError {
             return Localized.AppInternalError.anonymousAuthError
         case .entityDeallocated:
             return Localized.AppInternalError.entityDeallocated
+        case .invalidJSONStructure:
+            return Localized.AppInternalError.invalidJSONStructure
+
         }
     }
 }
@@ -210,6 +214,8 @@ extension AppInternalError {
             return "Anonymous authentication failed"
         case .entityDeallocated:
             return "Object was deallocated before handling the event"
+        case .invalidJSONStructure:
+            return "JSON structure does not match the expected dictionary format"
         }
     }
 }

@@ -142,8 +142,28 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         
         // 1. Специальные типы до NSError
         
+        // Обработка ошибок декодирования (DecodingError)
+        // Эти ошибки возникают, когда JSONDecoder или FirestoreDecoder не могут
+        // преобразовать входные данные в модель. Основные причины:
+        // 1) Несоответствие типов (например, строка вместо числа).
+        // 2) Отсутствие обязательных полей в JSON/Firestore документе.
+        // 3) Неверные ключи CodingKeys или несовпадение структуры модели и данных.
+        // 4) Некорректный формат вложенных объектов.
+        // 5) Повреждённые или вручную изменённые данные в Firestore.
+        // DecodingError относится только к операциям ДЕКОДИРОВАНИЯ, а не кодирования.
         if let decodingError = error as? DecodingError {
             logCritical(error: error, context: context ?? "DecodingError: \(decodingError)")
+            return Localized.AppInternalError.defaultError
+        }
+
+        // 1. Обработка ошибок кодирования (EncodingError)
+        // Эти ошибки возникают, когда JSONEncoder не может преобразовать модель в Data.
+        // Примеры причин:
+        // - несериализуемые типы (например, URL без стратегии кодирования)
+        // - неверные ключи CodingKeys
+        // - попытка закодировать nil в non-optional поле
+        if let encodingError = error as? EncodingError {
+            logCritical(error: error, context: context ?? "EncodingError: \(encodingError)")
             return Localized.AppInternalError.defaultError
         }
         
@@ -204,7 +224,17 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
             return handleGoogleSignInError(nsError, error: error, context: context)
         }
         
-        // 9. Всё остальное — неизвестное → логируем
+        // 9. Обработка ошибок JSONSerialization (NSCocoaErrorDomain)
+        // Эти ошибки возникают при преобразовании Data → JSON через JSONSerialization.
+        // Примеры причин:
+        // - некорректный JSON (код 3840: invalid JSON)
+        // - несоответствие типов
+        // - попытка сериализовать невалидную структуру
+        if nsError.domain == NSCocoaErrorDomain {
+            logCritical(error: error, context: context ?? "NSCocoaErrorDomain: \(nsError.code)")
+            return Localized.AppInternalError.defaultError
+        }
+        // 10. Всё остальное — неизвестное → логируем
         
         logCritical(error: error, context: context ?? "UnknownError")
         return Localized.AppInternalError.defaultError

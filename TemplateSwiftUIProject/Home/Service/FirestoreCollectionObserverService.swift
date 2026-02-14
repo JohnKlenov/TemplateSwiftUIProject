@@ -45,6 +45,73 @@
 ///Таким образом, хотя ошибки в addSnapshotListener возможны, они в подавляющем большинстве сценариев являются редкими и транзиторными, особенно если приложение стабильно и настроено правильно.
 
 
+
+// Firestore работает по модели "local‑first":
+// - операции add/update/delete сначала записываются в локальный офлайн‑кэш
+// - listener мгновенно возвращает обновлённые данные
+// - Firestore пытается синхронизировать изменения с сервером в фоне
+//
+// Если сети нет:
+// - Firestore НЕ возвращает ошибку сразу
+// - локальные данные считаются успешными
+// - listener НЕ откатывает изменения
+//
+// Ошибка может прийти позже (unavailable, deadlineExceeded), если Firestore
+// долго не может достучаться до сервера. Это НЕ отменяет локальные изменения.
+//
+// Listener откатывает данные ТОЛЬКО если сервер принял запрос,
+// но затем вернул ошибку безопасности (например, permission denied).
+
+// Чтобы пользователь не видел ошибку при офлайн‑режиме Firestore:
+//
+// Firestore сначала записывает изменения в локальный офлайн‑кэш,
+// listener мгновенно отдаёт обновлённые данные,
+// а синхронизация с сервером происходит позже в фоне.
+//
+// Ошибки unavailable / deadlineExceeded приходят только тогда,
+// когда Firestore долго не может достучаться до сервера.
+// Эти ошибки НЕ означают, что локальная операция не выполнена.
+//
+// Чтобы не показывать пользователю лишний Alert:
+// - фильтруйте ошибки Firestore по кодам unavailable и deadlineExceeded
+// - такие ошибки можно тихо логировать, но не отображать в UI
+// - UI остаётся корректным, так как локальные данные уже применены
+//
+// Listener НЕ откатывает локальные изменения при ошибках сети,
+// поэтому скрытие этих ошибок безопасно для UX.
+
+
+
+// Firestore и ошибки unavailable / deadlineExceeded:
+//
+// Эти ошибки НЕ означают, что запись потеряна или отменена.
+// Firestore работает по модели "local‑first":
+// 1) setData сначала записывает данные в локальный офлайн‑кэш
+// 2) listener сразу отдаёт обновлённые данные
+// 3) Firestore ставит операцию в очередь синхронизации
+// 4) если сети нет — попытка отправки завершается ошибкой unavailable/deadlineExceeded
+//
+// ВАЖНО:
+// - даже если в completion пришла ошибка unavailable/deadlineExceeded,
+//   Firestore НЕ удаляет операцию из очереди
+// - локальная запись остаётся в кэше
+// - Firestore продолжает пытаться отправить её позже автоматически
+// - при появлении сети запись будет доставлена на сервер
+//
+// Эти ошибки — нормальная часть офлайн‑режима Firestore,
+// поэтому их обычно НЕ логируют как критические.
+//
+// Единственные ошибки, которые действительно означают,
+// что запись НЕ будет отправлена — это ошибки безопасности:
+// permissionDenied, unauthenticated, invalidArgument и т.п.
+// Такие ошибки нужно логировать.
+//
+// Итог:
+// Ошибки unavailable/deadlineExceeded НЕ приводят к тому,
+// что анонимный пользователь будет удалён раньше времени.
+// Запись lastActiveAt всё равно будет отправлена при следующей успешной синхронизации.
+
+
 import Combine
 import FirebaseFirestore
 import FirebaseDatabase
@@ -59,12 +126,13 @@ protocol FirestoreCollectionObserverProtocol {
 
 // MARK: -  .receive(on: RunLoop.main) ???? обновление UI должно быть везде на главном потоке!!!! -
 
+// тут важно понимать что это func observeCollection джинерик + и следовательно он может быть вызван в разных менеджерах
+// для ErrorContext в методе handleError можно передать дополнительный параметр из observeCollection - какой менеджер вызывает
 class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
     private let db: Firestore
     private var listener: ListenerRegistration?
     private let errorHandler: ErrorDiagnosticsProtocol
     
-    /// Инициализация с указанием контейнера Firestore (по умолчанию используется Firestore.firestore())
     init(db: Firestore = Firestore.firestore(), errorHandler: ErrorDiagnosticsProtocol) {
         self.db = db
         self.errorHandler = errorHandler
@@ -76,7 +144,7 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
     func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never> {
         // Проверка валидности пути
         guard PathValidator.validateCollectionPath(path) else {
-            return Just(.failure(FirebaseInternalError.invalidCollectionPath))
+            return Just(.failure(AppInternalError.invalidCollectionPath))
                 .eraseToAnyPublisher()
         }
         
@@ -181,6 +249,7 @@ protocol FirestoreCollectionObserverProtocolBefore {
 //}
 
 
+// тут мы не работали с ошибками try document.data как в FirestoreCollectionObserverService
 class RealtimeCollectionObserverService : FirestoreCollectionObserverProtocolBefore {
     
     
@@ -194,7 +263,7 @@ class RealtimeCollectionObserverService : FirestoreCollectionObserverProtocolBef
     
     func observeCollection(at path: String) -> AnyPublisher<Result<[BookCloud], any Error>, Never> {
         guard PathValidator.validateCollectionPath(path) else {
-            return Just(.failure(FirebaseInternalError.invalidCollectionPath)).eraseToAnyPublisher()
+            return Just(.failure(AppInternalError.invalidCollectionPath)).eraseToAnyPublisher()
         }
         
         let subject = PassthroughSubject<Result<[BookCloud], Error>, Never>()

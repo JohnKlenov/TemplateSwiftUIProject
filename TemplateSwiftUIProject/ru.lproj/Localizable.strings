@@ -289,6 +289,8 @@
 "error.custom_firebase.delayed_confirmation" = "Обновление аватара занимает больше времени, чем обычно. Подтверждение может прийти позже.";
 "error.custom_firebase.stale_user_session" = "Текущий пользователь изменился. Пожалуйста, выйдите из текущего экрана и попробуйте снова.";
 "error.custom_firebase.entity_deallocated" = "Объект был деинициализирован до обработки события.";
+"error.custom_firebase.invalid_json_structure" = "Структура JSON не соответствует ожидаемому формату.";
+
 
 
 

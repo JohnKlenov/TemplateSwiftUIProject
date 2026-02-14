@@ -32,7 +32,7 @@ class ViewBuilderService: ObservableObject {
         let service = AuthorizationService(userProvider: userProvider)
         self.authorizationManager = AuthorizationManager(service: service, errorHandler: SharedErrorHandler())
         
-        let trackerService = AnonAccountTrackerService()
+        let trackerService = AnonAccountTrackerService(errorCenter: ErrorDiagnosticsCenter())
         self.authService = AuthenticationService(trackerService: trackerService)
         
         self.profileService = FirestoreProfileService()

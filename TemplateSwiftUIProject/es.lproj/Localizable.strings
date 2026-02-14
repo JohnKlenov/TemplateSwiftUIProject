@@ -269,6 +269,8 @@
 "error.custom_firebase.delayed_confirmation" = "La actualización del avatar está tardando más de lo habitual. La confirmación puede llegar más tarde.";
 "error.custom_firebase.stale_user_session" = "El usuario actual ha cambiado. Por favor, salga de la pantalla actual e inténtelo de nuevo.";
 "error.custom_firebase.entity_deallocated" = "El objeto se desasignó antes de procesar el evento.";
+"error.custom_firebase.invalid_json_structure" = "La estructura JSON no coincide con el formato esperado.";
+
 
 
 

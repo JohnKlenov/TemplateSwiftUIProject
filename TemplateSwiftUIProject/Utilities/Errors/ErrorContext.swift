@@ -41,4 +41,7 @@ enum ErrorContext: String {
     // MARK: - FirestoreCollectionObserverService
     case FirestoreCollectionObserverService_decodeDocument
 
+    // MARK: - AnonAccountTrackerService
+    case AnonAccountTrackerService_updateLastActive
+
 }
