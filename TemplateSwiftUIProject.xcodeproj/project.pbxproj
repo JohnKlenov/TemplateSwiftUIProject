@@ -122,6 +122,7 @@
 		5EC332F72E8C01A10051BE5B /* AnonAccountTrackerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */; };
 		5EC4B2522F30E06100F0C2D7 /* CrashlyticsLoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2512F30E06100F0C2D7 /* CrashlyticsLoggingService.swift */; };
 		5EC4B2542F320F5000F0C2D7 /* ErrorContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2532F320F5000F0C2D7 /* ErrorContext.swift */; };
+		5EC4B2572F41F0E700F0C2D7 /* FirestoreError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2562F41F0E700F0C2D7 /* FirestoreError.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -265,6 +266,7 @@
 		5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnonAccountTrackerService.swift; sourceTree = "<group>"; };
 		5EC4B2512F30E06100F0C2D7 /* CrashlyticsLoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLoggingService.swift; sourceTree = "<group>"; };
 		5EC4B2532F320F5000F0C2D7 /* ErrorContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorContext.swift; sourceTree = "<group>"; };
+		5EC4B2562F41F0E700F0C2D7 /* FirestoreError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreError.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsInfo.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -813,6 +815,14 @@
 			path = CrashlyticsService;
 			sourceTree = "<group>";
 		};
+		5EC4B2552F41F0B900F0C2D7 /* FirebaseDescriptionError */ = {
+			isa = PBXGroup;
+			children = (
+				5EC4B2562F41F0E700F0C2D7 /* FirestoreError.swift */,
+			);
+			path = FirebaseDescriptionError;
+			sourceTree = "<group>";
+		};
 		5EC88EDD2DB1375A00A95224 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
@@ -933,6 +943,7 @@
 				5EC949F62CC29109003736A9 /* Home */,
 				5EC949DD2CB5271A003736A9 /* Onboarding */,
 				5EC949CF2CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift */,
+				5EC332F42E88002E0051BE5B /* DescriptionProfile.swift */,
 				5EB96B542EF4213500C7CDBC /* GoogleService-Info.plist */,
 				5EC949D32CB526E9003736A9 /* Assets.xcassets */,
 				5EC949D52CB526E9003736A9 /* Preview Content */,
@@ -1030,7 +1041,6 @@
 				5EC88EE42DB234CF00A95224 /* ToggleCellView.swift */,
 				5EBFD5C92E1CFF4A00A3C74C /* ContentAccountViewInjected.swift */,
 				5EBFD5CD2E1D015000A3C74C /* DeleteAccountCellView.swift */,
-				5EC332F42E88002E0051BE5B /* DescriptionProfile.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1128,6 +1138,7 @@
 		5EC94A0B2CC3CA2F003736A9 /* Errors */ = {
 			isa = PBXGroup;
 			children = (
+				5EC4B2552F41F0B900F0C2D7 /* FirebaseDescriptionError */,
 				5EC94A0C2CC3CA4E003736A9 /* CustomErrorsFB.swift */,
 				5EA4FDB52CCBCABD001CA401 /* SharedErrorHandler.swift */,
 				5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */,
@@ -1374,6 +1385,7 @@
 				5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */,
 				5E8F9CAD2D7ED912004036F6 /* GalleryViewModel(test).swift in Sources */,
 				5EAF5B0E2D2FF96000D96FD6 /* FirstAppear.swift in Sources */,
+				5EC4B2572F41F0E700F0C2D7 /* FirestoreError.swift in Sources */,
 				5EC94A022CC2954C003736A9 /* GalleryView(test).swift in Sources */,
 				5E8F9C9A2D65F573004036F6 /* Localized.swift in Sources */,
 			);

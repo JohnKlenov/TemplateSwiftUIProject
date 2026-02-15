@@ -209,6 +209,212 @@ class CRUDSManager {
 
 
 
+
+// MARK: - before func normalizeFirestoreError
+
+
+
+////protocol CRUDSManagerProtocol:ObservableObject {
+////    func updateOrAddBook(book: BookCloud, forView:String, operationDescription: String)
+////    func removeBook(book: BookCloud, forView:String, operationDescription: String)
+////}
+//
+////:CRUDSManagerProtocol
+//
+//
+//class CRUDSManager {
+//    
+//    private var authService: AuthServiceProtocol
+//    private let errorHandler: ErrorDiagnosticsProtocol
+//    private var databaseService: any DatabaseCRUDServiceProtocol
+//    private var alertManager: AlertManager
+//    
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//    init(
+//        authService: AuthServiceProtocol,
+//        errorHandler: ErrorDiagnosticsProtocol,
+//        databaseService: any DatabaseCRUDServiceProtocol,
+//        alertManager: AlertManager = AlertManager.shared
+//    ) {
+//        self.authService = authService
+//        self.errorHandler = errorHandler
+//        self.databaseService = databaseService
+//        self.alertManager = alertManager
+//        print("init CRUDSManager")
+//    }
+//    
+//    
+//    // MARK: - updateOrAddBook
+//    
+//    func updateOrAddBook(book: BookCloud, forView: String, operationDescription: String) {
+//        authService.getCurrentUserID()
+//            .sink { [weak self] result in
+//                switch result {
+//                    
+//                case .success(let uid):
+//                    let path = "users/\(uid)/data"
+//                    
+//                    if let _ = book.id {
+//                        self?.updateBook(
+//                            path: path,
+//                            book: book,
+//                            forView: forView,
+//                            operationDescription: operationDescription
+//                        )
+//                    } else {
+//                        self?.addBook(
+//                            path: path,
+//                            book: book,
+//                            forView: forView,
+//                            operationDescription: operationDescription
+//                        )
+//                    }
+//                    
+//                case .failure(let error):
+//                    self?.handleError(
+//                        error,
+//                        forView: forView,
+//                        operationDescription: operationDescription,
+//                        context: .CRUDSManager_updateOrAddBook_authService_getCurrentUserID
+//                    )
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    
+//    // MARK: - removeBook
+//    
+//    func removeBook(book: BookCloud, forView: String, operationDescription: String) {
+//        authService.getCurrentUserID()
+//            .sink { [weak self] result in
+//                switch result {
+//                    
+//                case .success(let userID):
+//                    let path = "users/\(userID)/data"
+//                    self?.removeBook(
+//                        book: book,
+//                        path: path,
+//                        forView: forView,
+//                        operationDescription: operationDescription
+//                    )
+//                    
+//                case .failure(let error):
+//                    self?.handleError(
+//                        error,
+//                        forView: forView,
+//                        operationDescription: operationDescription,
+//                        context: .CRUDSManager_removeBook_authService_getCurrentUserID
+//                    )
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    
+//    // MARK: - addBook
+//    
+//    private func addBook(path: String, book: BookCloud, forView: String, operationDescription: String) {
+//        databaseService.addBook(path: path, book)
+//            .sink { [weak self] result in
+//                switch result {
+//                    
+//                case .success:
+//                    print("success addBook")
+//                    
+//                case .failure(let error):
+//                    self?.handleError(
+//                        error,
+//                        forView: forView,
+//                        operationDescription: operationDescription,
+//                        context: .CRUDSManager_addBook_databaseService_addBook
+//                    )
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    
+//    // MARK: - updateBook
+//    
+//    private func updateBook(path: String, book: BookCloud, forView: String, operationDescription: String) {
+//        databaseService.updateBook(path: path, book)
+//            .sink { [weak self] result in
+//                switch result {
+//                    
+//                case .success:
+//                    print("success updateBook")
+//                    
+//                case .failure(let error):
+//                    self?.handleError(
+//                        error,
+//                        forView: forView,
+//                        operationDescription: operationDescription,
+//                        context: .CRUDSManager_updateBook_databaseService_updateBook
+//                    )
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    
+//    // MARK: - removeBookInternal
+//    
+//    private func removeBook(book: BookCloud, path: String, forView: String, operationDescription: String) {
+//        databaseService.removeBook(path: path, book)
+//            .sink { [weak self] result in
+//                switch result {
+//                    
+//                case .success:
+//                    print("removeBook success")
+//                    
+//                case .failure(let error):
+//                    self?.handleError(
+//                        error,
+//                        forView: forView,
+//                        operationDescription: operationDescription,
+//                        context: .CRUDSManager_removeBookInternal_databaseService_removeBook
+//                    )
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    
+//    // MARK: - handleError
+//    /// так же мы должны передавать имя того корневого view из которого пришла ошибка!
+//    private func handleError(
+//        _ error: Error,
+//        forView: String,
+//        operationDescription: String,
+//        context: ErrorContext
+//    ) {
+//        print("CRUDSManager func handleError")
+//        
+//        let errorMessage = errorHandler.handle(
+//            error: error,
+//            context: context.rawValue
+//        )
+//        
+//        alertManager.showGlobalAlert(
+//            message: errorMessage,
+//            operationDescription: operationDescription,
+//            alertType: .ok
+//        )
+//    }
+//    
+//    
+//    deinit {
+//        print("deinit CRUDSManager")
+//    }
+//}
+
+
+
+
+
+
 // MARK: - before ErrorDiagnosticsCenter
 
 
