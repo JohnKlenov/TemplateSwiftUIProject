@@ -56,138 +56,359 @@
 
 
 
+
 import FirebaseFirestore
 import Foundation
 
 
+struct FirestoreGetServiceError: Error {
+    let underlying: Error
+    let context: ErrorContext
+}
+
+
+import FirebaseFirestore
+import Foundation
+
 final class FirestoreGetService {
+
     private let db = Firestore.firestore()
-    
+    private let errorHandler: ErrorDiagnosticsProtocol
+
+    init(errorHandler: ErrorDiagnosticsProtocol) {
+        self.errorHandler = errorHandler
+    }
+
+    // MARK: - Fetch Malls
     func fetchMalls() async throws -> [MallItem] {
         try await withCheckedThrowingContinuation { continuation in
             db.collection("MallCenters").getDocuments { snapshot, error in
+
                 if let error = error {
-                    // Логирование (Crashlytics, Sentry, и т.д.) - тех ошибок которые с большой вероятностью не смогут исчерпать себя самостоятельно или без участия разработчиков на стороне сервера(InvalidArgument, PermissionDenied, ResourceExhausted, FailedPrecondition, Unimplemented, Internal, DataLoss, Unauthenticated).
-                    print("MallSection error = \(error.localizedDescription)")
-                    continuation.resume(throwing: error)
-                } else if let snapshot = snapshot {
-                    // Если коллекция существует, но документов нет, считаем это ошибкой:
-                    if snapshot.documents.isEmpty {
-                        print("MallSection: empty snapshot")
-                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
-                        return
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: error,
+                            context: .FirestoreGetService_fetchMalls
+                        )
+                    )
+                    return
+                }
+
+                guard let snapshot = snapshot else {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.emptyResult,
+                            context: .FirestoreGetService_fetchMalls
+                        )
+                    )
+                    return
+                }
+
+                // Если коллекция существует, но документов нет, считаем это ошибкой:
+                if snapshot.documents.isEmpty {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.emptyResult,
+                            context: .FirestoreGetService_fetchMalls
+                        )
+                    )
+                    return
+                }
+
+                let items: [MallItem] = snapshot.documents.compactMap { document in
+                    do {
+                        return try document.data(as: MallItem.self)
+                    } catch {
+                        let _ = self.errorHandler.handle(
+                            error: error,
+                            context: "\(ErrorContext.FirestoreGetService_fetchMalls.rawValue) | documentID: \(document.documentID)"
+                        )
+                        return nil
                     }
-                    let items: [MallItem] = snapshot.documents.compactMap { document -> MallItem? in
-                        do {
-                            let item = try document.data(as: MallItem.self)
-                            return item
-                        } catch {
-                            // Логирование (Crashlytics, Sentry, и т.д.)
-                            print("MallSection error converting document \(document.documentID): \(error.localizedDescription)")
-                            return nil
-                        }
-                    }
-                    // Если после преобразования массив пустой, можем считать это ошибкой
-                    if items.isEmpty {
-                        // Логирование (Crashlytics, Sentry, и т.д.)
-                        print("MallSection: conversion yielded empty")
-                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
-                    } else {
-                        print("MallSection snapshot != nil = \(items)")
-                        continuation.resume(returning: items)
-                    }
+                }
+                
+                // Если коллекция существует, но документов нет, считаем это ошибкой:
+                if items.isEmpty {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.emptyResult,
+                            context: .FirestoreGetService_fetchMalls
+                        )
+                    )
                 } else {
-                    // Логирование (Crashlytics, Sentry, и т.д.)
-                    print("MallSection snapshot == nil")
-                    continuation.resume(throwing: FirebaseInternalError.emptyResult)
+                    continuation.resume(returning: items)
                 }
             }
         }
     }
-    
-   
+
+    // MARK: - Fetch Shops
     func fetchShops() async throws -> [ShopItem] {
         try await withCheckedThrowingContinuation { continuation in
             db.collection("BookStores").getDocuments { snapshot, error in
+
                 if let error = error {
-                    // Логирование (Crashlytics, Sentry, и т.д.) - тех ошибок которые с большой вероятностью не смогут исчерпать себя самостоятельно или без участия разработчиков на стороне сервера(InvalidArgument, PermissionDenied, ResourceExhausted, FailedPrecondition, Unimplemented, Internal, DataLoss, Unauthenticated).
-                    print("ShopSection error = \(error.localizedDescription)")
-                    continuation.resume(throwing: error)
-                } else if let snapshot = snapshot {
-                    if snapshot.documents.isEmpty {
-                        // Логирование (Crashlytics, Sentry, и т.д.)
-                        print("ShopSection: empty snapshot")
-                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
-                        return
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: error,
+                            context: .FirestoreGetService_fetchShops
+                        )
+                    )
+                    return
+                }
+
+                guard let snapshot = snapshot else {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.emptyResult,
+                            context: .FirestoreGetService_fetchShops
+                        )
+                    )
+                    return
+                }
+
+                // Если коллекция существует, но документов нет, считаем это ошибкой:
+                if snapshot.documents.isEmpty {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.emptyResult,
+                            context: .FirestoreGetService_fetchShops
+                        )
+                    )
+                    return
+                }
+
+                let items: [ShopItem] = snapshot.documents.compactMap { document in
+                    do {
+                        return try document.data(as: ShopItem.self)
+                    } catch {
+                        let _ = self.errorHandler.handle(
+                            error: error,
+                            context: "\(ErrorContext.FirestoreGetService_fetchShops.rawValue) | documentID: \(document.documentID)"
+                        )
+                        return nil
                     }
-                    let items: [ShopItem] = snapshot.documents.compactMap { document -> ShopItem? in
-                        do {
-                            let item = try document.data(as: ShopItem.self)
-                            return item
-                        } catch {
-                            // Логирование (Crashlytics, Sentry, и т.д.)
-                            print("ShopSection error converting document \(document.documentID): \(error.localizedDescription)")
-                            return nil
-                        }
-                    }
-                    if items.isEmpty {
-                        // Логирование (Crashlytics, Sentry, и т.д.)
-                        print("ShopSection: conversion yielded empty")
-                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
-                    } else {
-                        print("ShopSection snapshot != nil = \(items)")
-                        continuation.resume(returning: items)
-                    }
+                }
+
+                // Если коллекция существует, но документов нет, считаем это ошибкой:
+                if items.isEmpty {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.emptyResult,
+                            context: .FirestoreGetService_fetchShops
+                        )
+                    )
                 } else {
-                    // Логирование (Crashlytics, Sentry, и т.д.)
-                    print("ShopSection snapshot == nil")
-                    continuation.resume(throwing: FirebaseInternalError.emptyResult)
+                    continuation.resume(returning: items)
                 }
             }
         }
     }
-        
+
+    // MARK: - Fetch Popular Products
     func fetchPopularProducts() async throws -> [ProductItem] {
         try await withCheckedThrowingContinuation { continuation in
             db.collection("books").getDocuments { snapshot, error in
+
                 if let error = error {
-                    // Логирование (Crashlytics, Sentry, и т.д.) - тех ошибок которые с большой вероятностью не смогут исчерпать себя самостоятельно или без участия разработчиков на стороне сервера(InvalidArgument, PermissionDenied, ResourceExhausted, FailedPrecondition, Unimplemented, Internal, DataLoss, Unauthenticated).
-                    print("PopularProducts error = \(error.localizedDescription)")
-                    continuation.resume(throwing: error)
-                } else if let snapshot = snapshot {
-                    if snapshot.documents.isEmpty {
-                        // Логирование (Crashlytics, Sentry, и т.д.)
-                        print("PopularProducts: empty snapshot")
-                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
-                        return
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: error,
+                            context: .FirestoreGetService_fetchPopularProducts
+                        )
+                    )
+                    return
+                }
+
+                guard let snapshot = snapshot else {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.emptyResult,
+                            context: .FirestoreGetService_fetchPopularProducts
+                        )
+                    )
+                    return
+                }
+
+                // Если коллекция существует, но документов нет, считаем это ошибкой:
+                if snapshot.documents.isEmpty {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.emptyResult,
+                            context: .FirestoreGetService_fetchPopularProducts
+                        )
+                    )
+                    return
+                }
+
+                let items: [ProductItem] = snapshot.documents.compactMap { document in
+                    do {
+                        return try document.data(as: ProductItem.self)
+                    } catch {
+                        let _ = self.errorHandler.handle(
+                            error: error,
+                            context: "\(ErrorContext.FirestoreGetService_fetchPopularProducts.rawValue) | documentID: \(document.documentID)"
+                        )
+                        return nil
                     }
-                    let items: [ProductItem] = snapshot.documents.compactMap { document -> ProductItem? in
-                        do {
-                            let item = try document.data(as: ProductItem.self)
-                            return item
-                        } catch {
-                            // Логирование (Crashlytics, Sentry, и т.д.)
-                            print("PopularProducts error converting document \(document.documentID): \(error.localizedDescription)")
-                            return nil
-                        }
-                    }
-                    if items.isEmpty {
-                        // Логирование (Crashlytics, Sentry, и т.д.)
-                        print("PopularProducts: conversion yielded empty")
-                        continuation.resume(throwing: FirebaseInternalError.emptyResult)
-                    } else {
-                        print("PopularProducts snapshot != nil = \(items)")
-                        continuation.resume(returning: items)
-                    }
+                }
+                
+                // Если коллекция существует, но документов нет, считаем это ошибкой:
+                if items.isEmpty {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.emptyResult,
+                            context: .FirestoreGetService_fetchPopularProducts
+                        )
+                    )
                 } else {
-                    // Логирование (Crashlytics, Sentry, и т.д.)
-                    print("PopularProducts snapshot == nil")
-                    continuation.resume(throwing: FirebaseInternalError.emptyResult)
+                    continuation.resume(returning: items)
                 }
             }
         }
     }
 }
+
+
+
+
+// MARK: - before FirestoreGetServiceError
+
+
+
+//import FirebaseFirestore
+//import Foundation
+//
+//
+//final class FirestoreGetService {
+//    private let db = Firestore.firestore()
+//    
+//    func fetchMalls() async throws -> [MallItem] {
+//        try await withCheckedThrowingContinuation { continuation in
+//            db.collection("MallCenters").getDocuments { snapshot, error in
+//                if let error = error {
+//                    // Логирование (Crashlytics, Sentry, и т.д.) - тех ошибок которые с большой вероятностью не смогут исчерпать себя самостоятельно или без участия разработчиков на стороне сервера(InvalidArgument, PermissionDenied, ResourceExhausted, FailedPrecondition, Unimplemented, Internal, DataLoss, Unauthenticated).
+//                    print("MallSection error = \(error.localizedDescription)")
+//                    continuation.resume(throwing: error)
+//                } else if let snapshot = snapshot {
+//                    // Если коллекция существует, но документов нет, считаем это ошибкой:
+//                    if snapshot.documents.isEmpty {
+//                        print("MallSection: empty snapshot")
+//                        continuation.resume(throwing: AppInternalError.emptyResult)
+//                        return
+//                    }
+//                    let items: [MallItem] = snapshot.documents.compactMap { document -> MallItem? in
+//                        do {
+//                            let item = try document.data(as: MallItem.self)
+//                            return item
+//                        } catch {
+//                            // Логирование (Crashlytics, Sentry, и т.д.)
+//                            print("MallSection error converting document \(document.documentID): \(error.localizedDescription)")
+//                            return nil
+//                        }
+//                    }
+//                    // Если после преобразования массив пустой, можем считать это ошибкой
+//                    if items.isEmpty {
+//                        // Логирование (Crashlytics, Sentry, и т.д.)
+//                        print("MallSection: conversion yielded empty")
+//                        continuation.resume(throwing: AppInternalError.emptyResult)
+//                    } else {
+//                        print("MallSection snapshot != nil = \(items)")
+//                        continuation.resume(returning: items)
+//                    }
+//                } else {
+//                    // Логирование (Crashlytics, Sentry, и т.д.)
+//                    print("MallSection snapshot == nil")
+//                    continuation.resume(throwing: AppInternalError.emptyResult)
+//                }
+//            }
+//        }
+//    }
+//    
+//   
+//    func fetchShops() async throws -> [ShopItem] {
+//        try await withCheckedThrowingContinuation { continuation in
+//            db.collection("BookStores").getDocuments { snapshot, error in
+//                if let error = error {
+//                    // Логирование (Crashlytics, Sentry, и т.д.) - тех ошибок которые с большой вероятностью не смогут исчерпать себя самостоятельно или без участия разработчиков на стороне сервера(InvalidArgument, PermissionDenied, ResourceExhausted, FailedPrecondition, Unimplemented, Internal, DataLoss, Unauthenticated).
+//                    print("ShopSection error = \(error.localizedDescription)")
+//                    continuation.resume(throwing: error)
+//                } else if let snapshot = snapshot {
+//                    if snapshot.documents.isEmpty {
+//                        // Логирование (Crashlytics, Sentry, и т.д.)
+//                        print("ShopSection: empty snapshot")
+//                        continuation.resume(throwing: AppInternalError.emptyResult)
+//                        return
+//                    }
+//                    let items: [ShopItem] = snapshot.documents.compactMap { document -> ShopItem? in
+//                        do {
+//                            let item = try document.data(as: ShopItem.self)
+//                            return item
+//                        } catch {
+//                            // Логирование (Crashlytics, Sentry, и т.д.)
+//                            print("ShopSection error converting document \(document.documentID): \(error.localizedDescription)")
+//                            return nil
+//                        }
+//                    }
+//                    if items.isEmpty {
+//                        // Логирование (Crashlytics, Sentry, и т.д.)
+//                        print("ShopSection: conversion yielded empty")
+//                        continuation.resume(throwing: AppInternalError.emptyResult)
+//                    } else {
+//                        print("ShopSection snapshot != nil = \(items)")
+//                        continuation.resume(returning: items)
+//                    }
+//                } else {
+//                    // Логирование (Crashlytics, Sentry, и т.д.)
+//                    print("ShopSection snapshot == nil")
+//                    continuation.resume(throwing: AppInternalError.emptyResult)
+//                }
+//            }
+//        }
+//    }
+//        
+//    func fetchPopularProducts() async throws -> [ProductItem] {
+//        try await withCheckedThrowingContinuation { continuation in
+//            db.collection("books").getDocuments { snapshot, error in
+//                if let error = error {
+//                    // Логирование (Crashlytics, Sentry, и т.д.) - тех ошибок которые с большой вероятностью не смогут исчерпать себя самостоятельно или без участия разработчиков на стороне сервера(InvalidArgument, PermissionDenied, ResourceExhausted, FailedPrecondition, Unimplemented, Internal, DataLoss, Unauthenticated).
+//                    print("PopularProducts error = \(error.localizedDescription)")
+//                    continuation.resume(throwing: error)
+//                } else if let snapshot = snapshot {
+//                    if snapshot.documents.isEmpty {
+//                        // Логирование (Crashlytics, Sentry, и т.д.)
+//                        print("PopularProducts: empty snapshot")
+//                        continuation.resume(throwing: AppInternalError.emptyResult)
+//                        return
+//                    }
+//                    let items: [ProductItem] = snapshot.documents.compactMap { document -> ProductItem? in
+//                        do {
+//                            let item = try document.data(as: ProductItem.self)
+//                            return item
+//                        } catch {
+//                            // Логирование (Crashlytics, Sentry, и т.д.)
+//                            print("PopularProducts error converting document \(document.documentID): \(error.localizedDescription)")
+//                            return nil
+//                        }
+//                    }
+//                    if items.isEmpty {
+//                        // Логирование (Crashlytics, Sentry, и т.д.)
+//                        print("PopularProducts: conversion yielded empty")
+//                        continuation.resume(throwing: AppInternalError.emptyResult)
+//                    } else {
+//                        print("PopularProducts snapshot != nil = \(items)")
+//                        continuation.resume(returning: items)
+//                    }
+//                } else {
+//                    // Логирование (Crashlytics, Sentry, и т.д.)
+//                    print("PopularProducts snapshot == nil")
+//                    continuation.resume(throwing: AppInternalError.emptyResult)
+//                }
+//            }
+//        }
+//    }
+//}
+
 
 
 // MARK: - first code and different methods

@@ -823,6 +823,14 @@
 			path = FirebaseDescriptionError;
 			sourceTree = "<group>";
 		};
+		5EC4B2582F43389E00F0C2D7 /* WebImageView */ = {
+			isa = PBXGroup;
+			children = (
+				5E8F9C892D5CC8D8004036F6 /* WebImageView.swift */,
+			);
+			path = WebImageView;
+			sourceTree = "<group>";
+		};
 		5EC88EDD2DB1375A00A95224 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
@@ -925,6 +933,7 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5EC4B2582F43389E00F0C2D7 /* WebImageView */,
 				5EB96B562EF422DB00C7CDBC /* Info.plist */,
 				5EA082A42EDB0E2F00E244B8 /* ChangeLanguage */,
 				5EC332DD2E48D2AE0051BE5B /* UserInfoEdit */,
@@ -1064,7 +1073,6 @@
 			children = (
 				5EC94A032CC29607003736A9 /* HomeView.swift */,
 				5EA4FE352D21C8D7001CA401 /* HomeContentView.swift */,
-				5E8F9C892D5CC8D8004036F6 /* WebImageView.swift */,
 				5E8F9C8B2D6348BF004036F6 /* BooksListView.swift */,
 				5E8F9C8D2D6348D8004036F6 /* BookRowView.swift */,
 				5E8F9C8F2D634EA4004036F6 /* ContentErrorView.swift */,

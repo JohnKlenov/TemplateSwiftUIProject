@@ -10,7 +10,7 @@ import Foundation
 enum ErrorContext: String {
 
     // MARK: - Managers -
-    
+    case GalleryManager_fetchData_FirestoreGetService
     
     // MARK: - CRUDSManager
 
@@ -43,5 +43,10 @@ enum ErrorContext: String {
 
     // MARK: - AnonAccountTrackerService
     case AnonAccountTrackerService_updateLastActive
+    
+    // MARK: - FirestoreGetService
+    case FirestoreGetService_fetchMalls
+    case FirestoreGetService_fetchShops
+    case FirestoreGetService_fetchPopularProducts
 
 }

@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 19.01.26.
 //
 
+
 // Если HomeManager уничтожен, старая Combine-цепочка может ещё получать
 // события от Firebase/Firestore. Возвращая .error("Internal state lost"),
 // мы корректно завершаем старую цепочку и предотвращаем ситуацию, когда
