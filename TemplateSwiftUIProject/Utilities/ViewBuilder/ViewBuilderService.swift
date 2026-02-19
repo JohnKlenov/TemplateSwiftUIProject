@@ -56,8 +56,8 @@ class ViewBuilderService: ObservableObject {
         )
         
         self.galleryManager = GalleryManager(
-            firestoreService: FirestoreGetService(),
-            errorHandler: SharedErrorHandler(),
+            firestoreService: FirestoreGetService(errorHandler: ErrorDiagnosticsCenter()),
+            errorHandler: ErrorDiagnosticsCenter(),
             alertManager: AlertManager.shared
         )
         

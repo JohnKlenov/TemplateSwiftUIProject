@@ -93,9 +93,8 @@ final class GalleryContentViewModel: ObservableObject {
         case .success(let sections):
             self.lastUpdated = Date()
             self.viewState = .content(sections)
-        case .failure(let error):
-            let message = galleryManager.handleError(error)
-            self.viewState = .error(message)
+        case .failure(let userError):
+            self.viewState = .error(userError.message)
         }
     }
     

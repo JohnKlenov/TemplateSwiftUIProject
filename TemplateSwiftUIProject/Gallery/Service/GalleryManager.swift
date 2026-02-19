@@ -27,6 +27,11 @@
 
 import Foundation
 
+struct UserFacingError: Error {
+    let message: String
+}
+
+
 final class GalleryManager {
 
     enum StateError {
@@ -57,7 +62,7 @@ final class GalleryManager {
     // паралельные запросы async let (быстрее последовательных)
     ///С помощью ключевого слова async let запускаются три запроса параллельно
     ///"async let" и "try await": – async let позволяет запустить несколько операций параллельно, – try await гарантирует, что выполнение будет приостановлено до завершения всех этих операций, и если возникает ошибка, она передается в блок catch.
-    func fetchData() async -> Result<[UnifiedSectionModel], Error> {
+    func fetchData() async -> Result<[UnifiedSectionModel], UserFacingError> {
         do {
             async let mallsItems: [MallItem] = firestoreService.fetchMalls()
             async let shopsItems: [ShopItem] = firestoreService.fetchShops()
@@ -74,24 +79,25 @@ final class GalleryManager {
             return .success(unifiedSections)
 
         } catch {
-            handleError(error)
-            return .failure(error)
+            let message = handleError(error)
+            return .failure(UserFacingError(message: message))
         }
     }
 
-    private func handleError(_ error: Error) {
+    private func handleError(_ error: Error) -> String {
         if let serviceError = error as? FirestoreGetServiceError {
             
             let combinedContext =
             "\(serviceError.context.rawValue) | \(ErrorContext.GalleryManager_fetchData_FirestoreGetService.rawValue)"
             
-            let _ = errorHandler.handle(
+            return errorHandler.handle(
                 error: serviceError.underlying,
                 context: combinedContext
             )
             
         } else {
-            let _ = errorHandler.handle(
+            
+            return errorHandler.handle(
                 error: error,
                 context: ErrorContext.GalleryManager_fetchData_FirestoreGetService.rawValue
             )
