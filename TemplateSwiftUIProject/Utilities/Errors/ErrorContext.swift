@@ -10,8 +10,7 @@ import Foundation
 enum ErrorContext: String {
 
     // MARK: - Managers -
-    case GalleryManager_fetchData_FirestoreGetService
-    
+
     // MARK: - CRUDSManager
 
     case CRUDSManager_updateOrAddBook_authService_getCurrentUserID
@@ -25,12 +24,15 @@ enum ErrorContext: String {
     case CRUDSManager_updateBook_databaseService_updateBook
     case CRUDSManager_removeBookInternal_databaseService_removeBook
     
-    
     // MARK: - HomeManager
     case HomeManager_observeBooks_authService_authenticate
     case HomeManager_observeBooks_firestoreService_observeCollection
     
+    // MARK: - GalleryManager
+    case GalleryManager_fetchData_FirestoreGetService
     
+    // MARK: - UserInfoCellManager
+    case UserInfoCellManager_loadUserProfile_profileService_fetchProfile
     
     
     

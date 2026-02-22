@@ -40,7 +40,7 @@ class ViewBuilderService: ObservableObject {
         
         self.userInfoEditManager = UserInfoEditManager(firestoreService: profileService, storageService: storageProfileService, errorHandler: SharedErrorHandler(), userProvider: userProvider)
         
-        self.userInfoCellManager = UserInfoCellManager(profileService: profileService, userProvider: userProvider, errorHandler: SharedErrorHandler())
+        self.userInfoCellManager = UserInfoCellManager(profileService: profileService, userProvider: userProvider, errorHandler: ErrorDiagnosticsCenter())
         
         self.crudManager = CRUDSManager(
             authService: AuthService(),

@@ -97,7 +97,7 @@ final class FirestoreGetService {
                 guard let snapshot = snapshot else {
                     continuation.resume(
                         throwing: FirestoreGetServiceError(
-                            underlying: AppInternalError.emptyResult,
+                            underlying: AppInternalError.nilSnapshot,
                             context: .FirestoreGetService_fetchMalls
                         )
                     )
@@ -160,7 +160,7 @@ final class FirestoreGetService {
                 guard let snapshot = snapshot else {
                     continuation.resume(
                         throwing: FirestoreGetServiceError(
-                            underlying: AppInternalError.emptyResult,
+                            underlying: AppInternalError.nilSnapshot,
                             context: .FirestoreGetService_fetchShops
                         )
                     )
@@ -223,7 +223,7 @@ final class FirestoreGetService {
                 guard let snapshot = snapshot else {
                     continuation.resume(
                         throwing: FirestoreGetServiceError(
-                            underlying: AppInternalError.emptyResult,
+                            underlying: AppInternalError.nilSnapshot,
                             context: .FirestoreGetService_fetchPopularProducts
                         )
                     )
