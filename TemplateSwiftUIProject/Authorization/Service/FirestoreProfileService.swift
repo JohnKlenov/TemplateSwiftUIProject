@@ -175,6 +175,7 @@ protocol ProfileServiceProtocol {
     func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error>
     func updateProfile(_ profile: UserProfile,
                        shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error>
+    func cancelProfileListener()
 }
 
 final class FirestoreProfileService: ProfileServiceProtocol {
@@ -182,10 +183,14 @@ final class FirestoreProfileService: ProfileServiceProtocol {
     private let db = Firestore.firestore()
     private var profileListener: ListenerRegistration?
     
-    
-    func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error> {
+    func cancelProfileListener() {
         profileListener?.remove()
         profileListener = nil
+    }
+    
+    func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error> {
+        
+        cancelProfileListener()
         
         let subject = PassthroughSubject<UserProfile, Error>()
         
@@ -272,6 +277,129 @@ final class FirestoreProfileService: ProfileServiceProtocol {
     }
 }
 
+
+
+
+// MARK: - before .profileService.cancelProfileListener()
+
+
+//import FirebaseFirestore
+//import Combine
+//
+//struct UserProfile: Codable, Equatable, Hashable {
+//    let uid: String
+//    var name: String?
+//    var lastName: String?
+//    var photoURL: URL?
+//
+//    init(uid: String, name: String? = nil, lastName: String? = nil, photoURL: URL? = nil) {
+//        self.uid = uid
+//        self.name = name
+//        self.lastName = lastName
+//        self.photoURL = photoURL
+//    }
+//}
+//
+//protocol ProfileServiceProtocol {
+//    func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error>
+//    func updateProfile(_ profile: UserProfile,
+//                       shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error>
+//}
+//
+//final class FirestoreProfileService: ProfileServiceProtocol {
+//    
+//    private let db = Firestore.firestore()
+//    private var profileListener: ListenerRegistration?
+//    
+//    
+//    func fetchProfile(uid: String) -> AnyPublisher<UserProfile, Error> {
+//        profileListener?.remove()
+//        profileListener = nil
+//        
+//        let subject = PassthroughSubject<UserProfile, Error>()
+//        
+//        let docRef = db
+//            .collection("users")
+//            .document(uid)
+//            .collection("userProfileData")
+//            .document(uid)
+//        
+//        profileListener = docRef.addSnapshotListener(includeMetadataChanges: true) { snapshot, error in
+//            if let error = error {
+//                print("✅ FirestoreProfileService fetchProfile error - \(error.localizedDescription)")
+//                subject.send(completion: .failure(error))
+//                return
+//            }
+//            
+//            guard let snapshot = snapshot else {
+//                subject.send(completion: .failure(FirebaseInternalError.nilSnapshot))
+//                return
+//            }
+//            
+//            let fromCache = snapshot.metadata.isFromCache
+//            let pendingWrites = snapshot.metadata.hasPendingWrites
+//            // 📡 Пояснение: // - snapshot.metadata.isFromCache → true, если данные пришли из локального кэша Firestore. // - snapshot.metadata.hasPendingWrites → true, если есть локальные изменения, ещё не подтверждённые сервером. // - Если оба значения false → данные получены напрямую с сервера и полностью подтверждены, // то есть это "чистый" серверный снимок без локальных правок.
+//            print("📡 Source: \(fromCache ? "CACHE" : "SERVER"), pendingWrites=\(pendingWrites)")
+//            
+//            do {
+//                if snapshot.exists {
+//                    let profile = try snapshot.data(as: UserProfile.self)
+//                    print("✅ FirestoreProfileService fetchProfile received: \(profile)")
+//                    subject.send(profile)
+//                } else {
+//                    // Документ отсутствует — отдаём пустую модель
+//                    subject.send(UserProfile(uid: uid))
+//                }
+//            } catch {
+//                subject.send(completion: .failure(error))
+//            }
+//        }
+//        
+//        return subject.eraseToAnyPublisher()
+//    }
+//    
+//    func updateProfile(_ profile: UserProfile,
+//                       shouldDeletePhotoURL: Bool) -> AnyPublisher<Void, Error> {
+//        Future<Void, Error> { promise in
+//            print("func updateProfile - profile - \(profile)")
+//            
+//            let docRef = self.db
+//                .collection("users")
+//                .document(profile.uid)
+//                .collection("userProfileData")
+//                .document(profile.uid)
+//            
+//            do {
+//                var data = try Firestore.Encoder().encode(profile)
+//                
+//                // Нормализация: пустые строки → удаление полей
+//                if let name = profile.name, name.isEmpty {
+//                    data["name"] = FieldValue.delete()
+//                }
+//                if let lastName = profile.lastName, lastName.isEmpty {
+//                    data["lastName"] = FieldValue.delete()
+//                }
+//                // Явное удаление photoURL, если требуется
+//                if shouldDeletePhotoURL {
+//                    data["photoURL"] = FieldValue.delete()
+//                }
+//                
+//                docRef.setData(data, merge: true) { error in
+//                    if let error = error {
+//                        print("❌ Firestore update error: setData")
+//                        promise(.failure(error))
+//                    } else {
+//                        promise(.success(()))
+//                    }
+//                }
+//            } catch {
+//                print("❌ Firestore update error: encoding")
+//                promise(.failure(error))
+//            }
+//        }
+//        .eraseToAnyPublisher()
+//    }
+//}
 
 
 
