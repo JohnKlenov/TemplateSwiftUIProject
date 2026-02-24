@@ -48,9 +48,10 @@
 /// Добавляйте asyncAfter только если: Замечаете "конфликты" анимаций. + Нужна гарантированная задержка (например, для кастомных переходов).
 
 
-
-
-
+enum AuthValidationError: Error {
+    case anonymousUser
+    case missingUID
+}
     
 import Combine
 import SwiftUI
@@ -174,6 +175,22 @@ final class AuthorizationManager: ObservableObject {
         let errorMessage = errorHandler.handle(error: error)
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
+    
+    
+    // MARK: - Validation
+
+    func validateUserForProfileLoading() -> Result<String, AuthValidationError> {
+        if isUserAnonymous {
+//            Crashlytics.shared.log("❌ Attempted to load profile for anonymous user")
+            return .failure(.anonymousUser)
+        }
+        guard let uid = currentAuthUser?.uid else {
+//            Crashlytics.shared.log("❌ Attempted to load profile but UID is missing")
+            return .failure(.missingUID)
+        }
+        return .success(uid)
+    }
+
     
     // MARK: Authorization email/password
     
