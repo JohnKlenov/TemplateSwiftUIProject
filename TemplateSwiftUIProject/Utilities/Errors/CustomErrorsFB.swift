@@ -135,6 +135,12 @@ enum AppInternalError: Int, Error {
     case staleUserSession
     case anonymousAuthFailed
     case entityDeallocated
+    case profileLoadAnonymousUser
+    case profileLoadMissingUID
+    case missingAuthProvidersForPermanentUser
+    case missingPrimaryProviderForPermanentUser
+
+
 }
 
 extension AppInternalError: CustomNSError {
@@ -179,6 +185,14 @@ extension AppInternalError: LocalizedError {
             return Localized.AppInternalError.entityDeallocated
         case .invalidJSONStructure:
             return Localized.AppInternalError.invalidJSONStructure
+        case .profileLoadAnonymousUser:
+            return Localized.AppInternalError.profileLoadAnonymousUser
+        case .profileLoadMissingUID:
+            return Localized.AppInternalError.profileLoadMissingUID
+        case .missingAuthProvidersForPermanentUser:
+            return Localized.AppInternalError.missingAuthProvidersForPermanentUser
+        case .missingPrimaryProviderForPermanentUser:
+            return Localized.AppInternalError.missingPrimaryProviderForPermanentUser
 
         }
     }
@@ -216,6 +230,16 @@ extension AppInternalError {
             return "Object was deallocated before handling the event"
         case .invalidJSONStructure:
             return "JSON structure does not match the expected dictionary format"
+        case .profileLoadAnonymousUser:
+            return "Attempted to load profile for anonymous user"
+        case .profileLoadMissingUID:
+            return "Attempted to load profile but UID is missing"
+        case .missingAuthProvidersForPermanentUser:
+            return "Permanent user has no auth providers"
+        case .missingPrimaryProviderForPermanentUser:
+            return "Permanent user has no primary auth provider"
+
+
         }
     }
 }

@@ -34,6 +34,14 @@ enum ErrorContext: String {
     // MARK: - UserInfoCellManager
     case UserInfoCellManager_loadUserProfile_profileService_fetchProfile
     
+    // MARK: - AuthorizationManager
+    case AuthorizationManager_validateUserForProfileLoading_anonymousUser
+    case AuthorizationManager_validateUserForProfileLoading_missingUID
+    case AuthorizationManager_subscribeToProviders_missingProviders
+    case AuthorizationManager_subscribeToPrimaryProvider_missingPrimaryProvider
+
+
+    
     
     
     

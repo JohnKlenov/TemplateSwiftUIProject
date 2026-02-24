@@ -290,6 +290,12 @@
 "error.custom_firebase.stale_user_session" = "Текущий пользователь изменился. Пожалуйста, выйдите из текущего экрана и попробуйте снова.";
 "error.custom_firebase.entity_deallocated" = "Объект был деинициализирован до обработки события.";
 "error.custom_firebase.invalid_json_structure" = "Структура JSON не соответствует ожидаемому формату.";
+"error.custom_firebase.profile_load_anonymous_user" = "Невозможно загрузить профиль: пользователь анонимный.";
+"error.custom_firebase.profile_load_missing_uid" = "Невозможно загрузить профиль: отсутствует UID пользователя.";
+"error.custom_firebase.missing_auth_providers_for_permanent_user" = "Не удалось получить список провайдеров для перманентного пользователя.";
+"error.custom_firebase.missing_primary_provider_for_permanent_user" = "Не удалось определить основной провайдер для перманентного пользователя.";
+
+
 
 
 

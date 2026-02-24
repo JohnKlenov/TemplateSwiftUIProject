@@ -321,6 +321,11 @@ enum Localized {
         static var staleUserSession = "error.custom_firebase.stale_user_session"
         static var entityDeallocated = "error.custom_firebase.entity_deallocated"
         static var invalidJSONStructure = "error.custom_firebase.invalid_json_structure"
+        static var profileLoadAnonymousUser = "error.custom_firebase.profile_load_anonymous_user"
+        static var profileLoadMissingUID = "error.custom_firebase.profile_load_missing_uid"
+        static var missingAuthProvidersForPermanentUser = "error.custom_firebase.missing_auth_providers_for_permanent_user"
+        static var missingPrimaryProviderForPermanentUser = "error.custom_firebase.missing_primary_provider_for_permanent_user"
+
     }
     
     enum FirebaseInternalError {

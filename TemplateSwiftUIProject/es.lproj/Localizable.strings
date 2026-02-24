@@ -270,6 +270,10 @@
 "error.custom_firebase.stale_user_session" = "El usuario actual ha cambiado. Por favor, salga de la pantalla actual e inténtelo de nuevo.";
 "error.custom_firebase.entity_deallocated" = "El objeto se desasignó antes de procesar el evento.";
 "error.custom_firebase.invalid_json_structure" = "La estructura JSON no coincide con el formato esperado.";
+"error.custom_firebase.profile_load_anonymous_user" = "No se puede cargar el perfil: el usuario es anónimo.";
+"error.custom_firebase.profile_load_missing_uid" = "No se puede cargar el perfil: falta el UID del usuario.";
+"error.custom_firebase.missing_auth_providers_for_permanent_user" = "No se pudo obtener la lista de proveedores para un usuario permanente.";
+"error.custom_firebase.missing_primary_provider_for_permanent_user" = "No se pudo determinar el proveedor principal para un usuario permanente.";
 
 
 

@@ -78,7 +78,7 @@ final class AuthorizationManager: ObservableObject {
     @Published private(set) var providers: [String] = []
     
     private let authService: AuthorizationService
-    private let errorHandler: ErrorHandlerProtocol
+    private let errorHandler: ErrorDiagnosticsProtocol
     private var cancellables = Set<AnyCancellable>()
     
     // Отдельные cancellable для провайдеров
@@ -88,7 +88,7 @@ final class AuthorizationManager: ObservableObject {
     var alertManager: AlertManager
     
     init(service: AuthorizationService,
-         errorHandler: ErrorHandlerProtocol,
+         errorHandler: ErrorDiagnosticsProtocol,
          alertManager: AlertManager = AlertManager.shared) {
         self.authService = service
         self.errorHandler = errorHandler
@@ -138,41 +138,48 @@ final class AuthorizationManager: ObservableObject {
     }
     
     private func subscribeToProviders() {
-        providersCancellable?.cancel() // отменяем старую подписку
+        providersCancellable?.cancel()
         providersCancellable = authService.authProvidersPublisher()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] providers in
-                self?.providers = providers
+                guard let self = self else { return }
+                self.providers = providers
+                
                 if providers.isEmpty {
-                    print("⚠️ AuthorizationManager: пустой список провайдеров для перманентного пользователя")
-                    // TODO: Crashlytics.log("Empty providers list for permanent user")
+                    let _ = self.errorHandler.handle(
+                        error: AppInternalError.missingAuthProvidersForPermanentUser,
+                        context: ErrorContext.AuthorizationManager_subscribeToProviders_missingProviders.rawValue
+                    )
                 }
                 print("⚠️ AuthorizationManager: subscribeToProviders - \(providers)")
             }
     }
     
     private func subscribeToPrimaryProvider() {
-        primaryProviderCancellable?.cancel() // отменяем старую подписку
+        primaryProviderCancellable?.cancel()
         primaryProviderCancellable = authService.primaryAuthProviderPublisher()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] provider in
-                self?.primaryProvider = provider
-//                self?.primaryProvider = nil
+                guard let self = self else { return }
+                self.primaryProvider = provider
+                
                 if provider == nil {
-                    print("⚠️ AuthorizationManager: primary provider == nil для перманентного пользователя")
-                    // TODO: Crashlytics.log("Primary provider is nil for permanent user")
+                    let _ = self.errorHandler.handle(
+                        error: AppInternalError.missingPrimaryProviderForPermanentUser,
+                        context: ErrorContext.AuthorizationManager_subscribeToPrimaryProvider_missingPrimaryProvider.rawValue
+                    )
                 }
                 print("⚠️ AuthorizationManager: subscribeToPrimaryProvider - \(String(describing: provider))")
             }
     }
 
     func handleError(_ error: Error, operationDescription:String) {
-        let errorMessage = errorHandler.handle(error: error)
+        let errorMessage = errorHandler.handle(error: error, context: "")
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
     
     private func handleAuthenticationError(_ error: Error, operationDescription:String) {
-        let errorMessage = errorHandler.handle(error: error)
+        let errorMessage = errorHandler.handle(error: error, context: "")
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
     
@@ -181,15 +188,24 @@ final class AuthorizationManager: ObservableObject {
 
     func validateUserForProfileLoading() -> Result<String, AuthValidationError> {
         if isUserAnonymous {
-//            Crashlytics.shared.log("❌ Attempted to load profile for anonymous user")
+            let _ = errorHandler.handle(
+                error: AppInternalError.profileLoadAnonymousUser,
+                context: ErrorContext.AuthorizationManager_validateUserForProfileLoading_anonymousUser.rawValue
+            )
             return .failure(.anonymousUser)
         }
+        
         guard let uid = currentAuthUser?.uid else {
-//            Crashlytics.shared.log("❌ Attempted to load profile but UID is missing")
+            let _ = errorHandler.handle(
+                error: AppInternalError.profileLoadMissingUID,
+                context: ErrorContext.AuthorizationManager_validateUserForProfileLoading_missingUID.rawValue
+            )
             return .failure(.missingUID)
         }
+        
         return .success(uid)
     }
+
 
     
     // MARK: Authorization email/password
@@ -533,7 +549,518 @@ final class AuthorizationManager: ObservableObject {
             .store(in: &cancellables)
     }
 }
+
+
+
+
+
+// MARK: - before ErrorDiagnosticsProtocol
     
+
+
+//enum AuthValidationError: Error {
+//    case anonymousUser
+//    case missingUID
+//}
+//    
+//import Combine
+//import SwiftUI
+//
+//final class AuthorizationManager: ObservableObject {
+//    enum State {
+//        case idle, loading, success, failure
+//    }
+//    
+//    // Global flag
+//    @Published private(set) var isAuthOperationInProgress: Bool = false
+//    
+//    // Local states
+//    @Published private(set) var signInState: State = .idle
+//    @Published private(set) var signUpState: State = .idle
+//    @Published private(set) var deleteAccountState: State = .idle
+//    @Published private(set) var reauthState: State = .idle
+//    @Published private(set) var forgotPasswordState: State = .idle
+//    
+//    // User info
+//    @Published private(set) var isUserAnonymous: Bool = true
+//    @Published private(set) var currentAuthUser: AuthUser?
+//    @Published private(set) var primaryProvider: String?
+//    @Published private(set) var providers: [String] = []
+//    
+//    private let authService: AuthorizationService
+//    private let errorHandler: ErrorHandlerProtocol
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//    // Отдельные cancellable для провайдеров
+//    private var providersCancellable: AnyCancellable?
+//    private var primaryProviderCancellable: AnyCancellable?
+//    
+//    var alertManager: AlertManager
+//    
+//    init(service: AuthorizationService,
+//         errorHandler: ErrorHandlerProtocol,
+//         alertManager: AlertManager = AlertManager.shared) {
+//        self.authService = service
+//        self.errorHandler = errorHandler
+//        self.alertManager = alertManager
+//        
+//        setupAuthStateSubscription()
+//    }
+//    
+//    // MARK: - Подписки
+//    
+//    private func setupAuthStateSubscription() {
+//        authService.authStatePublisher
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] authUser in
+//                self?.handleAuthStateChange(authUser)
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func handleAuthStateChange(_ authUser: AuthUser?) {
+//        isUserAnonymous = authUser?.isAnonymous ?? true
+//        currentAuthUser = authUser
+//        
+//        // ⚡️ Сбрасываем провайдеры при смене пользователя
+//        resetProviders()
+//        
+//        // ⚡️ Подписываемся только если пользователь перманентный
+//        guard let user = authUser, !user.isAnonymous else {
+//            print("ℹ️ AuthorizationManager: анонимный или nil user — провайдеры не запрашиваем")
+//            return
+//        }
+//        
+//        subscribeToProviders()
+//        subscribeToPrimaryProvider()
+//    }
+//    
+//    private func resetProviders() {
+//        primaryProvider = nil
+//        providers = []
+//        
+//        // Отменяем старые подписки
+//        providersCancellable?.cancel()
+//        providersCancellable = nil
+//        
+//        primaryProviderCancellable?.cancel()
+//        primaryProviderCancellable = nil
+//    }
+//    
+//    private func subscribeToProviders() {
+//        providersCancellable?.cancel() // отменяем старую подписку
+//        providersCancellable = authService.authProvidersPublisher()
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] providers in
+//                self?.providers = providers
+//                if providers.isEmpty {
+//                    print("⚠️ AuthorizationManager: пустой список провайдеров для перманентного пользователя")
+//                    // TODO: Crashlytics.log("Empty providers list for permanent user")
+//                }
+//                print("⚠️ AuthorizationManager: subscribeToProviders - \(providers)")
+//            }
+//    }
+//    
+//    private func subscribeToPrimaryProvider() {
+//        primaryProviderCancellable?.cancel() // отменяем старую подписку
+//        primaryProviderCancellable = authService.primaryAuthProviderPublisher()
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] provider in
+//                self?.primaryProvider = provider
+////                self?.primaryProvider = nil
+//                if provider == nil {
+//                    print("⚠️ AuthorizationManager: primary provider == nil для перманентного пользователя")
+//                    // TODO: Crashlytics.log("Primary provider is nil for permanent user")
+//                }
+//                print("⚠️ AuthorizationManager: subscribeToPrimaryProvider - \(String(describing: provider))")
+//            }
+//    }
+//
+//    func handleError(_ error: Error, operationDescription:String) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
+//    }
+//    
+//    private func handleAuthenticationError(_ error: Error, operationDescription:String) {
+//        let errorMessage = errorHandler.handle(error: error)
+//        alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
+//    }
+//    
+//    
+//    // MARK: - Validation
+//
+//    func validateUserForProfileLoading() -> Result<String, AuthValidationError> {
+//        if isUserAnonymous {
+////            Crashlytics.shared.log("❌ Attempted to load profile for anonymous user")
+//            return .failure(.anonymousUser)
+//        }
+//        guard let uid = currentAuthUser?.uid else {
+////            Crashlytics.shared.log("❌ Attempted to load profile but UID is missing")
+//            return .failure(.missingUID)
+//        }
+//        return .success(uid)
+//    }
+//
+//    
+//    // MARK: Authorization email/password
+//    
+//    func signUp(email: String, password: String) {
+//        guard !isAuthOperationInProgress else { return } // defensive programming: мы не доверяем только UI, а дублируем проверку в бизнес‑логике.
+//        isAuthOperationInProgress = true
+//        signUpState = .loading
+//        
+//        authService.signUpBasic(email: email, password: password)
+//            .sink { [weak self] completion in
+//                guard let self = self else { return }
+//                self.signInState = .idle
+//                self.isAuthOperationInProgress = false
+//                switch completion {
+//                case .failure(let err):
+//                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
+//                case .finished:
+//                    NotificationCenter.default.post(
+//                        name: .authDidSucceed,
+//                        object: AuthNotificationPayload(authType: .emailSignUp)
+//                    )
+//                    DispatchQueue.main.async {
+//                        self.alertManager.showGlobalAlert(
+//                            message: Localized.MessageOfSuccessOperationFirebase.signUp,
+//                            operationDescription: Localized.TitleOfSuccessOperationFirebase.signUp,
+//                            alertType: .ok
+//                        )
+//                    }
+//                    self.authService.sendVerificationEmail()
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func signIn(email: String, password: String) {
+//        guard !isAuthOperationInProgress else { return }
+//        isAuthOperationInProgress = true
+//        signInState = .loading
+//        
+//        authService.signInBasic(email: email, password: password)
+//            .sink { [weak self] completion in
+//                guard let self = self else { return }
+//                self.signInState = .idle
+//                self.isAuthOperationInProgress = false
+//                switch completion {
+//                case .failure(let err):
+//                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn)
+//                case .finished:
+//                    NotificationCenter.default.post(
+//                        name: .authDidSucceed,
+//                        object: AuthNotificationPayload(authType: .emailSignIn)
+//                    )
+//                    DispatchQueue.main.async {
+//                        self.alertManager.showGlobalAlert(
+//                            message: Localized.MessageOfSuccessOperationFirebase.signIn,
+//                            operationDescription: Localized.TitleOfSuccessOperationFirebase.signIn,
+//                            alertType: .ok
+//                        )
+//                    }
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func confirmIdentity(email: String, password: String) {
+//        // Глобальная защита от параллельных операций
+//        guard !isAuthOperationInProgress else { return }
+//        
+//        isAuthOperationInProgress = true
+//        reauthState = .loading
+//        
+//        authService.reauthenticate(email: email, password: password)
+//            .sink { [weak self] completion in
+//                guard let self = self else { return }
+//                
+//                // Сбрасываем состояния
+//                self.reauthState = .idle
+//                self.isAuthOperationInProgress = false
+//                
+//                switch completion {
+//                case .finished:
+//                    NotificationCenter.default.post(
+//                        name: .authDidSucceed,
+//                        object: AuthNotificationPayload(authType: .reauthenticate)
+//                    )
+//                    DispatchQueue.main.async {
+//                        self.alertManager.showGlobalAlert(
+//                            message: Localized.MessageOfSuccessOperationFirebase.reauthenticate,
+//                            operationDescription: Localized.TitleOfSuccessOperationFirebase.reauthenticate,
+//                            alertType: .ok
+//                        )
+//                    }
+//                case .failure(let error):
+//                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate)
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func forgotPassword(email: String) {
+//        guard !isAuthOperationInProgress else { return }
+//        
+//        isAuthOperationInProgress = true
+//        forgotPasswordState = .loading
+//        
+//        authService.sendPasswordReset(email: email)
+//            .sink { [weak self] completion in
+//                guard let self = self else { return }
+//                
+//                self.forgotPasswordState = .idle
+//                self.isAuthOperationInProgress = false
+//                
+//                switch completion {
+//                case .failure(let error):
+//                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.forgotPasswordOperation)
+//                case .finished:
+//                    DispatchQueue.main.async {
+//                        self.alertManager.showGlobalAlert(
+//                            message: Localized.MessageOfSuccessOperationFirebase.forgotPassword,
+//                            operationDescription: Localized.TitleOfSuccessOperationFirebase.forgotPassword,
+//                            alertType: .ok
+//                        )
+//                    }
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//    
+//    // MARK: Authorization google
+//    
+//    func signUpWithGoogle() {
+//        guard !isAuthOperationInProgress else { return }
+//        isAuthOperationInProgress = true
+//        signUpState = .loading
+//        
+//        authService.signInWithGoogle(intent: .signUp)
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                guard let self else { return }
+//                self.signUpState = .idle
+//                self.isAuthOperationInProgress = false
+//                switch completion {
+//                case .failure(let err):
+//                    // Если ошибка credentialAlreadyInUse при анонимной линковке — сообщаем пользователю использовать Sign In (то есть такой googleAccount уже есть и link выполняется с ошибкой)
+//                    if self.isGoogleSignInCancelled(err) {
+//                        // Пользователь отменил вход → ничего не делаем
+//                        print("Пользователь нажал Отмена → ничего не делаем")
+//                        return
+//                    }
+//                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
+//                case .finished:
+//                    NotificationCenter.default.post(
+//                        name: .authDidSucceed,
+//                        object: AuthNotificationPayload(authType: .googleSignUp)
+//                    )
+//                    DispatchQueue.main.async {
+//                        self.alertManager.showGlobalAlert(
+//                            message: Localized.MessageOfSuccessOperationFirebase.signUp,
+//                            operationDescription: Localized.TitleOfSuccessOperationFirebase.signUp,
+//                            alertType: .ok
+//                        )
+//                    }
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func googleSignIn() {
+//        guard !isAuthOperationInProgress else { return }
+//        isAuthOperationInProgress = true
+//        signInState = .loading
+//        
+//        authService.signInWithGoogle(intent: .signIn)
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                guard let self else { return }
+//                self.signInState = .idle
+//                self.isAuthOperationInProgress = false
+//                
+//                switch completion {
+//                case .failure(let err):
+//                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn)
+//                case .finished:
+//                    NotificationCenter.default.post(
+//                        name: .authDidSucceed,
+//                        object: AuthNotificationPayload(authType: .googleSignIn)
+//                    )
+//                    DispatchQueue.main.async {
+//                        self.alertManager.showGlobalAlert(
+//                            message: Localized.MessageOfSuccessOperationFirebase.signIn,
+//                            operationDescription: Localized.TitleOfSuccessOperationFirebase.signIn,
+//                            alertType: .ok
+//                        )
+//                    }
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func confirmIdentityWithGoogle() {
+//        guard !isAuthOperationInProgress else { return }
+//        isAuthOperationInProgress = true
+//        reauthState = .loading
+//        
+//        authService.reauthenticateWithGoogle()
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] completion in
+//                guard let self else { return }
+//                self.reauthState = .idle
+//                self.isAuthOperationInProgress = false
+//                
+//                switch completion {
+//                case .failure(let err):
+//                    if self.isGoogleSignInCancelled(err) {
+//                        // Пользователь отменил вход → ничего не делаем
+//                        print("Пользователь нажал Отмена → ничего не делаем")
+//                        return
+//                    }
+//                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate)
+//                case .finished:
+//                    NotificationCenter.default.post(
+//                        name: .authDidSucceed,
+//                        object: AuthNotificationPayload(authType: .reauthenticate)
+//                    )
+//                    DispatchQueue.main.async {
+//                        self.alertManager.showGlobalAlert(
+//                            message: Localized.MessageOfSuccessOperationFirebase.reauthenticate,
+//                            operationDescription: Localized.TitleOfSuccessOperationFirebase.reauthenticate,
+//                            alertType: .ok
+//                        )
+//                    }
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//    
+//    // Google Sign-In Error Helpers
+//    private func isGoogleSignInCancelled(_ error: Error) -> Bool {
+//        guard let nsError = error as NSError?,
+//              nsError.domain == "com.google.GIDSignIn",
+//              let code = GoogleSignInErrorCode(rawValue: nsError.code),
+//              code == .canceled else {
+//            return false
+//        }
+//        return true
+//    }
+//
+//    
+//    
+//    // MARK: - Delete Account
+//    
+//    func deleteAccount() {
+//        // Глобальная защита от параллельных операций
+//        guard !isAuthOperationInProgress else { return }
+//        
+//        isAuthOperationInProgress = true
+//        deleteAccountState = .loading
+//        
+//        authService.deleteAccount()
+//            .sink { [weak self] completion in
+//                guard let self = self else { return }
+//                
+//                // Сбрасываем состояния
+//                self.deleteAccountState = .idle
+//                self.isAuthOperationInProgress = false
+//                
+//                // Обрабатываем результат
+//                self.handleDeleteAccountCompletion(completion)
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//    
+//    // Private Methods for deleteAccount()
+//    
+//    private func handleDeleteAccountCompletion(_ completion: Subscribers.Completion<DeleteAccountError>) {
+//        
+//        switch completion {
+//        case .failure(let error):
+//            handleDeleteAccountError(error)
+//        case .finished:
+//            showAccountDeletionSuccess()
+//        }
+//    }
+//    
+//    private func handleDeleteAccountError(_ error:  DeleteAccountError) {
+//        switch error {
+//        case .reauthenticationRequired(let reauthError):
+//            notifyReauthenticationNeeded()
+//            // Специальная обработка для навигационных переходов
+//            DispatchQueue.main.async { [weak self] in
+//                self?.showAccountDeletionError(
+//                    reauthError,
+//                    operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
+//                )
+//            }
+//            
+//        case .underlying(let underlyingError):
+//            // Обычные ошибки уже на главном потоке благодаря receive(on:)
+//            showAccountDeletionError(
+//                underlyingError,
+//                operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
+//            )
+//        }
+//    }
+//    
+//    private func notifyReauthenticationNeeded() {
+//        NotificationCenter.default.post(
+//            name: .needReauthenticate,
+//            object: AuthNotificationPayload(authType: .reauthenticate)
+//        )
+//    }
+//    
+//    private func showAccountDeletionError(_ error: Error, operationDescription: String) {
+//        handleAuthenticationError(error, operationDescription: operationDescription)
+//    }
+//    
+//    private func showAccountDeletionSuccess() {
+//        alertManager.showGlobalAlert(
+//            message: Localized.MessageOfSuccessOperationFirebase.accountDeletion,
+//            operationDescription: Localized.TitleOfSuccessOperationFirebase.accountDeletion,
+//            alertType: .ok
+//        )
+//    }
+//    
+//    // MARK: - signOut
+//    
+//    func signOutAccount() {
+//        
+//        authService.signOut()
+//            .sink { [weak self] completion in
+//                switch completion {
+//                case .failure(let error):
+//                    self?.handleAuthenticationError(error, operationDescription: "SignOut")
+//                case .finished:
+//                    DispatchQueue.main.async { [weak self] in
+//                        self?.alertManager.showGlobalAlert(message:"Success signOut user!", operationDescription:"SignOut", alertType: .ok)
+//                    }
+//                }
+//            } receiveValue: { _ in }
+//            .store(in: &cancellables)
+//    }
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //import Combine
