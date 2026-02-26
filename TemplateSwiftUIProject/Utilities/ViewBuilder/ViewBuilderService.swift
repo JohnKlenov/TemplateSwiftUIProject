@@ -5,6 +5,39 @@
 //  Created by Evgenyi on 5.02.25.
 //
 
+/// Порядок инициализации объектов в ViewBuilderService сам по себе не критичен.
+/// Важен именно порядок ПОДПИСОК на currentUserPublisher, а он определяется
+/// не порядком строк в init, а моментом завершения init каждого менеджера.
+///
+/// Каждый менеджер подписывается внутри своего init, и подписка попадает
+/// в main runloop асинхронно. Поэтому фактический порядок получения событий
+/// зависит от того, чей init завершился раньше, а не от того, кто был создан
+/// первым в ViewBuilderService.
+///
+/// Итог:
+/// - порядок создания объектов ≠ порядок подписок;
+/// - порядок подписок определяет порядок логов;
+/// - текущая архитектура безопасна, гонок нет, порядок вызовов стабилен.
+
+
+
+// на самом деле я не разобрался до конца почему именно так и как это контролировать и правельно организовывать 
+/// В нашем случае самым ранним был создан именно **AuthorizationService**:
+/// он появляется сразу после FirebaseAuthUserProvider в init ViewBuilderService.
+///
+/// Однако, несмотря на то что AuthorizationService был инициализирован раньше всех
+/// остальных менеджеров, событие от currentUserPublisher он получил ПОЗЖЕ всех.
+///
+/// Причина в том, что порядок получения событий определяется не порядком создания
+/// объектов, а порядком фактической регистрации подписок в Combine. Подписка
+/// AuthorizationService на currentUserPublisher активируется внутри его init,
+/// но попадает в main‑runloop позже, чем подписки других менеджеров, чьи init
+/// завершаются быстрее. Поэтому Combine вызывает их первыми, а
+/// AuthorizationService — последним.
+///
+/// Итог: AuthorizationService был создан раньше, но получил событие позже всех,
+/// потому что его подписка была обработана runloop позже, чем подписки других
+/// менеджеров.
 
 
 
@@ -52,6 +85,7 @@ class ViewBuilderService: ObservableObject {
             authService: authService,
             firestoreService: FirestoreCollectionObserverService(errorHandler: ErrorDiagnosticsCenter()),
             errorHandler: ErrorDiagnosticsCenter(),
+            userProvider: userProvider,
             alertManager: AlertManager.shared
         )
         

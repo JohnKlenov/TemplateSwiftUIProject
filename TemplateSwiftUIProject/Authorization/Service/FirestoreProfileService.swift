@@ -201,6 +201,7 @@ final class FirestoreProfileService: ProfileServiceProtocol {
             .document(uid)
         
         profileListener = docRef.addSnapshotListener(includeMetadataChanges: true) { snapshot, error in
+            print("✅ FirestoreProfileService fetchProfile docRef.addSnapshotListener")
             if let error = error {
                 print("✅ FirestoreProfileService fetchProfile error - \(error.localizedDescription)")
                 subject.send(completion: .failure(error))

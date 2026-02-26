@@ -122,6 +122,7 @@ import Combine
 
 protocol FirestoreCollectionObserverProtocol {
     func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never>
+    func cancelListener()
 }
 
 
@@ -139,6 +140,12 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
         self.errorHandler = errorHandler
         
     }
+    
+    func cancelListener() {
+        listener?.remove()
+        listener = nil
+    }
+    
     //addSnapshotListener(includeMetadataChanges: true)
     /// у нас сейчас includeMetadataChanges: false
     /// если мы успешно удаляем account то для card product нужно удалить listener?.remove()
@@ -152,8 +159,11 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
         let subject = PassthroughSubject<Result<[T], Error>, Never>()
         
         // Отписываемся от предыдущего слушателя (если был)
-        listener?.remove()
+        cancelListener()
+        
         listener = db.collection(path).addSnapshotListener { (querySnapshot, error) in
+            
+            print("✅ FirestoreCollectionObserverService observeCollection  db.collection(path).addSnapshotListener")
             if let error = error {
                 subject.send(.failure(error))
             } else {
@@ -203,6 +213,91 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
 //}) ?? []
 
 
+
+// MARK: - before firestoreService.cancelListener()
+
+//import Combine
+//import FirebaseFirestore
+//import FirebaseDatabase
+//
+//
+//import Combine
+//
+//protocol FirestoreCollectionObserverProtocol {
+//    func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never>
+//}
+//
+//
+//// MARK: -  .receive(on: RunLoop.main) ???? обновление UI должно быть везде на главном потоке!!!! -
+//
+//// тут важно понимать что это func observeCollection джинерик + и следовательно он может быть вызван в разных менеджерах
+//// для ErrorContext в методе handleError можно передать дополнительный параметр из observeCollection - какой менеджер вызывает
+//class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
+//    private let db: Firestore
+//    private var listener: ListenerRegistration?
+//    private let errorHandler: ErrorDiagnosticsProtocol
+//    
+//    init(db: Firestore = Firestore.firestore(), errorHandler: ErrorDiagnosticsProtocol) {
+//        self.db = db
+//        self.errorHandler = errorHandler
+//        
+//    }
+//    //addSnapshotListener(includeMetadataChanges: true)
+//    /// у нас сейчас includeMetadataChanges: false
+//    /// если мы успешно удаляем account то для card product нужно удалить listener?.remove()
+//    func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never> {
+//        // Проверка валидности пути
+//        guard PathValidator.validateCollectionPath(path) else {
+//            return Just(.failure(AppInternalError.invalidCollectionPath))
+//                .eraseToAnyPublisher()
+//        }
+//        
+//        let subject = PassthroughSubject<Result<[T], Error>, Never>()
+//        
+//        // Отписываемся от предыдущего слушателя (если был)
+//        listener?.remove()
+//        listener = db.collection(path).addSnapshotListener { (querySnapshot, error) in
+//            if let error = error {
+//                subject.send(.failure(error))
+//            } else {
+//                
+//                // Пытаемся преобразовать каждый документ в модель T
+//                // Примечание:
+//                // try? + compactMap означает, что документы, которые не удалось декодировать,
+//                // будут отброшены (nil не попадёт в массив). Если из 10 документов декодируются
+//                // только 9 — вернётся массив из 9 элементов. Если не декодируется ни один —
+//                // compactMap вернёт пустой массив, но без ошибки.
+//                // Причины, по которым документ может не декодироваться:
+//                // 1) Структура данных в Firestore не совпадает с моделью T (отсутствуют поля, неверные типы).
+//                // 2) Поля имеют неожиданный формат (например, строка вместо числа).
+//                // 3) Документ содержит вложенные объекты, которые не соответствуют Decodable‑структуре.
+//                // 4) Firestore вернул данные, которые были частично повреждены или изменены вручную.
+//                // 5) Модель T требует обязательные поля, которых нет в документе.
+//                // В таких случаях try? возвращает nil, и compactMap просто пропускает этот документ.
+//                //в handleError передается ошибка с доменом nsError.domain == FirestoreErrorDomain
+//                let data : [T] = querySnapshot?.documents.compactMap { document in
+//                    do {
+//                        return try document.data(as: T.self)
+//                    } catch {
+//                        print("❌ Firestore decode error for document \(document.documentID): \(error)")
+//                        self.handleError( error, context: .FirestoreCollectionObserverService_decodeDocument, documentID: document.documentID )
+//                        return nil
+//                    }
+//                } ?? []
+//                
+//                print("FirestoreCollectionObserverService Received objects: \(data)")
+//                subject.send(.success(data))
+//            }
+//        }
+//        
+//        return subject.eraseToAnyPublisher()
+//    }
+//    
+//    private func handleError(_ error: Error, context: ErrorContext, documentID: String) {
+//        let fullContext = "\(context.rawValue) | documentID: \(documentID)"
+//        let _ = errorHandler.handle(error: error, context: fullContext)
+//    }
+//}
 
 
 

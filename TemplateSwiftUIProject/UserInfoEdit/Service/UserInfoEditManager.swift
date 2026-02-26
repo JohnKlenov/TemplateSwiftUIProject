@@ -305,6 +305,7 @@ final class UserInfoEditManager {
         
     }
     
+    
     private func observeUserChanges() {
         userListenerCancellable = userProvider.currentUserPublisher
             .sink { [weak self] authUser in
