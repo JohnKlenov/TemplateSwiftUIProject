@@ -100,6 +100,7 @@ final class AuthorizationManager: ObservableObject {
     // MARK: - Подписки
     
     private func setupAuthStateSubscription() {
+        print("AuthorizationManager  func setupAuthStateSubscription()")
         authService.authStatePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] authUser in

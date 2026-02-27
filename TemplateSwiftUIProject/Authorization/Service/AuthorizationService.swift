@@ -535,9 +535,10 @@ extension AuthorizationService {
     }
     
     func observeUserChanges() {
+        print("AuthorizationService func observeUserChanges() ")
         cancellable = userProvider.currentUserPublisher
             .sink { [weak self] authUser in
-                print("🔄 AuthorizationService получил нового пользователя: \(String(describing: authUser))")
+                print("AuthorizationService observeUserChanges() userProvider.currentUserPublisher имитет значение")
                 self?.authStateSubject.send(authUser)
             }
     }

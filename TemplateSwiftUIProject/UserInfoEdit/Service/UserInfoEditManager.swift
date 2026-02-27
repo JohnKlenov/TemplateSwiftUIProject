@@ -307,8 +307,10 @@ final class UserInfoEditManager {
     
     
     private func observeUserChanges() {
+        print("UserInfoEditManager func observeUserChanges() ")
         userListenerCancellable = userProvider.currentUserPublisher
             .sink { [weak self] authUser in
+                print("UserInfoEditManager observeUserChanges() userProvider.currentUserPublisher имитет значение")
                 guard let self = self else { return }
                 let newUID = authUser?.uid
                 if self.currentUID != newUID {

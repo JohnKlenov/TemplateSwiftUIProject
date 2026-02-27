@@ -73,7 +73,7 @@ class AuthenticationService: AuthenticationServiceProtocol {
         
         aythenticalSateHandler = Auth.auth().addStateDidChangeListener({ [weak self] _, user in
             guard let self = self else { return }
-            print(" AuthenticationService Auth.auth().addStateDidChangeListener({ ")
+            print(" AuthenticationService Auth.auth().addStateDidChangeListener({ - user \(String(describing: user))")
             if let user = user {
                 if user.isAnonymous {
                     self.trackerService.updateLastActive(for: user.uid)
