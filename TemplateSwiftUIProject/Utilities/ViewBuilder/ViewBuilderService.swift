@@ -149,7 +149,6 @@ class ViewBuilderService: ObservableObject {
             authService: authService,
             firestoreService: FirestoreCollectionObserverService(errorHandler: ErrorDiagnosticsCenter()),
             errorHandler: ErrorDiagnosticsCenter(),
-            userProvider: userProvider,
             alertManager: AlertManager.shared
         )
         

@@ -154,9 +154,37 @@
 
 
 
+
+
+//                    if self.currentUID != userId {
+//                        print("HomeManager func observeBooks() if self.currentUID != userId { ")
+//                        self.firestoreService.cancelListener()
+//                        self.currentUID = userId
+//                    }
+
+
+
+
+
+
+
+
+
+
+
 // MARK: - реализовать 100 гарантию того что  self.firestoreService.cancelListener() не вызовится сразу после self.firestoreService.observeCollection(at: path) при смене пользователя
 // AuthStateDidChangeListener в userProvider и authService могут отработать в произвольном порядке
 // пока стабильно вызов в userProvider происходит до authService
+
+
+
+// когда мы signIn/signUp мы сразу получаем user из authService.authenticate() и отключаем firestoreService.cancelListener() перед observeCollection(at: path) ошибку прав мы не видим
+// когда мы delete user мы сначало получаем nil и это реакция с nil не попадает в пейплайн authService.authenticate()
+// мы тратим время на создания анонимного пользователя а за это время observeCollection(at: path) возвращает ошибку прав
+// затем приходит userUID в authService.authenticate() и заново пересоздает observeCollection(at: path) (ошибка в homeView исчезает при смене stateerror на stateContent)
+// Нам нужно как то ловить nil в пейплайне authService.authenticate() и вызывать self.firestoreService.cancelListener()
+// и не вызывать операторы пейплайна ниже а ждать уже следующее эмитированое значение
+
 
 import Combine
 import Foundation
@@ -167,11 +195,8 @@ final class HomeManager {
     private let firestoreService: FirestoreCollectionObserverProtocol
     private let errorHandler: ErrorDiagnosticsProtocol
     private let alertManager: AlertManager
-    private let userProvider: CurrentUserProvider
-    
-//    private var cancellables = Set<AnyCancellable>()
+
     private var userListenerCancellable: AnyCancellable?
-    private var currentUID: String?
     
     private(set) var globalRetryHandler: GlobalRetryHandler?
     private var stateError: StateError = .localError
@@ -180,40 +205,18 @@ final class HomeManager {
         authService: AuthenticationServiceProtocol,
         firestoreService: FirestoreCollectionObserverProtocol,
         errorHandler: ErrorDiagnosticsProtocol,
-        userProvider: CurrentUserProvider,
         alertManager: AlertManager = .shared
     ) {
         self.authService = authService
         self.firestoreService = firestoreService
         self.errorHandler = errorHandler
-        self.userProvider = userProvider
         self.alertManager = alertManager
-        observeUserChanges()
         print("init HomeManager")
     }
     
     deinit {
         print("deinit HomeManager")
     }
-
-    private func observeUserChanges() {
-        print("HomeManager func observeUserChanges() ")
-        userListenerCancellable = userProvider.currentUserPublisher
-            .sink { [weak self] authUser in
-                print("HomeManager observeUserChanges() userProvider.currentUserPublisher имитет значение")
-                guard let self = self else { return }
-                let newUID = authUser?.uid
-            
-                if self.currentUID != newUID {
-                    print("🔄 HomeManager: смена пользователя \(String(describing: self.currentUID)) → \(String(describing: newUID))")
-                    
-                    // При смене пользователя гасим listener коллекции
-                    self.firestoreService.cancelListener()
-                    self.currentUID = newUID
-                }
-            }
-    }
-
     
     func setRetryHandler(_ handler: GlobalRetryHandler) {
         self.globalRetryHandler = handler
@@ -221,9 +224,16 @@ final class HomeManager {
     
     func observeBooks() -> AnyPublisher<ViewState, Never> {
         authService.authenticate()
-            .flatMap { [weak self] result -> AnyPublisher<ViewState, Never> in
+            .flatMap { [weak self] resultOrNil -> AnyPublisher<ViewState, Never> in
                 guard let self = self else {
                     return Just(.error(AppInternalError.entityDeallocated.localizedDescription)).eraseToAnyPublisher()
+                }
+                
+                // 1. user == nil → deleteAccount / signOut / переходное состояние
+                guard let result = resultOrNil else {
+                    print("HomeManager: auth == nil → cancel Firestore listener, wait next auth event")
+                    self.firestoreService.cancelListener()
+                    return Just(.loading).eraseToAnyPublisher()
                 }
                 
                 switch result {
@@ -317,6 +327,177 @@ final class HomeManager {
         return .error(message)
     }
 }
+
+
+
+
+// MARK: - before remove dependency private let userProvider: CurrentUserProvider
+
+
+//import Combine
+//import Foundation
+//
+//final class HomeManager {
+//    
+//    private let authService: AuthenticationServiceProtocol
+//    private let firestoreService: FirestoreCollectionObserverProtocol
+//    private let errorHandler: ErrorDiagnosticsProtocol
+//    private let alertManager: AlertManager
+//    private let userProvider: CurrentUserProvider
+//
+//    private var userListenerCancellable: AnyCancellable?
+//    private var currentUID: String?
+//    
+//    private(set) var globalRetryHandler: GlobalRetryHandler?
+//    private var stateError: StateError = .localError
+//    
+//    init(
+//        authService: AuthenticationServiceProtocol,
+//        firestoreService: FirestoreCollectionObserverProtocol,
+//        errorHandler: ErrorDiagnosticsProtocol,
+//        userProvider: CurrentUserProvider,
+//        alertManager: AlertManager = .shared
+//    ) {
+//        self.authService = authService
+//        self.firestoreService = firestoreService
+//        self.errorHandler = errorHandler
+//        self.userProvider = userProvider
+//        self.alertManager = alertManager
+//        self.observeUserChanges()
+//        print("init HomeManager")
+//    }
+//    
+//    deinit {
+//        print("deinit HomeManager")
+//    }
+//
+//    // оставлять так опасно !!!
+//    // есть небольшая вероятность что firestoreService.cancelListener() отработает сразу после создания firestoreService.observeCollection(at: path)
+//    // речь идет не о первом старте приложения или каждом новом запуски из памяти (тут гонки быть не может так как при первом старте userProvider создается намного рантше чем произойдет первый вызов firestoreService.observeCollection(at: path) )
+//    // а о кейсах : delete account / signIn / signUp
+//    // мы не гарантируем что асинхронные операции Auth.auth().addStateDidChangeListener
+//    // в userProvider.currentUserPublisher и  authService.authenticate() отработают в том порядке в котором они были созданы
+//    // сначало userProvider.currentUserPublisher а потом authService.authenticate()
+//    private func observeUserChanges() {
+//        print("HomeManager func observeUserChanges() ")
+//        userListenerCancellable = userProvider.currentUserPublisher
+//            .sink { [weak self] authUser in
+//                print("HomeManager observeUserChanges() userProvider.currentUserPublisher имитет значение")
+//                guard let self = self else { return }
+//                let newUID = authUser?.uid
+//    
+//                if self.currentUID != newUID {
+//                    print("🔄 HomeManager: смена пользователя \(String(describing: self.currentUID)) → \(String(describing: newUID))")
+//    
+//                    // При смене пользователя гасим listener коллекции
+//                    self.firestoreService.cancelListener()
+//                    self.currentUID = newUID
+//                }
+//            }
+//    }
+//    
+//    func setRetryHandler(_ handler: GlobalRetryHandler) {
+//        self.globalRetryHandler = handler
+//    }
+//    
+//    func observeBooks() -> AnyPublisher<ViewState, Never> {
+//        authService.authenticate()
+//            .flatMap { [weak self] result -> AnyPublisher<ViewState, Never> in
+//                guard let self = self else {
+//                    return Just(.error(AppInternalError.entityDeallocated.localizedDescription)).eraseToAnyPublisher()
+//                }
+//                
+//                switch result {
+//                case .success(let userId):
+//                    self.stateError = .localError
+//                    let path = "users/\(userId)/data"
+//                    
+//                    let publisher: AnyPublisher<Result<[BookCloud], Error>, Never> =
+//                        self.firestoreService.observeCollection(at: path)
+//                    
+//                    return publisher
+//                        .map { result in
+//                            switch result {
+//                            case .success(let books):
+//                                return .content(books)
+//                            case .failure(let error):
+//                                return self.handleStateError(
+//                                    error,
+//                                    context: .HomeManager_observeBooks_firestoreService_observeCollection
+//                                )
+//                            }
+//                        }
+//                        .eraseToAnyPublisher()
+//                    
+//                case .failure(let error):
+//                    /// это ошибка может возникнуть только если createAnonymousUser вернет ошибку
+//                    /// она может возникнуть (при первом старте, если мы удалили account и не удадось createAnonymousUser ... )
+//                    /// так как HomeContentViewModel это единственная точка создания createAnonymousUser
+//                    /// refresh из любой точки приложения нужно делать сдесь через globalAlert и notification
+//                    /// может получится так что при первом старте время ответа от Firebase Auth будет долгим из за плохой сети
+//                    /// и пользователь перейдет на другую вкладку TabBar
+//                    /// тогда при ошибки создания createAnonymousUser мы должны через globalAlert на любом другом экране refresh
+//                    /// тут важно что бы globalAlert всегда первым отображался на экране ()
+//                    /// Таймауты Firebase Auth: Стандартный таймаут: 10-60 секунд (зависит от версии SDK и сетевых условий)
+//                    /// 3G: 2-8 секунд / Edge-сети (2G): 12-30 секунд / После 15 сек 60% пользователей закрывают приложение
+//                    self.stateError = .globalError
+//                    return Just(
+//                        self.handleStateError(
+//                            error,
+//                            context: .HomeManager_observeBooks_authService_authenticate
+//                        )
+//                    )
+//                    .eraseToAnyPublisher()
+//                }
+//            }
+//            .eraseToAnyPublisher()
+//    }
+//    
+//    func retry() {
+//        authService.reset()
+//    }
+//    
+//    func start() {
+//        authService.start()
+//    }
+//    
+//    // MARK: - Error Routing
+//    
+//    private func handleStateError(_ error: Error, context: ErrorContext) -> ViewState {
+//        switch stateError {
+//        case .localError:
+//            return handleFirestoreError(error, context: context)
+//        case .globalError:
+//            return handleAuthenticationError(error, context: context)
+//        }
+//    }
+//    
+//    private func handleAuthenticationError(_ error: Error, context: ErrorContext) -> ViewState {
+//        let message = errorHandler.handle(error: error, context: context.rawValue)
+//        
+//        globalRetryHandler?.setAuthenticationRetryHandler { [weak self] in
+//            self?.retry()
+//        }
+//        
+//        alertManager.showGlobalAlert(
+//            message: message,
+//            operationDescription: Localized.TitleOfFailedOperationFirebase.authentication,
+//            alertType: .tryAgain
+//        )
+//        
+//        stateError = .localError
+//        return .error(message)
+//    }
+//    
+//    /// когда мы signOut/deleteAccount в момент когда user == nil отрабатывает firestorColletionObserverService.observeCollection(at: "users/\(userId)/data")
+//    /// и выбрасывает [FirebaseFirestore][I-FST000001] Listen for query at users/Sni6ad3yp4U3bnkamD1SpevQiVs2/data failed: Missing or insufficient permissions.
+//    /// для лучшего user experience мы не отображаем глобальный алерт, ведь буквально через мгновение у firestorColletionObserverService.observeCollection будет удален старый наблюдатель и установлен новый и .error(message) сменится на .content(books)
+//    private func handleFirestoreError(_ error: Error, context: ErrorContext) -> ViewState {
+//        let message = errorHandler.handle(error: error, context: context.rawValue)
+//        stateError = .localError
+//        return .error(message)
+//    }
+//}
 
 
 
