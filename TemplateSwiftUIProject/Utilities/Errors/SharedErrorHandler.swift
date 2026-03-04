@@ -168,7 +168,7 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         }
         
         if let pickerError = error as? PhotoPickerError {
-            return handlePhotoPickerError(pickerError)
+            return handlePhotoPickerError(pickerError, context: context)
         }
         
         // 2. Преобразуем в NSError
@@ -299,49 +299,91 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
     
     /// В Debug печатаем всё в консоль.
     /// В Release отправляем в Crashlytics через CrashlyticsLoggingService.
-    private func logCritical(error: Error, context: String) {
-    #if DEBUG
-        print("⚠️ [DEBUG] Critical error context: \(context)")
-        print("⚠️ [DEBUG] Error: \(error.localizedDescription)")
-        print("⚠️ [DEBUG] Stack trace:")
-        Thread.callStackSymbols.forEach { print($0) }
-    #else
-        let nsError = error as NSError
+    private func logCritical(
+        error: Error,
+        context: String,
+        params: [String: Any]? = nil
+    ) {
+        #if DEBUG
+            print("⚠️ [DEBUG] Critical error context: \(context)")
+            print("⚠️ [DEBUG] Error: \(error.localizedDescription)")
+            if let params = params {
+                print("⚠️ [DEBUG] Params: \(params)")
+            }
+            print("⚠️ [DEBUG] Stack trace:")
+            Thread.callStackSymbols.forEach { print($0) }
+        #else
+            let nsError = error as NSError
 
-        let params: [String: Any] = [
-            "context": context,
-            "is_critical": true
-        ]
+            var mergedParams: [String: Any] = [
+                "context": context,
+                "is_critical": true
+            ]
 
-        logger.logError(
-            error,
-            domain: nsError.domain,     // ← сохраняем реальный домен ошибки
-            source: context,
-            message: nil,
-            params: params,
-            severity: .error
-        )
-    #endif
+            // Добавляем дополнительные параметры, если они есть
+            if let params = params {
+                mergedParams.merge(params) { current, _ in current }
+            }
+
+            logger.logError(
+                error,
+                domain: nsError.domain,
+                source: context,
+                message: nil,
+                params: mergedParams,
+                severity: .error
+            )
+        #endif
     }
-    
+
     // MARK: - Photo Picker
     
-    private func handlePhotoPickerError(_ pickerError: PhotoPickerError) -> String {
+    private func handlePhotoPickerError(_ pickerError: PhotoPickerError, context: String?) -> String {
         switch pickerError {
+                
         case .noItemAvailable:
             return Localized.PhotoPickerError.noItemAvailable
-        case .itemUnavailable:
-            return Localized.PhotoPickerError.itemUnavailable
+            
         case .unsupportedType:
             return Localized.PhotoPickerError.unsupportedType
+            
         case .iCloudRequired:
             return Localized.PhotoPickerError.iCloudRequired
-        case .loadFailed(let underlyingError),
-                .unknown(let underlyingError):
-            return (underlyingError as NSError).localizedDescription
+            
+        case .itemUnavailable:
+            logCritical(
+                error: pickerError,
+                context: context ?? "PhotoPickerError.itemUnavailable"
+            )
+            return Localized.PhotoPickerError.itemUnavailable
+            
+        case .loadFailed(let underlyingError):
+            logCritical(
+                error: pickerError,
+                context: context ?? "PhotoPickerError.loadFailed",
+                // ⬇️ Зачем нужен params?
+                // Мы логируем PhotoPickerError как основную ошибку (чтобы Crashlytics видел domain/code/technicalDescription),
+                // но при этом НЕ теряем реальную системную ошибку, которая стала причиной.
+                // underlyingError добавляется в params как дополнительная информация,
+                // чтобы разработчик видел точную первопричину (например, Cocoa error -1),
+                // но группировка ошибок оставалась по PhotoPickerError.
+                params: ["underlying_error": underlyingError.localizedDescription]
+            )
+            return Localized.PhotoPickerError.generalFailure
+            
+        case .unknown(let underlyingError):
+            logCritical(
+                error: pickerError,
+                context: context ?? "PhotoPickerError.unknown",
+                // ⬇️ То же самое: сохраняем underlyingError как контекст,
+                // но основной ошибкой остаётся PhotoPickerError.
+                params: ["underlying_error": underlyingError.localizedDescription]
+            )
+            return Localized.PhotoPickerError.generalFailure
         }
     }
-    
+
+
     // MARK: - Auth
     
     private func handleAuthError(_ code: AuthErrorCode, error: Error, context: String?) -> String {
@@ -540,6 +582,86 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
 
 
 
+
+
+//    private func logCritical(error: Error, context: String) {
+//    #if DEBUG
+//        print("⚠️ [DEBUG] Critical error context: \(context)")
+//        print("⚠️ [DEBUG] Error: \(error.localizedDescription)")
+//        print("⚠️ [DEBUG] Stack trace:")
+//        Thread.callStackSymbols.forEach { print($0) }
+//    #else
+//        let nsError = error as NSError
+//
+//        let params: [String: Any] = [
+//            "context": context,
+//            "is_critical": true
+//        ]
+//
+//        logger.logError(
+//            error,
+//            domain: nsError.domain,     // ← сохраняем реальный домен ошибки
+//            source: context,
+//            message: nil,
+//            params: params,
+//            severity: .error
+//        )
+//    #endif
+//    }
+    
+
+
+//    private func handlePhotoPickerError(_ pickerError: PhotoPickerError, context: String?) -> String {
+//        switch pickerError {
+//
+//        case .noItemAvailable:
+//            return Localized.PhotoPickerError.noItemAvailable
+//
+//        case .unsupportedType:
+//            return Localized.PhotoPickerError.unsupportedType
+//
+//        case .iCloudRequired:
+//            return Localized.PhotoPickerError.iCloudRequired
+//
+//        case .itemUnavailable:
+//            logCritical(
+//                error: pickerError,
+//                context: (context ?? "PhotoPickerError.itemUnavailable")
+//            )
+//            return Localized.PhotoPickerError.itemUnavailable
+//
+//        case .loadFailed(let underlyingError):
+//            logCritical(
+//                error: underlyingError,
+//                context: (context ?? "PhotoPickerError.loadFailed")
+//            )
+//            return Localized.PhotoPickerError.generalFailure
+//
+//        case .unknown(let underlyingError):
+//            logCritical(
+//                error: underlyingError,
+//                context: (context ?? "PhotoPickerError.unknown")
+//            )
+//            return Localized.PhotoPickerError.generalFailure
+//        }
+//    }
+
+//    private func handlePhotoPickerError(_ pickerError: PhotoPickerError) -> String {
+//        switch pickerError {
+//        case .noItemAvailable:
+//            return Localized.PhotoPickerError.noItemAvailable
+//        case .itemUnavailable:
+//            return Localized.PhotoPickerError.itemUnavailable
+//        case .unsupportedType:
+//            return Localized.PhotoPickerError.unsupportedType
+//        case .iCloudRequired:
+//            return Localized.PhotoPickerError.iCloudRequired
+//        case .loadFailed(let underlyingError),
+//                .unknown(let underlyingError):
+//            return (underlyingError as NSError).localizedDescription
+//        }
+//    }
+    
 
 
 

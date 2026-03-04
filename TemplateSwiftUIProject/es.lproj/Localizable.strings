@@ -386,6 +386,8 @@
 "error.photo_picker.icloud_required" = "Se requiere conexión a la red para descargar desde iCloud.";
 "error.photo_picker.load_failed" = "No se pudo cargar el elemento.";
 "error.photo_picker.unknown" = "Error desconocido.";
+"error.photo_picker.general_failure" = "Algo salió mal. Inténtalo de nuevo.";
+
 
 /* Title Of Failed Operation PhotoPicker */
 "error.picking_image" = "No se pudo seleccionar la foto";

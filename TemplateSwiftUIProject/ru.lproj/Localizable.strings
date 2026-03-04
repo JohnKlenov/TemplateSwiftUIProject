@@ -406,6 +406,8 @@
 "error.photo_picker.icloud_required" = "Требуется подключение к сети для загрузки из iCloud.";
 "error.photo_picker.load_failed" = "Не удалось загрузить элемент.";
 "error.photo_picker.unknown" = "Неизвестная ошибка.";
+"error.photo_picker.general_failure" = "Что‑то пошло не так. Попробуйте снова.";
+
 
 /* Title Of Failed Operation PhotoPicker */
 "error.picking_image" = "Не удалось выбрать фото";

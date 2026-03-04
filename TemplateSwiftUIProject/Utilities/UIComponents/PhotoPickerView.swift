@@ -57,6 +57,7 @@ enum PhotoPickerResult {
 }
 
 
+
 /// SwiftUI-обёртка над UIKit-контроллером `PHPickerViewController`
 /// Позволяет интегрировать системный фотопикер в SwiftUI-поток
 struct PhotoPickerView: UIViewControllerRepresentable {

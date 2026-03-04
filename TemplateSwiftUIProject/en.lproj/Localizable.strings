@@ -390,6 +390,8 @@
 "error.photo_picker.icloud_required" = "A network connection is required to download from iCloud.";
 "error.photo_picker.load_failed" = "Failed to load the item.";
 "error.photo_picker.unknown" = "Unknown error.";
+"error.photo_picker.general_failure" = "Something went wrong. Please try again.";
+
 
 /* Title Of Failed Operation PhotoPicker */
 "error.picking_image" = "Failed to select photo";

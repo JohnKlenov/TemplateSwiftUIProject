@@ -30,11 +30,10 @@
 //    case unknown(Error)
 //
 
-import SwiftUI
-import PhotosUI
+
+import Foundation
 import Photos
 import UniformTypeIdentifiers
-
 
 // MARK: - Ошибки фотопикера
 
@@ -47,37 +46,24 @@ enum PhotoPickerError: Error {
     case unknown(Error) /// Неизвестная ошибка (с сохранением оригинальной ошибки)
 }
 
+// MARK: - Mapping системных ошибок → PhotoPickerError
+
 extension PhotoPickerError {
-    // на сколько я понял этот localizedDescription был сделан для тестов
-//    var localizedDescription: String {
-//        switch self {
-//        case .noItemAvailable:
-//            return "Выбранный элемент недоступен."
-//        case .itemUnavailable:
-//            return "Элемент нельзя загрузить."
-//        case .unsupportedType:
-//            return "Неподдерживаемый тип медиа."
-//        case .iCloudRequired:
-//            return "Требуется подключение к сети для загрузки из iCloud."
-//        case .loadFailed(let error), .unknown(let error):
-//            return (error as NSError).localizedDescription
-//        }
-//    }
 
     static func map(_ error: Error) -> PhotoPickerError {
         let nsError = error as NSError
 
         switch nsError.domain {
-        case NSItemProvider.errorDomain:
             // 📌 Домен NSItemProvider.errorDomain
             // Ошибки, связанные с передачей/загрузкой данных через NSItemProvider.
             // Используется в API вроде PHPicker, drag & drop, share extensions.
             // Здесь могут быть коды, означающие, что элемент недоступен или не может быть загружен.
+        case NSItemProvider.errorDomain:
             switch nsError.code {
             case -1000:
-                return .noItemAvailable   // Исторический код: элемент отсутствует
+                return .noItemAvailable // Исторический код: элемент отсутствует
             case -1001:
-                return .itemUnavailable   // Исторический код: элемент есть, но его нельзя загрузить
+                return .itemUnavailable // Исторический код: элемент есть, но его нельзя загрузить
             default:
                 return .loadFailed(error) // Любая другая ошибка NSItemProvider
             }
@@ -110,6 +96,131 @@ extension PhotoPickerError {
         }
     }
 }
+
+// MARK: - Техническое описание (для Crashlytics)
+
+extension PhotoPickerError {
+    var technicalDescription: String {
+        switch self {
+        case .noItemAvailable:
+            return "Selected item is not available"
+        case .itemUnavailable:
+            return "Item exists but cannot be loaded"
+        case .unsupportedType:
+            return "Unsupported media type"
+        case .iCloudRequired:
+            return "Photo requires iCloud download"
+        case .loadFailed(let underlying):
+            return "Failed to load image: \(underlying.localizedDescription)"
+        case .unknown(let underlying):
+            return "Unknown photo picker error: \(underlying.localizedDescription)"
+        }
+    }
+}
+
+// MARK: - NSError совместимость (для Crashlytics)
+
+extension PhotoPickerError: CustomNSError {
+
+    static var errorDomain: String { "com.yourapp.photoPicker" }
+
+    var errorCode: Int {
+        switch self {
+        case .noItemAvailable: return 1
+        case .itemUnavailable: return 2
+        case .unsupportedType: return 3
+        case .iCloudRequired: return 4
+        case .loadFailed: return 5
+        case .unknown: return 6
+        }
+    }
+
+    var errorUserInfo: [String : Any] {
+        [
+            NSLocalizedDescriptionKey: self.technicalDescription
+        ]
+    }
+}
+
+
+
+// MARK: - before technicalDescription
+
+
+//import SwiftUI
+//import PhotosUI
+//import Photos
+//import UniformTypeIdentifiers
+//
+//
+//// MARK: - Ошибки фотопикера
+//
+//enum PhotoPickerError: Error {
+//    case noItemAvailable /// Нет доступного элемента (например, пользователь выбрал фото, которое уже удалено)
+//    case itemUnavailable /// Элемент недоступен для загрузки (например, повреждённый файл)
+//    case unsupportedType /// Неподдерживаемый тип медиа (например, выбрано видео при фильтре `.images`)
+//    case iCloudRequired /// Фото находится в iCloud и требует подключения к сети
+//    case loadFailed(Error) /// Ошибка загрузки (с сохранением оригинальной ошибки)
+//    case unknown(Error) /// Неизвестная ошибка (с сохранением оригинальной ошибки)
+//}
+//
+//extension PhotoPickerError {
+//
+//    static func map(_ error: Error) -> PhotoPickerError {
+//        let nsError = error as NSError
+//
+//        switch nsError.domain {
+//        case NSItemProvider.errorDomain:
+//            // 📌 Домен NSItemProvider.errorDomain
+//            // Ошибки, связанные с передачей/загрузкой данных через NSItemProvider.
+//            // Используется в API вроде PHPicker, drag & drop, share extensions.
+//            // Здесь могут быть коды, означающие, что элемент недоступен или не может быть загружен.
+//            switch nsError.code {
+//            case -1000:
+//                return .noItemAvailable   // Исторический код: элемент отсутствует
+//            case -1001:
+//                return .itemUnavailable   // Исторический код: элемент есть, но его нельзя загрузить
+//            default:
+//                return .loadFailed(error) // Любая другая ошибка NSItemProvider
+//            }
+//
+//        case PHPhotosErrorDomain:
+//            // 📌 Домен PHPhotosErrorDomain
+//            // Ошибки, возвращаемые фреймворком Photos (PhotoKit).
+//            // Обычно возникают при работе с медиа в библиотеке пользователя.
+//            // Для PHPicker из публичных кейсов полезен только .networkAccessRequired.
+//            if let code = PHPhotosError.Code(rawValue: nsError.code) {
+//                switch code {
+//                case .networkAccessRequired:
+//                    return .iCloudRequired // Фото в iCloud, нужно скачать (требуется сеть)
+//                default:
+//                    return .loadFailed(error)
+//                }
+//            }
+//            return .loadFailed(error)
+//
+//        case NSCocoaErrorDomain:
+//            // 📌 Домен NSCocoaErrorDomain
+//            // Общие Cocoa-ошибки (Foundation/AppKit/UIKit).
+//            // Могут возникать при работе с файлами, сериализацией, доступом к ресурсам.
+//            return .loadFailed(error)
+//
+//        default:
+//            // 📌 Любой другой домен
+//            // Ошибка не из известных нам категорий — считаем её неизвестной.
+//            return .unknown(error)
+//        }
+//    }
+//}
+
+
+
+
+
+
+
+
+
 
 
 //import SwiftUI

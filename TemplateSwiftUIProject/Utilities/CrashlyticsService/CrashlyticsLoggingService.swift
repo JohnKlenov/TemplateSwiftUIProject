@@ -390,12 +390,20 @@ final class CrashlyticsLoggingService: ErrorLoggingServiceProtocol {
         
         // Техническое сообщение для Crashlytics (всегда английское)
         let technicalMessage: String = {
+            // 1. Внутренние ошибки приложения
             if nsError.domain == AppInternalError.errorDomain,
                let appError = AppInternalError(rawValue: nsError.code) {
                 return appError.technicalDescription
-            } else {
-                return message ?? error.localizedDescription
             }
+
+            // 2. Ошибки фотопикера
+            if nsError.domain == PhotoPickerError.errorDomain,
+               let pickerError = error as? PhotoPickerError {
+                return pickerError.technicalDescription
+            }
+
+            // 3. Все остальные ошибки
+            return message ?? error.localizedDescription
         }()
 
         var userInfo: [String: Any] = [

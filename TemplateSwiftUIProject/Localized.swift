@@ -456,6 +456,7 @@ enum Localized {
             static let iCloudRequired  = "error.photo_picker.icloud_required"
             static let loadFailed = "error.photo_picker.load_failed"
             static let unknown = "error.photo_picker.unknown"
+            static let generalFailure = "error.photo_picker.general_failure"
         }
     
     

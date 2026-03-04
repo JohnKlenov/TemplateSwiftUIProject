@@ -209,7 +209,7 @@ final class FirestoreProfileService: ProfileServiceProtocol {
             }
             
             guard let snapshot = snapshot else {
-                subject.send(completion: .failure(FirebaseInternalError.nilSnapshot))
+                subject.send(completion: .failure(AppInternalError.nilSnapshot))
                 return
             }
             
