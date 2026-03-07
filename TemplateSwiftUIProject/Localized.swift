@@ -325,6 +325,8 @@ enum Localized {
         static var profileLoadMissingUID = "error.custom_firebase.profile_load_missing_uid"
         static var missingAuthProvidersForPermanentUser = "error.custom_firebase.missing_auth_providers_for_permanent_user"
         static var missingPrimaryProviderForPermanentUser = "error.custom_firebase.missing_primary_provider_for_permanent_user"
+        static var storageReturnedNilURL = "error.custom_firebase.storage_returned_nil_url"
+
 
     }
     

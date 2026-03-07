@@ -34,6 +34,12 @@ enum ErrorContext: String {
     // MARK: - UserInfoCellManager
     case UserInfoCellManager_loadUserProfile_profileService_fetchProfile
     
+    // MARK: - UserInfoEditManager
+    case UserInfoEditManager_handlePickedImageError_fromPhotoPicker
+    case UserInfoEditManager_uploadAvatarAndTrack_uidMismatch
+    case UserInfoEditManager_uploadAvatarAndTrack_failure
+
+    
     // MARK: - AuthorizationManager
     case AuthorizationManager_validateUserForProfileLoading_anonymousUser
     case AuthorizationManager_validateUserForProfileLoading_missingUID

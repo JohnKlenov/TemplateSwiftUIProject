@@ -139,7 +139,7 @@ enum AppInternalError: Int, Error {
     case profileLoadMissingUID
     case missingAuthProvidersForPermanentUser
     case missingPrimaryProviderForPermanentUser
-
+    case storageReturnedNilURL
 
 }
 
@@ -193,7 +193,8 @@ extension AppInternalError: LocalizedError {
             return Localized.AppInternalError.missingAuthProvidersForPermanentUser
         case .missingPrimaryProviderForPermanentUser:
             return Localized.AppInternalError.missingPrimaryProviderForPermanentUser
-
+        case .storageReturnedNilURL:
+            return Localized.AppInternalError.storageReturnedNilURL
         }
     }
 }
@@ -238,8 +239,8 @@ extension AppInternalError {
             return "Permanent user has no auth providers"
         case .missingPrimaryProviderForPermanentUser:
             return "Permanent user has no primary auth provider"
-
-
+        case .storageReturnedNilURL:
+            return "Firebase Storage returned nil URL after upload"
         }
     }
 }

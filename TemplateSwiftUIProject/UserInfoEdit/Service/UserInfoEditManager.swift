@@ -278,7 +278,7 @@ final class UserInfoEditManager {
     // MARK: - Dependencies
     private let firestoreService: ProfileServiceProtocol
     private let storageService: StorageProfileServiceProtocol
-    private let errorHandler: ErrorHandlerProtocol
+    private let errorHandler: ErrorDiagnosticsProtocol
     private let alertManager: AlertManager
     private let userProvider: CurrentUserProvider
     
@@ -292,7 +292,7 @@ final class UserInfoEditManager {
     
     init(firestoreService: ProfileServiceProtocol,
          storageService: StorageProfileServiceProtocol,
-         errorHandler: ErrorHandlerProtocol,
+         errorHandler: ErrorDiagnosticsProtocol,
          userProvider: CurrentUserProvider,
          alertManager: AlertManager = .shared) {
         self.firestoreService = firestoreService
@@ -328,7 +328,7 @@ final class UserInfoEditManager {
     
     func uploadAvatarAndTrack(for uid: String, image: UIImage) {
         guard uid == currentUID else {
-            self.handleError(FirebaseInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+            self.handleError(AppInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: ErrorContext.UserInfoEditManager_uploadAvatarAndTrack_uidMismatch.rawValue)
             return
         }
         transition(to: .loading, autoReset: false)
@@ -336,14 +336,14 @@ final class UserInfoEditManager {
         
         avatarUploadCancellable = uploadAvatar(for: uid, image: image)
             .timeout(.seconds(15), scheduler: DispatchQueue.main, customError: {
-                FirebaseInternalError.delayedConfirmation
+                AppInternalError.delayedConfirmation
             })
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
                 guard let self = self, uid == self.currentUID else { return }
                 if case .failure(let error) = completion {
                     self.handleError(error,
-                                     operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+                                     operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: ErrorContext.UserInfoEditManager_uploadAvatarAndTrack_failure.rawValue)
                     self.transition(to: .avatarUploadFailure)
                 }
             } receiveValue: { [weak self] newURL in
@@ -359,7 +359,7 @@ final class UserInfoEditManager {
 //            .eraseToAnyPublisher()
         guard let resizedImage = image.resizedMaintainingAspectRatio(toFit: 600),
               let data = resizedImage.jpegData(compressionQuality: 0.8) else {
-            return Fail(error: FirebaseInternalError.imageEncodingFailed)
+            return Fail(error: AppInternalError.imageEncodingFailed)
                 .eraseToAnyPublisher()
         }
         
@@ -370,7 +370,7 @@ final class UserInfoEditManager {
                                               data: data)
         .flatMap { [weak self] url -> AnyPublisher<URL, Error> in
             guard let self = self else {
-                return Fail(error: FirebaseInternalError.nilSnapshot).eraseToAnyPublisher()
+                return Fail(error: AppInternalError.entityDeallocated).eraseToAnyPublisher()
             }
             let profile = UserProfile(uid: uid, photoURL: url)
             return self.firestoreService.updateProfile(profile,
@@ -387,7 +387,7 @@ final class UserInfoEditManager {
     func deleteAvatarAndTrack(for uid: String, photoURL: URL) {
         
         guard uid == currentUID else {
-            self.handleError(FirebaseInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+            self.handleError(AppInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: "")
             return
         }
         transition(to: .loading, autoReset: false)
@@ -406,7 +406,7 @@ final class UserInfoEditManager {
             .sink { [weak self] completion in
                 guard let self = self, uid == self.currentUID else { return }
                 if case .failure(let error) = completion {
-                    self.handleError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.deletingProfileAvatar)
+                    self.handleError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.deletingProfileAvatar, context: "")
                     self.transition(to: .avatarDeleteFailure)
                 }
             } receiveValue: { [weak self] in
@@ -418,7 +418,7 @@ final class UserInfoEditManager {
     func updateProfile(for uid: String, profile: UserProfile) {
         
         guard uid == currentUID else {
-            self.handleError(FirebaseInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage)
+            self.handleError(AppInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: "")
             return
         }
         updateProfileCancellable?.cancel()
@@ -430,7 +430,7 @@ final class UserInfoEditManager {
                 guard let self = self, uid == self.currentUID else { return }
                 if case .failure(let error) = completion {
                     self.handleError(error,
-                                     operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields)
+                                     operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields, context: "")
                 }
             } receiveValue: { _ in
                 // Пока ничего не делаем при успехе
@@ -449,8 +449,8 @@ final class UserInfoEditManager {
         }
     }
     
-    func handleError(_ error: Error, operationDescription: String) {
-        let errorMessage = errorHandler.handle(error: error)
+    func handleError(_ error: Error, operationDescription: String, context: String) {
+        let errorMessage = errorHandler.handle(error: error, context: context)
         alertManager.showGlobalAlert(message: errorMessage,
                                      operationDescription: operationDescription,
                                      alertType: .ok)

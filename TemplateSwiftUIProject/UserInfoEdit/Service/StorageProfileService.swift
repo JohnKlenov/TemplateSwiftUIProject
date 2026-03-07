@@ -42,6 +42,8 @@ import FirebaseStorage
 import Combine
 import UIKit
 
+
+
 protocol StorageProfileServiceProtocol {
     func uploadImageData(path: String, data: Data) -> AnyPublisher<URL, Error>
     func deleteImage(at url: URL)
@@ -71,7 +73,7 @@ final class StorageProfileService: StorageProfileServiceProtocol {
                     }
                     guard let url = url else {
                         print("❌ Storage upload error: nil URL")
-                        promise(.failure(FirebaseInternalError.nilSnapshot))
+                        promise(.failure(AppInternalError.storageReturnedNilURL))
                         return
                     }
                     promise(.success(url))

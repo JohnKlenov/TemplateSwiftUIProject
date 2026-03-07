@@ -165,7 +165,7 @@ class UserInfoEditViewModel: ObservableObject {
 
     
   func handlePickedImageError(_ error: Error, operationDescription:String) {
-      editManager.handleError(error, operationDescription: operationDescription)
+      editManager.handleError(error, operationDescription: operationDescription, context: ErrorContext.UserInfoEditManager_handlePickedImageError_fromPhotoPicker.rawValue)
     }
 
     // MARK: - Image actions

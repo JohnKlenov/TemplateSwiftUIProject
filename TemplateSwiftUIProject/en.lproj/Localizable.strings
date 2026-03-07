@@ -282,6 +282,8 @@
 "error.custom_firebase.profile_load_missing_uid" = "Cannot load profile: missing user UID.";
 "error.custom_firebase.missing_auth_providers_for_permanent_user" = "Failed to fetch auth providers for a permanent user.";
 "error.custom_firebase.missing_primary_provider_for_permanent_user" = "Failed to determine the primary provider for a permanent user.";
+"error.custom_firebase.storage_returned_nil_url" = "Failed to retrieve the download URL from Firebase Storage.";
+
 
 
 

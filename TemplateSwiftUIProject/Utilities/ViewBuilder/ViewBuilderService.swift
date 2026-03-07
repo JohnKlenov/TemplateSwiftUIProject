@@ -135,7 +135,7 @@ class ViewBuilderService: ObservableObject {
         self.profileService = FirestoreProfileService()
         self.storageProfileService = StorageProfileService()
         
-        self.userInfoEditManager = UserInfoEditManager(firestoreService: profileService, storageService: storageProfileService, errorHandler: SharedErrorHandler(), userProvider: userProvider)
+        self.userInfoEditManager = UserInfoEditManager(firestoreService: profileService, storageService: storageProfileService, errorHandler: ErrorDiagnosticsCenter(), userProvider: userProvider)
         
         self.userInfoCellManager = UserInfoCellManager(profileService: profileService, userProvider: userProvider, errorHandler: ErrorDiagnosticsCenter())
         
