@@ -133,7 +133,7 @@ class ViewBuilderService: ObservableObject {
         self.authService = AuthenticationService(trackerService: trackerService)
         
         self.profileService = FirestoreProfileService()
-        self.storageProfileService = StorageProfileService()
+        self.storageProfileService = StorageProfileService(errorHandler: ErrorDiagnosticsCenter())
         
         self.userInfoEditManager = UserInfoEditManager(firestoreService: profileService, storageService: storageProfileService, errorHandler: ErrorDiagnosticsCenter(), userProvider: userProvider)
         

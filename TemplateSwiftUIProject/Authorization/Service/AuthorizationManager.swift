@@ -174,15 +174,16 @@ final class AuthorizationManager: ObservableObject {
             }
     }
 
-    func handleError(_ error: Error, operationDescription:String) {
+    func handleError(_ error: Error, operationDescription:String, context: String) {
         let errorMessage = errorHandler.handle(error: error, context: "")
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
     
-    private func handleAuthenticationError(_ error: Error, operationDescription:String) {
-        let errorMessage = errorHandler.handle(error: error, context: "")
+    private func handleAuthenticationError(_ error: Error, operationDescription:String, context: String) {
+        let errorMessage = errorHandler.handle(error: error, context: context)
         alertManager.showGlobalAlert(message: errorMessage, operationDescription: operationDescription, alertType: .ok)
     }
+
     
     
     // MARK: - Validation
@@ -223,7 +224,7 @@ final class AuthorizationManager: ObservableObject {
                 self.isAuthOperationInProgress = false
                 switch completion {
                 case .failure(let err):
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp, context: "")
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
@@ -254,7 +255,7 @@ final class AuthorizationManager: ObservableObject {
                 self.isAuthOperationInProgress = false
                 switch completion {
                 case .failure(let err):
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn)
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn, context: "")
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
@@ -301,7 +302,7 @@ final class AuthorizationManager: ObservableObject {
                         )
                     }
                 case .failure(let error):
-                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate)
+                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate, context: "")
                 }
             } receiveValue: { _ in }
             .store(in: &cancellables)
@@ -322,7 +323,7 @@ final class AuthorizationManager: ObservableObject {
                 
                 switch completion {
                 case .failure(let error):
-                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.forgotPasswordOperation)
+                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.forgotPasswordOperation, context: "")
                 case .finished:
                     DispatchQueue.main.async {
                         self.alertManager.showGlobalAlert(
@@ -357,7 +358,7 @@ final class AuthorizationManager: ObservableObject {
                         print("Пользователь нажал Отмена → ничего не делаем")
                         return
                     }
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp)
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp, context: "")
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
@@ -389,7 +390,7 @@ final class AuthorizationManager: ObservableObject {
                 
                 switch completion {
                 case .failure(let err):
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn)
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn, context: "")
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
@@ -426,7 +427,7 @@ final class AuthorizationManager: ObservableObject {
                         print("Пользователь нажал Отмена → ничего не делаем")
                         return
                     }
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate)
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate, context: "")
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
@@ -500,7 +501,7 @@ final class AuthorizationManager: ObservableObject {
             DispatchQueue.main.async { [weak self] in
                 self?.showAccountDeletionError(
                     reauthError,
-                    operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
+                    operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion, context: ErrorContext.AuthorizationManager_deleteAccount_reauthenticationRequired.rawValue
                 )
             }
             
@@ -508,7 +509,7 @@ final class AuthorizationManager: ObservableObject {
             // Обычные ошибки уже на главном потоке благодаря receive(on:)
             showAccountDeletionError(
                 underlyingError,
-                operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion
+                operationDescription: Localized.TitleOfFailedOperationFirebase.accountDeletion, context: ErrorContext.AuthorizationManager_deleteAccount_underlying.rawValue
             )
         }
     }
@@ -520,8 +521,8 @@ final class AuthorizationManager: ObservableObject {
         )
     }
     
-    private func showAccountDeletionError(_ error: Error, operationDescription: String) {
-        handleAuthenticationError(error, operationDescription: operationDescription)
+    private func showAccountDeletionError(_ error: Error, operationDescription: String, context: String) {
+        handleAuthenticationError(error, operationDescription: operationDescription, context: context)
     }
     
     private func showAccountDeletionSuccess() {
@@ -540,7 +541,7 @@ final class AuthorizationManager: ObservableObject {
             .sink { [weak self] completion in
                 switch completion {
                 case .failure(let error):
-                    self?.handleAuthenticationError(error, operationDescription: "SignOut")
+                    self?.handleAuthenticationError(error, operationDescription: "SignOut", context: "")
                 case .finished:
                     DispatchQueue.main.async { [weak self] in
                         self?.alertManager.showGlobalAlert(message:"Success signOut user!", operationDescription:"SignOut", alertType: .ok)

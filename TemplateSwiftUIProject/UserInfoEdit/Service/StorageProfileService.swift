@@ -52,6 +52,11 @@ protocol StorageProfileServiceProtocol {
 final class StorageProfileService: StorageProfileServiceProtocol {
     
     private let storage = Storage.storage()
+    private let errorHandler: ErrorDiagnosticsProtocol
+    
+    init(errorHandler: ErrorDiagnosticsProtocol) {
+        self.errorHandler = errorHandler
+    }
     
     func uploadImageData(path: String, data: Data) -> AnyPublisher<URL, Error> {
         Future<URL, Error> { promise in
@@ -88,7 +93,7 @@ final class StorageProfileService: StorageProfileServiceProtocol {
         ref.delete { error in
             if let error = error {
                 // Логируем, но не пробрасываем наружу
-                print("⚠️ Storage delete error: \(error.localizedDescription)")
+                let _ = self.errorHandler.handle(error: error, context: ErrorContext.StorageProfileService_deleteImage.rawValue)
             }
         }
     }

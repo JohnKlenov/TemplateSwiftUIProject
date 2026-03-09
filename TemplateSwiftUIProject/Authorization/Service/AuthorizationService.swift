@@ -690,18 +690,11 @@ extension AuthorizationService {
 // MARK: - Account deletion
 extension AuthorizationService {
     
-    // при удалении аккаунта мы теряем права на листенерах прошлого пользователя
-    // что может вызвать в блоке addSnapshotListener ошибку (FirestoreProfileService.fetchProfile + HomeManager.observeBooks().firestoreService.observeCollection(at: path) )
-    // в HomeManager эта ошибка мелькнет на табе и тут же смениться состояние но success при новом успешном подключении листенера
-    // 
-    // при удалении аккаунта в FirestoreProfileService.fetchProfile хендлер алерта не срабатывает на UI так как мы успеваем в UserInfoCellManager.observeUserChanges() userListenerCancellable = userProvider.currentUserPublisher отписаться и не вызываем хендлер с алертом!
-    // но FirestoreProfileService fetchProfile error отрабатывает в блоке принтом
-    
     /// Удаление аккаунта с маппингом ошибок, требующих реаутентификации
     func deleteAccount() -> AnyPublisher<Void, DeleteAccountError> {
         Future<Void, DeleteAccountError> { promise in
             guard let user = Auth.auth().currentUser else {
-                promise(.failure(.underlying(FirebaseInternalError.notSignedIn)))
+                promise(.failure(.underlying(AppInternalError.notSignedIn)))
                 return
             }
             user.delete { error in

@@ -36,8 +36,9 @@ enum ErrorContext: String {
     
     // MARK: - UserInfoEditManager
     case UserInfoEditManager_handlePickedImageError_fromPhotoPicker
-    case UserInfoEditManager_uploadAvatarAndTrack_uidMismatch
-    case UserInfoEditManager_uploadAvatarAndTrack_failure
+    case UserInfoEditManager_uploadAvatarAndTrack
+    case UserInfoEditManager_deleteAvatarAndTrack
+    case UserInfoEditManager_updateProfile
 
     
     // MARK: - AuthorizationManager
@@ -45,11 +46,9 @@ enum ErrorContext: String {
     case AuthorizationManager_validateUserForProfileLoading_missingUID
     case AuthorizationManager_subscribeToProviders_missingProviders
     case AuthorizationManager_subscribeToPrimaryProvider_missingPrimaryProvider
+    case AuthorizationManager_deleteAccount_reauthenticationRequired
+    case AuthorizationManager_deleteAccount_underlying
 
-
-    
-    
-    
     
     // MARK: - Services -
     
@@ -64,5 +63,8 @@ enum ErrorContext: String {
     case FirestoreGetService_fetchMalls
     case FirestoreGetService_fetchShops
     case FirestoreGetService_fetchPopularProducts
+    
+    // MARK: - StorageProfileService
+    case StorageProfileService_deleteImage
 
 }

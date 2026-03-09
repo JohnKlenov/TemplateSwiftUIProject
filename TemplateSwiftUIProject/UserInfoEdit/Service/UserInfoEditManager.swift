@@ -328,7 +328,7 @@ final class UserInfoEditManager {
     
     func uploadAvatarAndTrack(for uid: String, image: UIImage) {
         guard uid == currentUID else {
-            self.handleError(AppInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: ErrorContext.UserInfoEditManager_uploadAvatarAndTrack_uidMismatch.rawValue)
+            self.handleError(AppInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: ErrorContext.UserInfoEditManager_uploadAvatarAndTrack.rawValue)
             return
         }
         transition(to: .loading, autoReset: false)
@@ -343,7 +343,7 @@ final class UserInfoEditManager {
                 guard let self = self, uid == self.currentUID else { return }
                 if case .failure(let error) = completion {
                     self.handleError(error,
-                                     operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: ErrorContext.UserInfoEditManager_uploadAvatarAndTrack_failure.rawValue)
+                                     operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: ErrorContext.UserInfoEditManager_uploadAvatarAndTrack.rawValue)
                     self.transition(to: .avatarUploadFailure)
                 }
             } receiveValue: { [weak self] newURL in
@@ -387,7 +387,7 @@ final class UserInfoEditManager {
     func deleteAvatarAndTrack(for uid: String, photoURL: URL) {
         
         guard uid == currentUID else {
-            self.handleError(AppInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: "")
+            self.handleError(AppInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: ErrorContext.UserInfoEditManager_deleteAvatarAndTrack.rawValue)
             return
         }
         transition(to: .loading, autoReset: false)
@@ -406,7 +406,7 @@ final class UserInfoEditManager {
             .sink { [weak self] completion in
                 guard let self = self, uid == self.currentUID else { return }
                 if case .failure(let error) = completion {
-                    self.handleError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.deletingProfileAvatar, context: "")
+                    self.handleError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.deletingProfileAvatar, context: ErrorContext.UserInfoEditManager_deleteAvatarAndTrack.rawValue)
                     self.transition(to: .avatarDeleteFailure)
                 }
             } receiveValue: { [weak self] in
@@ -418,7 +418,7 @@ final class UserInfoEditManager {
     func updateProfile(for uid: String, profile: UserProfile) {
         
         guard uid == currentUID else {
-            self.handleError(AppInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: "")
+            self.handleError(AppInternalError.staleUserSession, operationDescription: Localized.TitleOfFailedOperationPickingImage.pickingImage, context: ErrorContext.UserInfoEditManager_updateProfile.rawValue)
             return
         }
         updateProfileCancellable?.cancel()
@@ -430,7 +430,7 @@ final class UserInfoEditManager {
                 guard let self = self, uid == self.currentUID else { return }
                 if case .failure(let error) = completion {
                     self.handleError(error,
-                                     operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields, context: "")
+                                     operationDescription: Localized.TitleOfFailedOperationFirebase.editingProfileFields, context: ErrorContext.UserInfoEditManager_updateProfile.rawValue)
                 }
             } receiveValue: { _ in
                 // Пока ничего не делаем при успехе
