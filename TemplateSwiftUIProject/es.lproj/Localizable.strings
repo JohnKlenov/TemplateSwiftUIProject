@@ -275,6 +275,12 @@
 "error.custom_firebase.missing_auth_providers_for_permanent_user" = "No se pudo obtener la lista de proveedores para un usuario permanente.";
 "error.custom_firebase.missing_primary_provider_for_permanent_user" = "No se pudo determinar el proveedor principal para un usuario permanente.";
 "error.custom_firebase.storage_returned_nil_url" = "No se pudo obtener la URL de descarga desde Firebase Storage.";
+"error.custom_firebase.firebase_returned_nil_result" = "Firebase devolvió un resultado nulo.";
+
+// ошибки Google SDK
+"error.custom_firebase.google_missing_client_id" = "Falta el clientID en GoogleService-Info.plist. Verifique la configuración de Firebase.";
+"error.custom_firebase.google_missing_presenting_vc" = "No se pudo encontrar un controlador para mostrar Google Sign-In.";
+"error.custom_firebase.google_missing_tokens" = "Google no devolvió los tokens necesarios para la autenticación.";
 
 
 

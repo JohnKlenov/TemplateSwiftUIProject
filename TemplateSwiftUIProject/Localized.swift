@@ -326,8 +326,12 @@ enum Localized {
         static var missingAuthProvidersForPermanentUser = "error.custom_firebase.missing_auth_providers_for_permanent_user"
         static var missingPrimaryProviderForPermanentUser = "error.custom_firebase.missing_primary_provider_for_permanent_user"
         static var storageReturnedNilURL = "error.custom_firebase.storage_returned_nil_url"
+        static var firebaseReturnedNilResult = "error.custom_firebase.firebase_returned_nil_result"
 
-
+        // ошибки Google SDK
+        static var googleMissingClientID = "error.custom_firebase.google_missing_client_id"
+        static var googleMissingPresentingVC = "error.custom_firebase.google_missing_presenting_vc"
+        static var googleMissingTokens = "error.custom_firebase.google_missing_tokens"
     }
     
     enum FirebaseInternalError {

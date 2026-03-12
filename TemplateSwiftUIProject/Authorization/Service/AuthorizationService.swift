@@ -504,6 +504,7 @@ final class AuthorizationService {
     
     // MARK: - Dependencies
     private let userProvider: CurrentUserProvider
+    private let errorHandler: ErrorDiagnosticsProtocol
     
     // MARK: - Publishers & Storage
     private var cancellable: AnyCancellable?
@@ -515,9 +516,11 @@ final class AuthorizationService {
 
     
     // MARK: - Init
-    init(userProvider: CurrentUserProvider) {
+    init(userProvider: CurrentUserProvider,
+         errorHandler: ErrorDiagnosticsProtocol) {
         print("AuthorizationService init")
         self.userProvider = userProvider
+        self.errorHandler = errorHandler
         observeUserChanges()
     }
     
@@ -601,8 +604,8 @@ extension AuthorizationService {
                 } else if let result = res {
                     promise(.success(result))
                 } else {
-                    // Обязательно логировать: неизвестное состояние
-                    promise(.failure(FirebaseInternalError.defaultError))
+                    let _ = self.errorHandler.handle(error: AppInternalError.firebaseReturnedNilResult, context: ErrorContext.AuthorizationService_createUserPublisher.rawValue)
+                    promise(.failure(AppInternalError.firebaseReturnedNilResult))
                 }
             }
         }
@@ -620,8 +623,8 @@ extension AuthorizationService {
                     self?.updateAuthState(from: result.user)
                     promise(.success(result))
                 } else {
-                    // Обязательно логировать: неизвестное состояние
-                    promise(.failure(FirebaseInternalError.defaultError))
+                    let _ = self?.errorHandler.handle(error: AppInternalError.firebaseReturnedNilResult, context: ErrorContext.AuthorizationService_linkPublisher.rawValue)
+                    promise(.failure(AppInternalError.firebaseReturnedNilResult))
                 }
             }
         }
@@ -772,9 +775,12 @@ extension AuthorizationService {
     
     /// Отправка письма подтверждения
     func sendVerificationEmail() {
-        Auth.auth().currentUser?.sendEmailVerification(completion: nil)
+        Auth.auth().currentUser?.sendEmailVerification { error in
+            let _ = self.errorHandler.handle(error: error, context: ErrorContext.AuthorizationService_sendVerificationEmail.rawValue)
+        }
     }
 }
+
 
 // MARK: - Auth providers
 extension AuthorizationService {
@@ -800,7 +806,7 @@ extension AuthorizationService {
     /// Текущий Firebase User как publisher (ошибка, если не залогинен)
     private func currentUserPublisher() -> AnyPublisher<User, Error> {
         guard let user = Auth.auth().currentUser else {
-            return Fail(error: FirebaseInternalError.notSignedIn).eraseToAnyPublisher()
+            return Fail(error: AppInternalError.notSignedIn).eraseToAnyPublisher()
         }
         return Just(user)
             .setFailureType(to: Error.self)
@@ -850,7 +856,7 @@ extension AuthorizationService {
         currentUserPublisher()
             .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
                 guard let self else {
-                    return Fail(error: FirebaseInternalError.defaultError).eraseToAnyPublisher()
+                    return Fail(error: AppInternalError.entityDeallocated).eraseToAnyPublisher()
                 }
                 return self.getGoogleCredential()
                     .flatMap { credential -> AnyPublisher<Void, Error> in
@@ -905,7 +911,7 @@ extension AuthorizationService {
         Future<AuthCredential, Error> { promise in
 
             guard let clientID = FirebaseApp.app()?.options.clientID else {
-                return promise(.failure(FirebaseInternalError.defaultError))
+                return promise(.failure(AppInternalError.googleMissingClientID))
             }
             let config = GIDConfiguration(clientID: clientID)
             GIDSignIn.sharedInstance.configuration = config
@@ -913,7 +919,7 @@ extension AuthorizationService {
             // Гарантируем главный поток для UI-презентации
             DispatchQueue.main.async {
                 guard let presentingVC = Self.topViewController() else {
-                    return promise(.failure(FirebaseInternalError.defaultError))
+                    return promise(.failure(AppInternalError.googleMissingPresentingVC))
                 }
 
                 GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
@@ -924,7 +930,7 @@ extension AuthorizationService {
                         let gUser = result?.user,
                         let idToken = gUser.idToken?.tokenString
                     else {
-                        return promise(.failure(FirebaseInternalError.defaultError))
+                        return promise(.failure(AppInternalError.googleMissingTokens))
                     }
 
                     let accessToken = gUser.accessToken.tokenString
@@ -956,8 +962,18 @@ extension AuthorizationService {
                 if let err = err {
                     return promise(.failure(err))
                 }
-                guard let self, let user = res?.user else {
-                    return promise(.failure(FirebaseInternalError.defaultError))
+                // 2. Проверяем self отдельно — это отдельный сценарий
+                guard let self else {
+                    return promise(.failure(AppInternalError.entityDeallocated))
+                }
+                
+                // 3. Firebase вернул nil вместо результата → это наш общий кейс
+                guard let _ = res?.user else {
+                    let _ = self.errorHandler.handle(
+                        error: AppInternalError.firebaseReturnedNilResult,
+                        context: ErrorContext.AuthorizationService_googleSignInReplacingSession.rawValue
+                    )
+                    return promise(.failure(AppInternalError.firebaseReturnedNilResult))
                 }
 // тут не нужно так как  Auth.auth().signIn(with: credential) вызовет блок в addStateDidChangeListener
 //                self.updateAuthState(from: user)
@@ -979,7 +995,8 @@ extension AuthorizationService {
                     self?.updateAuthState(from: result.user) // listener не гарантирован
                     promise(.success(()))
                 } else {
-                    promise(.failure(FirebaseInternalError.defaultError))
+                    let _ = self?.errorHandler.handle(error: AppInternalError.firebaseReturnedNilResult, context: ErrorContext.AuthorizationService_googleLinkAnonymous.rawValue)
+                    promise(.failure(AppInternalError.firebaseReturnedNilResult))
                 }
             }
         }

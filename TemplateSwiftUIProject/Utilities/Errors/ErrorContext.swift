@@ -48,7 +48,8 @@ enum ErrorContext: String {
     case AuthorizationManager_subscribeToPrimaryProvider_missingPrimaryProvider
     case AuthorizationManager_deleteAccount_reauthenticationRequired
     case AuthorizationManager_deleteAccount_underlying
-
+    case AuthorizationManager_signUp
+    case AuthorizationManager_signUpWithGoogle
     
     // MARK: - Services -
     
@@ -66,5 +67,11 @@ enum ErrorContext: String {
     
     // MARK: - StorageProfileService
     case StorageProfileService_deleteImage
-
+    
+    // MARK: - AuthorizationService
+    case AuthorizationService_sendVerificationEmail
+    case AuthorizationService_googleLinkAnonymous
+    case AuthorizationService_googleSignInReplacingSession
+    case AuthorizationService_linkPublisher
+    case AuthorizationService_createUserPublisher
 }

@@ -224,7 +224,7 @@ final class AuthorizationManager: ObservableObject {
                 self.isAuthOperationInProgress = false
                 switch completion {
                 case .failure(let err):
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp, context: "")
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp, context: ErrorContext.AuthorizationManager_signUp.rawValue)
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
@@ -237,6 +237,7 @@ final class AuthorizationManager: ObservableObject {
                             alertType: .ok
                         )
                     }
+                    
                     self.authService.sendVerificationEmail()
                 }
             } receiveValue: { _ in }
@@ -358,7 +359,7 @@ final class AuthorizationManager: ObservableObject {
                         print("Пользователь нажал Отмена → ничего не делаем")
                         return
                     }
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp, context: "")
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signUp, context: ErrorContext.AuthorizationManager_signUpWithGoogle.rawValue)
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,

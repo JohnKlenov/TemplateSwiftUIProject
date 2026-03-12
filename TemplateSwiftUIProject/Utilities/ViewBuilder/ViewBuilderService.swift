@@ -126,7 +126,7 @@ class ViewBuilderService: ObservableObject {
     init() {
         let userProvider: CurrentUserProvider = FirebaseAuthUserProvider()
         
-        let service = AuthorizationService(userProvider: userProvider)
+        let service = AuthorizationService(userProvider: userProvider, errorHandler: ErrorDiagnosticsCenter())
         self.authorizationManager = AuthorizationManager(service: service, errorHandler: ErrorDiagnosticsCenter())
         
         let trackerService = AnonAccountTrackerService(errorCenter: ErrorDiagnosticsCenter())

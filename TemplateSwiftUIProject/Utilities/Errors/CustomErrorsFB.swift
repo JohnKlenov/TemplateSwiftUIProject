@@ -140,6 +140,13 @@ enum AppInternalError: Int, Error {
     case missingAuthProvidersForPermanentUser
     case missingPrimaryProviderForPermanentUser
     case storageReturnedNilURL
+    case firebaseReturnedNilResult
+
+    // ошибки Google SDK
+    case googleMissingClientID
+    case googleMissingPresentingVC
+    case googleMissingTokens
+
 
 }
 
@@ -195,6 +202,16 @@ extension AppInternalError: LocalizedError {
             return Localized.AppInternalError.missingPrimaryProviderForPermanentUser
         case .storageReturnedNilURL:
             return Localized.AppInternalError.storageReturnedNilURL
+        case .googleMissingClientID:
+            return Localized.AppInternalError.googleMissingClientID
+        case .googleMissingPresentingVC:
+            return Localized.AppInternalError.googleMissingPresentingVC
+        case .googleMissingTokens:
+            return Localized.AppInternalError.googleMissingTokens
+        case .firebaseReturnedNilResult:
+            return Localized.AppInternalError.firebaseReturnedNilResult
+
+
         }
     }
 }
@@ -241,6 +258,16 @@ extension AppInternalError {
             return "Permanent user has no primary auth provider"
         case .storageReturnedNilURL:
             return "Firebase Storage returned nil URL after upload"
+        case .googleMissingClientID:
+            return "Missing Google clientID in Firebase configuration"
+        case .googleMissingPresentingVC:
+            return "Unable to find presenting view controller for Google Sign-In"
+        case .googleMissingTokens:
+            return "Google Sign-In returned missing or invalid tokens"
+        case .firebaseReturnedNilResult:
+            return "Firebase returned nil result in an operation that should always return either a result or an error"
+
+
         }
     }
 }
