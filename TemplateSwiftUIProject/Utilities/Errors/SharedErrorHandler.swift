@@ -674,303 +674,303 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
 // MARK: - old implemintation
 
 
-protocol ErrorHandlerProtocol {
-    func handle(error:Error?) -> String
-}
-
-
-
-class SharedErrorHandler: ErrorHandlerProtocol {
-    
-    private let RealtimeDatabaseErrorDomain = "com.firebase.database"
-    private let GoogleSignInErrorDomain = "com.google.GIDSignIn"
-    
-    func handle(error: (any Error)?) -> String {
-        print("SharedErrorHandler shared error - \(String(describing: error?.localizedDescription))")
-        
-        guard let error = error else {
-            return Localized.FirebaseInternalError.defaultError
-        }
-        
-        // 🔍 Обработка ошибок декодирования до преобразования в NSError
-        if let decodingError = error as? DecodingError {
-            return handleDecodingError(decodingError)
-        }
-        
-        if let pickerError = error as? PhotoPickerError {
-            return handlePhotoPickerError(pickerError)
-        }
-        
-        
-        // Преобразуем ошибку в NSError для работы с кодами и доменами
-        if let nsError = error as NSError? {
-            print("📥 [SharedErrorHandler] Получен NSError: domain=\(nsError.domain), code=\(nsError.code), description=\(nsError.localizedDescription)")
-            if let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
-                return handleAuthError(authErrorCode)
-            }
-            if nsError.domain == FirestoreErrorDomain {
-                return handleFirestoreError(nsError)
-            }
-            if let storageErrorCode = StorageErrorCode(rawValue: nsError.code) {
-                return handleStorageError(storageErrorCode)
-            }
-            if nsError.domain == RealtimeDatabaseErrorDomain {
-                return handleRealtimeDatabaseError(nsError)
-            }
-            if nsError.domain == "Anonymous Auth" {
-                return Localized.FirebaseInternalError.anonymousAuthError
-            }
-            if nsError.domain == GoogleSignInErrorDomain {
-                return handleGoogleSignInError(nsError)
-            }
-        }
-        
-        if let customError = error as? FirebaseInternalError {
-            return customError.errorDescription ?? Localized.FirebaseInternalError.defaultError
-        }
-        
-        return Localized.FirebaseInternalError.defaultError
-    }
-    
-    private func handleDecodingError(_ error: DecodingError) -> String {
-        var logMessage: String
-        
-        switch error {
-        case .typeMismatch(let type, let context):
-            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
-            logMessage = "DecodingError.typeMismatch: expected type \(type), path: \(path)"
-            
-        case .valueNotFound(let type, let context):
-            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
-            logMessage = "DecodingError.valueNotFound: type \(type) not found at path: \(path)"
-            
-        case .keyNotFound(let key, let context):
-            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
-            logMessage = "DecodingError.keyNotFound: missing key '\(key.stringValue)', path: \(path)"
-            
-        case .dataCorrupted(let context):
-            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
-            logMessage = "DecodingError.dataCorrupted: \(context.debugDescription), path: \(path)"
-            
-        @unknown default:
-            logMessage = "DecodingError.unknown"
-        }
-        
-        // Логируем в Crashlytics (или консоль, если не используешь Crashlytics)
-        print("SharedErrorHandler ⚠️ Decoding error: \(logMessage)")
-        // Crashlytics.crashlytics().log(logMessage)
-        
-        // Возвращаем пользователю нейтральное сообщение
-        return Localized.FirebaseInternalError.defaultError
-    }
-    
-    // Вынесенная реализация для GIDSignIn.sharedInstance.signIn
-    private func handleGoogleSignInError(_ nsError: NSError) -> String {
-        print("🔍 [GoogleSignInError] domain=\(nsError.domain), code=\(nsError.code), description=\(nsError.localizedDescription)")
-
-        guard nsError.domain == "com.google.GIDSignIn" else {
-            return Localized.GoogleSignInError.defaultError
-        }
-
-        if let code = GoogleSignInErrorCode(rawValue: nsError.code) {
-            switch code {
-            case .unknown:
-                return Localized.GoogleSignInError.defaultError
-            case .keychain:
-                return Localized.GoogleSignInError.keychainError
-            case .noCurrentUser:
-                return Localized.GoogleSignInError.noHandlers
-            case .hasNoAuthInKeychain:
-                return Localized.GoogleSignInError.noAuthInKeychain
-            case .canceled:
-                return Localized.GoogleSignInError.cancelled
-            case .emmError:
-                return Localized.GoogleSignInError.emmError
-            case .scopesAlreadyGranted:
-                return Localized.GoogleSignInError.scopesAlreadyGranted
-            case .mismatchWithCurrentUser:
-                return Localized.GoogleSignInError.userMismatch
-            }
-        }
-
-        return Localized.GoogleSignInError.defaultError
-    }
-
-
-    
-    private func handlePhotoPickerError(_ pickerError: PhotoPickerError) -> String {
-        switch pickerError {
-        case .noItemAvailable:
-            return Localized.PhotoPickerError.noItemAvailable
-        case .itemUnavailable:
-            return Localized.PhotoPickerError.itemUnavailable
-        case .unsupportedType:
-            return Localized.PhotoPickerError.unsupportedType
-        case .iCloudRequired:
-            return Localized.PhotoPickerError.iCloudRequired
-        case .loadFailed(let underlyingError),
-             .unknown(let underlyingError):
-            // Возвращаем системное сообщение ошибки «как есть» — оно уже может быть локализовано системой
-            return (underlyingError as NSError).localizedDescription
-        }
-    }
-
-
-    private func handleAuthError(_ code: AuthErrorCode) -> String {
-        switch code {
-        case .providerAlreadyLinked:
-            return Localized.Auth.providerAlreadyLinked
-        case .credentialAlreadyInUse:
-            return Localized.Auth.credentialAlreadyInUse
-        case .tooManyRequests:
-            return Localized.Auth.tooManyRequests
-        case .userTokenExpired:
-            return Localized.Auth.userTokenExpired
-        case .invalidUserToken:
-            return Localized.Auth.invalidUserToken
-        case .userMismatch:
-            return Localized.Auth.userMismatch
-        case .requiresRecentLogin:
-            return Localized.Auth.requiresRecentLogin
-        case .emailAlreadyInUse:
-            return Localized.Auth.emailAlreadyInUse
-        case .invalidEmail:
-            return Localized.Auth.invalidEmail
-        case .weakPassword:
-            return Localized.Auth.weakPassword
-        case .networkError:
-            return Localized.Auth.networkError
-        case .keychainError:
-            return Localized.Auth.keychainError
-        case .userNotFound:
-            return Localized.Auth.userNotFound
-        case .wrongPassword:
-            return Localized.Auth.wrongPassword
-        case .expiredActionCode:
-            return Localized.Auth.expiredActionCode
-        case .invalidCredential:
-            return Localized.Auth.invalidCredential
-        case .invalidRecipientEmail:
-            return Localized.Auth.invalidRecipientEmail
-        case .missingEmail:
-            return Localized.Auth.missingEmail
-        case .userDisabled:
-            return Localized.Auth.userDisabled
-        case .invalidSender:
-            return Localized.Auth.invalidSender
-        case .accountExistsWithDifferentCredential:
-            return Localized.Auth.accountExistsWithDifferentCredential
-        case .operationNotAllowed:
-            return Localized.Auth.operationNotAllowed
-        default:
-            return Localized.Auth.generic
-        }
-    }
-    
-    private func handleFirestoreError(_ nsError: NSError) -> String {
-        switch nsError.code {
-        case FirestoreErrorCode.cancelled.rawValue:
-            return Localized.Firestore.cancelled
-        case FirestoreErrorCode.unavailable.rawValue:
-            return Localized.Firestore.unavailable
-        case FirestoreErrorCode.invalidArgument.rawValue:
-            return Localized.Firestore.invalidArgument
-        case FirestoreErrorCode.unknown.rawValue:
-            return Localized.Firestore.unknown
-        case FirestoreErrorCode.deadlineExceeded.rawValue:
-            return Localized.Firestore.deadlineExceeded
-        case FirestoreErrorCode.notFound.rawValue:
-            return Localized.Firestore.notFound
-        case FirestoreErrorCode.alreadyExists.rawValue:
-            return Localized.Firestore.alreadyExists
-        case FirestoreErrorCode.permissionDenied.rawValue:
-            return Localized.Firestore.permissionDenied
-        case FirestoreErrorCode.resourceExhausted.rawValue:
-            return Localized.Firestore.resourceExhausted
-        case FirestoreErrorCode.failedPrecondition.rawValue:
-            return Localized.Firestore.failedPrecondition
-        case FirestoreErrorCode.aborted.rawValue:
-            return Localized.Firestore.aborted
-        case FirestoreErrorCode.outOfRange.rawValue:
-            return Localized.Firestore.outOfRange
-        case FirestoreErrorCode.unimplemented.rawValue:
-            return Localized.Firestore.unimplemented
-        case FirestoreErrorCode.internal.rawValue:
-            return Localized.Firestore.internalError
-        case FirestoreErrorCode.dataLoss.rawValue:
-            return Localized.Firestore.dataLoss
-        case FirestoreErrorCode.unauthenticated.rawValue:
-            return Localized.Firestore.unauthenticated
-        default:
-            return Localized.Firestore.generic
-        }
-    }
-    
-    private func handleStorageError(_ code: StorageErrorCode) -> String {
-        switch code {
-        case .objectNotFound:
-            return Localized.Storage.objectNotFound
-        case .bucketNotFound:
-            return Localized.Storage.bucketNotFound
-        case .projectNotFound:
-            return Localized.Storage.projectNotFound
-        case .quotaExceeded:
-            return Localized.Storage.quotaExceeded
-        case .unauthenticated:
-            return Localized.Storage.unauthenticated
-        case .unauthorized:
-            return Localized.Storage.unauthorized
-        case .retryLimitExceeded:
-            return Localized.Storage.retryLimitExceeded
-        case .nonMatchingChecksum:
-            return Localized.Storage.nonMatchingChecksum
-        case .downloadSizeExceeded:
-            return Localized.Storage.downloadSizeExceeded
-        case .cancelled:
-            return Localized.Storage.cancelled
-        case .invalidArgument:
-            return Localized.Storage.invalidArgument
-        case .unknown:
-            return Localized.Storage.unknown
-        case .bucketMismatch:
-            return Localized.Storage.bucketMismatch
-        case .internalError:
-            return Localized.Storage.internalError
-        case .pathError:
-            return Localized.Storage.pathError
-        @unknown default:
-            return Localized.Storage.generic
-        }
-    }
-    
-    private func handleRealtimeDatabaseError(_ nsError: NSError) -> String {
-        switch nsError.code {
-        case NSURLErrorNotConnectedToInternet:
-            return Localized.RealtimeDatabase.networkError
-        case NSURLErrorTimedOut:
-            return Localized.RealtimeDatabase.timeout
-        case NSURLErrorCancelled:
-            return Localized.RealtimeDatabase.operationCancelled
-        case NSURLErrorCannotFindHost:
-            return Localized.RealtimeDatabase.hostNotFound
-        case NSURLErrorCannotConnectToHost:
-            return Localized.RealtimeDatabase.cannotConnectToHost
-        case NSURLErrorNetworkConnectionLost:
-            return Localized.RealtimeDatabase.networkConnectionLost
-        case NSURLErrorResourceUnavailable:
-            return Localized.RealtimeDatabase.resourceUnavailable
-        case NSURLErrorUserCancelledAuthentication:
-            return Localized.RealtimeDatabase.authenticationCancelled
-        case NSURLErrorUserAuthenticationRequired:
-            return Localized.RealtimeDatabase.authenticationRequired
-        default:
-            return Localized.RealtimeDatabase.generic
-        }
-    }
-}
-
-
-
+//protocol ErrorHandlerProtocol {
+//    func handle(error:Error?) -> String
+//}
+//
+//
+//
+//class SharedErrorHandler: ErrorHandlerProtocol {
+//    
+//    private let RealtimeDatabaseErrorDomain = "com.firebase.database"
+//    private let GoogleSignInErrorDomain = "com.google.GIDSignIn"
+//    
+//    func handle(error: (any Error)?) -> String {
+//        print("SharedErrorHandler shared error - \(String(describing: error?.localizedDescription))")
+//        
+//        guard let error = error else {
+//            return Localized.FirebaseInternalError.defaultError
+//        }
+//        
+//        // 🔍 Обработка ошибок декодирования до преобразования в NSError
+//        if let decodingError = error as? DecodingError {
+//            return handleDecodingError(decodingError)
+//        }
+//        
+//        if let pickerError = error as? PhotoPickerError {
+//            return handlePhotoPickerError(pickerError)
+//        }
+//        
+//        
+//        // Преобразуем ошибку в NSError для работы с кодами и доменами
+//        if let nsError = error as NSError? {
+//            print("📥 [SharedErrorHandler] Получен NSError: domain=\(nsError.domain), code=\(nsError.code), description=\(nsError.localizedDescription)")
+//            if let authErrorCode = AuthErrorCode(rawValue: nsError.code) {
+//                return handleAuthError(authErrorCode)
+//            }
+//            if nsError.domain == FirestoreErrorDomain {
+//                return handleFirestoreError(nsError)
+//            }
+//            if let storageErrorCode = StorageErrorCode(rawValue: nsError.code) {
+//                return handleStorageError(storageErrorCode)
+//            }
+//            if nsError.domain == RealtimeDatabaseErrorDomain {
+//                return handleRealtimeDatabaseError(nsError)
+//            }
+//            if nsError.domain == "Anonymous Auth" {
+//                return Localized.FirebaseInternalError.anonymousAuthError
+//            }
+//            if nsError.domain == GoogleSignInErrorDomain {
+//                return handleGoogleSignInError(nsError)
+//            }
+//        }
+//        
+//        if let customError = error as? FirebaseInternalError {
+//            return customError.errorDescription ?? Localized.FirebaseInternalError.defaultError
+//        }
+//        
+//        return Localized.FirebaseInternalError.defaultError
+//    }
+//    
+//    private func handleDecodingError(_ error: DecodingError) -> String {
+//        var logMessage: String
+//        
+//        switch error {
+//        case .typeMismatch(let type, let context):
+//            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+//            logMessage = "DecodingError.typeMismatch: expected type \(type), path: \(path)"
+//            
+//        case .valueNotFound(let type, let context):
+//            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+//            logMessage = "DecodingError.valueNotFound: type \(type) not found at path: \(path)"
+//            
+//        case .keyNotFound(let key, let context):
+//            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+//            logMessage = "DecodingError.keyNotFound: missing key '\(key.stringValue)', path: \(path)"
+//            
+//        case .dataCorrupted(let context):
+//            let path = context.codingPath.map(\.stringValue).joined(separator: ".")
+//            logMessage = "DecodingError.dataCorrupted: \(context.debugDescription), path: \(path)"
+//            
+//        @unknown default:
+//            logMessage = "DecodingError.unknown"
+//        }
+//        
+//        // Логируем в Crashlytics (или консоль, если не используешь Crashlytics)
+//        print("SharedErrorHandler ⚠️ Decoding error: \(logMessage)")
+//        // Crashlytics.crashlytics().log(logMessage)
+//        
+//        // Возвращаем пользователю нейтральное сообщение
+//        return Localized.FirebaseInternalError.defaultError
+//    }
+//    
+//    // Вынесенная реализация для GIDSignIn.sharedInstance.signIn
+//    private func handleGoogleSignInError(_ nsError: NSError) -> String {
+//        print("🔍 [GoogleSignInError] domain=\(nsError.domain), code=\(nsError.code), description=\(nsError.localizedDescription)")
+//
+//        guard nsError.domain == "com.google.GIDSignIn" else {
+//            return Localized.GoogleSignInError.defaultError
+//        }
+//
+//        if let code = GoogleSignInErrorCode(rawValue: nsError.code) {
+//            switch code {
+//            case .unknown:
+//                return Localized.GoogleSignInError.defaultError
+//            case .keychain:
+//                return Localized.GoogleSignInError.keychainError
+//            case .noCurrentUser:
+//                return Localized.GoogleSignInError.noHandlers
+//            case .hasNoAuthInKeychain:
+//                return Localized.GoogleSignInError.noAuthInKeychain
+//            case .canceled:
+//                return Localized.GoogleSignInError.cancelled
+//            case .emmError:
+//                return Localized.GoogleSignInError.emmError
+//            case .scopesAlreadyGranted:
+//                return Localized.GoogleSignInError.scopesAlreadyGranted
+//            case .mismatchWithCurrentUser:
+//                return Localized.GoogleSignInError.userMismatch
+//            }
+//        }
+//
+//        return Localized.GoogleSignInError.defaultError
+//    }
+//
+//
+//    
+//    private func handlePhotoPickerError(_ pickerError: PhotoPickerError) -> String {
+//        switch pickerError {
+//        case .noItemAvailable:
+//            return Localized.PhotoPickerError.noItemAvailable
+//        case .itemUnavailable:
+//            return Localized.PhotoPickerError.itemUnavailable
+//        case .unsupportedType:
+//            return Localized.PhotoPickerError.unsupportedType
+//        case .iCloudRequired:
+//            return Localized.PhotoPickerError.iCloudRequired
+//        case .loadFailed(let underlyingError),
+//             .unknown(let underlyingError):
+//            // Возвращаем системное сообщение ошибки «как есть» — оно уже может быть локализовано системой
+//            return (underlyingError as NSError).localizedDescription
+//        }
+//    }
+//
+//
+//    private func handleAuthError(_ code: AuthErrorCode) -> String {
+//        switch code {
+//        case .providerAlreadyLinked:
+//            return Localized.Auth.providerAlreadyLinked
+//        case .credentialAlreadyInUse:
+//            return Localized.Auth.credentialAlreadyInUse
+//        case .tooManyRequests:
+//            return Localized.Auth.tooManyRequests
+//        case .userTokenExpired:
+//            return Localized.Auth.userTokenExpired
+//        case .invalidUserToken:
+//            return Localized.Auth.invalidUserToken
+//        case .userMismatch:
+//            return Localized.Auth.userMismatch
+//        case .requiresRecentLogin:
+//            return Localized.Auth.requiresRecentLogin
+//        case .emailAlreadyInUse:
+//            return Localized.Auth.emailAlreadyInUse
+//        case .invalidEmail:
+//            return Localized.Auth.invalidEmail
+//        case .weakPassword:
+//            return Localized.Auth.weakPassword
+//        case .networkError:
+//            return Localized.Auth.networkError
+//        case .keychainError:
+//            return Localized.Auth.keychainError
+//        case .userNotFound:
+//            return Localized.Auth.userNotFound
+//        case .wrongPassword:
+//            return Localized.Auth.wrongPassword
+//        case .expiredActionCode:
+//            return Localized.Auth.expiredActionCode
+//        case .invalidCredential:
+//            return Localized.Auth.invalidCredential
+//        case .invalidRecipientEmail:
+//            return Localized.Auth.invalidRecipientEmail
+//        case .missingEmail:
+//            return Localized.Auth.missingEmail
+//        case .userDisabled:
+//            return Localized.Auth.userDisabled
+//        case .invalidSender:
+//            return Localized.Auth.invalidSender
+//        case .accountExistsWithDifferentCredential:
+//            return Localized.Auth.accountExistsWithDifferentCredential
+//        case .operationNotAllowed:
+//            return Localized.Auth.operationNotAllowed
+//        default:
+//            return Localized.Auth.generic
+//        }
+//    }
+//    
+//    private func handleFirestoreError(_ nsError: NSError) -> String {
+//        switch nsError.code {
+//        case FirestoreErrorCode.cancelled.rawValue:
+//            return Localized.Firestore.cancelled
+//        case FirestoreErrorCode.unavailable.rawValue:
+//            return Localized.Firestore.unavailable
+//        case FirestoreErrorCode.invalidArgument.rawValue:
+//            return Localized.Firestore.invalidArgument
+//        case FirestoreErrorCode.unknown.rawValue:
+//            return Localized.Firestore.unknown
+//        case FirestoreErrorCode.deadlineExceeded.rawValue:
+//            return Localized.Firestore.deadlineExceeded
+//        case FirestoreErrorCode.notFound.rawValue:
+//            return Localized.Firestore.notFound
+//        case FirestoreErrorCode.alreadyExists.rawValue:
+//            return Localized.Firestore.alreadyExists
+//        case FirestoreErrorCode.permissionDenied.rawValue:
+//            return Localized.Firestore.permissionDenied
+//        case FirestoreErrorCode.resourceExhausted.rawValue:
+//            return Localized.Firestore.resourceExhausted
+//        case FirestoreErrorCode.failedPrecondition.rawValue:
+//            return Localized.Firestore.failedPrecondition
+//        case FirestoreErrorCode.aborted.rawValue:
+//            return Localized.Firestore.aborted
+//        case FirestoreErrorCode.outOfRange.rawValue:
+//            return Localized.Firestore.outOfRange
+//        case FirestoreErrorCode.unimplemented.rawValue:
+//            return Localized.Firestore.unimplemented
+//        case FirestoreErrorCode.internal.rawValue:
+//            return Localized.Firestore.internalError
+//        case FirestoreErrorCode.dataLoss.rawValue:
+//            return Localized.Firestore.dataLoss
+//        case FirestoreErrorCode.unauthenticated.rawValue:
+//            return Localized.Firestore.unauthenticated
+//        default:
+//            return Localized.Firestore.generic
+//        }
+//    }
+//    
+//    private func handleStorageError(_ code: StorageErrorCode) -> String {
+//        switch code {
+//        case .objectNotFound:
+//            return Localized.Storage.objectNotFound
+//        case .bucketNotFound:
+//            return Localized.Storage.bucketNotFound
+//        case .projectNotFound:
+//            return Localized.Storage.projectNotFound
+//        case .quotaExceeded:
+//            return Localized.Storage.quotaExceeded
+//        case .unauthenticated:
+//            return Localized.Storage.unauthenticated
+//        case .unauthorized:
+//            return Localized.Storage.unauthorized
+//        case .retryLimitExceeded:
+//            return Localized.Storage.retryLimitExceeded
+//        case .nonMatchingChecksum:
+//            return Localized.Storage.nonMatchingChecksum
+//        case .downloadSizeExceeded:
+//            return Localized.Storage.downloadSizeExceeded
+//        case .cancelled:
+//            return Localized.Storage.cancelled
+//        case .invalidArgument:
+//            return Localized.Storage.invalidArgument
+//        case .unknown:
+//            return Localized.Storage.unknown
+//        case .bucketMismatch:
+//            return Localized.Storage.bucketMismatch
+//        case .internalError:
+//            return Localized.Storage.internalError
+//        case .pathError:
+//            return Localized.Storage.pathError
+//        @unknown default:
+//            return Localized.Storage.generic
+//        }
+//    }
+//    
+//    private func handleRealtimeDatabaseError(_ nsError: NSError) -> String {
+//        switch nsError.code {
+//        case NSURLErrorNotConnectedToInternet:
+//            return Localized.RealtimeDatabase.networkError
+//        case NSURLErrorTimedOut:
+//            return Localized.RealtimeDatabase.timeout
+//        case NSURLErrorCancelled:
+//            return Localized.RealtimeDatabase.operationCancelled
+//        case NSURLErrorCannotFindHost:
+//            return Localized.RealtimeDatabase.hostNotFound
+//        case NSURLErrorCannotConnectToHost:
+//            return Localized.RealtimeDatabase.cannotConnectToHost
+//        case NSURLErrorNetworkConnectionLost:
+//            return Localized.RealtimeDatabase.networkConnectionLost
+//        case NSURLErrorResourceUnavailable:
+//            return Localized.RealtimeDatabase.resourceUnavailable
+//        case NSURLErrorUserCancelledAuthentication:
+//            return Localized.RealtimeDatabase.authenticationCancelled
+//        case NSURLErrorUserAuthenticationRequired:
+//            return Localized.RealtimeDatabase.authenticationRequired
+//        default:
+//            return Localized.RealtimeDatabase.generic
+//        }
+//    }
+//}
+//
+//
+//
 
 
 

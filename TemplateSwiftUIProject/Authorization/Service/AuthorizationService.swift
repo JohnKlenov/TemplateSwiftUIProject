@@ -640,7 +640,7 @@ extension AuthorizationService {
         currentUserPublisher()
             .flatMap { [weak self] user -> AnyPublisher<Void, Error> in
                 guard let self = self else {
-                    return Fail(error: FirebaseInternalError.defaultError).eraseToAnyPublisher()
+                    return Fail(error: AppInternalError.entityDeallocated).eraseToAnyPublisher()
                 }
                 if user.isAnonymous {
                     // Сохраняем UID анонима (если далее понадобится cleanup)
@@ -668,8 +668,8 @@ extension AuthorizationService {
                 } else if let result = res {
                     promise(.success(result))
                 } else {
-                    // Обязательно логировать: неизвестное состояние
-                    promise(.failure(FirebaseInternalError.defaultError))
+                    let _ = self.errorHandler.handle(error: AppInternalError.firebaseReturnedNilResult, context: ErrorContext.AuthorizationService_signInPublisher.rawValue)
+                    promise(.failure(AppInternalError.firebaseReturnedNilResult))
                 }
             }
         }
@@ -732,7 +732,7 @@ extension AuthorizationService {
     func reauthenticate(email: String, password: String) -> AnyPublisher<Void, Error> {
         Future<Void, Error> { promise in
             guard let user = Auth.auth().currentUser else {
-                return promise(.failure(FirebaseInternalError.notSignedIn))
+                return promise(.failure(AppInternalError.notSignedIn))
             }
             let credential = EmailAuthProvider.credential(withEmail: email, password: password)
             user.reauthenticate(with: credential) { _, error in
@@ -1010,16 +1010,16 @@ extension AuthorizationService {
     func reauthenticateWithGoogle() -> AnyPublisher<Void, Error> {
         Future<Void, Error> { promise in
             guard let currentUser = Auth.auth().currentUser else {
-                return promise(.failure(FirebaseInternalError.notSignedIn))
+                return promise(.failure(AppInternalError.notSignedIn))
             }
             guard let clientID = FirebaseApp.app()?.options.clientID else {
-                return promise(.failure(FirebaseInternalError.defaultError))
+                return promise(.failure(AppInternalError.googleMissingClientID))
             }
             let config = GIDConfiguration(clientID: clientID)
             GIDSignIn.sharedInstance.configuration = config
 
             guard let presentingVC = Self.topViewController() else {
-                return promise(.failure(FirebaseInternalError.defaultError))
+                return promise(.failure(AppInternalError.googleMissingPresentingVC))
             }
             
             GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC) { result, error in
@@ -1028,7 +1028,7 @@ extension AuthorizationService {
                 }
                 guard let gUser = result?.user,
                       let idToken = gUser.idToken?.tokenString else {
-                    return promise(.failure(FirebaseInternalError.defaultError))
+                    return promise(.failure(AppInternalError.googleMissingTokens))
                 }
                 let accessToken = gUser.accessToken.tokenString
                 let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)

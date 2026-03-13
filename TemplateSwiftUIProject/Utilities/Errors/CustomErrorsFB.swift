@@ -339,47 +339,47 @@ extension AppInternalError {
 
 // MARK: - old implemintation
 
-
-enum FirebaseInternalError: Error, LocalizedError {
-    case invalidCollectionPath
-    case failedDeployOptionalError
-    case failedDeployOptionalID
-    case jsonConversionFailed
-    case notSignedIn
-    case defaultError
-    case emptyResult
-    case nilSnapshot
-    case imageEncodingFailed
-    case delayedConfirmation
-    case staleUserSession
-
-    var errorDescription: String? {
-        switch self {
-        case .invalidCollectionPath:
-            return Localized.FirebaseInternalError.invalidCollectionPath
-        case .failedDeployOptionalError:
-            return Localized.FirebaseInternalError.failedDeployOptionalError
-        case .failedDeployOptionalID:
-            return Localized.FirebaseInternalError.failedDeployOptionalID
-        case .jsonConversionFailed:
-            return Localized.FirebaseInternalError.jsonConversionFailed
-        case .notSignedIn:
-            return Localized.FirebaseInternalError.notSignedIn
-        case .defaultError:
-            return Localized.FirebaseInternalError.defaultError
-        case .emptyResult:
-            return Localized.FirebaseInternalError.emptyResult
-        case .nilSnapshot:
-            return Localized.FirebaseInternalError.nilSnapshot
-        case .imageEncodingFailed:
-            return Localized.FirebaseInternalError.imageEncodingFailed
-        case .delayedConfirmation:
-            return Localized.FirebaseInternalError.delayedConfirmation
-        case .staleUserSession:
-            return Localized.FirebaseInternalError.staleUserSession
-        }
-    }
-}
+//
+//enum FirebaseInternalError: Error, LocalizedError {
+//    case invalidCollectionPath
+//    case failedDeployOptionalError
+//    case failedDeployOptionalID
+//    case jsonConversionFailed
+//    case notSignedIn
+//    case defaultError
+//    case emptyResult
+//    case nilSnapshot
+//    case imageEncodingFailed
+//    case delayedConfirmation
+//    case staleUserSession
+//
+//    var errorDescription: String? {
+//        switch self {
+//        case .invalidCollectionPath:
+//            return Localized.FirebaseInternalError.invalidCollectionPath
+//        case .failedDeployOptionalError:
+//            return Localized.FirebaseInternalError.failedDeployOptionalError
+//        case .failedDeployOptionalID:
+//            return Localized.FirebaseInternalError.failedDeployOptionalID
+//        case .jsonConversionFailed:
+//            return Localized.FirebaseInternalError.jsonConversionFailed
+//        case .notSignedIn:
+//            return Localized.FirebaseInternalError.notSignedIn
+//        case .defaultError:
+//            return Localized.FirebaseInternalError.defaultError
+//        case .emptyResult:
+//            return Localized.FirebaseInternalError.emptyResult
+//        case .nilSnapshot:
+//            return Localized.FirebaseInternalError.nilSnapshot
+//        case .imageEncodingFailed:
+//            return Localized.FirebaseInternalError.imageEncodingFailed
+//        case .delayedConfirmation:
+//            return Localized.FirebaseInternalError.delayedConfirmation
+//        case .staleUserSession:
+//            return Localized.FirebaseInternalError.staleUserSession
+//        }
+//    }
+//}
 
 
 //enum FirebaseEnternalAppError: Error, LocalizedError {

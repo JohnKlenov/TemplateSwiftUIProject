@@ -256,7 +256,7 @@ final class AuthorizationManager: ObservableObject {
                 self.isAuthOperationInProgress = false
                 switch completion {
                 case .failure(let err):
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn, context: "")
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn, context: ErrorContext.AuthorizationManager_signIn.rawValue)
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
@@ -303,7 +303,7 @@ final class AuthorizationManager: ObservableObject {
                         )
                     }
                 case .failure(let error):
-                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate, context: "")
+                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate, context: ErrorContext.AuthorizationManager_confirmIdentity.rawValue)
                 }
             } receiveValue: { _ in }
             .store(in: &cancellables)
@@ -324,7 +324,7 @@ final class AuthorizationManager: ObservableObject {
                 
                 switch completion {
                 case .failure(let error):
-                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.forgotPasswordOperation, context: "")
+                    self.handleAuthenticationError(error, operationDescription: Localized.TitleOfFailedOperationFirebase.forgotPasswordOperation, context: ErrorContext.AuthorizationManager_forgotPassword.rawValue)
                 case .finished:
                     DispatchQueue.main.async {
                         self.alertManager.showGlobalAlert(
@@ -391,7 +391,7 @@ final class AuthorizationManager: ObservableObject {
                 
                 switch completion {
                 case .failure(let err):
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn, context: "")
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.signIn, context: ErrorContext.AuthorizationManager_googleSignIn.rawValue)
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,
@@ -428,7 +428,7 @@ final class AuthorizationManager: ObservableObject {
                         print("Пользователь нажал Отмена → ничего не делаем")
                         return
                     }
-                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate, context: "")
+                    self.handleAuthenticationError(err, operationDescription: Localized.TitleOfFailedOperationFirebase.reauthenticate, context: ErrorContext.AuthorizationManager_confirmIdentityWithGoogle.rawValue)
                 case .finished:
                     NotificationCenter.default.post(
                         name: .authDidSucceed,

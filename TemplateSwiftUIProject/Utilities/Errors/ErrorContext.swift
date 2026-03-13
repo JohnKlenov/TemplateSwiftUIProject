@@ -50,6 +50,11 @@ enum ErrorContext: String {
     case AuthorizationManager_deleteAccount_underlying
     case AuthorizationManager_signUp
     case AuthorizationManager_signUpWithGoogle
+    case AuthorizationManager_signIn
+    case AuthorizationManager_googleSignIn
+    case AuthorizationManager_forgotPassword
+    case AuthorizationManager_confirmIdentity
+    case AuthorizationManager_confirmIdentityWithGoogle
     
     // MARK: - Services -
     
@@ -74,4 +79,5 @@ enum ErrorContext: String {
     case AuthorizationService_googleSignInReplacingSession
     case AuthorizationService_linkPublisher
     case AuthorizationService_createUserPublisher
+    case AuthorizationService_signInPublisher
 }
