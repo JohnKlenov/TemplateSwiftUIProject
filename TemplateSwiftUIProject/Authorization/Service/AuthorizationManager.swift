@@ -542,7 +542,7 @@ final class AuthorizationManager: ObservableObject {
             .sink { [weak self] completion in
                 switch completion {
                 case .failure(let error):
-                    self?.handleAuthenticationError(error, operationDescription: "SignOut", context: "")
+                    self?.handleAuthenticationError(error, operationDescription: "SignOut", context: "AuthorizationManager_signOutAccount")
                 case .finished:
                     DispatchQueue.main.async { [weak self] in
                         self?.alertManager.showGlobalAlert(message:"Success signOut user!", operationDescription:"SignOut", alertType: .ok)

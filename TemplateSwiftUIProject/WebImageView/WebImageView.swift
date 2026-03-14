@@ -122,7 +122,91 @@
 
 
 
+/*
+ MARK: - WebImageView Usage Guide
+
+ WebImageView — универсальный компонент для загрузки и отображения изображений из сети.
+ Он обеспечивает:
+ - единый placeholder
+ - единый стиль отображения
+ - автоматическую обработку ошибок SDWebImage
+ - fade-анимацию появления
+ - поддержку двух режимов отображения (fixedFrame и aspectRatio)
+
+ ------------------------------------------------------------
+ 1. БАЗОВОЕ ИСПОЛЬЗОВАНИЕ
+
+ WebImageView(
+     url: URL(string: model.imageURL),
+     placeholderColor: AppColors.secondarySystemBackground,
+     displayStyle: .aspectRatio(2/3, contentMode: .fit)
+ )
+
+ ------------------------------------------------------------
+ 2. РЕЖИМЫ ОТОБРАЖЕНИЯ
+
+ • .fixedFrame(width:height:)
+   Используется для карточек, баннеров, миниатюр.
+   Пример:
+   WebImageView(
+       url: URL(string: item.url),
+       placeholderColor: .gray.opacity(0.2),
+       displayStyle: .fixedFrame(width: 120, height: 180)
+   )
+
+ • .aspectRatio(ratio, contentMode:)
+   Используется для изображений с динамическим размером.
+   Пример:
+   WebImageView(
+       url: URL(string: item.url),
+       placeholderColor: .black.opacity(0.1),
+       displayStyle: .aspectRatio(16/9, contentMode: .fit)
+   )
+
+ ------------------------------------------------------------
+ 3. ОТЛАДКА
+
+ Включение debugMode позволяет отображать текст ошибки поверх изображения.
+ Использовать только в DEBUG-сборках.
+
+ ------------------------------------------------------------
+ 4. ОБРАБОТКА ОШИБОК
+
+ Все ошибки загрузки передаются в SDWebImageErrorHandler.
+ Компонент автоматически:
+ - логирует ошибку
+ - сохраняет последнюю ошибку в @State
+ - может быть расширен для Crashlytics или аналитики
+
+ ------------------------------------------------------------
+ 5. РЕКОМЕНДАЦИИ ПО ИСПОЛЬЗОВАНИЮ
+
+ • Используйте WebImageView вместо WebImage напрямую — это гарантирует единый UX.
+ • Для списков и сеток используйте fixedFrame.
+ • Для контента с адаптивной высотой — aspectRatio.
+ • Для placeholder используйте системные цвета (например, secondarySystemBackground).
+ • Не включайте debugMode в продакшене.
+ • Если нужно fallback-изображение — добавьте его в overlay внутри WebImageView.
+
+ ------------------------------------------------------------
+ 6. РАСШИРЕНИЕ
+
+ Компонент легко расширить:
+ - добавить .circle или .rounded(radius:)
+ - добавить поддержку .scaledToFit / .scaledToFill
+ - добавить кастомный placeholder (иконка, градиент)
+ - добавить retry-кнопку при ошибке
+
+ ------------------------------------------------------------
+ Итог:
+ WebImageView — рекомендуемый компонент для всех сетевых изображений в проекте.
+ Он обеспечивает единообразие, стабильность и удобство сопровождения.
+ */
+
+
+
 // MARK: - shared implemintation WebImageView (frame + aspectRatio)
+
 
 import SwiftUI
 import SDWebImage
@@ -137,63 +221,156 @@ struct WebImageView: View {
     let url: URL?
     let placeholderColor: Color
     let displayStyle: WebImageDisplayStyle
-    let debugMode: Bool = true // Флаг для отладки
+    let debugMode: Bool = false
 
     @State private var lastError: String?
     @StateObject private var errorHandler = SDWebImageErrorHandler()
     
     var body: some View {
-        // Базовое изображение с общими модификаторами
         let baseImage = WebImage(url: url) { image in
-            image
-                .resizable()
+            image.resizable()
         } placeholder: {
             placeholderColor
+                .shimmer() // ← skeleton shimmer
         }
-            .onFailure { error in
-                let nsError = error as NSError
-                // Обновление состояния нужно выполнить асинхронно
-                DispatchQueue.main.async {
-                    self.lastError = "Error: \(nsError.localizedDescription)"
-                }
-                
-                errorHandler.handleError(nsError, for: url)
+        .onFailure { error in
+            let nsError = error as NSError
+            DispatchQueue.main.async {
+                self.lastError = nsError.localizedDescription
             }
-        .indicator(.progress)
-        .transition(.fade(duration: 0.5))
-        
-        // Используем Group и switch для выбора способа отображения.
-        // Благодаря ViewBuilder SwiftUI объединит оба случая в единую структуру типа `some View`.
+            errorHandler.handleError(nsError, for: url)
+        }
+        .transition(.fade(duration: 0.3))
+
         return Group {
             switch displayStyle {
             case .fixedFrame(let width, let height):
                 baseImage
                     .aspectRatio(contentMode: .fill)
-                    .clipped()
                     .frame(width: width, height: height)
                     .clipped()
+
             case .aspectRatio(let ratio, let contentMode):
                 baseImage
                     .aspectRatio(ratio, contentMode: contentMode)
                     .clipped()
             }
         }
-        .overlay(
-            Group {
-                //нужно отработать что бы в плэйсхолдере обозначалось что не удалось подгрузить из сети картинку
-//                if debugMode, let error = lastError {
-//                    Text(error)
-//                        .font(.caption)
-//                        .foregroundColor(.red)
-//                        .padding(4)
-//                        .background(Color.black.opacity(0.8))
-//                        .cornerRadius(4)
-//                }
-            }
-        )
     }
 }
 
+
+struct Shimmer: ViewModifier {
+    @State private var phase: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.white.opacity(0.0),
+                        Color.white.opacity(0.4),
+                        Color.white.opacity(0.0)
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .rotationEffect(.degrees(30))
+                .offset(x: phase * 200, y: phase * 200)
+                .blendMode(.plusLighter)
+            )
+            .onAppear {
+                withAnimation(
+                    Animation.linear(duration: 1.2)
+                        .repeatForever(autoreverses: false)
+                ) {
+                    phase = 1
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmer() -> some View {
+        self.modifier(Shimmer())
+    }
+}
+
+
+
+
+// MARK: - before add loger and new imlemintation WebImageView
+
+
+//import SwiftUI
+//import SDWebImage
+//import SDWebImageSwiftUI
+//
+//enum WebImageDisplayStyle {
+//    case fixedFrame(width: CGFloat, height: CGFloat)
+//    case aspectRatio(CGFloat, contentMode: ContentMode)
+//}
+//
+//struct WebImageView: View {
+//    let url: URL?
+//    let placeholderColor: Color
+//    let displayStyle: WebImageDisplayStyle
+//    let debugMode: Bool = true // Флаг для отладки
+//
+//    @State private var lastError: String?
+//    @StateObject private var errorHandler = SDWebImageErrorHandler()
+//    
+//    var body: some View {
+//        // Базовое изображение с общими модификаторами
+//        let baseImage = WebImage(url: url) { image in
+//            image
+//                .resizable()
+//        } placeholder: {
+//            placeholderColor
+//        }
+//            .onFailure { error in
+//                let nsError = error as NSError
+//                // Обновление состояния нужно выполнить асинхронно
+//                DispatchQueue.main.async {
+//                    self.lastError = "Error: \(nsError.localizedDescription)"
+//                }
+//                
+//                errorHandler.handleError(nsError, for: url)
+//            }
+//        .indicator(.progress)
+//        .transition(.fade(duration: 0.5))
+//        
+//        // Используем Group и switch для выбора способа отображения.
+//        // Благодаря ViewBuilder SwiftUI объединит оба случая в единую структуру типа `some View`.
+//        return Group {
+//            switch displayStyle {
+//            case .fixedFrame(let width, let height):
+//                baseImage
+//                    .aspectRatio(contentMode: .fill)
+//                    .clipped()
+//                    .frame(width: width, height: height)
+//                    .clipped()
+//            case .aspectRatio(let ratio, let contentMode):
+//                baseImage
+//                    .aspectRatio(ratio, contentMode: contentMode)
+//                    .clipped()
+//            }
+//        }
+//        .overlay(
+//            Group {
+//                //нужно отработать что бы в плэйсхолдере обозначалось что не удалось подгрузить из сети картинку
+////                if debugMode, let error = lastError {
+////                    Text(error)
+////                        .font(.caption)
+////                        .foregroundColor(.red)
+////                        .padding(4)
+////                        .background(Color.black.opacity(0.8))
+////                        .cornerRadius(4)
+////                }
+//            }
+//        )
+//    }
+//}
 
 
 
