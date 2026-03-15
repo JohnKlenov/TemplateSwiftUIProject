@@ -204,8 +204,79 @@
  */
 
 
+/*
+ MARK: - Skeleton Placeholder Behavior Summary
+
+ WebImageView использует skeleton‑placeholder (градиент + shimmer) вместо progress‑индикатора.
+ Поведение skeleton полностью соответствует современному UX‑паттерну (Instagram, TikTok, Pinterest).
+
+ Skeleton отображается в следующих случаях:
+
+ • Пока изображение загружается.
+   WebImage сначала показывает placeholder, поэтому shimmer активен до полной загрузки картинки.
+
+ • Если загрузка завершилась ошибкой.
+   onFailure вызывается, но WebImage не подставляет иконку ошибки — placeholder остаётся,
+   поэтому skeleton продолжает мерцать, не смущая пользователя.
+
+ • Если URL пустой или nil.
+   WebImage не начинает загрузку и сразу показывает placeholder → skeleton активен.
+
+ Таким образом, skeleton является универсальным состоянием:
+ - до загрузки,
+ - при ошибке,
+ - при отсутствии URL.
+
+ Это позволяет убрать .indicator(.progress), так как skeleton полностью заменяет индикатор загрузки
+ и создаёт более чистый, современный и ненавязчивый пользовательский опыт.
+ */
+
+
+/*
+ MARK: - Инструкция: как записать видео с iOS Simulator и сделать GIF
+
+ 1. Как записать видео через iOS Simulator
+    • Открой Simulator
+    • В меню выбери: File → Record Screen
+    • Запусти нужную анимацию (например, shimmer)
+    • Останови запись — файл сохранится в формате .mov
+
+ 2. Как конвертировать видео в GIF через ezgif.com
+    • Перейди на сайт: https://ezgif.com/video-to-gif
+    • Загрузите .mov файл
+    • Нажмите "Upload video"
+    • Установите параметры (FPS 12–20, ширина 600–800 px)
+    • Нажмите "Convert to GIF"
+    • Скачайте готовый GIF
+
+ 3. Что такое GIF (объяснение максимально просто)
+    • GIF — это короткая анимация, собранная из нескольких картинок.
+    • Работает как "мини‑видео", но без звука.
+    • GIF повторяется по кругу, поэтому идеально подходит для показа анимаций,
+      таких как shimmer, skeleton‑placeholder или визуальные баги.
+    • GIF легко отправить в чат, и он отображается как обычная картинка.
+
+ 4. Зачем это нужно
+    • Удобно показывать shimmer‑анимацию в движении
+    • Можно быстро продемонстрировать визуальные проблемы
+    • GIF легко просматривать и пересылать
+
+ 5. Как отправить GIF, если чат не принимает файл
+    • Если GIF не получается прикрепить напрямую (файл полупрозрачный),
+      его можно загрузить в облако Mail.ru.
+    • Открой Облако Mail.ru → Загрузить файл → Получить ссылку.
+    • Отправь ссылку в чат — её можно открыть и посмотреть без ограничений.
+
+ Примечание:
+ GIF — лучший формат для демонстрации skeleton‑эффектов, потому что он показывает
+ движение блика в реальном времени и не требует проигрывателя видео.
+ */
+
+
 
 // MARK: - shared implemintation WebImageView (frame + aspectRatio)
+
+
 
 
 import SwiftUI
@@ -216,6 +287,7 @@ enum WebImageDisplayStyle {
     case fixedFrame(width: CGFloat, height: CGFloat)
     case aspectRatio(CGFloat, contentMode: ContentMode)
 }
+
 
 struct WebImageView: View {
     let url: URL?
@@ -261,27 +333,33 @@ struct WebImageView: View {
 
 
 struct Shimmer: ViewModifier {
-    @State private var phase: CGFloat = 0
+    @State private var phase: CGFloat = -1
 
     func body(content: Content) -> some View {
         content
             .overlay(
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.white.opacity(0.0),
-                        Color.white.opacity(0.4),
-                        Color.white.opacity(0.0)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .rotationEffect(.degrees(30))
-                .offset(x: phase * 200, y: phase * 200)
+                GeometryReader { proxy in
+                    let width = proxy.size.width
+                    let shimmerWidth = width * 0.75 // мягкий широкий блик
+
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.white.opacity(0.0),
+                            Color.white.opacity(0.28), // мягкая яркость
+                            Color.white.opacity(0.0)
+                        ]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: shimmerWidth)
+                    .offset(x: phase * (width + shimmerWidth))
+                }
+                .clipped()
                 .blendMode(.plusLighter)
             )
             .onAppear {
                 withAnimation(
-                    Animation.linear(duration: 1.2)
+                    Animation.linear(duration: 1.8)
                         .repeatForever(autoreverses: false)
                 ) {
                     phase = 1
@@ -297,6 +375,68 @@ extension View {
 }
 
 
+
+// MARK: -  Тестовый WebImageView - .shimmer() работает без остановки
+
+//enum WebImageDisplayStyle {
+//    case fixedFrame(width: CGFloat, height: CGFloat)
+//    case aspectRatio(CGFloat, contentMode: ContentMode)
+//}
+//
+//struct WebImageView: View {
+//    let url: URL?
+//    let placeholderColor: Color
+//    let displayStyle: WebImageDisplayStyle
+//    let debugMode: Bool = false
+//
+//    // ТЕСТОВЫЙ ФЛАГ — skeleton всегда активен
+//    let alwaysShowSkeleton: Bool = true
+//
+//    @State private var lastError: String?
+//    @StateObject private var errorHandler = SDWebImageErrorHandler()
+//    
+//    var body: some View {
+//        let baseImage = WebImage(url: url) { image in
+//            image.resizable()
+//        } placeholder: {
+//            placeholderColor
+//                .shimmer()
+//        }
+//        .onFailure { error in
+//            let nsError = error as NSError
+//            DispatchQueue.main.async {
+//                self.lastError = nsError.localizedDescription
+//            }
+//            errorHandler.handleError(nsError, for: url)
+//        }
+//        .transition(.fade(duration: 0.3))
+//
+//        return Group {
+//            switch displayStyle {
+//            case .fixedFrame(let width, let height):
+//                baseImage
+//                    .aspectRatio(contentMode: .fill)
+//                    .frame(width: width, height: height)
+//                    .clipped()
+//                    .overlay(
+//                        placeholderColor
+//                            .shimmer()
+//                            .opacity(alwaysShowSkeleton ? 1 : 0)
+//                    )
+//
+//            case .aspectRatio(let ratio, let contentMode):
+//                baseImage
+//                    .aspectRatio(ratio, contentMode: contentMode)
+//                    .clipped()
+//                    .overlay(
+//                        placeholderColor
+//                            .shimmer()
+//                            .opacity(alwaysShowSkeleton ? 1 : 0)
+//                    )
+//            }
+//        }
+//    }
+//}
 
 
 // MARK: - before add loger and new imlemintation WebImageView

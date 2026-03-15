@@ -107,6 +107,151 @@ final class SDWebImageErrorHandler: ObservableObject, SDWebImageErrorHandlerProt
 
 
 
+
+
+
+// MARK: - new
+//final class SDWebImageErrorHandler: ObservableObject, SDWebImageErrorHandlerProtocol {
+//
+//    private let logger: ErrorLoggingServiceProtocol
+//
+//    init(logger: ErrorLoggingServiceProtocol = CrashlyticsLoggingService.shared) {
+//        self.logger = logger
+//    }
+//
+//    func handleError(_ error: NSError, for url: URL?) {
+//        switch error.domain {
+//        case NSURLErrorDomain:
+//            handleURLError(error, for: url)
+//        case SDWebImageErrorDomain:
+//            handleSDWebImageError(error, for: url)
+//        default:
+//            logNonCritical(
+//                error: error,
+//                context: "SDWebImage: Unhandled error domain",
+//                params: ["domain": error.domain]
+//            )
+//        }
+//    }
+//
+//    private func handleURLError(_ error: NSError, for url: URL?) {
+//        let failingURL = error.userInfo[NSURLErrorFailingURLErrorKey] as? URL
+//
+//        switch error.code {
+//        case NSURLErrorBadURL,
+//             NSURLErrorUnsupportedURL,
+//             NSURLErrorCannotFindHost,
+//             NSURLErrorCannotConnectToHost,
+//             NSURLErrorDNSLookupFailed,
+//             NSURLErrorHTTPTooManyRedirects,
+//             NSURLErrorSecureConnectionFailed:
+//
+//            logCritical(
+//                error: error,
+//                context: "SDWebImage: Critical URL error",
+//                params: ["url": failingURL?.absoluteString ?? "nil"]
+//            )
+//
+//        case NSURLErrorTimedOut,
+//             NSURLErrorNetworkConnectionLost,
+//             NSURLErrorNotConnectedToInternet:
+//            break
+//
+//        default:
+//            logNonCritical(
+//                error: error,
+//                context: "SDWebImage: Unhandled URL error",
+//                params: ["code": error.code]
+//            )
+//        }
+//    }
+//
+//    private func handleSDWebImageError(_ error: NSError, for url: URL?) {
+//        guard let code = SDWebImageError.Code(rawValue: error.code) else {
+//            logNonCritical(
+//                error: error,
+//                context: "SDWebImage: Unknown SDWebImage error code",
+//                params: ["code": error.code]
+//            )
+//            return
+//        }
+//
+//        switch code {
+//        case .invalidURL, .badImageData, .invalidDownloadStatusCode, .blackListed:
+//            logCritical(
+//                error: error,
+//                context: "SDWebImage: Critical image error",
+//                params: ["url": url?.absoluteString ?? "nil"]
+//            )
+//
+//        case .cancelled, .cacheNotModified, .invalidDownloadOperation, .invalidDownloadResponse, .invalidDownloadContentType:
+//            break
+//
+//        @unknown default:
+//            logNonCritical(
+//                error: error,
+//                context: "SDWebImage: Unknown error case",
+//                params: ["case": "unknown"]
+//            )
+//        }
+//    }
+//
+//    // MARK: - Logging
+//
+//    private func logCritical(
+//        error: Error,
+//        context: String,
+//        params: [String: Any]? = nil
+//    ) {
+//        #if DEBUG
+//        print("🛑 [DEBUG] Critical error: \(context)")
+//        print("🛑 Error:", error.localizedDescription)
+//        if let params = params { print("🛑 Params:", params) }
+//        #else
+//        let nsError = error as NSError
+//        var merged = ["context": context, "is_critical": true]
+//        if let params = params { merged.merge(params) { $1 } }
+//
+//        logger.logError(
+//            error,
+//            domain: nsError.domain,
+//            source: context,
+//            message: nil,
+//            params: merged,
+//            severity: .error
+//        )
+//        #endif
+//    }
+//
+//    private func logNonCritical(
+//        error: Error,
+//        context: String,
+//        params: [String: Any]? = nil
+//    ) {
+//        #if DEBUG
+//        print("⚠️ [DEBUG] Non-critical error: \(context)")
+//        print("⚠️ Error:", error.localizedDescription)
+//        if let params = params { print("⚠️ Params:", params) }
+//        #else
+//        let nsError = error as NSError
+//        var merged = ["context": context, "is_critical": false]
+//        if let params = params { merged.merge(params) { $1 } }
+//
+//        logger.logError(
+//            error,
+//            domain: nsError.domain,
+//            source: context,
+//            message: nil,
+//            params: merged,
+//            severity: .warning
+//        )
+//        #endif
+//    }
+//}
+
+
+
+
 // MARK: - first code
 
 //    // MARK: - Error Handling Core
