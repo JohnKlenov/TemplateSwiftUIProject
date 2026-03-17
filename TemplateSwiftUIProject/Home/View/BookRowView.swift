@@ -21,7 +21,7 @@ struct BookRowView: View {
             WebImageView(
                 url: URL(string: book.urlImage),
                 placeholderColor: AppColors.secondarySystemBackground,
-                displayStyle: .fixedFrame(width: 50, height: 50)
+                displayStyle: .fixedFrame(width: 50, height: 50), context: ErrorContext.BookRowView_webImage_loadImage.rawValue
             )
             VStack(alignment: .leading) {
                 Text(book.title)

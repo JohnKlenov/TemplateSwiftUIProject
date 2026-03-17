@@ -80,4 +80,35 @@ enum ErrorContext: String {
     case AuthorizationService_linkPublisher
     case AuthorizationService_createUserPublisher
     case AuthorizationService_signInPublisher
+    
+    
+    
+    // MARK: - ErrorHandlers -
+    
+    
+    // MARK: - SDWebImageErrorHandler
+
+    case SDWebImageErrorHandler_handleError_unhandledDomain
+    case SDWebImageErrorHandler_handleURLError_critical
+    case SDWebImageErrorHandler_handleURLError_unexpected
+    case SDWebImageErrorHandler_handleSDWebImageError_critical
+    case SDWebImageErrorHandler_handleSDWebImageError_unknownCode
+    case SDWebImageErrorHandler_handleSDWebImageError_unknownCase
+    
+    
+    
+    
+    // MARK: - Views
+    
+    
+    // MARK: - WebImageView Contexts
+
+    case ProductCell_webImage_loadImage
+    case ShopCell_webImage_loadImage
+    case MallCell_webImage_loadImage
+    case UserInfoEditView_webImage_loadImage
+    case UserInfoCellView_webImage_loadImage
+    case BookRowView_webImage_loadImage
+    case BookDetailsView_webImage_loadImage
+
 }

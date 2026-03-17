@@ -279,6 +279,7 @@
 
 
 
+
 import SwiftUI
 import SDWebImage
 import SDWebImageSwiftUI
@@ -288,29 +289,24 @@ enum WebImageDisplayStyle {
     case aspectRatio(CGFloat, contentMode: ContentMode)
 }
 
-
 struct WebImageView: View {
     let url: URL?
     let placeholderColor: Color
     let displayStyle: WebImageDisplayStyle
-    let debugMode: Bool = false
+    let context: String   // ← контекст View
 
-    @State private var lastError: String?
-    @StateObject private var errorHandler = SDWebImageErrorHandler()
-    
     var body: some View {
         let baseImage = WebImage(url: url) { image in
             image.resizable()
         } placeholder: {
-            placeholderColor
-                .shimmer() // ← skeleton shimmer
+            placeholderColor.shimmer()
         }
         .onFailure { error in
-            let nsError = error as NSError
-            DispatchQueue.main.async {
-                self.lastError = nsError.localizedDescription
-            }
-            errorHandler.handleError(nsError, for: url)
+            SDWebImageErrorHandler.shared.handleError(
+                error as NSError,
+                for: url,
+                context: context
+            )
         }
         .transition(.fade(duration: 0.3))
 
@@ -331,7 +327,6 @@ struct WebImageView: View {
     }
 }
 
-
 struct Shimmer: ViewModifier {
     @State private var phase: CGFloat = -1
 
@@ -340,12 +335,12 @@ struct Shimmer: ViewModifier {
             .overlay(
                 GeometryReader { proxy in
                     let width = proxy.size.width
-                    let shimmerWidth = width * 0.75 // мягкий широкий блик
+                    let shimmerWidth = width * 0.75
 
                     LinearGradient(
                         gradient: Gradient(colors: [
                             Color.white.opacity(0.0),
-                            Color.white.opacity(0.28), // мягкая яркость
+                            Color.white.opacity(0.28),
                             Color.white.opacity(0.0)
                         ]),
                         startPoint: .leading,
@@ -373,6 +368,201 @@ extension View {
         self.modifier(Shimmer())
     }
 }
+
+
+
+
+
+// MARK: - before   SDWebImageErrorHandler.shared.handleError(error as NSError, for: url, context: context)
+
+
+//import SwiftUI
+//import SDWebImage
+//import SDWebImageSwiftUI
+//
+//enum WebImageDisplayStyle {
+//    case fixedFrame(width: CGFloat, height: CGFloat)
+//    case aspectRatio(CGFloat, contentMode: ContentMode)
+//}
+//
+//struct WebImageView: View {
+//    let url: URL?
+//    let placeholderColor: Color
+//    let displayStyle: WebImageDisplayStyle
+//    let context: String   // ← добавили контекст
+//
+//    @StateObject private var errorHandler = SDWebImageErrorHandler()
+//
+//    var body: some View {
+//        let baseImage = WebImage(url: url) { image in
+//            image.resizable()
+//        } placeholder: {
+//            placeholderColor
+//                .shimmer()
+//        }
+//        .onFailure { error in
+//            let nsError = error as NSError
+//            errorHandler.handleError(nsError, for: url, context: context)
+//        }
+//        .transition(.fade(duration: 0.3))
+//
+//        return Group {
+//            switch displayStyle {
+//            case .fixedFrame(let width, let height):
+//                baseImage
+//                    .aspectRatio(contentMode: .fill)
+//                    .frame(width: width, height: height)
+//                    .clipped()
+//
+//            case .aspectRatio(let ratio, let contentMode):
+//                baseImage
+//                    .aspectRatio(ratio, contentMode: contentMode)
+//                    .clipped()
+//            }
+//        }
+//    }
+//}
+//
+//struct Shimmer: ViewModifier {
+//    @State private var phase: CGFloat = -1
+//
+//    func body(content: Content) -> some View {
+//        content
+//            .overlay(
+//                GeometryReader { proxy in
+//                    let width = proxy.size.width
+//                    let shimmerWidth = width * 0.75
+//
+//                    LinearGradient(
+//                        gradient: Gradient(colors: [
+//                            Color.white.opacity(0.0),
+//                            Color.white.opacity(0.28),
+//                            Color.white.opacity(0.0)
+//                        ]),
+//                        startPoint: .leading,
+//                        endPoint: .trailing
+//                    )
+//                    .frame(width: shimmerWidth)
+//                    .offset(x: phase * (width + shimmerWidth))
+//                }
+//                .clipped()
+//                .blendMode(.plusLighter)
+//            )
+//            .onAppear {
+//                withAnimation(
+//                    Animation.linear(duration: 1.8)
+//                        .repeatForever(autoreverses: false)
+//                ) {
+//                    phase = 1
+//                }
+//            }
+//    }
+//}
+//
+//extension View {
+//    func shimmer() -> some View {
+//        self.modifier(Shimmer())
+//    }
+//}
+//
+
+// MARK: - before let context: String
+
+
+//import SwiftUI
+//import SDWebImage
+//import SDWebImageSwiftUI
+//
+//enum WebImageDisplayStyle {
+//    case fixedFrame(width: CGFloat, height: CGFloat)
+//    case aspectRatio(CGFloat, contentMode: ContentMode)
+//}
+//
+//
+//struct WebImageView: View {
+//    let url: URL?
+//    let placeholderColor: Color
+//    let displayStyle: WebImageDisplayStyle
+//    let debugMode: Bool = false
+//    
+//    @StateObject private var errorHandler = SDWebImageErrorHandler()
+//    
+//    var body: some View {
+//        let baseImage = WebImage(url: url) { image in
+//            image.resizable()
+//        } placeholder: {
+//            placeholderColor
+//                .shimmer() // ← skeleton shimmer
+//        }
+//        .onFailure { error in
+//            let nsError = error as NSError
+//            errorHandler.handleError(nsError, for: url)
+//        }
+//        .transition(.fade(duration: 0.3))
+//
+//        return Group {
+//            switch displayStyle {
+//            case .fixedFrame(let width, let height):
+//                baseImage
+//                    .aspectRatio(contentMode: .fill)
+//                    .frame(width: width, height: height)
+//                    .clipped()
+//
+//            case .aspectRatio(let ratio, let contentMode):
+//                baseImage
+//                    .aspectRatio(ratio, contentMode: contentMode)
+//                    .clipped()
+//            }
+//        }
+//    }
+//}
+//
+//
+//struct Shimmer: ViewModifier {
+//    @State private var phase: CGFloat = -1
+//
+//    func body(content: Content) -> some View {
+//        content
+//            .overlay(
+//                GeometryReader { proxy in
+//                    let width = proxy.size.width
+//                    let shimmerWidth = width * 0.75 // мягкий широкий блик
+//
+//                    LinearGradient(
+//                        gradient: Gradient(colors: [
+//                            Color.white.opacity(0.0),
+//                            Color.white.opacity(0.28), // мягкая яркость
+//                            Color.white.opacity(0.0)
+//                        ]),
+//                        startPoint: .leading,
+//                        endPoint: .trailing
+//                    )
+//                    .frame(width: shimmerWidth)
+//                    .offset(x: phase * (width + shimmerWidth))
+//                }
+//                .clipped()
+//                .blendMode(.plusLighter)
+//            )
+//            .onAppear {
+//                withAnimation(
+//                    Animation.linear(duration: 1.8)
+//                        .repeatForever(autoreverses: false)
+//                ) {
+//                    phase = 1
+//                }
+//            }
+//    }
+//}
+//
+//extension View {
+//    func shimmer() -> some View {
+//        self.modifier(Shimmer())
+//    }
+//}
+
+
+
+
 
 
 

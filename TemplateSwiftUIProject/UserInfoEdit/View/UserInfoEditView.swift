@@ -172,7 +172,7 @@ struct UserInfoEditView: View {
             WebImageView(
                 url: url,
                 placeholderColor: .gray,
-                displayStyle: .fixedFrame(width: 120, height: 120)
+                displayStyle: .fixedFrame(width: 120, height: 120), context: ErrorContext.UserInfoEditView_webImage_loadImage.rawValue
             )
         } else {
             Image(systemName: AppIcons.UserInfoEditView.avatarPlaceholder)

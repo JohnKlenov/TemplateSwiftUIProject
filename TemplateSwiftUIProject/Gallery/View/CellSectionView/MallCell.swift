@@ -19,7 +19,7 @@ struct MallCell: View {
             WebImageView(
                 url: URL(string: item.urlImage),
                 placeholderColor: AppColors.secondarySystemBackground,
-                displayStyle: .fixedFrame(width: width, height: height)
+                displayStyle: .fixedFrame(width: width, height: height), context: ErrorContext.MallCell_webImage_loadImage.rawValue
             )
             AppColors.black.opacity(0.6)
                 .frame(width: width, height: height)

@@ -79,7 +79,7 @@ struct UserInfoCellView: View {
             WebImageView(
                 url: url,
                 placeholderColor: .gray,
-                displayStyle: .fixedFrame(width: 60, height: 60)
+                displayStyle: .fixedFrame(width: 60, height: 60), context: ErrorContext.UserInfoCellView_webImage_loadImage.rawValue
             )
             .clipShape(Circle())
         } else {

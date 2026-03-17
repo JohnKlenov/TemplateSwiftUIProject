@@ -61,7 +61,7 @@ struct BookDetailsView: View {
                     WebImageView(
                         url: URL(string: book.urlImage),
                         placeholderColor: AppColors.secondarySystemBackground,
-                        displayStyle: .fixedFrame(width: 300, height: 300)
+                        displayStyle: .fixedFrame(width: 300, height: 300), context:  ErrorContext.BookDetailsView_webImage_loadImage.rawValue
                     )
                         .aspectRatio(contentMode: .fill)
                         .frame(maxWidth: .infinity)

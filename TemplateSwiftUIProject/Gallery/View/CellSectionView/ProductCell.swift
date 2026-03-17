@@ -21,7 +21,7 @@ struct ProductCell: View {
                 WebImageView(
                     url: URL(string: item.urlImage),
                     placeholderColor: AppColors.secondarySystemBackground,
-                    displayStyle: .aspectRatio(2/3, contentMode: .fit)
+                    displayStyle: .aspectRatio(2/3, contentMode: .fit), context: ErrorContext.ProductCell_webImage_loadImage.rawValue
                 )
             ///Да, если вы добавите .frame(height: 200) к WebImageView с модификатором .aspectRatio(2/3, contentMode: .fit), то ширина будет автоматически подбираться так, чтобы соблюдалось соотношение 2:3 (то есть около 133 pt для высоты 200 pt), при условии отсутствия других ограничений по ширине.
             ///Мы можем передавать значение height в качестве параметра в зависисмости от ширины и высоты доступного экрана!
