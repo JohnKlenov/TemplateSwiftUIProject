@@ -103,6 +103,7 @@ enum ErrorContext: String {
     
     // MARK: - WebImageView Contexts
 
+    //тут нужно по хорошему передавать id модели что бы идентифицироавть битый URL
     case ProductCell_webImage_loadImage
     case ShopCell_webImage_loadImage
     case MallCell_webImage_loadImage

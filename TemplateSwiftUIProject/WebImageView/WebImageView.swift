@@ -293,7 +293,7 @@ struct WebImageView: View {
     let url: URL?
     let placeholderColor: Color
     let displayStyle: WebImageDisplayStyle
-    let context: String   // ← контекст View
+    let context: String   // ← контекст View (тут нужно по хорошему передавать id модели что бы идентифицироавть битый URL)
 
     var body: some View {
         let baseImage = WebImage(url: url) { image in

@@ -123,6 +123,7 @@
 		5EC4B2522F30E06100F0C2D7 /* CrashlyticsLoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2512F30E06100F0C2D7 /* CrashlyticsLoggingService.swift */; };
 		5EC4B2542F320F5000F0C2D7 /* ErrorContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2532F320F5000F0C2D7 /* ErrorContext.swift */; };
 		5EC4B2572F41F0E700F0C2D7 /* FirestoreError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2562F41F0E700F0C2D7 /* FirestoreError.swift */; };
+		5EC4B25A2F6AE51900F0C2D7 /* BySpotify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -267,6 +268,7 @@
 		5EC4B2512F30E06100F0C2D7 /* CrashlyticsLoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsLoggingService.swift; sourceTree = "<group>"; };
 		5EC4B2532F320F5000F0C2D7 /* ErrorContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorContext.swift; sourceTree = "<group>"; };
 		5EC4B2562F41F0E700F0C2D7 /* FirestoreError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreError.swift; sourceTree = "<group>"; };
+		5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BySpotify.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsInfo.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -960,6 +962,7 @@
 				5E8F9C942D65F4F2004036F6 /* Localizable.strings */,
 				5E8F9C992D65F573004036F6 /* Localized.swift */,
 				5EB96B572F0A9E8900C7CDBC /* AppIcons.swift */,
+				5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */,
 			);
 			path = TemplateSwiftUIProject;
 			sourceTree = "<group>";
@@ -1310,6 +1313,7 @@
 				5EBFD5C82E1AA15400A3C74C /* SignInViewInjected.swift in Sources */,
 				5EB96B582F0A9E8900C7CDBC /* AppIcons.swift in Sources */,
 				5EBFD5CA2E1CFF4A00A3C74C /* ContentAccountViewInjected.swift in Sources */,
+				5EC4B25A2F6AE51900F0C2D7 /* BySpotify.swift in Sources */,
 				5EC88EE32DB2347800A95224 /* NavigationCellView.swift in Sources */,
 				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,
 				5EC332D82E3E49F20051BE5B /* ReauthenticateViewModel.swift in Sources */,
