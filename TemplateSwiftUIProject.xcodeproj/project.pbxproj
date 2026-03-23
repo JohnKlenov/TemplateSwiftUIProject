@@ -124,6 +124,7 @@
 		5EC4B2542F320F5000F0C2D7 /* ErrorContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2532F320F5000F0C2D7 /* ErrorContext.swift */; };
 		5EC4B2572F41F0E700F0C2D7 /* FirestoreError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2562F41F0E700F0C2D7 /* FirestoreError.swift */; };
 		5EC4B25A2F6AE51900F0C2D7 /* BySpotify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */; };
+		5EC4B25D2F712FC900F0C2D7 /* YouTubeMusic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -269,6 +270,7 @@
 		5EC4B2532F320F5000F0C2D7 /* ErrorContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorContext.swift; sourceTree = "<group>"; };
 		5EC4B2562F41F0E700F0C2D7 /* FirestoreError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreError.swift; sourceTree = "<group>"; };
 		5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BySpotify.swift; sourceTree = "<group>"; };
+		5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusic.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsInfo.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -833,6 +835,15 @@
 			path = WebImageView;
 			sourceTree = "<group>";
 		};
+		5EC4B25B2F712F8D00F0C2D7 /* MusicAPI */ = {
+			isa = PBXGroup;
+			children = (
+				5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */,
+				5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */,
+			);
+			path = MusicAPI;
+			sourceTree = "<group>";
+		};
 		5EC88EDD2DB1375A00A95224 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
@@ -935,6 +946,7 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5EC4B25B2F712F8D00F0C2D7 /* MusicAPI */,
 				5EC4B2582F43389E00F0C2D7 /* WebImageView */,
 				5EB96B562EF422DB00C7CDBC /* Info.plist */,
 				5EA082A42EDB0E2F00E244B8 /* ChangeLanguage */,
@@ -962,7 +974,6 @@
 				5E8F9C942D65F4F2004036F6 /* Localizable.strings */,
 				5E8F9C992D65F573004036F6 /* Localized.swift */,
 				5EB96B572F0A9E8900C7CDBC /* AppIcons.swift */,
-				5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */,
 			);
 			path = TemplateSwiftUIProject;
 			sourceTree = "<group>";
@@ -1334,6 +1345,7 @@
 				5EA082972EA5107C00E244B8 /* FirebaseAuthUserProvider.swift in Sources */,
 				5EC332E12E48D3470051BE5B /* UserInfoEditViewInjected.swift in Sources */,
 				5EA082A12ECF40A900E244B8 /* ForgotPasswordView.swift in Sources */,
+				5EC4B25D2F712FC900F0C2D7 /* YouTubeMusic.swift in Sources */,
 				5EA4FE2F2D05B89B001CA401 /* SheetManager.swift in Sources */,
 				5EAF5B032D2D552900D96FD6 /* HomeViewModel.swift in Sources */,
 				5EC88EF12DCE234D00A95224 /* HapticFeedbackModifier.swift in Sources */,
