@@ -125,6 +125,7 @@
 		5EC4B2572F41F0E700F0C2D7 /* FirestoreError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2562F41F0E700F0C2D7 /* FirestoreError.swift */; };
 		5EC4B25A2F6AE51900F0C2D7 /* BySpotify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */; };
 		5EC4B25D2F712FC900F0C2D7 /* YouTubeMusic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */; };
+		5EC4B2612F72798300F0C2D7 /* DevYoutubeMusic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -271,6 +272,7 @@
 		5EC4B2562F41F0E700F0C2D7 /* FirestoreError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreError.swift; sourceTree = "<group>"; };
 		5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BySpotify.swift; sourceTree = "<group>"; };
 		5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusic.swift; sourceTree = "<group>"; };
+		5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevYoutubeMusic.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsInfo.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -838,10 +840,27 @@
 		5EC4B25B2F712F8D00F0C2D7 /* MusicAPI */ = {
 			isa = PBXGroup;
 			children = (
-				5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */,
-				5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */,
+				5EC4B25F2F72793100F0C2D7 /* YouTubeMusic */,
+				5EC4B25E2F72791900F0C2D7 /* Spotify */,
 			);
 			path = MusicAPI;
+			sourceTree = "<group>";
+		};
+		5EC4B25E2F72791900F0C2D7 /* Spotify */ = {
+			isa = PBXGroup;
+			children = (
+				5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */,
+			);
+			path = Spotify;
+			sourceTree = "<group>";
+		};
+		5EC4B25F2F72793100F0C2D7 /* YouTubeMusic */ = {
+			isa = PBXGroup;
+			children = (
+				5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */,
+				5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */,
+			);
+			path = YouTubeMusic;
 			sourceTree = "<group>";
 		};
 		5EC88EDD2DB1375A00A95224 /* ViewModel */ = {
@@ -1290,6 +1309,7 @@
 				5EC94A002CC291DB003736A9 /* ContentAccountView.swift in Sources */,
 				5E00EE152F2220CD00A521AC /* BookDetailsViewInjected.swift in Sources */,
 				5EAF5B0C2D2D56D400D96FD6 /* AlertViewModel.swift in Sources */,
+				5EC4B2612F72798300F0C2D7 /* DevYoutubeMusic.swift in Sources */,
 				5EA4FE362D21C8D7001CA401 /* HomeContentView.swift in Sources */,
 				5EA4FE322D09CF87001CA401 /* CRUDSManager.swift in Sources */,
 				5E8F9CB12D819EB6004036F6 /* GalleryView.swift in Sources */,
