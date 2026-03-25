@@ -126,6 +126,7 @@
 		5EC4B25A2F6AE51900F0C2D7 /* BySpotify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */; };
 		5EC4B25D2F712FC900F0C2D7 /* YouTubeMusic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */; };
 		5EC4B2612F72798300F0C2D7 /* DevYoutubeMusic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */; };
+		5EC4B2642F73E31500F0C2D7 /* AllAdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2632F73E31500F0C2D7 /* AllAdminView.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -273,6 +274,7 @@
 		5EC4B2592F6AE51900F0C2D7 /* BySpotify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BySpotify.swift; sourceTree = "<group>"; };
 		5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusic.swift; sourceTree = "<group>"; };
 		5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevYoutubeMusic.swift; sourceTree = "<group>"; };
+		5EC4B2632F73E31500F0C2D7 /* AllAdminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllAdminView.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsInfo.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -857,10 +859,19 @@
 		5EC4B25F2F72793100F0C2D7 /* YouTubeMusic */ = {
 			isa = PBXGroup;
 			children = (
+				5EC4B2622F73E2E000F0C2D7 /* adminScreen */,
 				5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */,
 				5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */,
 			);
 			path = YouTubeMusic;
+			sourceTree = "<group>";
+		};
+		5EC4B2622F73E2E000F0C2D7 /* adminScreen */ = {
+			isa = PBXGroup;
+			children = (
+				5EC4B2632F73E31500F0C2D7 /* AllAdminView.swift */,
+			);
+			path = adminScreen;
 			sourceTree = "<group>";
 		};
 		5EC88EDD2DB1375A00A95224 /* ViewModel */ = {
@@ -1417,6 +1428,7 @@
 				5EA082A82EDB0E8300E244B8 /* ChangeLanguageViewModel.swift in Sources */,
 				5EC949E32CBA89FC003736A9 /* OnboardingService .swift in Sources */,
 				5E8F9C762D537CC5004036F6 /* BookDetailsViewModel.swift in Sources */,
+				5EC4B2642F73E31500F0C2D7 /* AllAdminView.swift in Sources */,
 				5EC88EEE2DBF92A600A95224 /* NetworkStatusBanner.swift in Sources */,
 				5EC949EA2CBA954F003736A9 /* OnboardingView.swift in Sources */,
 				5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */,

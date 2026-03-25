@@ -457,3 +457,439 @@ FirebaseApp.configure()
 ГОТОВО: ПРОЕКТ ПОЛНОСТЬЮ НАСТРОЕН ДЛЯ РАБОТЫ С YOUTUBE + FIREBASE
 ==============================================================
 */
+
+
+
+
+
+/*
+==============================================================
+ДВА ПОТОКА АВТОРИЗАЦИИ В ПРИЛОЖЕНИИ
+==============================================================
+
+1) Firebase Auth Client ID (auto-created)
+-----------------------------------------
+Используется для:
+- входа пользователя через Google
+- авторизации Firebase
+- получения Firebase credential
+
+Код:
+let clientID = FirebaseApp.app()?.options.clientID
+
+Этот Client ID НЕ подходит для YouTube API.
+
+--------------------------------------------------------------
+
+2) YouTube OAuth Client ID (создан вручную)
+-------------------------------------------
+Используется для:
+- YouTube OAuth Scopes
+- доступа к YouTube API от имени пользователя
+- добавления треков в плейлисты YouTube Music
+- получения accessToken + refreshToken
+
+Код:
+let config = GIDConfiguration(clientID: "ТВОЙ_НОВЫЙ_CLIENT_ID")
+
+Scopes:
+https://www.googleapis.com/auth/youtube
+https://www.googleapis.com/auth/youtube.force-ssl
+
+--------------------------------------------------------------
+
+ОБА Client ID МОГУТ ИСПОЛЬЗОВАТЬСЯ ОДНОВРЕМЕННО.
+Это нормальная архитектура:
+- Firebase Auth → для входа
+- YouTube OAuth → для работы с YouTube API
+
+==============================================================
+*/
+
+
+
+
+
+
+
+/*
+==============================================================
+YOUTUBE OAUTH 2.0 — ПОЛНАЯ КОДОВАЯ БАЗА ДЛЯ iOS (Swift)
+==============================================================
+
+ЭТОТ КОММЕНТАРИЙ СОДЕРЖИТ:
+1) Второй поток авторизации (YouTube OAuth)
+2) Получение accessToken / refreshToken
+3) Добавление трека в плейлист YouTube Music
+4) Объяснение, зачем нужны два Client ID
+
+==============================================================
+1. ДВА CLIENT ID — ЗАЧЕМ?
+--------------------------------------------------------------
+A) Firebase Client ID (auto-created)
+   - используется для входа через Google в FirebaseAuth
+   - НЕ подходит для YouTube API
+   - используется твоим текущим кодом
+
+B) YouTube OAuth Client ID (создан вручную)
+   - используется для YouTube OAuth Scopes
+   - даёт доступ к YouTube API от имени пользователя
+   - нужен для добавления треков в YouTube Music
+
+ОБА Client ID МОГУТ ИСПОЛЬЗОВАТЬСЯ ОДНОВРЕМЕННО.
+Это нормальная архитектура.
+
+==============================================================
+2. YOUTUBE OAUTH — ВТОРОЙ ПОТОК АВТОРИЗАЦИИ
+--------------------------------------------------------------
+
+import GoogleSignIn
+
+final class YouTubeAuthService {
+
+    static let shared = YouTubeAuthService()
+
+    // ВСТАВЬ СВОЙ НОВЫЙ OAuth Client ID
+    private let clientID = "YOUR_NEW_OAUTH_CLIENT_ID"
+
+    // Scopes для работы с YouTube API
+    private let scopes = [
+        "https://www.googleapis.com/auth/youtube",
+        "https://www.googleapis.com/auth/youtube.force-ssl"
+    ]
+
+    // Авторизация YouTube
+    func signInForYouTube(
+        presentingVC: UIViewController,
+        completion: @escaping (Result<GIDGoogleUser, Error>) -> Void
+    ) {
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+
+        GIDSignIn.sharedInstance.signIn(
+            withPresenting: presentingVC,
+            hint: nil,
+            additionalScopes: scopes
+        ) { result, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let user = result?.user else {
+                completion(.failure(NSError(domain: "YouTubeAuth", code: -1)))
+                return
+            }
+            completion(.success(user))
+        }
+    }
+}
+
+==============================================================
+3. ПОЛУЧЕНИЕ ACCESS TOKEN / REFRESH TOKEN
+--------------------------------------------------------------
+
+YouTubeAuthService.shared.signInForYouTube(presentingVC: vc) { result in
+    switch result {
+    case .success(let user):
+        let accessToken = user.accessToken.tokenString
+        let refreshToken = user.refreshToken
+
+        print("YouTube access token:", accessToken)
+        print("YouTube refresh token:", refreshToken)
+
+    case .failure(let error):
+        print("Error:", error)
+    }
+}
+
+==============================================================
+4. СОЗДАНИЕ ПЛЕЙЛИСТА В YOUTUBE MUSIC
+--------------------------------------------------------------
+
+func createPlaylist(accessToken: String, title: String) async throws -> String {
+    let url = URL(string: "https://www.googleapis.com/youtube/v3/playlists?part=snippet,status")!
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    let body: [String: Any] = [
+        "snippet": [
+            "title": title,
+            "description": "Created from TemplateSwiftUI app"
+        ],
+        "status": [
+            "privacyStatus": "private"
+        ]
+    ]
+
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    let (data, _) = try await URLSession.shared.data(for: request)
+    let json = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+
+    return (json["id"] as? String) ?? ""
+}
+
+==============================================================
+5. ДОБАВЛЕНИЕ ТРЕКА В ПЛЕЙЛИСТ YOUTUBE MUSIC
+--------------------------------------------------------------
+
+func addTrackToPlaylist(accessToken: String, playlistId: String, videoId: String) async throws {
+    let url = URL(string: "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet")!
+
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.addValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    let body: [String: Any] = [
+        "snippet": [
+            "playlistId": playlistId,
+            "resourceId": [
+                "kind": "youtube#video",
+                "videoId": videoId
+            ]
+        ]
+    ]
+
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+    let _ = try await URLSession.shared.data(for: request)
+}
+
+==============================================================
+6. ИТОГ
+--------------------------------------------------------------
+- Новый OAuth Client ID нужен ТОЛЬКО для YouTube OAuth.
+- Для AdminView (парсинг треков) он НЕ нужен.
+- Firebase Client ID остаётся для входа в Firebase.
+- YouTube OAuth Client ID используется для:
+    • signInForYouTube()
+    • получения accessToken
+    • работы с YouTube API
+    • добавления треков в YouTube Music
+
+==============================================================
+*/
+
+
+
+/*
+==============================================================
+GOOGLE OAUTH — НАСТРОЙКА AUDIENCE (TEST USERS)
+==============================================================
+
+Этот раздел относится к настройке OAuth Consent Screen в Google Cloud.
+
+Ты уже успешно создал:
+- OAuth Consent Screen
+- OAuth Client ID
+- App Branding
+
+Теперь в разделе "Audience" нужно выполнить только одну задачу.
+
+--------------------------------------------------------------
+1. ЧТО ТАКОЕ AUDIENCE?
+--------------------------------------------------------------
+Audience — это список пользователей, которым разрешено
+тестировать OAuth авторизацию, пока приложение находится
+в статусе "Testing".
+
+Google блокирует доступ всем остальным пользователям,
+пока приложение не опубликовано и не прошло верификацию.
+
+--------------------------------------------------------------
+2. ЧТО НУЖНО СДЕЛАТЬ?
+--------------------------------------------------------------
+В разделе:
+Google Auth Platform → Audience
+
+Нужно нажать:
++ Add users
+
+И добавить:
+- свой Gmail (обязательно)
+- любые другие аккаунты, с которых ты будешь тестировать
+
+Пример:
+klenovminsk@gmail.com
+
+--------------------------------------------------------------
+3. ПОЧЕМУ ЭТО ВАЖНО?
+--------------------------------------------------------------
+Без добавления Test Users Google НЕ позволит:
+- войти через YouTube OAuth
+- получить accessToken
+- получить refreshToken
+- работать с YouTube API от имени пользователя
+
+Ты увидишь ошибку:
+"Access blocked: This app is not authorized"
+
+Добавление Test Users решает это.
+
+--------------------------------------------------------------
+4. ЧТО НЕ НУЖНО ДЕЛАТЬ?
+--------------------------------------------------------------
+- НЕ нажимать "Publish app"
+- НЕ менять User type
+- НЕ проходить Verification
+- НЕ добавлять домены
+
+Это всё нужно только для публичных приложений.
+Для разработки достаточно режима Testing.
+
+--------------------------------------------------------------
+5. ИТОГ
+--------------------------------------------------------------
+✔ OAuth Consent Screen создан
+✔ OAuth Client ID создан
+✔ Осталось только добавить Test Users
+✔ После этого YouTube OAuth будет работать
+
+==============================================================
+*/
+
+
+
+
+/*
+==============================================================
+GOOGLE OAUTH — YOUTUBE SCOPES (ОБНОВЛЁННАЯ ИНФОРМАЦИЯ)
+==============================================================
+
+Google обновил список OAuth‑разрешений для YouTube API.
+
+Раньше требовались два Scopes:
+1) .../auth/youtube
+2) .../auth/youtube.force-ssl
+
+НО:
+- В новом интерфейсе Google Auth Platform
+- Scope "youtube.force-ssl" больше НЕ отображается
+- Его функциональность объединена в основной Scope "youtube"
+
+--------------------------------------------------------------
+ЧТО НУЖНО ВЫБРАТЬ СЕЙЧАС
+--------------------------------------------------------------
+
+✔ Обязательно:
+https://www.googleapis.com/auth/youtube
+
+Этот Scope даёт:
+- управление плейлистами
+- добавление треков
+- создание плейлистов
+- доступ к приватным данным YouTube
+
+✔ Опционально:
+https://www.googleapis.com/auth/youtube.readonly
+
+--------------------------------------------------------------
+ЧТО НЕ НУЖНО ДЕЛАТЬ
+--------------------------------------------------------------
+
+✘ Не искать "youtube.force-ssl" — его больше нет
+✘ Не добавлять Scopes вручную через текстовое поле
+
+--------------------------------------------------------------
+ИТОГ
+--------------------------------------------------------------
+
+Твой OAuth Client ID полностью готов для:
+- YouTube OAuth авторизации
+- получения accessToken / refreshToken
+- работы с YouTube Music API
+
+==============================================================
+*/
+
+
+
+
+/*
+==============================================================
+FIRESTORE SECURITY — ADMIN ROLE (CUSTOM CLAIMS)
+==============================================================
+
+В продакшене запись в Firestore должна быть ограничена
+только для админов. Для этого используется механизм
+"custom claims" в Firebase Authentication.
+
+--------------------------------------------------------------
+1. ЧТО ТАКОЕ CUSTOM CLAIMS
+--------------------------------------------------------------
+Custom claims — это дополнительные поля в токене
+пользователя (request.auth.token), которые задаются
+ТОЛЬКО через Firebase Admin SDK (на бэкенде).
+
+Пример:
+- обычный пользователь: role = "user"
+- админ: role = "admin"
+
+Клиентское iOS‑приложение НЕ может само себе выдать
+роль admin — это делает только доверенный сервер.
+
+--------------------------------------------------------------
+2. ПРАВИЛА FIRESTORE ДЛЯ ADMIN
+--------------------------------------------------------------
+
+// Пример правил:
+match /{document=**} {
+  allow read: if request.auth != null;
+  allow write: if request.auth != null
+               && request.auth.token.role == "admin";
+}
+
+Вариант для конкретной коллекции playlists:
+
+match /playlists/{playlistId}/tracks/{trackId} {
+  allow read: if request.auth != null;
+  allow write: if request.auth != null
+               && request.auth.token.role == "admin";
+}
+
+ИТОГ:
+- читать могут все авторизованные пользователи
+- писать (создавать/обновлять/удалять) могут только админы
+
+--------------------------------------------------------------
+3. КАК ВЫДАТЬ РОЛЬ ADMIN
+--------------------------------------------------------------
+Роль admin назначается через Firebase Admin SDK
+(Cloud Functions, Node.js, любой бэкенд).
+
+Пример на Node.js:
+
+  const admin = require("firebase-admin");
+
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+  });
+
+  async function setAdminRole(uid: string) {
+    await admin.auth().setCustomUserClaims(uid, { role: "admin" });
+    console.log("Admin role set for:", uid);
+  }
+
+После этого:
+- у пользователя с этим UID в токене будет role = "admin"
+- Firestore начнёт разрешать ему запись
+- пользователю нужно перелогиниться, чтобы получить новый токен
+
+--------------------------------------------------------------
+4. ПОЧЕМУ ЭТО ПОДХОДИТ ДЛЯ ПРОДАКШЕНА
+--------------------------------------------------------------
+- Роль admin нельзя подделать с клиента
+- Все проверки прав выполняются на стороне Firestore
+- Обычные пользователи не могут писать в критичные коллекции
+- Админ‑панель может быть встроена в то же приложение,
+  но защищена на уровне правил Firestore
+
+==============================================================
+*/
+
+
+
