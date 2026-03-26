@@ -58,7 +58,7 @@
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "YOUTUBE_API_KEY"
-            value = "AIzaSyBVO4TUiokVla72LzR3HtF0yK_5tC7qiNQ"
+            value = "AIzaSyCFWyWRPDhNd2yjC68RYT3JceKia2OzABk"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
