@@ -127,6 +127,7 @@
 		5EC4B25D2F712FC900F0C2D7 /* YouTubeMusic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */; };
 		5EC4B2612F72798300F0C2D7 /* DevYoutubeMusic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */; };
 		5EC4B2642F73E31500F0C2D7 /* AllAdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2632F73E31500F0C2D7 /* AllAdminView.swift */; };
+		5EC4B2662F74143300F0C2D7 /* DesignAndStructure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC4B2652F74143300F0C2D7 /* DesignAndStructure.swift */; };
 		5EC88ED42DA93AAE00A95224 /* SDWebImageErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */; };
 		5EC88ED62DAA8A8500A95224 /* CrashlyticsInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */; };
 		5EC88ED82DAE8E8D00A95224 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */; };
@@ -275,6 +276,7 @@
 		5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeMusic.swift; sourceTree = "<group>"; };
 		5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevYoutubeMusic.swift; sourceTree = "<group>"; };
 		5EC4B2632F73E31500F0C2D7 /* AllAdminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllAdminView.swift; sourceTree = "<group>"; };
+		5EC4B2652F74143300F0C2D7 /* DesignAndStructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignAndStructure.swift; sourceTree = "<group>"; };
 		5EC88ED32DA93AAE00A95224 /* SDWebImageErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDWebImageErrorHandler.swift; sourceTree = "<group>"; };
 		5EC88ED52DAA8A8500A95224 /* CrashlyticsInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticsInfo.swift; sourceTree = "<group>"; };
 		5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -862,6 +864,7 @@
 				5EC4B2622F73E2E000F0C2D7 /* adminScreen */,
 				5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */,
 				5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */,
+				5EC4B2652F74143300F0C2D7 /* DesignAndStructure.swift */,
 			);
 			path = YouTubeMusic;
 			sourceTree = "<group>";
@@ -1370,6 +1373,7 @@
 				5EC88EEB2DBF8CEE00A95224 /* NetworkMonitor.swift in Sources */,
 				5E8F9CC12D81A476004036F6 /* PopularProductsSectionView.swift in Sources */,
 				5EA4FDC72CD8E780001CA401 /* BookEditView.swift in Sources */,
+				5EC4B2662F74143300F0C2D7 /* DesignAndStructure.swift in Sources */,
 				5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */,
 				5E00EE112F1E2C8900A521AC /* HomeManager.swift in Sources */,
 				5E8F9CA12D7CDFB7004036F6 /* GalleryContentViewModel(test).swift in Sources */,
@@ -1594,6 +1598,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TemplateSwiftUIProject/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1625,6 +1630,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TemplateSwiftUIProject/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

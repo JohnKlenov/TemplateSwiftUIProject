@@ -56,6 +56,11 @@
             value = "YES"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "YOUTUBE_API_KEY"
+            value = "AIzaSyCndQOgh80zckZSEmEt2oES-xiJoUouWkI"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction

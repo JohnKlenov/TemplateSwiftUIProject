@@ -90,10 +90,52 @@ match /playlists/{playlistId}/tracks/{trackId} {
 */
 
 
+
+/*
+Политика хранения секретов для production
+
+1. Никогда не встраивать долгоживущие API‑ключи в Info.plist или исходный код.
+2. Для production храните секреты на бэкенде. Клиент обращается к вашему серверу, сервер делает запросы к сторонним API.
+3. Храните секреты сборки в хранилище секретов CI (GitHub Actions Secrets, Bitrise, GitLab CI и т.д.).
+   - На CI генерируйте Secrets.xcconfig на этапе сборки со значениями:
+     YOUTUBE_API_KEY = "REDACTED_FROM_REPO"
+   - Не коммитьте сгенерированный Secrets.xcconfig в VCS. Добавьте его в .gitignore.
+4. Для релизных сборок подставляйте секреты только во время CI сборки (через переменные окружения или сгенерированный xcconfig).
+5. Если секрет должен оказаться на устройстве, передавайте его по защищённому каналу во время выполнения и сохраняйте в Keychain.
+6. Ограничьте ключи в консоли провайдера (bundle ID, HTTP referrers, IP, квоты) и включите мониторинг/уведомления.
+7. Регулярно ротируйте ключи и имейте план отката/ревокации.
+8. Для локальной разработки используйте Xcode Scheme Environment Variables или локальный Secrets.xcconfig, добавленный в .gitignore.
+9. Перед коммитом убедитесь, что локальные секреты удалены:
+   - Удалить переменные схемы
+   - Удалить локальные ссылки на Secrets.xcconfig
+   - Вернуть Generate Info.plist File в исходное состояние, если меняли
+   - git checkout -- <изменённые файлы> для отката случайных правок
+
+Обратитесь в DevOps для добавления проекта в CI хранилище секретов и для процедуры экстренной ротации ключей.
+*/
+
+
+
 import Foundation
 import FirebaseFirestore
 import SwiftUI
 import SafariServices
+
+
+
+struct Secrets {
+    static var youtubeAPIKey: String {
+        if let env = ProcessInfo.processInfo.environment["YOUTUBE_API_KEY"], !env.isEmpty {
+            return env
+        }
+        if let plist = Bundle.main.object(forInfoDictionaryKey: "YOUTUBE_API_KEY") as? String, !plist.isEmpty {
+            return plist
+        }
+        return ""
+    }
+}
+
+
 
 // MARK: - Модель трека
 
@@ -205,6 +247,7 @@ final class AdminViewModel: ObservableObject {
     private let db = Firestore.firestore()
 
     init(apiKey: String) {
+        print("API KEY:", Secrets.youtubeAPIKey)
         self.api = YouTubeAPIClient(apiKey: apiKey)
     }
 
@@ -288,7 +331,7 @@ struct SafariView: UIViewControllerRepresentable {
 // MARK: - AdminView
 
 struct AdminView: View {
-    @StateObject private var vm = AdminViewModel(apiKey: "AIzaSyAwGzooN7t_PZeupuksoDzmrZSY15uxcmw")
+    @StateObject private var vm = AdminViewModel(apiKey: Secrets.youtubeAPIKey)
     @State private var showPreview = false
 
     var body: some View {
