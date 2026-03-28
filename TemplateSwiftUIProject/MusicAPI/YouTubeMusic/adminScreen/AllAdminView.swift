@@ -244,7 +244,7 @@ final class AdminViewModel: ObservableObject {
     init(apiKey: String) {
         
 
-//        print("API KEY:", Secrets.youtubeAPIKey)
+        print("API KEY:", Secrets.youtubeAPIKey)
         self.api = YouTubeAPIClient(apiKey: apiKey)
     }
 
@@ -328,7 +328,7 @@ struct SafariView: UIViewControllerRepresentable {
 // MARK: - AdminView
 
 struct AdminView: View {
-    @StateObject private var vm = AdminViewModel(apiKey: "Secrets.youtubeAPIKey")
+    @StateObject private var vm = AdminViewModel(apiKey: Secrets.youtubeAPIKey)
     @State private var showPreview = false
 
     var body: some View {
