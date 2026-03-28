@@ -14,6 +14,8 @@
 		5E00EE192F22385200A521AC /* GalleryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE182F22385200A521AC /* GalleryManager.swift */; };
 		5E00EE1C2F27691B00A521AC /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5E00EE1B2F27691B00A521AC /* FirebaseCrashlytics */; };
 		5E00EE1E2F27692400A521AC /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5E00EE1D2F27692400A521AC /* FirebaseAnalytics */; };
+		5E5466052F7806AE009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466042F7806AE009D7210 /* .gitignore */; };
+		5E5466072F7806F7009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466062F7806F7009D7210 /* Secrets.swift */; };
 		5E8F9C672D537949004036F6 /* TabSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C662D537949004036F6 /* TabSwitcher.swift */; };
 		5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */; };
 		5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */; };
@@ -170,6 +172,8 @@
 		5E00EE142F2220CD00A521AC /* BookDetailsViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailsViewInjected.swift; sourceTree = "<group>"; };
 		5E00EE162F22368700A521AC /* GalleryContentViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryContentViewInjected.swift; sourceTree = "<group>"; };
 		5E00EE182F22385200A521AC /* GalleryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryManager.swift; sourceTree = "<group>"; };
+		5E5466042F7806AE009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		5E5466062F7806F7009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E8F9C662D537949004036F6 /* TabSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSwitcher.swift; sourceTree = "<group>"; };
 		5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCoordinator.swift; sourceTree = "<group>"; };
 		5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewBuilderService.swift; sourceTree = "<group>"; };
@@ -962,6 +966,7 @@
 		5EC949C32CB526E5003736A9 = {
 			isa = PBXGroup;
 			children = (
+				5E5466042F7806AE009D7210 /* .gitignore */,
 				5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */,
 				5EC949CD2CB526E5003736A9 /* Products */,
 				5E00EE1A2F27691B00A521AC /* Frameworks */,
@@ -1186,6 +1191,7 @@
 				5EC94A0E2CC3CBBB003736A9 /* Extension */,
 				5EC94A0B2CC3CA2F003736A9 /* Errors */,
 				5EC94A072CC3C729003736A9 /* Helper */,
+				5E5466062F7806F7009D7210 /* Secrets.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -1299,6 +1305,7 @@
 				5E8F9C962D65F4F2004036F6 /* Localizable.strings in Resources */,
 				5EB96B552EF4213500C7CDBC /* GoogleService-Info.plist in Resources */,
 				5EC949D42CB526E9003736A9 /* Assets.xcassets in Resources */,
+				5E5466052F7806AE009D7210 /* .gitignore in Resources */,
 				5EC88EF62DD0BC6800A95224 /* Launch Screen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1431,6 +1438,7 @@
 				5EC949E02CBA88F2003736A9 /* OnboardingPage.swift in Sources */,
 				5EA082A82EDB0E8300E244B8 /* ChangeLanguageViewModel.swift in Sources */,
 				5EC949E32CBA89FC003736A9 /* OnboardingService .swift in Sources */,
+				5E5466072F7806F7009D7210 /* Secrets.swift in Sources */,
 				5E8F9C762D537CC5004036F6 /* BookDetailsViewModel.swift in Sources */,
 				5EC4B2642F73E31500F0C2D7 /* AllAdminView.swift in Sources */,
 				5EC88EEE2DBF92A600A95224 /* NetworkStatusBanner.swift in Sources */,

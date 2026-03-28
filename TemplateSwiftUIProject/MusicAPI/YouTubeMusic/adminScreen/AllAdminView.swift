@@ -123,17 +123,12 @@ import SafariServices
 
 
 
-struct Secrets {
-    static var youtubeAPIKey: String {
-        if let env = ProcessInfo.processInfo.environment["YOUTUBE_API_KEY"], !env.isEmpty {
-            return env
-        }
-        if let plist = Bundle.main.object(forInfoDictionaryKey: "YOUTUBE_API_KEY") as? String, !plist.isEmpty {
-            return plist
-        }
-        return ""
-    }
-}
+
+
+
+
+
+
 
 
 
@@ -247,6 +242,8 @@ final class AdminViewModel: ObservableObject {
     private let db = Firestore.firestore()
 
     init(apiKey: String) {
+        
+
         print("API KEY:", Secrets.youtubeAPIKey)
         self.api = YouTubeAPIClient(apiKey: apiKey)
     }
