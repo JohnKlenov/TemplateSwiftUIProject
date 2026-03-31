@@ -14,7 +14,9 @@ struct NavigationCellView: View {
     
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var accountCoordinator: AccountCoordinator
-    
+    //временно для текста
+    @State private var showTracks = false
+
     let title: AccountRowTitle
     let destination: AccountFlow
 
@@ -38,18 +40,27 @@ struct NavigationCellView: View {
         .contentShape(Rectangle())
         .onTapGesture {
             if destination == .aboutUs {
-                do {
-                    try Auth.auth().signOut()
-                } catch {
-                    print("error signOut() - \(error.localizedDescription)")
-                }
+                print("tap .aboutUs")
+                showTracks = true
             } else {
                 accountCoordinator.navigateTo(page: destination)
                 print("onTapGesture - \(title)")
             }
         }
+        //временно для текста
+        .fullScreenCover(isPresented: $showTracks) {
+            TracksListView()
+        }
+
     }
 }
+
+//if destination == .aboutUs {}
+//                do {
+//                    try Auth.auth().signOut()
+//                } catch {
+//                    print("error signOut() - \(error.localizedDescription)")
+//                }
 
 
 // MARK: - before AccountRowTitle

@@ -166,11 +166,18 @@ import SafariServices
 
 
 
+protocol TrackProtocol {
+    var videoId: String { get }
+    var title: String { get }
+    var artist: String { get }
+    var thumbnailURL: String { get }
+    var durationISO8601: String { get }
+}
 
 
 // MARK: - Модель трека
 
-struct TrackMetadata: Identifiable, Codable {
+struct TrackMetadata: Identifiable, Codable, TrackProtocol {
     var id: String { videoId }
 
     let videoId: String
@@ -179,6 +186,7 @@ struct TrackMetadata: Identifiable, Codable {
     let thumbnailURL: String
     let durationISO8601: String
 }
+
 
 // MARK: - Модели для парсинга YouTube JSON
 

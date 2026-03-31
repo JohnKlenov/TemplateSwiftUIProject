@@ -16,6 +16,12 @@
 		5E00EE1E2F27692400A521AC /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5E00EE1D2F27692400A521AC /* FirebaseAnalytics */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
+		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
+		5E5466142F7A5E29009D7210 /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466132F7A5E29009D7210 /* Track.swift */; };
+		5E5466162F7A5E62009D7210 /* TracksViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466152F7A5E62009D7210 /* TracksViewModel.swift */; };
+		5E5466182F7A5E80009D7210 /* TrackRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466172F7A5E80009D7210 /* TrackRow.swift */; };
+		5E54661B2F7A5F19009D7210 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54661A2F7A5F19009D7210 /* PlayerView.swift */; };
+		5E54661D2F7C0544009D7210 /* B2B_MUSIC_LICENSING_OPTIONS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54661C2F7C0544009D7210 /* B2B_MUSIC_LICENSING_OPTIONS.swift */; };
 		5E8F9C672D537949004036F6 /* TabSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C662D537949004036F6 /* TabSwitcher.swift */; };
 		5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */; };
 		5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */; };
@@ -174,6 +180,12 @@
 		5E00EE182F22385200A521AC /* GalleryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryManager.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
+		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
+		5E5466132F7A5E29009D7210 /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		5E5466152F7A5E62009D7210 /* TracksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksViewModel.swift; sourceTree = "<group>"; };
+		5E5466172F7A5E80009D7210 /* TrackRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackRow.swift; sourceTree = "<group>"; };
+		5E54661A2F7A5F19009D7210 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		5E54661C2F7C0544009D7210 /* B2B_MUSIC_LICENSING_OPTIONS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = B2B_MUSIC_LICENSING_OPTIONS.swift; sourceTree = "<group>"; };
 		5E8F9C662D537949004036F6 /* TabSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSwitcher.swift; sourceTree = "<group>"; };
 		5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCoordinator.swift; sourceTree = "<group>"; };
 		5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewBuilderService.swift; sourceTree = "<group>"; };
@@ -346,6 +358,60 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5E54660C2F7A5B56009D7210 /* Description */ = {
+			isa = PBXGroup;
+			children = (
+				5EC4B2652F74143300F0C2D7 /* DesignAndStructure.swift */,
+				5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */,
+				5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */,
+				5E54661C2F7C0544009D7210 /* B2B_MUSIC_LICENSING_OPTIONS.swift */,
+			);
+			path = Description;
+			sourceTree = "<group>";
+		};
+		5E54660D2F7A5DB2009D7210 /* TracksList */ = {
+			isa = PBXGroup;
+			children = (
+				5E5466122F7A5E0D009D7210 /* Model */,
+				5E54660F2F7A5DCB009D7210 /* ViewModel */,
+				5E54660E2F7A5DC3009D7210 /* View */,
+			);
+			path = TracksList;
+			sourceTree = "<group>";
+		};
+		5E54660E2F7A5DC3009D7210 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5E5466102F7A5DE5009D7210 /* TracksListView.swift */,
+				5E5466172F7A5E80009D7210 /* TrackRow.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5E54660F2F7A5DCB009D7210 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5E5466152F7A5E62009D7210 /* TracksViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		5E5466122F7A5E0D009D7210 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				5E5466132F7A5E29009D7210 /* Track.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		5E5466192F7A5EEC009D7210 /* YouTubePlayer */ = {
+			isa = PBXGroup;
+			children = (
+				5E54661A2F7A5F19009D7210 /* PlayerView.swift */,
+			);
+			path = YouTubePlayer;
 			sourceTree = "<group>";
 		};
 		5E8F9C6A2D5379E6004036F6 /* ViewBuilder */ = {
@@ -865,20 +931,20 @@
 		5EC4B25F2F72793100F0C2D7 /* YouTubeMusic */ = {
 			isa = PBXGroup;
 			children = (
-				5EC4B2622F73E2E000F0C2D7 /* adminScreen */,
-				5EC4B25C2F712FC900F0C2D7 /* YouTubeMusic.swift */,
-				5EC4B2602F72798300F0C2D7 /* DevYoutubeMusic.swift */,
-				5EC4B2652F74143300F0C2D7 /* DesignAndStructure.swift */,
+				5E5466192F7A5EEC009D7210 /* YouTubePlayer */,
+				5E54660D2F7A5DB2009D7210 /* TracksList */,
+				5E54660C2F7A5B56009D7210 /* Description */,
+				5EC4B2622F73E2E000F0C2D7 /* AdminScreen */,
 			);
 			path = YouTubeMusic;
 			sourceTree = "<group>";
 		};
-		5EC4B2622F73E2E000F0C2D7 /* adminScreen */ = {
+		5EC4B2622F73E2E000F0C2D7 /* AdminScreen */ = {
 			isa = PBXGroup;
 			children = (
 				5EC4B2632F73E31500F0C2D7 /* AllAdminView.swift */,
 			);
-			path = adminScreen;
+			path = AdminScreen;
 			sourceTree = "<group>";
 		};
 		5EC88EDD2DB1375A00A95224 /* ViewModel */ = {
@@ -1332,6 +1398,7 @@
 				5EAF5B0C2D2D56D400D96FD6 /* AlertViewModel.swift in Sources */,
 				5EC4B2612F72798300F0C2D7 /* DevYoutubeMusic.swift in Sources */,
 				5EA4FE362D21C8D7001CA401 /* HomeContentView.swift in Sources */,
+				5E54661D2F7C0544009D7210 /* B2B_MUSIC_LICENSING_OPTIONS.swift in Sources */,
 				5EA4FE322D09CF87001CA401 /* CRUDSManager.swift in Sources */,
 				5E8F9CB12D819EB6004036F6 /* GalleryView.swift in Sources */,
 				5EC94A0D2CC3CA4E003736A9 /* CustomErrorsFB.swift in Sources */,
@@ -1400,10 +1467,12 @@
 				5EC88EFD2DD4A58D00A95224 /* SignUpView.swift in Sources */,
 				5EC332EF2E5EEF770051BE5B /* UserInfoEditManager.swift in Sources */,
 				5EC332EA2E5C44440051BE5B /* PhotoPickerView.swift in Sources */,
+				5E5466142F7A5E29009D7210 /* Track.swift in Sources */,
 				5EA2E6012DDF360500C53E52 /* SignInViewModel.swift in Sources */,
 				5EA2E6122E03FFBF00C53E52 /* CombineSetting.swift in Sources */,
 				5EA2E5F82DDCB28D00C53E52 /* SignUpViewModel.swift in Sources */,
 				5E8F9CCA2D81AC47004036F6 /* FirestoreGetService.swift in Sources */,
+				5E5466162F7A5E62009D7210 /* TracksViewModel.swift in Sources */,
 				5EC949E52CBA8FC5003736A9 /* OnboardingViewModel.swift in Sources */,
 				5E8F9C712D537AA1004036F6 /* SomeView.swift in Sources */,
 				5EAF5B132D367E7E00D96FD6 /* ContentViewModel.swift in Sources */,
@@ -1414,6 +1483,7 @@
 				5EA0829F2ECF401D00E244B8 /* ForgotPasswordViewModel.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
 				5EC332E32E48D3700051BE5B /* UserInfoEditViewModel.swift in Sources */,
+				5E54661B2F7A5F19009D7210 /* PlayerView.swift in Sources */,
 				5E8F9CA92D7ED71D004036F6 /* GalleryCoordinator.swift in Sources */,
 				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
 				5EC4B2522F30E06100F0C2D7 /* CrashlyticsLoggingService.swift in Sources */,
@@ -1428,6 +1498,7 @@
 				5EA2E5FF2DDF35AD00C53E52 /* SignInView.swift in Sources */,
 				5EA2E5F32DDC8A5D00C53E52 /* String+Ext.swift in Sources */,
 				5E8F9CA52D7EC973004036F6 /* GalleryListView(test).swift in Sources */,
+				5E5466182F7A5E80009D7210 /* TrackRow.swift in Sources */,
 				5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */,
 				5EA2E5F52DDCB1CC00C53E52 /* HideKeyboard.swift in Sources */,
 				5EC88EDA2DB128F100A95224 /* AccountCoordinator.swift in Sources */,
@@ -1451,6 +1522,7 @@
 				5EA2E6072DEF2E4B00C53E52 /* CommentOrientationInfo.swift in Sources */,
 				5E00EE132F1E354100A521AC /* HomeContentViewInjected.swift in Sources */,
 				5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */,
+				5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */,
 				5E8F9CAD2D7ED912004036F6 /* GalleryViewModel(test).swift in Sources */,
 				5EAF5B0E2D2FF96000D96FD6 /* FirstAppear.swift in Sources */,
 				5EC4B2572F41F0E700F0C2D7 /* FirestoreError.swift in Sources */,
