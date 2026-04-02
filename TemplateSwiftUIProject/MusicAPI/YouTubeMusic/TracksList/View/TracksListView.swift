@@ -6,13 +6,22 @@
 //
 
 
+
+
+//
+//  TracksListView.swift
+//  Главный список треков с открытием плеера
+//
+
 import SwiftUI
 
 struct TracksListView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var vm = TracksViewModel()
     @State private var selectedTrack: Track?
-
+    @State private var showPlayerSheet = false
+    @State private var tracksForPlayer: [Track] = []
+    
     var body: some View {
         NavigationView {
             List(vm.tracks) { track in
@@ -20,8 +29,11 @@ struct TracksListView: View {
                     print("Plus tapped for \(track.title)")
                 }
                 .onTapGesture {
-                    print("Plus tapped for \(track.videoId)")
+                    print("Selected track: \(track.videoId)")
+                    // Сохраняем все треки и выбранный трек
+                    tracksForPlayer = vm.tracks
                     selectedTrack = track
+                    showPlayerSheet = true
                 }
             }
             .navigationTitle("Мои треки")
@@ -37,19 +49,31 @@ struct TracksListView: View {
                 vm.loadTracks()
             }
             .sheet(item: $selectedTrack) { track in
-//                SafariPlayerView(videoId: track.videoId)
-//                PlayerView(videoId: track.videoId)
-                YouTubePlayerView(videoId: track.videoId)
-//                    .edgesIgnoringSafeArea(.all)
+                // track уже развёрнут, не нужно проверять selectedTrack
+                PlayerEmbedView(
+                    tracks: tracksForPlayer,
+                    initialTrack: track  // используем track, который пришёл в замыкание
+                )
             }
+//            .fullScreenCover(isPresented: $showPlayerSheet) {
+//                if let track = selectedTrack {
+//                    PlayerEmbedView(
+//                        tracks: tracksForPlayer,
+//                        initialTrack: track
+//                    )
+//                }
+//            }
         }
         .navigationBarBackButtonHidden(true)
     }
 }
 
-//
+// MARK: - not PlaylistTrackRow 
+
+//import SwiftUI
 //
 //struct TracksListView: View {
+//    @Environment(\.dismiss) private var dismiss
 //    @StateObject private var vm = TracksViewModel()
 //    @State private var selectedTrack: Track?
 //
@@ -60,17 +84,30 @@ struct TracksListView: View {
 //                    print("Plus tapped for \(track.title)")
 //                }
 //                .onTapGesture {
+//                    print("Plus tapped for \(track.videoId)")
 //                    selectedTrack = track
 //                }
 //            }
 //            .navigationTitle("Мои треки")
+//            .toolbar {
+//                ToolbarItem(placement: .topBarLeading) {
+//                    Button(action: { dismiss() }) {
+//                        Image(systemName: "xmark")
+//                            .font(.title2)
+//                    }
+//                }
+//            }
 //            .onAppear {
 //                vm.loadTracks()
 //            }
 //            .sheet(item: $selectedTrack) { track in
+////                SafariPlayerView(videoId: track.videoId)
 //                PlayerView(videoId: track.videoId)
+////                YouTubePlayerView(videoId: track.videoId)
+////                    .edgesIgnoringSafeArea(.all)
 //            }
 //        }
+//        .navigationBarBackButtonHidden(true)
 //    }
 //}
 

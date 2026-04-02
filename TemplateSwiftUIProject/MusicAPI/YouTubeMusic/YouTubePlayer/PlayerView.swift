@@ -7,7 +7,7 @@
 
 
 //
-// MARK: - YouTube Playback Notes (Important)
+// MARK: - YouTube Playback Notes (YouTube НЕ разрешает встраивать все видео в iframe. ????)
 //
 // 1. YouTube НЕ разрешает встраивать все видео в iframe.
 //    Это ключевой момент. Многие музыкальные клипы (VEVO, официальные релизы,
@@ -49,6 +49,265 @@
 //    - SafariView fallback → для запрещённых
 //    - Это единственный легальный и стабильный способ интеграции YouTube.
 //
+
+
+
+
+//
+//  YouTubePlayerView.swift
+//  Документация по встроенному YouTube плееру для iOS
+//  Актуально: апрель 2026
+//
+//  =================================================
+//  🔐 ЛЕГАЛЬНОСТЬ: ✅ Полностью легально для продакшена
+//  =================================================
+//  • Используется официальный iframe-плеер YouTube
+//  • Передаются разрешённые параметры URL
+//  • Устанавливается Referer для идентификации приложения
+//  • Не скрываются элементы управления YouTube
+//  • Не отделяется аудио от видео
+//
+//  ⚠️ ВАЖНЫЕ ОГРАНИЧЕНИЯ:
+//  =================================================
+//  • Фоновое воспроизведение НЕ работает (останавливается при сворачивании)
+//  • Нельзя слушать только аудио (видео обязательно показывать)
+//  • Нельзя полностью скрыть логотип YouTube
+//  • Пользователь должен иметь интернет-соединение
+//
+//  =================================================
+//  📋 ЧЕК-ЛИСТ ПЕРЕД ПУБЛИКАЦИЕЙ В APP STORE
+//  =================================================
+//  ✅ Плеер имеет размер не менее 200×200 пикселей
+//  ✅ Элементы управления YouTube видимы (не скрыты CSS)
+//  ✅ Пользователь может видеть, что контент принадлежит YouTube
+//  ✅ Не используется параметр controls=0 (скрытие управления)
+//
+//  =================================================
+//  1️⃣ ПАРАМЕТРЫ URL (что каждый из них делает)
+//  =================================================
+//  Базовый URL: https://www.youtube.com/embed/VIDEO_ID?параметры
+//
+//  ┌────────────────────┬─────────┬────────────────────────────────────────┐
+//  │ Параметр           │ Значение│ Что делает                             │
+//  ├────────────────────┼─────────┼────────────────────────────────────────┤
+//  │ /embed/            │ вместо  │ Чистый плеер без комментариев и ленты  │
+//  │                    │ watch?v=│ рекомендаций. ОБЯЗАТЕЛЬНО для встраи-   │
+//  │                    │         │ вания в приложение                      │
+//  ├────────────────────┼─────────┼────────────────────────────────────────┤
+//  │ playsinline=1      │ 1       │ Видео играет внутри WebView, а не на    │
+//  │                    │         │ весь экран. Пользователь может нажать   │
+//  │                    │         │ fullscreen если захочет                 │
+//  ├────────────────────┼─────────┼────────────────────────────────────────┤
+//  │ modestbranding=1   │ 1       │ Убирает полноценный логотип YouTube,    │
+//  │                    │         │ оставляя только маленькую надпись       │
+//  │                    │         │ "YouTube" при наведении                 │
+//  ├────────────────────┼─────────┼────────────────────────────────────────┤
+//  │ rel=0              │ 0       │ После окончания видео НЕ показывает     │
+//  │                    │         │ список похожих роликов. Показывает      │
+//  │                    │         │ только баннер с повторным воспроизведением│
+//  ├────────────────────┼─────────┼────────────────────────────────────────┤
+//  │ showinfo=0         │ 0       │ Скрывает название видео и имя канала    │
+//  │                    │         │ над плеером. Даёт более чистый интерфейс│
+//  └────────────────────┴─────────┴────────────────────────────────────────┘
+//
+//  ДОПОЛНИТЕЛЬНЫЕ ПАРАМЕТРЫ (могут пригодиться):
+//  ┌────────────────────┬─────────┬────────────────────────────────────────┐
+//  │ autoplay=1         │ 1       │ Видео стартует автоматически при за-   │
+//  │                    │         │ грузке. ВНИМАНИЕ: на iOS часто блоки-   │
+//  │                    │         │ руется, требуется пользовательское      │
+//  │                    │         │ взаимодействие для запуска              │
+//  ├────────────────────┼─────────┼────────────────────────────────────────┤
+//  │ loop=1             │ 1       │ Зацикливает видео (повторяет после     │
+//  │                    │         │ окончания). Требует playlist параметр   │
+//  │                    │         │ playlist=VIDEO_ID                       │
+//  ├────────────────────┼─────────┼────────────────────────────────────────┤
+//  │ start=60           │ число   │ Начинает воспроизведение с 60-й секунды│
+//  │                    │ в секундах│ (можно любое число)                    │
+//  ├────────────────────┼─────────┼────────────────────────────────────────┤
+//  │ controls=0         │ 0       │ ⚠️ ЗАПРЕЩЁН! Скрывает элементы управ-   │
+//  │                    │         │ ления YouTube. Нарушает ToS, бан в      │
+//  │                    │         │ App Store гарантирован                  │
+//  └────────────────────┴─────────┴────────────────────────────────────────┘
+//
+//  =================================================
+//  2️⃣ ДВЕ РЕАЛИЗАЦИИ: UIViewRepresentable vs UIViewControllerRepresentable
+//  =================================================
+//  Почему два варианта? Они решают РАЗНЫЕ задачи.
+//
+//  ┌─────────────────────────────────────────────────────────────────────┐
+//  │ ВАРИАНТ 1: UIViewRepresentable (простой встраиваемый плеер)        │
+//  ├─────────────────────────────────────────────────────────────────────┤
+//  │ Используй КОГДА:                                                    │
+//  │ • Плеер — ЧАСТЬ интерфейса (например, сверху на детальной странице)│
+//  │ • Нужно задать ФИКСИРОВАННУЮ ВЫСОТУ (например, 200-300 точек)       │
+//  │ • Пользователь видит плеер и список треков одновременно             │
+//  │                                                                     │
+//  │ ПРИМЕР ИСПОЛЬЗОВАНИЯ:                                               │
+//  │ ```swift                                                            │
+//  │ struct DetailView: View {                                           │
+//  │     let videoId: String                                             │
+//  │     var body: some View {                                           │
+//  │         VStack {                                                    │
+//  │             YouTubePlayerView(videoId: videoId)                     │
+//  │                 .frame(height: 250)  // фиксированная высота        │
+//  │             TrackInfoView()                                         │
+//  │             TrackList()                                             │
+//  │         }                                                           │
+//  │     }                                                               │
+//  │ }                                                                   │
+//  │ ```                                                                 │
+//  └─────────────────────────────────────────────────────────────────────┘
+//
+//  ┌─────────────────────────────────────────────────────────────────────┐
+//  │ ВАРИАНТ 2: UIViewControllerRepresentable (полноэкранный плеер)     │
+//  ├─────────────────────────────────────────────────────────────────────┤
+//  │ Используй КОГДА:                                                    │
+//  │ • Плеер открывается как ОТДЕЛЬНЫЙ ЭКРАН (модальное окно)            │
+//  │ • Нужно, чтобы видео занимало ВЕСЬ ЭКРАН                            │
+//  │ • Пользователь нажимает на трек → открывается плеер на весь экран   │
+//  │ • Легко закрыть свайпом вниз (стандартное поведение модалки)       │
+//  │                                                                     │
+//  │ ПРИМЕР ИСПОЛЬЗОВАНИЯ:                                               │
+//  │ ```swift                                                            │
+//  │ struct TracksListView: View {                                       │
+//  │     @State private var selectedTrack: Track?                       │
+//  │                                                                     │
+//  │     var body: some View {                                           │
+//  │         List(tracks) { track in                                     │
+//  │             TrackRow(track)                                         │
+//  │                 .onTapGesture {                                     │
+//  │                     selectedTrack = track  // открываем плеер       │
+//  │                 }                                                   │
+//  │         }                                                           │
+//  │         .sheet(item: $selectedTrack) { track in                     │
+//  │             YouTubePlayerView(videoId: track.videoId)               │
+//  │                 .edgesIgnoringSafeArea(.all)  // весь экран         │
+//  │         }                                                           │
+//  │     }                                                               │
+//  │ }                                                                   │
+//  │ ```                                                                 │
+//  └─────────────────────────────────────────────────────────────────────┘
+//
+//  =================================================
+//  🎯 ВЫБОР ВАРИАНТА В ЗАВИСИМОСТИ ОТ СЦЕНАРИЯ
+//  =================================================
+//  ┌─────────────────────────────────────────────────────────────────────┐
+//  │ Если хочешь...                 │ Используй вариант...               │
+//  ├────────────────────────────────┼────────────────────────────────────┤
+//  │ Плеер как часть экрана         │ UIViewRepresentable + .frame()     │
+//  │ (например, сверху, под ним треки)                                   │
+//  ├────────────────────────────────┼────────────────────────────────────┤
+//  │ Полноэкранный плеер при        │ UIViewControllerRepresentable      │
+//  │ нажатии на трек                │ + .sheet()                         │
+//  ├────────────────────────────────┼────────────────────────────────────┤
+//  │ Плеер в отдельной вкладке      │ UIViewRepresentable (весь экран    │
+//  │ TabView                        │ через .frame или GeometryReader)   │
+//  ├────────────────────────────────┼────────────────────────────────────┤
+//  │ Предпросмотр трека в карточке  │ UIViewRepresentable с маленьким    │
+//  │                                │ размером (например, 120 точек)     │
+//  └────────────────────────────────┴────────────────────────────────────┘
+//
+//  =================================================
+//  💡 ТЕХНИЧЕСКАЯ ДЕТАЛЬ: ЗАЧЕМ НУЖЕН REFERER?
+//  =================================================
+//  Referer — это HTTP-заголовок, который говорит YouTube, откуда пришёл
+//  запрос. Без него YouTube может не загрузить плеер (ошибка 403 Forbidden).
+//
+//  ```swift
+//  let bundleID = Bundle.main.bundleIdentifier ?? ""  // "com.yourapp.name"
+//  let referer = "https://\(bundleID)".lowercased()   // "https://com.yourapp.name"
+//  request.setValue(referer, forHTTPHeaderField: "Referer")
+//  ```
+
+
+import SwiftUI
+import WebKit
+
+
+// MARK: -  ВАРИАНТ 1: UIViewRepresentable (простой)
+
+  struct YouTubePlayerView: UIViewRepresentable {
+      let videoId: String
+
+      func makeUIView(context: Context) -> WKWebView {
+          let webView = WKWebView()
+          webView.scrollView.isScrollEnabled = false
+
+          let embedURL = "https://www.youtube.com/embed/\(videoId)?playsinline=1&modestbranding=1&rel=0&showinfo=0"
+
+          if let url = URL(string: embedURL) {
+              var request = URLRequest(url: url)
+              let bundleID = Bundle.main.bundleIdentifier ?? ""
+              let referer = "https://\(bundleID)".lowercased()
+              request.setValue(referer, forHTTPHeaderField: "Referer")
+              webView.load(request)
+          }
+
+          return webView
+      }
+
+      func updateUIView(_ webView: WKWebView, context: Context) {}
+  }
+
+// Использование:
+struct PlayerView: View {
+    let videoId: String
+    
+    var body: some View {
+        YouTubePlayerView(videoId: videoId)
+            .frame(height: 300) // Задай нужный размер
+    }
+}
+
+
+
+// MARK: -   ВАРИАНТ 2: UIViewControllerRepresentable (полноэкранный для .sheet)
+
+//  struct YouTubePlayerView: UIViewControllerRepresentable {
+//      let videoId: String
+//
+//      func makeUIViewController(context: Context) -> UIViewController {
+//          let viewController = UIViewController()
+//          let webView = WKWebView()
+//          webView.translatesAutoresizingMaskIntoConstraints = false
+//          viewController.view.addSubview(webView)
+//
+//          NSLayoutConstraint.activate([
+//              webView.topAnchor.constraint(equalTo: viewController.view.topAnchor),
+//              webView.bottomAnchor.constraint(equalTo: viewController.view.bottomAnchor),
+//              webView.leadingAnchor.constraint(equalTo: viewController.view.leadingAnchor),
+//              webView.trailingAnchor.constraint(equalTo: viewController.view.trailingAnchor)
+//          ])
+//
+//          let embedURL = "https://www.youtube.com/embed/\(videoId)?playsinline=1&modestbranding=1&rel=0&showinfo=0"
+//          if let url = URL(string: embedURL) {
+//              var request = URLRequest(url: url)
+//              let bundleID = Bundle.main.bundleIdentifier ?? ""
+//              let referer = "https://\(bundleID)".lowercased()
+//              request.setValue(referer, forHTTPHeaderField: "Referer")
+//              webView.load(request)
+//          }
+//
+//          return viewController
+//      }
+//
+//      func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+//  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+// MARK: - First version Copilot
+
 
 
 //YouTube IFrame Player у нас есть, но он спрятан внутри WKWebView, и ты его просто не увидел глазами, потому что он загружается через HTML‑строку.
@@ -120,15 +379,7 @@
 
 
 
-
-
-
-
-
-
-
-
-
+// MARK: - SafariPlayerView
 
 //import SwiftUI
 //import SafariServices
@@ -147,108 +398,10 @@
 
 
 
-import SwiftUI
-import WebKit
-
-struct YouTubePlayerView: UIViewControllerRepresentable {
-    let videoId: String
-    
-    func makeUIViewController(context: Context) -> UIViewController {
-        let viewController = UIViewController()
-        let webView = WKWebView()
-        webView.translatesAutoresizingMaskIntoConstraints = false
-        viewController.view.addSubview(webView)
-        
-        NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: viewController.view.topAnchor),
-            webView.bottomAnchor.constraint(equalTo: viewController.view.bottomAnchor),
-            webView.leadingAnchor.constraint(equalTo: viewController.view.leadingAnchor),
-            webView.trailingAnchor.constraint(equalTo: viewController.view.trailingAnchor)
-        ])
-        
-        let embedURL = "https://www.youtube.com/embed/\(videoId)?playsinline=1&modestbranding=1&rel=0&showinfo=0"
-        if let url = URL(string: embedURL) {
-            var request = URLRequest(url: url)
-            let bundleID = Bundle.main.bundleIdentifier ?? ""
-            let referer = "https://\(bundleID)".lowercased()
-            request.setValue(referer, forHTTPHeaderField: "Referer")
-            webView.load(request)
-        }
-        
-        return viewController
-    }
-    
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
-}
 
 
 
-
-
-
-
-
-//import SwiftUI
-//import WebKit
-//
-//struct YouTubePlayerView: UIViewRepresentable {
-//    let videoId: String
-//    
-//    func makeUIView(context: Context) -> WKWebView {
-//        let webView = WKWebView()
-//        webView.scrollView.isScrollEnabled = false // Убираем прокрутку
-//        
-//        // Формируем URL для встроенного плеера (embed)
-//        let embedURL = "https://www.youtube.com/embed/\(videoId)?playsinline=1&modestbranding=1&rel=0&showinfo=0"
-//        
-//        if let url = URL(string: embedURL) {
-//            var request = URLRequest(url: url)
-//            
-//            // Устанавливаем Referer (обязательно для YouTube)
-//            let bundleID = Bundle.main.bundleIdentifier ?? ""
-//            let referer = "https://\(bundleID)".lowercased()
-//            request.setValue(referer, forHTTPHeaderField: "Referer")
-//            
-//            webView.load(request)
-//        }
-//        
-//        return webView
-//    }
-//    
-//    func updateUIView(_ webView: WKWebView, context: Context) {}
-//}
-//
-//// Использование:
-//struct PlayerView: View {
-//    let videoId: String
-//    
-//    var body: some View {
-//        YouTubePlayerView(videoId: videoId)
-//            .frame(height: 300) // Задай нужный размер
-//    }
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// MARK: - no work
 
 
 //import SwiftUI
@@ -715,4 +868,99 @@ struct YouTubePlayerView: UIViewControllerRepresentable {
 //
 //    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 //}
+
+
+
+
+
+
+
+
+// MARK: - firest version deepSeek
+
+
+//import SwiftUI
+//import WebKit
+//
+//struct YouTubePlayerView: UIViewControllerRepresentable {
+//    let videoId: String
+//
+//    func makeUIViewController(context: Context) -> UIViewController {
+//        let viewController = UIViewController()
+//        let webView = WKWebView()
+//        webView.translatesAutoresizingMaskIntoConstraints = false
+//        viewController.view.addSubview(webView)
+//
+//        NSLayoutConstraint.activate([
+//            webView.topAnchor.constraint(equalTo: viewController.view.topAnchor),
+//            webView.bottomAnchor.constraint(equalTo: viewController.view.bottomAnchor),
+//            webView.leadingAnchor.constraint(equalTo: viewController.view.leadingAnchor),
+//            webView.trailingAnchor.constraint(equalTo: viewController.view.trailingAnchor)
+//        ])
+//
+//        let embedURL = "https://www.youtube.com/embed/\(videoId)?playsinline=1&modestbranding=1&rel=0&showinfo=0"
+//        if let url = URL(string: embedURL) {
+//            var request = URLRequest(url: url)
+//            let bundleID = Bundle.main.bundleIdentifier ?? ""
+//            let referer = "https://\(bundleID)".lowercased()
+//            request.setValue(referer, forHTTPHeaderField: "Referer")
+//            webView.load(request)
+//        }
+//
+//        return viewController
+//    }
+//
+//    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+//}
+//
+//
+//
+//
+//
+
+
+
+//import SwiftUI
+//import WebKit
+//
+//struct YouTubePlayerView: UIViewRepresentable {
+//    let videoId: String
+//
+//    func makeUIView(context: Context) -> WKWebView {
+//        let webView = WKWebView()
+//        webView.scrollView.isScrollEnabled = false // Убираем прокрутку
+//
+//        // Формируем URL для встроенного плеера (embed)
+//        let embedURL = "https://www.youtube.com/embed/\(videoId)?playsinline=1&modestbranding=1&rel=0&showinfo=0"
+//
+//        if let url = URL(string: embedURL) {
+//            var request = URLRequest(url: url)
+//
+//            // Устанавливаем Referer (обязательно для YouTube)
+//            let bundleID = Bundle.main.bundleIdentifier ?? ""
+//            let referer = "https://\(bundleID)".lowercased()
+//            request.setValue(referer, forHTTPHeaderField: "Referer")
+//
+//            webView.load(request)
+//        }
+//
+//        return webView
+//    }
+//
+//    func updateUIView(_ webView: WKWebView, context: Context) {}
+//}
+//
+//// Использование:
+//struct PlayerView: View {
+//    let videoId: String
+//
+//    var body: some View {
+//        YouTubePlayerView(videoId: videoId)
+//            .frame(height: 300) // Задай нужный размер
+//    }
+//}
+
+
+
+
 
