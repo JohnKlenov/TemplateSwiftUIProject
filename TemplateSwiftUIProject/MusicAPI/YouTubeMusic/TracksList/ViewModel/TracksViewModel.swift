@@ -41,4 +41,8 @@ class TracksViewModel: ObservableObject {
                 }
             }
     }
+    
+    deinit {
+        print("deinit TracksViewModel")
+    }
 }

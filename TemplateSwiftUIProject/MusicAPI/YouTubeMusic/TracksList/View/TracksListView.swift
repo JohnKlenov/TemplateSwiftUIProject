@@ -19,8 +19,6 @@ struct TracksListView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var vm = TracksViewModel()
     @State private var selectedTrack: Track?
-    @State private var showPlayerSheet = false
-    @State private var tracksForPlayer: [Track] = []
     
     var body: some View {
         NavigationView {
@@ -31,9 +29,7 @@ struct TracksListView: View {
                 .onTapGesture {
                     print("Selected track: \(track.videoId)")
                     // Сохраняем все треки и выбранный трек
-                    tracksForPlayer = vm.tracks
                     selectedTrack = track
-                    showPlayerSheet = true
                 }
             }
             .navigationTitle("Мои треки")
@@ -49,12 +45,27 @@ struct TracksListView: View {
                 vm.loadTracks()
             }
             .sheet(item: $selectedTrack) { track in
-                // track уже развёрнут, не нужно проверять selectedTrack
-                PlayerEmbedView(
-                    tracks: tracksForPlayer,
-                    initialTrack: track  // используем track, который пришёл в замыкание
+                print("📱 Открываем плеер: tracksForPlayer.count = \(vm.tracks)")
+                return PlayerEmbedView(
+                    tracks: vm.tracks,
+                    initialTrack: track
                 )
             }
+        }
+        .navigationBarBackButtonHidden(true)
+    }
+}
+
+
+//            .sheet(item: $selectedTrack) { track in
+//                // track уже развёрнут, не нужно проверять selectedTrack
+//                PlayerEmbedView(
+//                    tracks: tracksForPlayer,
+//                    initialTrack: track  // используем track, который пришёл в замыкание
+//                )
+//            }
+
+
 //            .fullScreenCover(isPresented: $showPlayerSheet) {
 //                if let track = selectedTrack {
 //                    PlayerEmbedView(
@@ -63,10 +74,15 @@ struct TracksListView: View {
 //                    )
 //                }
 //            }
-        }
-        .navigationBarBackButtonHidden(true)
-    }
-}
+
+//            .sheet(isPresented: $showPlayerSheet) {
+//                if let track = selectedTrack {
+//                    PlayerEmbedView(
+//                        tracks: tracksForPlayer,
+//                        initialTrack: track
+//                    )
+//                }
+//            }
 
 // MARK: - not PlaylistTrackRow 
 
