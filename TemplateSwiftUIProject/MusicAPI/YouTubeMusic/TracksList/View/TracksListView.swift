@@ -44,13 +44,20 @@ struct TracksListView: View {
             .onAppear {
                 vm.loadTracks()
             }
-            .sheet(item: $selectedTrack) { track in
+            .fullScreenCover(item: $selectedTrack) { track in
                 print("📱 Открываем плеер: tracksForPlayer.count = \(vm.tracks)")
                 return PlayerEmbedView(
                     tracks: vm.tracks,
                     initialTrack: track
                 )
             }
+//            .sheet(item: $selectedTrack) { track in
+//                print("📱 Открываем плеер: tracksForPlayer.count = \(vm.tracks)")
+//                return PlayerEmbedView(
+//                    tracks: vm.tracks,
+//                    initialTrack: track
+//                )
+//            }
         }
         .navigationBarBackButtonHidden(true)
     }
