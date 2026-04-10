@@ -11,69 +11,104 @@
 //  Главный экран плеера с видео и плейлистом (кнопка Play по центру)
 
 
+//┌─────────────────────────────────┐
+//│                                 │
+//│                                 │
+//│       Kodak Black - Keys...     │  ← По центру (25% экрана)
+//│       Kodak Black               │
+//│                                 │
+//│                                 │
+//├─────────────────────────────────┤
+//│                                 │
+//│        Видео (280pt)            │
+//│        [▶] кнопка Play          │
+//│                                 │
+//├─────────────────────────────────┤
+//│  Плейлист           7 треков    │
+//├─────────────────────────────────┤
+//│  • Трек 1                       │
+//│  • Трек 2                       │  ← Занимает всё оставшееся место
+//│  • Трек 3                       │     (показывает максимум треков)
+//│  • Трек 4                       │
+//│  • Трек 5                       │
+//│  • ...                          │
+//└─────────────────────────────────┘
 
 
-//
-//  PlayerEmbedView.swift
-//  Чистая версия для fullScreenCover
-//
 
 import SwiftUI
+
 
 struct PlayerEmbedView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var playerVM: PlayerViewModel
-    
+
     let tracks: [Track]
     let initialTrack: Track
-    
+
     init(tracks: [Track], initialTrack: Track) {
         self.tracks = tracks
         self.initialTrack = initialTrack
-        _playerVM = StateObject(wrappedValue: PlayerViewModel(tracks: tracks, initialTrack: initialTrack))
+        _playerVM = StateObject(
+            wrappedValue: PlayerViewModel(
+                tracks: tracks,
+                initialTrack: initialTrack
+            )
+        )
     }
-    
+
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                // Верхний блок: пустота + информация по центру
+                // Верхний блок
                 VStack(spacing: 0) {
+                    HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.title2)
+                                .foregroundColor(.primary)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+
                     Spacer(minLength: 0)
-                    
+
                     VStack(spacing: 8) {
                         Text(playerVM.currentTrack.title)
-                            .font(.title3)
-                            .fontWeight(.semibold)
+                            .font(.title3.weight(.semibold))
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
-                            .foregroundColor(.primary)
-                        
+
                         Text(playerVM.currentTrack.artist)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal, 16)
-                    
+
                     Spacer(minLength: 0)
                 }
                 .frame(height: geometry.size.height * 0.25)
-                
-                // Видео плеер
+
+                // Видео
                 EmbedPlayer(videoId: playerVM.currentTrack.videoId)
                     .frame(height: 280)
                     .background(Color.black)
                     .cornerRadius(12)
                     .padding(.horizontal, 8)
-                
+
                 // Плейлист
                 VStack(spacing: 0) {
                     HStack {
                         Text("Плейлист")
                             .font(.headline)
                             .foregroundColor(.secondary)
-                        
+
                         Spacer()
-                        
+
                         Text("\(playerVM.tracks.count) треков")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -81,7 +116,7 @@ struct PlayerEmbedView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                     .padding(.bottom, 8)
-                    
+
                     ScrollView {
                         LazyVStack(spacing: 4) {
                             ForEach(playerVM.tracks) { track in
@@ -101,14 +136,110 @@ struct PlayerEmbedView: View {
                 .frame(maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(.systemBackground)) // ✅ Только один .systemBackground
+            .background(Color(.systemBackground).ignoresSafeArea())
         }
-        // ✅ Убрали лишние модификаторы:
-        // - presentationDragIndicator (не нужен для fullScreenCover)
-        // - presentationDetents (не нужен для fullScreenCover)
-        // - лишний .background
     }
 }
+
+
+//import SwiftUI
+//
+//struct PlayerEmbedView: View {
+//    @Environment(\.dismiss) private var dismiss
+//    @StateObject private var playerVM: PlayerViewModel
+//    
+//    let tracks: [Track]
+//    let initialTrack: Track
+//    
+//    init(tracks: [Track], initialTrack: Track) {
+//        self.tracks = tracks
+//        self.initialTrack = initialTrack
+//        _playerVM = StateObject(wrappedValue: PlayerViewModel(tracks: tracks, initialTrack: initialTrack))
+//    }
+//    
+//    var body: some View {
+//        GeometryReader { geometry in
+//            VStack(spacing: 0) {
+//                // Верхний блок: пустота + информация по центру
+//                VStack(spacing: 0) {
+//                    Spacer(minLength: 0)
+//                    
+//                    VStack(spacing: 8) {
+//                        Text(playerVM.currentTrack.title)
+//                            .font(.title3)
+//                            .fontWeight(.semibold)
+//                            .multilineTextAlignment(.center)
+//                            .lineLimit(2)
+//                            .foregroundColor(.primary)
+//                        
+//                        Text(playerVM.currentTrack.artist)
+//                            .font(.subheadline)
+//                            .foregroundColor(.secondary)
+//                    }
+//                    .padding(.horizontal, 16)
+//                    
+//                    Spacer(minLength: 0)
+//                }
+//                .frame(height: geometry.size.height * 0.25)
+//                
+//                // Видео плеер
+//                EmbedPlayer(videoId: playerVM.currentTrack.videoId)
+//                    .frame(height: 280)
+//                    .background(Color.black)
+//                    .cornerRadius(12)
+//                    .padding(.horizontal, 8)
+//                
+//                // Плейлист
+//                VStack(spacing: 0) {
+//                    HStack {
+//                        Text("Плейлист")
+//                            .font(.headline)
+//                            .foregroundColor(.secondary)
+//                        
+//                        Spacer()
+//                        
+//                        Text("\(playerVM.tracks.count) треков")
+//                            .font(.caption)
+//                            .foregroundColor(.secondary)
+//                    }
+//                    .padding(.horizontal, 16)
+//                    .padding(.top, 16)
+//                    .padding(.bottom, 8)
+//                    
+//                    ScrollView {
+//                        LazyVStack(spacing: 4) {
+//                            ForEach(playerVM.tracks) { track in
+//                                PlaylistTrackRow(
+//                                    track: track,
+//                                    isCurrentlyPlaying: playerVM.currentTrack.id == track.id
+//                                ) {
+//                                    withAnimation(.easeInOut(duration: 0.2)) {
+//                                        playerVM.selectTrack(track)
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        .padding(.vertical, 8)
+//                    }
+//                }
+//                .frame(maxHeight: .infinity)
+//            }
+//            .frame(maxWidth: .infinity, maxHeight: .infinity)
+//            .background(Color(.systemBackground)) // ✅ Только один .systemBackground
+//        }
+//        // ✅ Убрали лишние модификаторы:
+//        // - presentationDragIndicator (не нужен для fullScreenCover)
+//        // - presentationDetents (не нужен для fullScreenCover)
+//        // - лишний .background
+//    }
+//}
+
+
+
+
+
+
+
 
 
 

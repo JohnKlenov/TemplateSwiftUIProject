@@ -51,6 +51,17 @@ struct TracksListView: View {
                     initialTrack: track
                 )
             }
+        }
+        .navigationBarBackButtonHidden(true)
+    }
+}
+
+
+
+
+
+
+
 //            .sheet(item: $selectedTrack) { track in
 //                print("📱 Открываем плеер: tracksForPlayer.count = \(vm.tracks)")
 //                return PlayerEmbedView(
@@ -58,10 +69,7 @@ struct TracksListView: View {
 //                    initialTrack: track
 //                )
 //            }
-        }
-        .navigationBarBackButtonHidden(true)
-    }
-}
+
 
 
 //            .sheet(item: $selectedTrack) { track in
