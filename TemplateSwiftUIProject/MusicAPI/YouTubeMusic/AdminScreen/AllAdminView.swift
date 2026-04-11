@@ -301,57 +301,6 @@ final class YouTubeAPIClient {
         )
     }
 
-    // Поиск одного видео по артисту и названию трека
-//    func searchTrack(artist: String, title: String, orderIndex: Int) async throws -> TrackMetadata {
-//        let query = "\(artist) \(title)"
-//        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-//
-//        let urlString =
-//        "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=\(encoded)&key=\(apiKey)"
-//
-//        guard let url = URL(string: urlString) else {
-//            throw NSError(domain: "YouTubeAPI", code: 1,
-//                          userInfo: [NSLocalizedDescriptionKey: "Неверный URL поиска"])
-//        }
-//
-//        let (data, _) = try await URLSession.shared.data(from: url)
-//
-//        struct SearchResponse: Decodable {
-//            struct Item: Decodable {
-//                struct Id: Decodable { let videoId: String }
-//                struct Snippet: Decodable {
-//                    let title: String
-//                    let channelTitle: String
-//                    struct Thumbnails: Decodable {
-//                        struct Thumb: Decodable { let url: String }
-//                        let high: Thumb
-//                    }
-//                    let thumbnails: Thumbnails
-//                }
-//                let id: Id
-//                let snippet: Snippet
-//            }
-//            let items: [Item]
-//        }
-//
-//        let response = try JSONDecoder().decode(SearchResponse.self, from: data)
-//        guard let item = response.items.first else {
-//            throw NSError(domain: "YouTubeAPI", code: 2,
-//                          userInfo: [NSLocalizedDescriptionKey: "Видео не найдено"])
-//        }
-//
-//        let duration = try await fetchDuration(videoId: item.id.videoId)
-//
-//        return TrackMetadata(
-//            videoId: item.id.videoId,
-//            title: item.snippet.title,
-//            artist: item.snippet.channelTitle,
-//            thumbnailURL: item.snippet.thumbnails.high.url,
-//            durationISO8601: duration,
-//            orderIndex: orderIndex
-//        )
-//    }
-
     // Получить длительность видео
     func fetchDuration(videoId: String) async throws -> String {
         let urlString =
@@ -540,7 +489,7 @@ struct AdminView: View {
                         Task { await vm.searchTrack() }
                     }
 
-                    if let url = vm.foundTrackURL {
+                    if let _ = vm.foundTrackURL {
                         Button("Открыть найденный трек в Safari") {
                             showSafari = true
                         }
@@ -581,24 +530,6 @@ struct AdminView: View {
                     }
                 }
 
-//                Section("Треки в плейлисте") {
-//                    if vm.tracks.isEmpty {
-//                        Text("Пока нет треков")
-//                            .foregroundColor(.secondary)
-//                    } else {
-//                        List(vm.tracks.sorted(by: { $0.orderIndex < $1.orderIndex })) { track in
-//                            VStack(alignment: .leading) {
-//                                Text("\(track.orderIndex + 1). \(track.title)")
-//                                    .fontWeight(.semibold)
-//                                Text(track.artist)
-//                                    .font(.footnote)
-//                                    .foregroundColor(.secondary)
-//                            }
-//                        }
-//                        .frame(minHeight: 200)
-//                    }
-//                }
-
                 Section("Сохранение") {
                     Button("Сохранить плейлист в Firestore") {
                         Task { await vm.savePlaylistToFirestore() }
@@ -621,6 +552,62 @@ struct AdminView: View {
         }
     }
 }
+
+
+
+
+
+// Поиск одного видео по артисту и названию трека
+//    func searchTrack(artist: String, title: String, orderIndex: Int) async throws -> TrackMetadata {
+//        let query = "\(artist) \(title)"
+//        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+//
+//        let urlString =
+//        "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=\(encoded)&key=\(apiKey)"
+//
+//        guard let url = URL(string: urlString) else {
+//            throw NSError(domain: "YouTubeAPI", code: 1,
+//                          userInfo: [NSLocalizedDescriptionKey: "Неверный URL поиска"])
+//        }
+//
+//        let (data, _) = try await URLSession.shared.data(from: url)
+//
+//        struct SearchResponse: Decodable {
+//            struct Item: Decodable {
+//                struct Id: Decodable { let videoId: String }
+//                struct Snippet: Decodable {
+//                    let title: String
+//                    let channelTitle: String
+//                    struct Thumbnails: Decodable {
+//                        struct Thumb: Decodable { let url: String }
+//                        let high: Thumb
+//                    }
+//                    let thumbnails: Thumbnails
+//                }
+//                let id: Id
+//                let snippet: Snippet
+//            }
+//            let items: [Item]
+//        }
+//
+//        let response = try JSONDecoder().decode(SearchResponse.self, from: data)
+//        guard let item = response.items.first else {
+//            throw NSError(domain: "YouTubeAPI", code: 2,
+//                          userInfo: [NSLocalizedDescriptionKey: "Видео не найдено"])
+//        }
+//
+//        let duration = try await fetchDuration(videoId: item.id.videoId)
+//
+//        return TrackMetadata(
+//            videoId: item.id.videoId,
+//            title: item.snippet.title,
+//            artist: item.snippet.channelTitle,
+//            thumbnailURL: item.snippet.thumbnails.high.url,
+//            durationISO8601: duration,
+//            orderIndex: orderIndex
+//        )
+//    }
+
 
 
 //// MARK: - Track Protocol

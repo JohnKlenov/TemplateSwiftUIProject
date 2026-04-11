@@ -91,7 +91,8 @@ struct PlayerEmbedView: View {
 
                     Spacer(minLength: 0)
                 }
-                .frame(height: geometry.size.height * 0.25)
+//                .frame(height: geometry.size.height * 0.25)
+                .frame(height: geometry.size.height * 0.30) // ← НОВОЕ ЗНАЧЕНИЕ
 
                 // Видео
                 EmbedPlayer(videoId: playerVM.currentTrack.videoId)
