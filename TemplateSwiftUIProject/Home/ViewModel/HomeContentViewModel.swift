@@ -106,6 +106,7 @@ enum StateError {
 
 
 
+
 final class HomeContentViewModel: ObservableObject {
     
     @Published var viewState: ViewState = .loading
@@ -161,6 +162,29 @@ final class HomeContentViewModel: ObservableObject {
     }
 }
 
+
+// как адаптировать homeManager для работы с DropList
+// homeManager.observeBooks() тут мы отслеживаем развернув state в switch все кеэйсы
+// .content при первой сработке блокируем (что бы в дальнейшем наш homeManager.observeBooks() в DropViewModel не эмител данные при каждом добавлении трека в корзину) и вызываем get запрос на получение данных для DropList
+// get запрос при успехи будет передавать в self?.viewState = .content(data), ели неудача то передаем self?.viewState = .errorDropListData (то есть тут можно уже не делать полный цикл reloadData так как первая ступень запросов выполнена без ошибки)
+// скорее всего homeManager можно будет использовать и в MyTrack если мы создадим там паблишер (но это нужно смотреть)
+// если мы никогда больше после первого успеха self?.viewState = .content не будем снимать блок то при повторном вызове retry() и успехи мы не изменим self?.viewState и он будет viewState = .loading всегда!!!
+// но с снятием блока есть нюанс - мы можем иницииоровать повторный вызов homeManager.observeBooks() через Profile (signIn/up) и тут блок будет стоять в кейсе .content (но тут его снимать и не нужно так как контент при этом на DropList не поменяется)
+// если придет ошибка то мы попадем в .error и наш DropList разместит заглушку с retry!
+// следовательно только при вызове retry() его нужно будет снимать (блок на content)
+// нужно перебрать все сценарии перед тем как внедрять реализацию
+// вопрос нужно ли ставить плэйсхолдер с retry когда DropList был успешно отображен?(может достаточно глобального алерта)
+// давай развивать мысль - если мы получили из HomeManager ошибку то у нас либо нет пользователя либо нет доступа к корзине!
+// при таком сценарии опансо нам иметь доступ к функционалу DropList + MyTrack - да(если мы нажмем добавить трек в путь "users/\(userId)/data" - унас будет еще одна ошибка прав доступа или запись будет сделана как минимум в глухую так как после добавления трека она в корзине не появится и может не появиться даже после возобновления работы (хотя скорее появится) такая ошибка сможет перебить глобальный алерт и мы утратим способность сделать ретрай, такие же кейсы возможны и на MyTrack если HomeManager выбросит ошибку - ошибка прав доступа или допустим при удалениитрека он не удалиться потому что наблюдатель не вернет обновленные данные это введет пользователя в полный хаос)
+// Ошибк связанные с HomeManager после успешного первого запуска могут быть выброшены крайне редко по этому я думаю правильно будет блокировать через заглушку оба экрана MyTrack и DropList
+// есть идея добавить единый FirestoreCollectionObserverService для MyTrack и DropList! таким образом  FirestoreCollectionObserverService может передавать для MyTrack data если дополнительно добавить внешний паблишер в FirestoreCollectionObserverService (этот паблишер может эмитеть как ошибку так и данные)
+// но нам нужно имтеь возможность на MyTrack не только получать данные но и делать retry так же как и на DropList
+// есть идея сделать HomeManager общим как для DropList так и для MyTrack ???
+// развиваем мысль с общим HomeManager
+// это не поможет потому что мы подписываемся на обновление в HomeContentViewModel и не можем сделать retry только из HomeManager!
+// если мы перенесем func observe() в HomeManager и там же в HomeManager создадим внешний паблишер типа CurrentValueSubject что бы можно было подписываться на него в разных View. и что бы он мог эмитеть ViewState
+// тогда мы на ViewModels при вызове func setupViewModel() { viewState = .loading + homeManager.start() + homeManager.observe()} и  func retry(viewState = .loading + homeManager.retry() + homeManager.observe()) всегда  viewState = .loading
+// вот тогда мы сможем
 
 // MARK: - before refactoring View → ViewModel → Manager → Service
 

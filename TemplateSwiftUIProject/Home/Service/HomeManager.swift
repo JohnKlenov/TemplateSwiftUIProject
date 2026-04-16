@@ -331,6 +331,98 @@ final class HomeManager {
 
 
 
+
+//final class HomeManager {
+//
+//    private let stateSubject = CurrentValueSubject<ViewState?, Never>(nil)
+//    var statePublisher: AnyPublisher<ViewState?, Never> {
+//        stateSubject.eraseToAnyPublisher()
+//    }
+
+
+//authService.start()???? я бы убрал из func observe()
+//func observe() {
+//    authService.start()
+//
+//    authService.authenticate()
+//        .flatMap { [weak self] resultOrNil -> AnyPublisher<ViewState, Never> in
+//            guard let self = self else {
+//                return Just(.error("HomeManager deallocated")).eraseToAnyPublisher()
+//            }
+//
+//            guard let result = resultOrNil else {
+//                self.firestoreService.cancelListener()
+//                return Just(.loading).eraseToAnyPublisher()
+//            }
+//
+//            switch result {
+//            case .success(let userId):
+//                let path = "users/\(userId)/data"
+//                return self.firestoreService.observeCollection(at: path)
+//                    .map { result in
+//                        switch result {
+//                        case .success(let books):
+//                            return .content(books)
+//                        case .failure(let error):
+//                            return self.handleStateError(error, context: .HomeManager_observeBooks_firestoreService_observeCollection)
+//                        }
+//                    }
+//                    .eraseToAnyPublisher()
+//
+//            case .failure(let error):
+//                return Just(
+//                    self.handleStateError(error, context: .HomeManager_observeBooks_authService_authenticate)
+//                ).eraseToAnyPublisher()
+//            }
+//        }
+//        .sink { [weak self] state in
+//            self?.stateSubject.send(state)
+//        }
+//        .store(in: &cancellables)
+//}
+
+
+//func retry() {
+//    stateSubject.send(.loading)
+//    authService.reset()
+//    observe()
+//}
+
+
+//final class HomeContentViewModel: ObservableObject {
+//
+//    @Published var viewState: ViewState = .loading
+//
+//    private let homeManager: HomeManager
+//    private var cancellables = Set<AnyCancellable>()
+//
+//    init(homeManager: HomeManager) {
+//        self.homeManager = homeManager
+//
+//        homeManager.statePublisher
+//            .compactMap { $0 } // пропускаем nil
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.viewState = state
+//            }
+//            .store(in: &cancellables)
+//    }
+//
+//    func setupViewModel() {
+//        viewState = .loading
+//        homeManager.observe()
+//    }
+//
+//    func retry() {
+//        viewState = .loading
+//        homeManager.retry()
+//    }
+//}
+
+
+
+
+
 // MARK: - before remove dependency private let userProvider: CurrentUserProvider
 
 
