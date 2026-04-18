@@ -122,6 +122,7 @@ final class HomeContentViewModel: ObservableObject {
         print("init HomeContentView + HomeContentViewModel")
     }
     
+    
     deinit {
         print("deinit HomeContentView + HomeContentViewModel")
     }
@@ -185,6 +186,94 @@ final class HomeContentViewModel: ObservableObject {
 // если мы перенесем func observe() в HomeManager и там же в HomeManager создадим внешний паблишер типа CurrentValueSubject что бы можно было подписываться на него в разных View. и что бы он мог эмитеть ViewState
 // тогда мы на ViewModels при вызове func setupViewModel() { viewState = .loading + homeManager.start() + homeManager.observe()} и  func retry(viewState = .loading + homeManager.retry() + homeManager.observe()) всегда  viewState = .loading
 // вот тогда мы сможем
+
+
+
+
+
+
+// MARK: - implemintation shared HomeManager (обслуживает любое количество ViewModel)
+
+//import Combine
+//import SwiftUI
+//
+//
+//enum ViewState {
+//    case loading
+//    case error(String)
+//    case content([BookCloud])
+//}
+//
+//extension ViewState {
+//    var isError:Bool {
+//        if case .error = self {
+//            return true
+//        }
+//        return false
+//    }
+//}
+//
+//enum StateError {
+//    case localError
+//    case globalError
+//}
+//
+//
+//final class HomeContentViewModel: ObservableObject {
+//    
+//    @Published var viewState: ViewState = .loading
+//    
+//    private let homeManager: HomeManager
+//    let managerCRUDS: CRUDSManager
+//    private var cancellables = Set<AnyCancellable>()
+//    
+//    init(homeManager: HomeManager,
+//         managerCRUDS: CRUDSManager) {
+//        self.homeManager = homeManager
+//        self.managerCRUDS = managerCRUDS
+//        print("init HomeContentView + HomeContentViewModel")
+//        
+//        homeManager.statePublisher
+//            .compactMap { $0 } // пропускаем nil
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.viewState = state
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    deinit {
+//        print("deinit HomeContentView + HomeContentViewModel")
+//    }
+//    
+//    func setupViewModel() {
+//        viewState = .loading
+//        homeManager.start()
+//        homeManager.observe()   // вызывается один раз на жизненный цикл HomeManager
+//    }
+//    
+//    func setRetryHandler(_ handler: GlobalRetryHandler) {
+//        homeManager.setRetryHandler(handler)
+//    }
+//    
+//    func retry() {
+//        homeManager.retry()     // .loading придёт из HomeManager через statePublisher
+//    }
+//    
+//    func removeBook(book: BookCloud,
+//                    forView: String,
+//                    operationDescription: String) {
+//        managerCRUDS.removeBook(
+//            book: book,
+//            forView: forView,
+//            operationDescription: operationDescription
+//        )
+//    }
+//}
+
+
+
+
 
 // MARK: - before refactoring View → ViewModel → Manager → Service
 

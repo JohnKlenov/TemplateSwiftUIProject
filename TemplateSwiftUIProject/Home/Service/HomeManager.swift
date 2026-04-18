@@ -329,6 +329,167 @@ final class HomeManager {
 }
 
 
+// MARK: - implemintation shared HomeManager (обслуживает любое количество ViewModel)
+
+//import Combine
+//import Foundation
+//
+//final class HomeManager {
+//    
+//    // MARK: - Public reactive state
+//    
+//    private let stateSubject = CurrentValueSubject<ViewState?, Never>(nil)
+//    var statePublisher: AnyPublisher<ViewState?, Never> {
+//        stateSubject.eraseToAnyPublisher()
+//    }
+//    
+//    // MARK: - Dependencies
+//    
+//    private let authService: AuthenticationServiceProtocol
+//    private let firestoreService: FirestoreCollectionObserverProtocol
+//    private let errorHandler: ErrorDiagnosticsProtocol
+//    private let alertManager: AlertManager
+//    
+//    private var cancellables = Set<AnyCancellable>()
+//    private var stateError: StateError = .localError
+//    private(set) var globalRetryHandler: GlobalRetryHandler?
+//    
+//    init(
+//        authService: AuthenticationServiceProtocol,
+//        firestoreService: FirestoreCollectionObserverProtocol,
+//        errorHandler: ErrorDiagnosticsProtocol,
+//        alertManager: AlertManager = .shared
+//    ) {
+//        self.authService = authService
+//        self.firestoreService = firestoreService
+//        self.errorHandler = errorHandler
+//        self.alertManager = alertManager
+//        print("init HomeManager")
+//    }
+//    
+//    deinit {
+//        print("deinit HomeManager")
+//    }
+//    
+//    // MARK: - Public API
+//    
+//    func start() {
+//        authService.start()
+//    }
+//    
+//    /// Запускаем единственную реактивную цепочку:
+//    /// Auth → userId → Firestore → ViewState → stateSubject
+//    func observe() {
+//        authService.authenticate()
+//            .flatMap { [weak self] resultOrNil -> AnyPublisher<ViewState, Never> in
+//                guard let self = self else {
+//                    return Just(.error(AppInternalError.entityDeallocated.localizedDescription))
+//                        .eraseToAnyPublisher()
+//                }
+//                
+//                // user == nil → deleteAccount / signOut / переходное состояние
+//                guard let result = resultOrNil else {
+//                    self.firestoreService.cancelListener()
+//                    return Just(.loading).eraseToAnyPublisher()
+//                }
+//                
+//                switch result {
+//                case .success(let userId):
+//                    self.stateError = .localError
+//                    let path = "users/\(userId)/data"
+//                    
+//                    let publisher: AnyPublisher<Result<[BookCloud], Error>, Never> =
+//                        self.firestoreService.observeCollection(at: path)
+//                    
+//                    return publisher
+//                        .map { result in
+//                            switch result {
+//                            case .success(let books):
+//                                return .content(books)
+//                            case .failure(let error):
+//                                return self.handleStateError(
+//                                    error,
+//                                    context: .HomeManager_observeBooks_firestoreService_observeCollection
+//                                )
+//                            }
+//                        }
+//                        .eraseToAnyPublisher()
+//                    
+//                case .failure(let error):
+//                    self.stateError = .globalError
+//                    return Just(
+//                        self.handleStateError(
+//                            error,
+//                            context: .HomeManager_observeBooks_authService_authenticate
+//                        )
+//                    )
+//                    .eraseToAnyPublisher()
+//                }
+//            }
+//            .sink { [weak self] state in
+//                self?.stateSubject.send(state)
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    func retry() {
+//        stateSubject.send(.loading)
+//        authService.reset()
+//    }
+//    
+//    func setRetryHandler(_ handler: GlobalRetryHandler) {
+//        self.globalRetryHandler = handler
+//    }
+//    
+//    // MARK: - Error Routing
+//    
+//    private func handleStateError(_ error: Error, context: ErrorContext) -> ViewState {
+//        switch stateError {
+//        case .localError:
+//            return handleFirestoreError(error, context: context)
+//        case .globalError:
+//            return handleAuthenticationError(error, context: context)
+//        }
+//    }
+//    
+//    private func handleAuthenticationError(_ error: Error, context: ErrorContext) -> ViewState {
+//        let message = errorHandler.handle(error: error, context: context.rawValue)
+//        
+//        globalRetryHandler?.setAuthenticationRetryHandler { [weak self] in
+//            self?.retry()
+//        }
+//        
+//        alertManager.showGlobalAlert(
+//            message: message,
+//            operationDescription: Localized.TitleOfFailedOperationFirebase.authentication,
+//            alertType: .tryAgain
+//        )
+//        
+//        stateError = .localError
+//        return .error(message)
+//    }
+//    
+//    /// Локальные ошибки Firestore → без глобального алерта
+//    private func handleFirestoreError(_ error: Error, context: ErrorContext) -> ViewState {
+//        let message = errorHandler.handle(error: error, context: context.rawValue)
+//        stateError = .localError
+//        return .error(message)
+//    }
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -340,9 +501,8 @@ final class HomeManager {
 //    }
 
 
-//authService.start()???? я бы убрал из func observe()
+//authService.start()???? я бы убрал из func observe() - //    authService.start()
 //func observe() {
-//    authService.start()
 //
 //    authService.authenticate()
 //        .flatMap { [weak self] resultOrNil -> AnyPublisher<ViewState, Never> in
@@ -381,11 +541,10 @@ final class HomeManager {
 //        .store(in: &cancellables)
 //}
 
-
+//    observe() - обзерв вызываем из viewModel gотому что retry дергаем и из handleAuthenticationError
 //func retry() {
-//    stateSubject.send(.loading)
-//    authService.reset()
-//    observe()
+//    stateSubject.send(.loading) - можно оставить что бы при запуске с алерта запускать спинер + что бы центролизовать retry для обоих экранов
+//    authService.reset() - остается вопрос (при ошибки аутентификации мы получаем дополнительно алерт который тригерит только вызов authService.reset() без homeManager.observe() хотя сo View при вызове retry мы дерагаем и то и другое! может достаточно только authService.reset() ?)
 //}
 
 
@@ -410,12 +569,15 @@ final class HomeManager {
 //
 //    func setupViewModel() {
 //        viewState = .loading
+//        homeManager.start()
 //        homeManager.observe()
 //    }
 //
+// так как мы испльзуем homeManager с двух экранов то запуск спинера viewState = .loading лучше делать не с ViewModel а с homeManager.retry(), а то можно получить гонку если мы перейдем на второй экран и там второй раз нажмем retry()
 //    func retry() {
 //        viewState = .loading
 //        homeManager.retry()
+//        homeManager.observe()
 //    }
 //}
 
