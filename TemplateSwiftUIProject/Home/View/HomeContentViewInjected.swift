@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 19.01.26.
 //
 
+
 import SwiftUI
 
 struct HomeContentViewInjected: View {

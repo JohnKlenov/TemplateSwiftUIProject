@@ -62,14 +62,11 @@ struct HomeContentView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(Localized.Home.addButton.localized()) {
                     let sheetContent = AnyView(
-                        AdminView()
+                        BookEditView(
+                            managerCRUDS: viewModel.managerCRUDS,
+                            presentEditView: "HomeView"
+                        )
                     )
-//                    let sheetContent = AnyView(
-//                        BookEditView(
-//                            managerCRUDS: viewModel.managerCRUDS,
-//                            presentEditView: "HomeView"
-//                        )
-//                    )
                     homeCoordinator.presentSheet(SheetItem(content: sheetContent))
                 }
                 .foregroundStyle(AppColors.activeColor)
@@ -94,6 +91,10 @@ struct HomeContentView: View {
     }
 }
 
+
+//                    let sheetContent = AnyView(
+//                        AdminView()
+//                    )
 
 
 

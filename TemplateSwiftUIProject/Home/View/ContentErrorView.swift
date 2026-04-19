@@ -10,6 +10,7 @@
 /// мы должны сделать его контент подходящим для любой ситуации
 
 
+
 import SwiftUI
 
 struct ContentErrorView: View {
