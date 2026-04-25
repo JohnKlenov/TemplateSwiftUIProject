@@ -528,7 +528,6 @@
 //│         ├── description
 //│         ├── curatedTags
 //│         ├── coverImageURL
-//│         ├── sampleThumbnails
 //│         ├── trackCount
 //│         ├── createdAt
 //│         └── tracks
