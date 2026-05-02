@@ -31,6 +31,7 @@
 		5E5466382F961494009D7210 /* DroplistContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466372F961494009D7210 /* DroplistContentView.swift */; };
 		5E54663A2F961529009D7210 /* DroplistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466392F961529009D7210 /* DroplistViewModel.swift */; };
 		5E54663C2F961927009D7210 /* AppSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54663B2F961927009D7210 /* AppSessionManager.swift */; };
+		5E54663E2F9F4325009D7210 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 5E54663D2F9F4325009D7210 /* FirebaseFunctions */; };
 		5E8F9C672D537949004036F6 /* TabSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C662D537949004036F6 /* TabSwitcher.swift */; };
 		5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */; };
 		5E8F9C6C2D537A03004036F6 /* ViewBuilderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8F9C6B2D537A03004036F6 /* ViewBuilderService.swift */; };
@@ -362,6 +363,7 @@
 				5E00EE1C2F27691B00A521AC /* FirebaseCrashlytics in Frameworks */,
 				5EA082B12EED86E300E244B8 /* GoogleSignInSwift in Frameworks */,
 				5EA4FE0C2CDCE960001CA401 /* FirebaseFirestoreCombine-Community in Frameworks */,
+				5E54663E2F9F4325009D7210 /* FirebaseFunctions in Frameworks */,
 				5EA4FE042CDCE960001CA401 /* FirebaseAuth in Frameworks */,
 				5EA4FE0E2CDCE960001CA401 /* FirebaseStorage in Frameworks */,
 				5EA082AF2EED86E300E244B8 /* GoogleSignIn in Frameworks */,
@@ -1416,6 +1418,7 @@
 				5EA082B02EED86E300E244B8 /* GoogleSignInSwift */,
 				5E00EE1B2F27691B00A521AC /* FirebaseCrashlytics */,
 				5E00EE1D2F27692400A521AC /* FirebaseAnalytics */,
+				5E54663D2F9F4325009D7210 /* FirebaseFunctions */,
 			);
 			productName = TemplateSwiftUIProject;
 			productReference = 5EC949CC2CB526E5003736A9 /* TemplateSwiftUIProject.app */;
@@ -1898,6 +1901,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5EA4FE022CDCE960001CA401 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
+		};
+		5E54663D2F9F4325009D7210 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5EA4FE022CDCE960001CA401 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
 		};
 		5E8F9C782D54EC92004036F6 /* SDWebImageSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;

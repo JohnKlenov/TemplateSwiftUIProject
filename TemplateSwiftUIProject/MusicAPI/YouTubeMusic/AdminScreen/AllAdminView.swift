@@ -180,155 +180,192 @@ match /playlists/{playlistId}/tracks/{trackId} {
 
 
 
+// MARK: - New version AdminView #1
+
+
+
+
+
+//droplist (collection)
+//└─ {playlistId}
+//    ├─ playlistId: String
+//    ├─ title: String
+//    ├─ description: String
+//    ├─ coverImageURL: String
+//    ├─ trackCount: Int
+//    ├─ createdAt: Timestamp
+//    └─ tracks (subcollection)
+//        └─ {videoId}
+//            ├─ videoId: String
+//            ├─ title: String
+//            ├─ artist: String
+//            ├─ thumbnailURL: String
+//            ├─ durationISO8601: String
+//            ├─ orderIndex: Int
+//            ├─ createdAt: Timestamp
+//
+//dropTracks (collection)
+//└─ {videoId}
+//    ├─ videoId: String
+//    ├─ title: String
+//    ├─ artist: String
+//    ├─ thumbnailURL: String
+//    ├─ durationISO8601: String
+//    ├─ playlists: [String]
+//    ├─ tags: [String]
+//    ├─ createdAt: Timestamp
+
+
+
+
+
+
+
+
+
+
+
+
 import Foundation
 import FirebaseFirestore
+import FirebaseFunctions
+import FirebaseStorage
 import SwiftUI
 import SafariServices
-
-
-
-
-
-
-
-
-
-// MARK: -  поиск трека внутри YouTube‑плейлиста
-
 
 // MARK: - Track Protocol
 
 protocol TrackProtocol {
-    var videoId: String { get }
-    var title: String { get }
-    var artist: String { get }
-    var thumbnailURL: String { get }
-    var durationISO8601: String { get }
+   var videoId: String { get }
+   var title: String { get }
+   var artist: String { get }
+   var thumbnailURL: String { get }
+   var durationISO8601: String { get }
 }
 
 // MARK: - Track Model
 
 struct TrackMetadata: Identifiable, Codable, TrackProtocol {
-    var id: String { videoId }
+   var id: String { videoId }
 
-    let videoId: String
-    let title: String
-    let artist: String
-    let thumbnailURL: String
-    let durationISO8601: String
-    let orderIndex: Int
-}
+   let videoId: String
+   let title: String
+   let artist: String
+   let thumbnailURL: String
+   let durationISO8601: String
+   let orderIndex: Int
 
-// MARK: - Playlist Metadata
+   // Новое поле: теги, которые админ выбирает вручную
+   var tags: [String]
 
-struct PlaylistMetadata: Identifiable, Codable {
-    var id: String { playlistId }
-
-    let playlistId: String
-    let title: String
-    let description: String
-    let imageURL: String
+   // Codable конструктор по умолчанию генерируется автоматически
 }
 
 // MARK: - YouTube Video Duration Response
 
 struct YouTubeVideosResponse: Decodable {
-    struct Item: Decodable {
-        struct ContentDetails: Decodable {
-            let duration: String
-        }
-        let id: String
-        let contentDetails: ContentDetails
-    }
-    let items: [Item]
+   struct Item: Decodable {
+       struct ContentDetails: Decodable {
+           let duration: String
+       }
+       let id: String
+       let contentDetails: ContentDetails
+   }
+   let items: [Item]
 }
 
-// MARK: - YouTube API Client
+// MARK: - YouTube API Client (unchanged логика, но создаёт TrackMetadata с пустыми tags)
 
 final class YouTubeAPIClient {
-    private let apiKey: String
+   private let apiKey: String
 
-    init(apiKey: String) {
-        self.apiKey = apiKey
-    }
+   init(apiKey: String) {
+       self.apiKey = apiKey
+   }
 
-    // Поиск одного видео по артисту и названию трека
-    func searchTrack(artist: String, title: String, orderIndex: Int) async throws -> TrackMetadata {
-        let query = "\(artist) \(title)"
-        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+   func searchTrack(artist: String, title: String, orderIndex: Int) async throws -> TrackMetadata {
+       let query = "\(artist) \(title)"
+       let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
 
-        let urlString =
-        "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=\(encoded)&key=\(apiKey)"
+       let urlString =
+       "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=\(encoded)&key=\(apiKey)"
 
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "YouTubeAPI", code: 1,
-                          userInfo: [NSLocalizedDescriptionKey: "Неверный URL поиска"])
-        }
+       guard let url = URL(string: urlString) else {
+           throw NSError(domain: "YouTubeAPI", code: 1,
+                         userInfo: [NSLocalizedDescriptionKey: "Неверный URL поиска"])
+       }
 
-        let (data, _) = try await URLSession.shared.data(from: url)
+       let (data, _) = try await URLSession.shared.data(from: url)
 
-        struct SearchResponse: Decodable {
-            struct Item: Decodable {
-                struct Id: Decodable { let videoId: String }
-                struct Snippet: Decodable {
-                    struct Thumbnails: Decodable {
-                        struct Thumb: Decodable { let url: String }
-                        let high: Thumb
-                    }
-                    let thumbnails: Thumbnails
-                }
-                let id: Id
-                let snippet: Snippet
-            }
-            let items: [Item]
-        }
+       struct SearchResponse: Decodable {
+           struct Item: Decodable {
+               struct Id: Decodable { let videoId: String }
+               struct Snippet: Decodable {
+                   struct Thumbnails: Decodable {
+                       struct Thumb: Decodable { let url: String }
+                       let high: Thumb
+                   }
+                   let thumbnails: Thumbnails
+               }
+               let id: Id
+               let snippet: Snippet
+           }
+           let items: [Item]
+       }
 
-        let response = try JSONDecoder().decode(SearchResponse.self, from: data)
-        guard let item = response.items.first else {
-            throw NSError(domain: "YouTubeAPI", code: 2,
-                          userInfo: [NSLocalizedDescriptionKey: "Видео не найдено"])
-        }
+       let response = try JSONDecoder().decode(SearchResponse.self, from: data)
+       guard let item = response.items.first else {
+           throw NSError(domain: "YouTubeAPI", code: 2,
+                         userInfo: [NSLocalizedDescriptionKey: "Видео не найдено"])
+       }
 
-        let duration = try await fetchDuration(videoId: item.id.videoId)
+       let duration = try await fetchDuration(videoId: item.id.videoId)
 
-        return TrackMetadata(
-            videoId: item.id.videoId,
-            title: title,               // ← ВАЖНО: из ввода пользователя
-            artist: artist,             // ← ВАЖНО: из ввода пользователя
-            thumbnailURL: item.snippet.thumbnails.high.url,
-            durationISO8601: duration,
-            orderIndex: orderIndex
-        )
-    }
+       return TrackMetadata(
+           videoId: item.id.videoId,
+           title: title,
+           artist: artist,
+           thumbnailURL: item.snippet.thumbnails.high.url,
+           durationISO8601: duration,
+           orderIndex: orderIndex,
+           tags: [] // по умолчанию пустой массив тегов
+       )
+   }
 
-    // Получить длительность видео
-    func fetchDuration(videoId: String) async throws -> String {
-        let urlString =
-        "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=\(videoId)&key=\(apiKey)"
+   func fetchDuration(videoId: String) async throws -> String {
+       let urlString =
+       "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=\(videoId)&key=\(apiKey)"
 
-        let url = URL(string: urlString)!
-        let (data, _) = try await URLSession.shared.data(from: url)
+       let url = URL(string: urlString)!
+       let (data, _) = try await URLSession.shared.data(from: url)
 
-        let response = try JSONDecoder().decode(YouTubeVideosResponse.self, from: data)
-        guard let item = response.items.first else {
-            throw NSError(domain: "YouTubeAPI", code: 3,
-                          userInfo: [NSLocalizedDescriptionKey: "Длительность не найдена"])
-        }
-        return item.contentDetails.duration
-    }
+       let response = try JSONDecoder().decode(YouTubeVideosResponse.self, from: data)
+       guard let item = response.items.first else {
+           throw NSError(domain: "YouTubeAPI", code: 3,
+                         userInfo: [NSLocalizedDescriptionKey: "Длительность не найдена"])
+       }
+       return item.contentDetails.duration
+   }
 }
 
-// MARK: - Admin ViewModel
+
+
+
+
+import Foundation
+import FirebaseFirestore
+import FirebaseFunctions
+import SwiftUI
 
 @MainActor
 final class AdminViewModel: ObservableObject {
 
-    // Метаданные плейлиста ЗАШИТЫ В КОД
+    // Метаданные плейлиста
     @Published private(set) var playlistTitle: String
     @Published private(set) var playlistDescription: String
-    @Published private(set) var playlistImageURL: String
+    @Published private(set) var playlistImageURL: String = ""
 
-    // Поля для поиска трека
+    // Поля поиска
     @Published var searchArtist: String = ""
     @Published var searchTitle: String = ""
 
@@ -336,33 +373,53 @@ final class AdminViewModel: ObservableObject {
     @Published var foundTrack: TrackMetadata?
     @Published var foundTrackURL: URL?
 
-    // Накопленные треки
+    // Теги найденного трека (до добавления)
+    @Published var foundTrackTags: Set<String> = []
+
+    // Флаг: использовать ли thumbnail найденного трека в коллаже
+    @Published var useFoundTrackThumbnailInCollage: Bool = false
+
+    // Треки плейлиста
     @Published var tracks: [TrackMetadata] = []
 
+    // Thumbnail для коллажа
+    @Published var coverThumbnailURLs: [String] = []
+
+    // Результат генерации
+    @Published var coverImageURL: String? = nil
+
+    // Статус
     @Published var status: String = ""
+    
+    @Published private(set) var isGeneratingCover = false
+    private var generateCoverTask: Task<Void, Never>?
+
+
+    let availableTags: [String] = ["Gym", "Party", "R&B"]
 
     private let api: YouTubeAPIClient
     private let db = Firestore.firestore()
+    private let functions = Functions.functions()
     private let playlistId: String
 
     init(apiKey: String,
          playlistId: String,
          playlistTitle: String,
-         playlistDescription: String,
-         playlistImageURL: String) {
+         playlistDescription: String) {
 
         self.api = YouTubeAPIClient(apiKey: apiKey)
         self.playlistId = playlistId
         self.playlistTitle = playlistTitle
         self.playlistDescription = playlistDescription
-        self.playlistImageURL = playlistImageURL
     }
 
-    // MARK: - Поиск одного трека
+    // MARK: - Поиск трека
     func searchTrack() async {
         status = "Ищем трек…"
         foundTrack = nil
         foundTrackURL = nil
+        foundTrackTags = []
+        useFoundTrackThumbnailInCollage = false
 
         guard !searchArtist.isEmpty, !searchTitle.isEmpty else {
             status = "Введите артиста и название трека"
@@ -383,87 +440,229 @@ final class AdminViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Добавить трек в список
+    // MARK: - Теги найденного трека
+    func toggleFoundTrackTag(_ tag: String) {
+        if foundTrackTags.contains(tag) {
+            foundTrackTags.remove(tag)
+        } else {
+            foundTrackTags.insert(tag)
+        }
+    }
+
+    // MARK: - Добавить найденный трек в список
     func addFoundTrack() {
-        guard let track = foundTrack else { return }
+        guard var track = foundTrack else {
+            status = "Нет найденного трека"
+            return
+        }
+
+        // переносим выбранные теги
+        track.tags = Array(foundTrackTags)
+
+        // при необходимости добавляем thumbnail
+        if useFoundTrackThumbnailInCollage,
+           coverThumbnailURLs.count < 4 {
+            coverThumbnailURLs.append(track.thumbnailURL)
+        }
 
         tracks.append(track)
-        print("Добавлен трек: \(track)")
 
+        // сброс
         searchArtist = ""
         searchTitle = ""
         foundTrack = nil
         foundTrackURL = nil
+        foundTrackTags = []
+        useFoundTrackThumbnailInCollage = false
 
         status = "Трек добавлен в список"
     }
 
-    // MARK: - Сохранить плейлист в Firestore
+    // MARK: - Теги для треков в плейлисте
+    func toggleTag(forVideoId videoId: String, tag: String) {
+        guard let idx = tracks.firstIndex(where: { $0.videoId == videoId }) else { return }
+        var t = tracks[idx]
+
+        if t.tags.contains(tag) {
+            t.tags.removeAll { $0 == tag }
+        } else {
+            t.tags.append(tag)
+        }
+
+        tracks[idx] = t
+    }
+    // MARK: - Генерация coverImage (упрощённая версия)
+
+    func generateCoverImage() async {
+        // Отменяем предыдущую задачу, если она запущена
+        generateCoverTask?.cancel()
+        
+        // Создаём новую задачу
+        let task = Task {
+            // Защита от повторного вызова
+            guard !isGeneratingCover else {
+                await MainActor.run {
+                    status = "Генерация уже выполняется..."
+                }
+                return
+            }
+            
+            guard coverThumbnailURLs.count == 4 else {
+                await MainActor.run {
+                    status = "Нужно ровно 4 thumbnail"
+                }
+                return
+            }
+            
+            await MainActor.run {
+                isGeneratingCover = true
+                status = "Генерируем coverImage..."
+            }
+            
+            defer {
+                Task { @MainActor in
+                    isGeneratingCover = false
+                }
+            }
+            
+            do {
+                try Task.checkCancellation()
+                
+                let functions = Functions.functions()
+                
+                let data: [String: Any] = [
+                    "playlistId": playlistId,
+                    "thumbnailURLs": coverThumbnailURLs
+                ]
+                
+                print("📤 Вызываем generatePlaylistCover с данными:", data)
+                
+                let result = try await functions.httpsCallable("generatePlaylistCover").call(data)
+                
+                try Task.checkCancellation()
+                
+                print("📥 Получен результат:", result.data)
+                
+                if let dict = result.data as? [String: Any],
+                   let url = dict["coverImageURL"] as? String {
+                    await MainActor.run {
+                        self.playlistImageURL = url
+                        self.coverImageURL = url
+                        self.status = "✅ coverImage сгенерирован"
+                    }
+                    print("✅ URL обложки:", url)
+                } else {
+                    await MainActor.run {
+                        self.status = "Ошибка: неверный ответ функции"
+                    }
+                }
+            } catch {
+                if Task.isCancelled {
+                    print("⚠️ Задача была отменена")
+                    await MainActor.run {
+                        self.status = "Генерация отменена"
+                    }
+                } else {
+                    await MainActor.run {
+                        print("❌ Ошибка вызова функции:", error.localizedDescription)
+                        self.status = "Ошибка: \(error.localizedDescription)"
+                    }
+                }
+            }
+        }
+        
+        generateCoverTask = task
+        await task.value
+    }
+
+
+    // MARK: - Сохранение
     func savePlaylistToFirestore() async {
         guard !playlistTitle.isEmpty else {
             status = "Ошибка: заголовок пуст"
             return
         }
 
-        status = "Сохраняем…"
+        guard !playlistImageURL.isEmpty else {
+            status = "Сначала сгенерируйте coverImage"
+            return
+        }
+
+        status = "Сохраняем плейлист и треки…"
 
         do {
-            let playlistRef = db.collection("playlists").document(playlistId)
+            let droplistRef = db.collection("droplist").document(playlistId)
 
-            // Метаданные
-            try await playlistRef.setData([
+            try await droplistRef.setData([
                 "playlistId": playlistId,
                 "title": playlistTitle,
                 "description": playlistDescription,
-                "imageURL": playlistImageURL
+                "coverImageURL": playlistImageURL,
+                "trackCount": tracks.count,
+                "createdAt": FieldValue.serverTimestamp()
             ], merge: true)
 
-            // Треки
             let batch = db.batch()
 
             for track in tracks {
-                let ref = playlistRef.collection("tracks").document(track.videoId)
+
+                let subRef = droplistRef.collection("tracks").document(track.videoId)
                 batch.setData([
                     "videoId": track.videoId,
                     "title": track.title,
                     "artist": track.artist,
                     "thumbnailURL": track.thumbnailURL,
                     "durationISO8601": track.durationISO8601,
-                    "orderIndex": track.orderIndex
-                ], forDocument: ref)
+                    "orderIndex": track.orderIndex,
+                    "createdAt": FieldValue.serverTimestamp()
+                ], forDocument: subRef)
+
+                let globalRef = db.collection("dropTracks").document(track.videoId)
+                batch.setData([
+                    "videoId": track.videoId,
+                    "title": track.title,
+                    "artist": track.artist,
+                    "thumbnailURL": track.thumbnailURL,
+                    "durationISO8601": track.durationISO8601,
+                    "playlists": FieldValue.arrayUnion([playlistId]),
+                    "tags": track.tags,
+                    "createdAt": FieldValue.serverTimestamp()
+                ], forDocument: globalRef)
             }
 
             try await batch.commit()
-            status = "Плейлист сохранён"
-
+            status = "Плейлист и треки сохранены"
         } catch {
             status = "Ошибка сохранения: \(error.localizedDescription)"
         }
     }
 }
 
-// MARK: - SafariView
+
+
+// MARK: - SafariView (unchanged)
 
 struct SafariView: UIViewControllerRepresentable {
-    let url: URL
+   let url: URL
 
-    func makeUIViewController(context: Context) -> SFSafariViewController {
-        SFSafariViewController(url: url)
-    }
+   func makeUIViewController(context: Context) -> SFSafariViewController {
+       SFSafariViewController(url: url)
+   }
 
-    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+   func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }
 
-// MARK: - AdminView
+
+import SwiftUI
+import SafariServices
 
 struct AdminView: View {
 
     @StateObject private var vm = AdminViewModel(
         apiKey: Secrets.youtubeAPIKey,
-        playlistId: "PLQcuPcwlJLVDMqEhSBkJKiJeywzU0KP8r",
-        playlistTitle: "Droplist",           // ЗАШИТО В КОДЕ
-        playlistDescription: "Super tracks",
-        playlistImageURL: "playlistImageURL"
+        playlistId: "PLQcuPcwlJLVDiEH5AfwJbj5SvGsj8GCyI",
+        playlistTitle: "Droplist#1: French Montana",
+        playlistDescription: "Good Summer || Mac & Cheese 5 || Coke Boys 6 || Wish U Well"
     )
 
     @State private var showSafari = false
@@ -472,15 +671,16 @@ struct AdminView: View {
         NavigationView {
             Form {
 
-                // Метаданные только отображаем
+                // MARK: - Метаданные
                 Section("Метаданные плейлиста") {
                     Text("Title: \(vm.playlistTitle)")
                     Text("Description: \(vm.playlistDescription)")
-                    Text("Image URL: \(vm.playlistImageURL)")
+                    Text("Cover URL: \(vm.playlistImageURL.isEmpty ? "— не сгенерирован" : vm.playlistImageURL)")
                         .lineLimit(2)
                         .font(.footnote)
                 }
 
+                // MARK: - Добавить трек вручную
                 Section("Добавить трек вручную") {
                     TextField("Artist", text: $vm.searchArtist)
                     TextField("Track Title", text: $vm.searchTitle)
@@ -496,47 +696,146 @@ struct AdminView: View {
                     }
 
                     if vm.foundTrack != nil {
+
+                        // Теги найденного трека
+                        HStack {
+                            Text("Теги:")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+
+                            ForEach(vm.availableTags, id: \.self) { tag in
+                                Button {
+                                    vm.toggleFoundTrackTag(tag)
+                                } label: {
+                                    Text(tag)
+                                        .font(.caption2)
+                                        .padding(6)
+                                        .background(
+                                            vm.foundTrackTags.contains(tag)
+                                            ? Color.blue.opacity(0.25)
+                                            : Color.gray.opacity(0.15)
+                                        )
+                                        .cornerRadius(6)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+
+                        Toggle(isOn: $vm.useFoundTrackThumbnailInCollage) {
+                            Text("Использовать thumbnail в коллаже")
+                                .font(.caption)
+                        }
+
                         Button("Добавить трек в список") {
                             vm.addFoundTrack()
                         }
                         .foregroundColor(.green)
                     }
                 }
+
+                // MARK: - Thumbnail
+                Section("Выбранные thumbnail для коллажа (\(vm.coverThumbnailURLs.count)/4)") {
+                    if vm.coverThumbnailURLs.isEmpty {
+                        Text("Пока нет выбранных thumbnail")
+                            .foregroundColor(.secondary)
+                    } else {
+                        ForEach(Array(vm.coverThumbnailURLs.enumerated()), id: \.offset) { idx, url in
+                            Text("\(idx + 1). \(url)")
+                                .font(.caption2)
+                                .lineLimit(1)
+                        }
+                    }
+                    // Вместо текущей кнопки:
+                    if vm.coverThumbnailURLs.count == 4 {
+                        Button("Собрать coverImage 2×2 (Cloud Function)") {
+                            Task {
+                                await vm.generateCoverImage()
+                            }
+                        }
+                        .disabled(vm.isGeneratingCover) // ← кнопка отключается во время генерации
+                    }
+                }
+
+                // MARK: - Треки в плейлисте
                 Section("Треки в плейлисте") {
                     if vm.tracks.isEmpty {
                         Text("Пока нет треков")
                             .foregroundColor(.secondary)
                     } else {
-                        List(vm.tracks.sorted(by: { $0.orderIndex < $1.orderIndex })) { track in
-                            HStack {
-                                Text("\(track.orderIndex + 1).")
-                                    .foregroundColor(.secondary)
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: 12) {
+                                ForEach(vm.tracks.sorted(by: { $0.orderIndex < $1.orderIndex })) { track in
 
-                                VStack(alignment: .leading) {
-                                    Text(track.title)
-                                        .font(.subheadline)
-                                        .lineLimit(1)
+                                    VStack(alignment: .leading, spacing: 6) {
 
-                                    Text(track.artist)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
+                                        HStack {
+                                            Text("\(track.orderIndex + 1).")
+                                                .foregroundColor(.secondary)
+
+                                            VStack(alignment: .leading) {
+                                                Text(track.title)
+                                                    .font(.subheadline)
+                                                    .lineLimit(1)
+
+                                                Text(track.artist)
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                                    .lineLimit(1)
+                                            }
+
+                                            Spacer()
+
+                                            if !track.tags.isEmpty {
+                                                Text(track.tags.joined(separator: ", "))
+                                                    .font(.caption2)
+                                                    .foregroundColor(.blue)
+                                                    .lineLimit(1)
+                                            }
+                                        }
+
+                                        // Теги — теперь работают идеально
+                                        HStack {
+                                            Text("Теги:")
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+
+                                            ForEach(vm.availableTags, id: \.self) { tag in
+                                                Button {
+                                                    vm.toggleTag(forVideoId: track.videoId, tag: tag)
+                                                } label: {
+                                                    Text(tag)
+                                                        .font(.caption2)
+                                                        .padding(6)
+                                                        .background(
+                                                            track.tags.contains(tag)
+                                                            ? Color.blue.opacity(0.25)
+                                                            : Color.gray.opacity(0.15)
+                                                        )
+                                                        .cornerRadius(6)
+                                                }
+                                                .buttonStyle(.plain)
+                                            }
+                                        }
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 4)
                                 }
                             }
-                            .padding(.vertical, 4) // компактно
                         }
-                        .listStyle(.plain)
                         .frame(minHeight: 200)
                     }
                 }
 
+                // MARK: - Сохранение
                 Section("Сохранение") {
-                    Button("Сохранить плейлист в Firestore") {
+                    Button("Сохранить плейлист в Firestore (droplist + dropTracks)") {
                         Task { await vm.savePlaylistToFirestore() }
                     }
+                    .disabled(vm.playlistImageURL.isEmpty || vm.tracks.isEmpty)
                     .foregroundColor(.blue)
                 }
 
+                // MARK: - Статус
                 Section("Статус") {
                     Text(vm.status)
                         .font(.footnote)
@@ -560,60 +859,479 @@ struct AdminView: View {
 
 
 
+// MARK: - Trash
 
 
-// MARK: - New version AdminView #1
-
-
-
-
-
-//droplist (collection)
-// └─ {playlistId}
-//     ├─ playlistId: String
-//     ├─ title: String
-//     ├─ description: String
-//     ├─ coverImageURL: String
-//     ├─ trackCount: Int
-//     ├─ createdAt: Timestamp
-//     └─ tracks (subcollection)
-//         └─ {videoId}
-//             ├─ videoId: String
-//             ├─ title: String
-//             ├─ artist: String
-//             ├─ thumbnailURL: String
-//             ├─ durationISO8601: String
-//             ├─ orderIndex: Int
-//             ├─ createdAt: Timestamp
+//                    if vm.coverThumbnailURLs.count == 4 {
+//                        Button("Собрать coverImage 2×2 (Cloud Function)") {
+//                            Task { await vm.generateCoverImage() }
+//                        }
+//                        .disabled(vm.isGeneratingCover)
 //
-//dropTracks (collection)
-// └─ {videoId}
-//     ├─ videoId: String
-//     ├─ title: String
-//     ├─ artist: String
-//     ├─ thumbnailURL: String
-//     ├─ durationISO8601: String
-//     ├─ playlists: [String]
-//     ├─ tags: [String]
-//     ├─ createdAt: Timestamp
+////                        Button("Собрать coverImage 2×2 (Cloud Function)") {
+////                            Task { await vm.generateCoverImage() }
+////                        }
+////                        .foregroundColor(.blue)
+//                    }
+
+// MARK: - AdminView (обновлённый UI с выбором тегов)
+
+//struct AdminView: View {
+//
+//   @StateObject private var vm = AdminViewModel(
+//       apiKey: Secrets.youtubeAPIKey,
+//       playlistId: "PLQcuPcwlJLVDiEH5AfwJbj5SvGsj8GCyI",
+//       playlistTitle: "Droplist#1: French Montana",
+//       playlistDescription: "Good Summer || Mac & Cheese 5 || Coke Boys 6 || Wish U Well"
+//   )
+//
+//   @State private var showSafari = false
+//
+//   var body: some View {
+//       NavigationView {
+//           Form {
+//
+//               // Метаданные только отображаем
+//               Section("Метаданные плейлиста") {
+//                   Text("Title: \(vm.playlistTitle)")
+//                   Text("Description: \(vm.playlistDescription)")
+//                   Text("Cover URL: \(vm.playlistImageURL.isEmpty ? "— не сгенерирован" : vm.playlistImageURL)")
+//                       .lineLimit(2)
+//                       .font(.footnote)
+//               }
+//
+//               Section("Добавить трек вручную") {
+//                   TextField("Artist", text: $vm.searchArtist)
+//                   TextField("Track Title", text: $vm.searchTitle)
+//
+//                   Button("Искать трек") {
+//                       Task { await vm.searchTrack() }
+//                   }
+//
+//                   if let _ = vm.foundTrackURL {
+//                       Button("Открыть найденный трек в Safari") {
+//                           showSafari = true
+//                       }
+//                   }
+//
+//                   if vm.foundTrack != nil {
+//                       HStack {
+//                           Button("Добавить трек в список") {
+//                               vm.addFoundTrack()
+//                           }
+//                           .foregroundColor(.green)
+//
+//                           Spacer()
+//
+//                           Button("Добавить thumbnail в коллаж") {
+//                               vm.addThumbnailToCollage()
+//                           }
+//                           .disabled(vm.coverThumbnailURLs.count >= 4)
+//                       }
+//                   }
+//               }
+//
+//               Section("Выбранные thumbnail для коллажа (\(vm.coverThumbnailURLs.count)/4)") {
+//                   if vm.coverThumbnailURLs.isEmpty {
+//                       Text("Пока нет выбранных thumbnail")
+//                           .foregroundColor(.secondary)
+//                   } else {
+//                       ForEach(Array(vm.coverThumbnailURLs.enumerated()), id: \.offset) { idx, url in
+//                           Text("\(idx + 1). \(url)")
+//                               .font(.caption2)
+//                               .lineLimit(1)
+//                       }
+//                   }
+//
+//                   if vm.coverThumbnailURLs.count == 4 {
+//                       Button("Собрать coverImage 2×2 (Cloud Function)") {
+//                           Task { await vm.generateCoverImage() }
+//                       }
+//                       .foregroundColor(.blue)
+//                   }
+//               }
+//
+//               Section("Треки в плейлисте") {
+//                   if vm.tracks.isEmpty {
+//                       Text("Пока нет треков")
+//                           .foregroundColor(.secondary)
+//                   } else {
+//                       List {
+//                           ForEach(vm.tracks.sorted(by: { $0.orderIndex < $1.orderIndex })) { track in
+//                               VStack(alignment: .leading, spacing: 6) {
+//                                   HStack {
+//                                       Text("\(track.orderIndex + 1).")
+//                                           .foregroundColor(.secondary)
+//
+//                                       VStack(alignment: .leading) {
+//                                           Text(track.title)
+//                                               .font(.subheadline)
+//                                               .lineLimit(1)
+//
+//                                           Text(track.artist)
+//                                               .font(.caption)
+//                                               .foregroundColor(.secondary)
+//                                               .lineLimit(1)
+//                                       }
+//
+//                                       Spacer()
+//
+//                                       // Показать текущие теги
+//                                       if !track.tags.isEmpty {
+//                                           Text(track.tags.joined(separator: ", "))
+//                                               .font(.caption2)
+//                                               .foregroundColor(.blue)
+//                                               .lineLimit(1)
+//                                       }
+//                                   }
+//
+//                                   // Меню для выбора/снятия тегов
+//                                   HStack {
+//                                       Text("Теги:")
+//                                           .font(.caption2)
+//                                           .foregroundColor(.secondary)
+//                                       ForEach(vm.availableTags, id: \.self) { tag in
+//                                           Button(action: {
+//                                               vm.toggleTag(forVideoId: track.videoId, tag: tag)
+//                                           }) {
+//                                               Text(tag)
+//                                                   .font(.caption2)
+//                                                   .padding(6)
+//                                                   .background(track.tags.contains(tag) ? Color.blue.opacity(0.2) : Color.gray.opacity(0.12))
+//                                                   .cornerRadius(6)
+//                                           }
+//                                       }
+//                                   }
+//                               }
+//                               .padding(.vertical, 6)
+//                           }
+//                       }
+//                       .listStyle(.plain)
+//                       .frame(minHeight: 200)
+//                   }
+//               }
+//
+//               Section("Сохранение") {
+//                   Button("Сохранить плейлист в Firestore (droplist + dropTracks)") {
+//                       Task { await vm.savePlaylistToFirestore() }
+//                   }
+//                   .disabled(vm.playlistImageURL.isEmpty || vm.tracks.isEmpty)
+//                   .foregroundColor(.blue)
+//               }
+//
+//               Section("Статус") {
+//                   Text(vm.status)
+//                       .font(.footnote)
+//                       .foregroundColor(.secondary)
+//               }
+//           }
+//           .sheet(isPresented: $showSafari) {
+//               if let url = vm.foundTrackURL {
+//                   SafariView(url: url)
+//               }
+//           }
+//           .navigationTitle("Admin • Manual Playlist Builder")
+//       }
+//   }
+//}
+
+
+//    // MARK: - Генерация coverImage
+//
+//    func generateCoverImage() async {
+//        guard !isGeneratingCover else { return }
+//        isGeneratingCover = true
+//        defer { isGeneratingCover = false }
+//
+//        guard coverThumbnailURLs.count == 4 else {
+//            status = "Нужно ровно 4 thumbnail"
+//            return
+//        }
+//
+//        status = "Генерируем coverImage…"
+//
+//        do {
+//            let data: [String: Any] = [
+//                "playlistId": playlistId,
+//                "thumbnailURLs": coverThumbnailURLs
+//            ]
+//
+//            let result = try await functions.httpsCallable("generatePlaylistCover").call(data)
+//            if let dict = result.data as? [String: Any],
+//               let url = dict["coverImageURL"] as? String {
+//                self.playlistImageURL = url
+//                self.coverImageURL = url
+//                status = "coverImage сгенерирован"
+//            } else {
+//                status = "Ошибка: неверный ответ функции"
+//            }
+//        } catch {
+//            status = "Ошибка генерации coverImage: \(error.localizedDescription)"
+//        }
+//    }
+
+//    func generateCoverImage() async {
+//        guard coverThumbnailURLs.count == 4 else {
+//            status = "Нужно ровно 4 thumbnail"
+//            return
+//        }
+//
+//        status = "Генерируем coverImage…"
+//
+//        do {
+//            let data: [String: Any] = [
+//                "playlistId": playlistId,
+//                "thumbnailURLs": coverThumbnailURLs
+//            ]
+//
+//            let result = try await functions.httpsCallable("generatePlaylistCover").call(data)
+//            if let dict = result.data as? [String: Any],
+//               let url = dict["coverImageURL"] as? String {
+//                self.playlistImageURL = url
+//                self.coverImageURL = url
+//                status = "coverImage сгенерирован"
+//            } else {
+//                status = "Ошибка: неверный ответ функции"
+//            }
+//        } catch {
+//            status = "Ошибка генерации coverImage: \(error.localizedDescription)"
+//        }
+//    }
+
+
+// MARK: - Admin ViewModel (обновлённый)
+
+//@MainActor
+//final class AdminViewModel: ObservableObject {
+//
+//   // Метаданные плейлиста (зашиты в коде)
+//   @Published private(set) var playlistTitle: String
+//   @Published private(set) var playlistDescription: String
+//   @Published private(set) var playlistImageURL: String = "" // будет заполнено после генерации
+//
+//   // Поля для поиска трека
+//   @Published var searchArtist: String = ""
+//   @Published var searchTitle: String = ""
+//
+//   // Найденный трек
+//   @Published var foundTrack: TrackMetadata?
+//   @Published var foundTrackURL: URL?
+//
+//   // Накопленные треки
+//   @Published var tracks: [TrackMetadata] = []
+//
+//   // Массив thumbnailURL для генерации cover (ровно 4)
+//   @Published var coverThumbnailURLs: [String] = []
+//
+//   // Результат генерации
+//   @Published var coverImageURL: String? = nil
+//
+//   // Статус и доступные теги
+//   @Published var status: String = ""
+//   let availableTags: [String] = ["Gym", "Party", "R&B"]
+//
+//   private let api: YouTubeAPIClient
+//   private let db = Firestore.firestore()
+//   private let functions = Functions.functions()
+//   private let playlistId: String
+//
+//   init(apiKey: String,
+//        playlistId: String,
+//        playlistTitle: String,
+//        playlistDescription: String) {
+//
+//       self.api = YouTubeAPIClient(apiKey: apiKey)
+//       self.playlistId = playlistId
+//       self.playlistTitle = playlistTitle
+//       self.playlistDescription = playlistDescription
+//       self.playlistImageURL = ""
+//   }
+//
+//   // MARK: - Поиск одного трека
+//   func searchTrack() async {
+//       status = "Ищем трек…"
+//       foundTrack = nil
+//       foundTrackURL = nil
+//
+//       guard !searchArtist.isEmpty, !searchTitle.isEmpty else {
+//           status = "Введите артиста и название трека"
+//           return
+//       }
+//
+//       do {
+//           let track = try await api.searchTrack(
+//               artist: searchArtist,
+//               title: searchTitle,
+//               orderIndex: tracks.count
+//           )
+//           foundTrack = track
+//           foundTrackURL = URL(string: "https://www.youtube.com/watch?v=\(track.videoId)")
+//           status = "Трек найден"
+//       } catch {
+//           status = "Ошибка поиска: \(error.localizedDescription)"
+//       }
+//   }
+//
+//   // MARK: - Добавить трек в список
+//   func addFoundTrack() {
+//       guard let track = foundTrack else { return }
+//
+//       tracks.append(track)
+//       print("Добавлен трек: \(track)")
+//
+//       // Сброс полей поиска
+//       searchArtist = ""
+//       searchTitle = ""
+//       foundTrack = nil
+//       foundTrackURL = nil
+//
+//       status = "Трек добавлен в список"
+//   }
+//
+//   // MARK: - Добавить thumbnail в массив для коллажа
+//   func addThumbnailToCollage() {
+//       guard let track = foundTrack else {
+//           status = "Нет найденного трека для добавления"
+//           return
+//       }
+//       guard coverThumbnailURLs.count < 4 else {
+//           status = "Уже выбрано 4 thumbnail"
+//           return
+//       }
+//       coverThumbnailURLs.append(track.thumbnailURL)
+//       status = "Добавлен thumbnail (\(coverThumbnailURLs.count)/4)"
+//   }
+//
+//   // MARK: - Генерация coverImage через Cloud Function
+//   func generateCoverImage() async {
+//       guard coverThumbnailURLs.count == 4 else {
+//           status = "Нужно ровно 4 thumbnail"
+//           return
+//       }
+//
+//       status = "Генерируем coverImage…"
+//
+//       do {
+//           let data: [String: Any] = [
+//               "playlistId": playlistId,
+//               "thumbnailURLs": coverThumbnailURLs
+//           ]
+//
+//           let result = try await functions.httpsCallable("generatePlaylistCover").call(data)
+//           if let dict = result.data as? [String: Any],
+//              let url = dict["coverImageURL"] as? String {
+//               self.playlistImageURL = url
+//               self.coverImageURL = url
+//               status = "coverImage сгенерирован"
+//           } else {
+//               status = "Ошибка: неверный ответ функции"
+//           }
+//       } catch {
+//           status = "Ошибка генерации coverImage: \(error.localizedDescription)"
+//       }
+//   }
+//
+//   // MARK: - Теги: переключатель тега для конкретного трека
+//   func toggleTag(forVideoId videoId: String, tag: String) {
+//       guard let idx = tracks.firstIndex(where: { $0.videoId == videoId }) else { return }
+//       var t = tracks[idx]
+//       if t.tags.contains(tag) {
+//           t.tags.removeAll { $0 == tag }
+//       } else {
+//           t.tags.append(tag)
+//       }
+//       tracks[idx] = t
+//   }
+//
+//   // MARK: - Сохранить плейлист в Firestore (droplist) и треки в dropTracks
+//   func savePlaylistToFirestore() async {
+//       guard !playlistTitle.isEmpty else {
+//           status = "Ошибка: заголовок пуст"
+//           return
+//       }
+//
+//       // Требуем, чтобы coverImageURL был сгенерирован
+//       guard !playlistImageURL.isEmpty else {
+//           status = "Сначала сгенерируйте coverImage"
+//           return
+//       }
+//
+//       status = "Сохраняем плейлист и треки…"
+//
+//       do {
+//           let droplistRef = db.collection("droplist").document(playlistId)
+//
+//           // 1) Сохраняем метаданные плейлиста (без sampleThumbnails и без curatedTags)
+//           try await droplistRef.setData([
+//               "playlistId": playlistId,
+//               "title": playlistTitle,
+//               "description": playlistDescription,
+//               "coverImageURL": playlistImageURL,
+//               "trackCount": tracks.count,
+//               "createdAt": FieldValue.serverTimestamp()
+//           ], merge: true)
+//
+//           // 2) Batch: сохраняем в droplist/{playlistId}/tracks и в глобальную коллекцию dropTracks
+//           let batch = db.batch()
+//
+//           for track in tracks {
+//
+//               print("TRACK URL:", track.thumbnailURL)
+//               // a) droplist subcollection
+//               let subRef = droplistRef.collection("tracks").document(track.videoId)
+//               batch.setData([
+//                   "videoId": track.videoId,
+//                   "title": track.title,
+//                   "artist": track.artist,
+//                   "thumbnailURL": track.thumbnailURL,
+//                   "durationISO8601": track.durationISO8601,
+//                   "orderIndex": track.orderIndex,
+//                   "createdAt": FieldValue.serverTimestamp()
+//               ], forDocument: subRef)
+//
+//               // b) global dropTracks collection (merge playlists array) + сохраняем теги, которые админ выбрал
+//               let globalRef = db.collection("dropTracks").document(track.videoId)
+//               batch.setData([
+//                   "videoId": track.videoId,
+//                   "title": track.title,
+//                   "artist": track.artist,
+//                   "thumbnailURL": track.thumbnailURL,
+//                   "durationISO8601": track.durationISO8601,
+//                   "playlists": FieldValue.arrayUnion([playlistId]),
+//                   "tags": track.tags,
+//                   "createdAt": FieldValue.serverTimestamp()
+//               ], forDocument: globalRef)
+//           }
+//
+//           try await batch.commit()
+//           status = "Плейлист и треки сохранены"
+//       } catch {
+//           status = "Ошибка сохранения: \(error.localizedDescription)"
+//       }
+//   }
+//}
 
 
 
-
-
-
-
-
-
-
+// MARK: - First Admin code
 
 
 //import Foundation
 //import FirebaseFirestore
-//import FirebaseFunctions
-//import FirebaseStorage
 //import SwiftUI
 //import SafariServices
+//import FirebaseFunctions
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//// MARK: -  поиск трека внутри YouTube‑плейлиста
+//
 //
 //// MARK: - Track Protocol
 //
@@ -636,11 +1354,17 @@ struct AdminView: View {
 //    let thumbnailURL: String
 //    let durationISO8601: String
 //    let orderIndex: Int
+//}
 //
-//    // Новое поле: теги, которые админ выбирает вручную
-//    var tags: [String]
+//// MARK: - Playlist Metadata
 //
-//    // Codable конструктор по умолчанию генерируется автоматически
+//struct PlaylistMetadata: Identifiable, Codable {
+//    var id: String { playlistId }
+//
+//    let playlistId: String
+//    let title: String
+//    let description: String
+//    let imageURL: String
 //}
 //
 //// MARK: - YouTube Video Duration Response
@@ -656,7 +1380,7 @@ struct AdminView: View {
 //    let items: [Item]
 //}
 //
-//// MARK: - YouTube API Client (unchanged логика, но создаёт TrackMetadata с пустыми tags)
+//// MARK: - YouTube API Client
 //
 //final class YouTubeAPIClient {
 //    private let apiKey: String
@@ -665,6 +1389,7 @@ struct AdminView: View {
 //        self.apiKey = apiKey
 //    }
 //
+//    // Поиск одного видео по артисту и названию трека
 //    func searchTrack(artist: String, title: String, orderIndex: Int) async throws -> TrackMetadata {
 //        let query = "\(artist) \(title)"
 //        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
@@ -705,15 +1430,15 @@ struct AdminView: View {
 //
 //        return TrackMetadata(
 //            videoId: item.id.videoId,
-//            title: title,
-//            artist: artist,
+//            title: title,               // ← ВАЖНО: из ввода пользователя
+//            artist: artist,             // ← ВАЖНО: из ввода пользователя
 //            thumbnailURL: item.snippet.thumbnails.high.url,
 //            durationISO8601: duration,
-//            orderIndex: orderIndex,
-//            tags: [] // по умолчанию пустой массив тегов
+//            orderIndex: orderIndex
 //        )
 //    }
 //
+//    // Получить длительность видео
 //    func fetchDuration(videoId: String) async throws -> String {
 //        let urlString =
 //        "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=\(videoId)&key=\(apiKey)"
@@ -730,15 +1455,15 @@ struct AdminView: View {
 //    }
 //}
 //
-//// MARK: - Admin ViewModel (обновлённый)
+//// MARK: - Admin ViewModel
 //
 //@MainActor
 //final class AdminViewModel: ObservableObject {
 //
-//    // Метаданные плейлиста (зашиты в коде)
+//    // Метаданные плейлиста ЗАШИТЫ В КОД
 //    @Published private(set) var playlistTitle: String
 //    @Published private(set) var playlistDescription: String
-//    @Published private(set) var playlistImageURL: String = "" // будет заполнено после генерации
+//    @Published private(set) var playlistImageURL: String
 //
 //    // Поля для поиска трека
 //    @Published var searchArtist: String = ""
@@ -751,31 +1476,23 @@ struct AdminView: View {
 //    // Накопленные треки
 //    @Published var tracks: [TrackMetadata] = []
 //
-//    // Массив thumbnailURL для генерации cover (ровно 4)
-//    @Published var coverThumbnailURLs: [String] = []
-//
-//    // Результат генерации
-//    @Published var coverImageURL: String? = nil
-//
-//    // Статус и доступные теги
 //    @Published var status: String = ""
-//    let availableTags: [String] = ["Gym", "Party", "R&B"]
 //
 //    private let api: YouTubeAPIClient
 //    private let db = Firestore.firestore()
-//    private let functions = Functions.functions()
 //    private let playlistId: String
 //
 //    init(apiKey: String,
 //         playlistId: String,
 //         playlistTitle: String,
-//         playlistDescription: String) {
+//         playlistDescription: String,
+//         playlistImageURL: String) {
 //
 //        self.api = YouTubeAPIClient(apiKey: apiKey)
 //        self.playlistId = playlistId
 //        self.playlistTitle = playlistTitle
 //        self.playlistDescription = playlistDescription
-//        self.playlistImageURL = ""
+//        self.playlistImageURL = playlistImageURL
 //    }
 //
 //    // MARK: - Поиск одного трека
@@ -810,7 +1527,6 @@ struct AdminView: View {
 //        tracks.append(track)
 //        print("Добавлен трек: \(track)")
 //
-//        // Сброс полей поиска
 //        searchArtist = ""
 //        searchTitle = ""
 //        foundTrack = nil
@@ -819,128 +1535,51 @@ struct AdminView: View {
 //        status = "Трек добавлен в список"
 //    }
 //
-//    // MARK: - Добавить thumbnail в массив для коллажа
-//    func addThumbnailToCollage() {
-//        guard let track = foundTrack else {
-//            status = "Нет найденного трека для добавления"
-//            return
-//        }
-//        guard coverThumbnailURLs.count < 4 else {
-//            status = "Уже выбрано 4 thumbnail"
-//            return
-//        }
-//        coverThumbnailURLs.append(track.thumbnailURL)
-//        status = "Добавлен thumbnail (\(coverThumbnailURLs.count)/4)"
-//    }
-//
-//    // MARK: - Генерация coverImage через Cloud Function
-//    func generateCoverImage() async {
-//        guard coverThumbnailURLs.count == 4 else {
-//            status = "Нужно ровно 4 thumbnail"
-//            return
-//        }
-//
-//        status = "Генерируем coverImage…"
-//
-//        do {
-//            let data: [String: Any] = [
-//                "playlistId": playlistId,
-//                "thumbnailURLs": coverThumbnailURLs
-//            ]
-//
-//            let result = try await functions.httpsCallable("generatePlaylistCover").call(data)
-//            if let dict = result.data as? [String: Any],
-//               let url = dict["coverImageURL"] as? String {
-//                self.playlistImageURL = url
-//                self.coverImageURL = url
-//                status = "coverImage сгенерирован"
-//            } else {
-//                status = "Ошибка: неверный ответ функции"
-//            }
-//        } catch {
-//            status = "Ошибка генерации coverImage: \(error.localizedDescription)"
-//        }
-//    }
-//
-//    // MARK: - Теги: переключатель тега для конкретного трека
-//    func toggleTag(forVideoId videoId: String, tag: String) {
-//        guard let idx = tracks.firstIndex(where: { $0.videoId == videoId }) else { return }
-//        var t = tracks[idx]
-//        if t.tags.contains(tag) {
-//            t.tags.removeAll { $0 == tag }
-//        } else {
-//            t.tags.append(tag)
-//        }
-//        tracks[idx] = t
-//    }
-//
-//    // MARK: - Сохранить плейлист в Firestore (droplist) и треки в dropTracks
+//    // MARK: - Сохранить плейлист в Firestore
 //    func savePlaylistToFirestore() async {
 //        guard !playlistTitle.isEmpty else {
 //            status = "Ошибка: заголовок пуст"
 //            return
 //        }
 //
-//        // Требуем, чтобы coverImageURL был сгенерирован
-//        guard !playlistImageURL.isEmpty else {
-//            status = "Сначала сгенерируйте coverImage"
-//            return
-//        }
-//
-//        status = "Сохраняем плейлист и треки…"
+//        status = "Сохраняем…"
 //
 //        do {
-//            let droplistRef = db.collection("droplist").document(playlistId)
+//            let playlistRef = db.collection("playlists").document(playlistId)
 //
-//            // 1) Сохраняем метаданные плейлиста (без sampleThumbnails и без curatedTags)
-//            try await droplistRef.setData([
+//            // Метаданные
+//            try await playlistRef.setData([
 //                "playlistId": playlistId,
 //                "title": playlistTitle,
 //                "description": playlistDescription,
-//                "coverImageURL": playlistImageURL,
-//                "trackCount": tracks.count,
-//                "createdAt": FieldValue.serverTimestamp()
+//                "imageURL": playlistImageURL
 //            ], merge: true)
 //
-//            // 2) Batch: сохраняем в droplist/{playlistId}/tracks и в глобальную коллекцию dropTracks
+//            // Треки
 //            let batch = db.batch()
 //
 //            for track in tracks {
-//                // a) droplist subcollection
-//                let subRef = droplistRef.collection("tracks").document(track.videoId)
+//                let ref = playlistRef.collection("tracks").document(track.videoId)
 //                batch.setData([
 //                    "videoId": track.videoId,
 //                    "title": track.title,
 //                    "artist": track.artist,
 //                    "thumbnailURL": track.thumbnailURL,
 //                    "durationISO8601": track.durationISO8601,
-//                    "orderIndex": track.orderIndex,
-//                    "createdAt": FieldValue.serverTimestamp()
-//                ], forDocument: subRef)
-//
-//                // b) global dropTracks collection (merge playlists array) + сохраняем теги, которые админ выбрал
-//                let globalRef = db.collection("dropTracks").document(track.videoId)
-//                batch.setData([
-//                    "videoId": track.videoId,
-//                    "title": track.title,
-//                    "artist": track.artist,
-//                    "thumbnailURL": track.thumbnailURL,
-//                    "durationISO8601": track.durationISO8601,
-//                    "playlists": FieldValue.arrayUnion([playlistId]),
-//                    "tags": track.tags,
-//                    "createdAt": FieldValue.serverTimestamp()
-//                ], forDocument: globalRef)
+//                    "orderIndex": track.orderIndex
+//                ], forDocument: ref)
 //            }
 //
 //            try await batch.commit()
-//            status = "Плейлист и треки сохранены"
+//            status = "Плейлист сохранён"
+//
 //        } catch {
 //            status = "Ошибка сохранения: \(error.localizedDescription)"
 //        }
 //    }
 //}
 //
-//// MARK: - SafariView (unchanged)
+//// MARK: - SafariView
 //
 //struct SafariView: UIViewControllerRepresentable {
 //    let url: URL
@@ -952,15 +1591,16 @@ struct AdminView: View {
 //    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 //}
 //
-//// MARK: - AdminView (обновлённый UI с выбором тегов)
+//// MARK: - AdminView
 //
 //struct AdminView: View {
 //
 //    @StateObject private var vm = AdminViewModel(
 //        apiKey: Secrets.youtubeAPIKey,
 //        playlistId: "PLQcuPcwlJLVDMqEhSBkJKiJeywzU0KP8r",
-//        playlistTitle: "Droplist",
-//        playlistDescription: "Super tracks"
+//        playlistTitle: "Droplist",           // ЗАШИТО В КОДЕ
+//        playlistDescription: "Super tracks",
+//        playlistImageURL: "playlistImageURL"
 //    )
 //
 //    @State private var showSafari = false
@@ -973,7 +1613,7 @@ struct AdminView: View {
 //                Section("Метаданные плейлиста") {
 //                    Text("Title: \(vm.playlistTitle)")
 //                    Text("Description: \(vm.playlistDescription)")
-//                    Text("Cover URL: \(vm.playlistImageURL.isEmpty ? "— не сгенерирован" : vm.playlistImageURL)")
+//                    Text("Image URL: \(vm.playlistImageURL)")
 //                        .lineLimit(2)
 //                        .font(.footnote)
 //                }
@@ -993,96 +1633,34 @@ struct AdminView: View {
 //                    }
 //
 //                    if vm.foundTrack != nil {
-//                        HStack {
-//                            Button("Добавить трек в список") {
-//                                vm.addFoundTrack()
-//                            }
-//                            .foregroundColor(.green)
-//
-//                            Spacer()
-//
-//                            Button("Добавить thumbnail в коллаж") {
-//                                vm.addThumbnailToCollage()
-//                            }
-//                            .disabled(vm.coverThumbnailURLs.count >= 4)
+//                        Button("Добавить трек в список") {
+//                            vm.addFoundTrack()
 //                        }
+//                        .foregroundColor(.green)
 //                    }
 //                }
-//
-//                Section("Выбранные thumbnail для коллажа (\(vm.coverThumbnailURLs.count)/4)") {
-//                    if vm.coverThumbnailURLs.isEmpty {
-//                        Text("Пока нет выбранных thumbnail")
-//                            .foregroundColor(.secondary)
-//                    } else {
-//                        ForEach(Array(vm.coverThumbnailURLs.enumerated()), id: \.offset) { idx, url in
-//                            Text("\(idx + 1). \(url)")
-//                                .font(.caption2)
-//                                .lineLimit(1)
-//                        }
-//                    }
-//
-//                    if vm.coverThumbnailURLs.count == 4 {
-//                        Button("Собрать coverImage 2×2 (Cloud Function)") {
-//                            Task { await vm.generateCoverImage() }
-//                        }
-//                        .foregroundColor(.blue)
-//                    }
-//                }
-//
 //                Section("Треки в плейлисте") {
 //                    if vm.tracks.isEmpty {
 //                        Text("Пока нет треков")
 //                            .foregroundColor(.secondary)
 //                    } else {
-//                        List {
-//                            ForEach(vm.tracks.sorted(by: { $0.orderIndex < $1.orderIndex })) { track in
-//                                VStack(alignment: .leading, spacing: 6) {
-//                                    HStack {
-//                                        Text("\(track.orderIndex + 1).")
-//                                            .foregroundColor(.secondary)
+//                        List(vm.tracks.sorted(by: { $0.orderIndex < $1.orderIndex })) { track in
+//                            HStack {
+//                                Text("\(track.orderIndex + 1).")
+//                                    .foregroundColor(.secondary)
 //
-//                                        VStack(alignment: .leading) {
-//                                            Text(track.title)
-//                                                .font(.subheadline)
-//                                                .lineLimit(1)
+//                                VStack(alignment: .leading) {
+//                                    Text(track.title)
+//                                        .font(.subheadline)
+//                                        .lineLimit(1)
 //
-//                                            Text(track.artist)
-//                                                .font(.caption)
-//                                                .foregroundColor(.secondary)
-//                                                .lineLimit(1)
-//                                        }
-//
-//                                        Spacer()
-//
-//                                        // Показать текущие теги
-//                                        if !track.tags.isEmpty {
-//                                            Text(track.tags.joined(separator: ", "))
-//                                                .font(.caption2)
-//                                                .foregroundColor(.blue)
-//                                                .lineLimit(1)
-//                                        }
-//                                    }
-//
-//                                    // Меню для выбора/снятия тегов
-//                                    HStack {
-//                                        Text("Теги:")
-//                                            .font(.caption2)
-//                                            .foregroundColor(.secondary)
-//                                        ForEach(vm.availableTags, id: \.self) { tag in
-//                                            Button(action: {
-//                                                vm.toggleTag(forVideoId: track.videoId, tag: tag)
-//                                            }) {
-//                                                Text(tag)
-//                                                    .font(.caption2)
-//                                                    .padding(6)
-//                                                    .background(track.tags.contains(tag) ? Color.blue.opacity(0.2) : Color.gray.opacity(0.12))
-//                                                    .cornerRadius(6)
-//                                            }
-//                                        }
-//                                    }
+//                                    Text(track.artist)
+//                                        .font(.caption)
+//                                        .foregroundColor(.secondary)
+//                                        .lineLimit(1)
 //                                }
-//                                .padding(.vertical, 6)
 //                            }
+//                            .padding(.vertical, 4) // компактно
 //                        }
 //                        .listStyle(.plain)
 //                        .frame(minHeight: 200)
@@ -1090,10 +1668,9 @@ struct AdminView: View {
 //                }
 //
 //                Section("Сохранение") {
-//                    Button("Сохранить плейлист в Firestore (droplist + dropTracks)") {
+//                    Button("Сохранить плейлист в Firestore") {
 //                        Task { await vm.savePlaylistToFirestore() }
 //                    }
-//                    .disabled(vm.playlistImageURL.isEmpty || vm.tracks.isEmpty)
 //                    .foregroundColor(.blue)
 //                }
 //
@@ -1112,6 +1689,16 @@ struct AdminView: View {
 //        }
 //    }
 //}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1291,7 +1878,7 @@ struct AdminView: View {
 //    throw new functions.https.HttpsError("internal", err.message || "Ошибка генерации cover");
 //  }
 //});
-//
+
 
 
 

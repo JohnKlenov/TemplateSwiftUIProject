@@ -23,4 +23,6 @@ exports.cleanupInactiveAnonUsers =
 exports.cleanupUnusedAvatars =
   require('./cleanupUnusedAvatars').cleanupUnusedAvatars;
 
-
+// 🔹 Playlist cover generator
+exports.generatePlaylistCover =
+  require('./generatePlaylistCover').generatePlaylistCover;

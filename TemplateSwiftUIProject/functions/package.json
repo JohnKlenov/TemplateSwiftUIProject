@@ -21,6 +21,8 @@
   "private": true,
   "dependencies": {
     "firebase-admin": "^11.11.1",
-    "firebase-functions": "^5.1.1"
+    "firebase-functions": "^5.1.1",
+    "node-fetch": "^2.7.0",
+    "sharp": "^0.34.5"
   }
 }
