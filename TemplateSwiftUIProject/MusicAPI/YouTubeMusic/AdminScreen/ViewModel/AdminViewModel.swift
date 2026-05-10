@@ -5,6 +5,8 @@
 //  Created by Evgenyi on 9.05.26.
 //
 
+
+
 import FirebaseFirestore
 import FirebaseFunctions
 import SwiftUI
@@ -48,7 +50,7 @@ final class AdminViewModel: ObservableObject {
     private var generateCoverTask: Task<Void, Never>?
 
     // Добавьте это свойство в класс AdminViewModel (в начало с другими @Published)
-    @Published var youtubePlaylistId: String = "PLQcuPcwlJLVD9U1kS0qCT6PtymXjWCjus" // ID вашего YouTube плейлиста
+    @Published var youtubePlaylistId: String = "PLQcuPcwlJLVBYcEV8-ecFBBorqca52gtP" // ID вашего YouTube плейлиста
     @Published var isImportingAllTracks: Bool = false
 
     let availableTags: [String] = ["Gym", "Party", "R&B"]
@@ -299,57 +301,5 @@ final class AdminViewModel: ObservableObject {
     }
 }
 
-//// MARK: - Поиск трека с приоритетом по videoId (НОВЫЙ МЕТОД)
-//
-//func searchTrackWithPriority() async {
-//    status = "Ищем трек в плейлисте (с красивым названием)..."
-//    foundTrack = nil
-//    foundTrackURL = nil
-//    foundTrackTags = []
-//    useFoundTrackThumbnailInCollage = false
-//
-//    guard !searchArtist.isEmpty, !searchTitle.isEmpty else {
-//        status = "Введите артиста и название трека"
-//        return
-//    }
-//
-//    do {
-//        let track = try await api.searchTrackWithPriority(
-//            artist: searchArtist,
-//            title: searchTitle,
-//            playlistId: youtubePlaylistId,
-//            orderIndex: tracks.count
-//        )
-//        foundTrack = track
-//        foundTrackURL = URL(string: "https://www.youtube.com/watch?v=\(track.videoId)")
-//        status = "✅ Трек найден: \(track.title) — \(track.artist)"
-//    } catch {
-//        status = "❌ Ошибка поиска: \(error.localizedDescription)"
-//    }
-//}
 
-//    func searchTrack() async {
-//        status = "Ищем трек…"
-//        foundTrack = nil
-//        foundTrackURL = nil
-//        foundTrackTags = []
-//        useFoundTrackThumbnailInCollage = false
-//
-//        guard !searchArtist.isEmpty, !searchTitle.isEmpty else {
-//            status = "Введите артиста и название трека"
-//            return
-//        }
-//
-//        do {
-//            let track = try await api.searchTrack(
-//                artist: searchArtist,
-//                title: searchTitle,
-//                orderIndex: tracks.count
-//            )
-//            foundTrack = track
-//            foundTrackURL = URL(string: "https://www.youtube.com/watch?v=\(track.videoId)")
-//            status = "Трек найден"
-//        } catch {
-//            status = "Ошибка поиска: \(error.localizedDescription)"
-//        }
-//    }
+

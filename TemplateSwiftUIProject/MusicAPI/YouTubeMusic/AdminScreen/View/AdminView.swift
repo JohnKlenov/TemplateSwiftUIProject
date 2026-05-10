@@ -5,16 +5,20 @@
 //  Created by Evgenyi on 9.05.26.
 //
 
+
+
+
+
+
 import SwiftUI
-import SafariServices
 
 struct AdminView: View {
 
     @StateObject private var vm = AdminViewModel(
         apiKey: Secrets.youtubeAPIKey,
-        playlistId: "PLQcuPcwlJLVD9U1kS0qCT6PtymXjWCjus",
-        playlistTitle: "Droplist#2: LilWayne",
-        playlistDescription: "I Am Not A Human Being || Tha Carter IV (Complete Edition) || Lollipop || Tha Carter III || Tha Carter"
+        playlistId: "PLQcuPcwlJLVBYcEV8-ecFBBorqca52gtP",
+        playlistTitle: "Droplist#2: Kodak Black",
+        playlistDescription: "Evil Genius || Painting Pictures || Project Baby 2 || Closure || Institution"
     )
 
     @State private var showSafari = false
@@ -203,3 +207,9 @@ struct AdminView: View {
         }
     }
 }
+
+
+
+
+
+
