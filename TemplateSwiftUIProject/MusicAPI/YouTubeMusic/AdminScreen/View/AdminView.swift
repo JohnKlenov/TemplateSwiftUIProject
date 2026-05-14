@@ -16,9 +16,9 @@ struct AdminView: View {
 
     @StateObject private var vm = AdminViewModel(
         apiKey: Secrets.youtubeAPIKey,
-        playlistId: "PLQcuPcwlJLVBYcEV8-ecFBBorqca52gtP",
-        playlistTitle: "Droplist#2: Kodak Black",
-        playlistDescription: "Evil Genius || Painting Pictures || Project Baby 2 || Closure || Institution"
+        playlistId: "PLQcuPcwlJLVBd1BtEhXkZyHhOLva-hTBG",
+        playlistTitle: "Droplist#2: Lil Gnar",
+        playlistDescription: "Death Note || IN MY GLORY || Sticky Rice || DIE BOUT IT || Gnar Lif3"
     )
 
     @State private var showSafari = false

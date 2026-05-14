@@ -50,7 +50,7 @@ final class AdminViewModel: ObservableObject {
     private var generateCoverTask: Task<Void, Never>?
 
     // Добавьте это свойство в класс AdminViewModel (в начало с другими @Published)
-    @Published var youtubePlaylistId: String = "PLQcuPcwlJLVBYcEV8-ecFBBorqca52gtP" // ID вашего YouTube плейлиста
+//    @Published var youtubePlaylistId: String = "PLQcuPcwlJLVCYhAAFan-AxvLlWypVIW5v" // ID вашего YouTube плейлиста
     @Published var isImportingAllTracks: Bool = false
 
     let availableTags: [String] = ["Gym", "Party", "R&B"]
@@ -89,7 +89,7 @@ final class AdminViewModel: ObservableObject {
             let track = try await api.searchTrackInPlaylist(
                 artist: searchArtist,
                 title: searchTitle,
-                playlistId: youtubePlaylistId,
+                playlistId: playlistId,
                 orderIndex: tracks.count
             )
             foundTrack = track

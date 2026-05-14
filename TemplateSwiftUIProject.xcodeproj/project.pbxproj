@@ -121,6 +121,8 @@
 		5EBBE6D72FAF5CC3009AC141 /* AdminModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6D62FAF5CC3009AC141 /* AdminModel.swift */; };
 		5EBBE6D92FAF5D6F009AC141 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6D82FAF5D6F009AC141 /* SafariView.swift */; };
 		5EBBE6DB2FAF5DC8009AC141 /* YouTubeAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6DA2FAF5DC8009AC141 /* YouTubeAPIClient.swift */; };
+		5EBBE6DD2FB5C9AC009AC141 /* DroplistCompositView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6DC2FB5C9AB009AC141 /* DroplistCompositView.swift */; };
+		5EBBE6DF2FB5CC0E009AC141 /* DroplistModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6DE2FB5CC0E009AC141 /* DroplistModel.swift */; };
 		5EBFD5C22E055CBC00A3C74C /* SignUpViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */; };
 		5EBFD5C42E1008C000A3C74C /* LifeCycleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */; };
 		5EBFD5C62E1A868E00A3C74C /* RunLoopSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */; };
@@ -292,6 +294,8 @@
 		5EBBE6D62FAF5CC3009AC141 /* AdminModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminModel.swift; sourceTree = "<group>"; };
 		5EBBE6D82FAF5D6F009AC141 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		5EBBE6DA2FAF5DC8009AC141 /* YouTubeAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeAPIClient.swift; sourceTree = "<group>"; };
+		5EBBE6DC2FB5C9AB009AC141 /* DroplistCompositView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DroplistCompositView.swift; sourceTree = "<group>"; };
+		5EBBE6DE2FB5CC0E009AC141 /* DroplistModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DroplistModel.swift; sourceTree = "<group>"; };
 		5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewInjected.swift; sourceTree = "<group>"; };
 		5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeCycleView.swift; sourceTree = "<group>"; };
 		5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLoopSetting.swift; sourceTree = "<group>"; };
@@ -497,6 +501,7 @@
 				5E5466312F96106E009D7210 /* DroplistViewInjected.swift */,
 				5E5466352F9613F2009D7210 /* DroplistView.swift */,
 				5E5466372F961494009D7210 /* DroplistContentView.swift */,
+				5EBBE6DC2FB5C9AB009AC141 /* DroplistCompositView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -512,6 +517,7 @@
 		5E54662F2F960FF7009D7210 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				5EBBE6DE2FB5CC0E009AC141 /* DroplistModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -1579,6 +1585,7 @@
 				5E5466252F7E82B7009D7210 /* EmbedPlayer.swift in Sources */,
 				5EA4FDC92CD8E91A001CA401 /* BookViewModel.swift in Sources */,
 				5EA4FE262CE756EE001CA401 /* AuthService.swift in Sources */,
+				5EBBE6DD2FB5C9AC009AC141 /* DroplistCompositView.swift in Sources */,
 				5E8F9C8A2D5CC8D8004036F6 /* WebImageView.swift in Sources */,
 				5E8F9CA72D7EC9F6004036F6 /* GalleryRowView(test).swift in Sources */,
 				5E8F9C9D2D6F53E3004036F6 /* LocalizationService.swift in Sources */,
@@ -1622,6 +1629,7 @@
 				5EAF5B082D2D563D00D96FD6 /* AlertViewGlobal.swift in Sources */,
 				5E8F9C692D5379AF004036F6 /* HomeCoordinator.swift in Sources */,
 				5EC94A092CC3C762003736A9 /* ValidationFB.swift in Sources */,
+				5EBBE6DF2FB5CC0E009AC141 /* DroplistModel.swift in Sources */,
 				5EC88EFD2DD4A58D00A95224 /* SignUpView.swift in Sources */,
 				5E5466322F96106E009D7210 /* DroplistViewInjected.swift in Sources */,
 				5EC332EF2E5EEF770051BE5B /* UserInfoEditManager.swift in Sources */,

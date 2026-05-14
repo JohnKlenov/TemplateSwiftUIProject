@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 20.04.26.
 //
 
+
 //import Combine
 //import SwiftUI
 //
@@ -174,8 +175,44 @@
 
 // MARK: - ferst version code base + pagination
 
+//droplist (collection)
+//└─ {playlistId}
+//    ├─ playlistId: String
+//    ├─ title: String
+//    ├─ description: String
+//    ├─ coverImageURL: String
+//    ├─ trackCount: Int
+//    ├─ createdAt: Timestamp
+//    └─ tracks (subcollection)
+//        └─ {videoId}
+//            ├─ videoId: String
+//            ├─ title: String
+//            ├─ artist: String
+//            ├─ thumbnailURL: String
+//            ├─ durationISO8601: String
+//            ├─ orderIndex: Int
+//            ├─ createdAt: Timestamp
+//
+//dropTracks (collection)
+//└─ {videoId}
+//    ├─ videoId: String
+//    ├─ title: String
+//    ├─ artist: String
+//    ├─ thumbnailURL: String
+//    ├─ durationISO8601: String
+//    ├─ playlists: [String]
+//    ├─ tags: [String]
+//    ├─ createdAt: Timestamp
 
 
+
+
+
+
+
+
+// MARK: -  !!! Model !!!
+ 
 //import Foundation
 //import FirebaseFirestore
 //
@@ -229,8 +266,31 @@
 //    let imageURL: URL?
 //    // другие поля
 //}
+//
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// MARK: - DropListDataSource
 
 
 
@@ -304,6 +364,21 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// MARK: - DroplistViewModel
 
 
 
@@ -557,9 +632,14 @@
 
 
 
+// MARK: - !!! Models (UI + Transfer) !!!
+
+
+
+
 // MARK: - 1. Firestore DTO (Data Transfer Objects)
-
-
+//
+//
 //PlaylistDoc — документ плейлиста
 //
 //import Foundation
@@ -575,10 +655,10 @@
 //    let trackCount: Int
 //    let createdAt: Date
 //}
-
-
-
-
+//
+//
+//
+//
 //PlaylistTrackDoc — документ трека внутри плейлиста
 //
 //struct PlaylistTrackDoc: Codable, Identifiable {
@@ -591,8 +671,8 @@
 //    let orderIndex: Int
 //    let createdAt: Date
 //}
-
-
+//
+//
 //TrackDoc — глобальный трек (коллекция tracks)
 //
 //struct TrackDoc: Codable, Identifiable {
@@ -607,11 +687,13 @@
 //    let createdAt: Date
 //    let searchKeywords: [String]?      // optional (если не используем Algolia)
 //}
-
-
-
+//
+//
+//
 // MARK: - 2. Domain Models (UI‑модели)
-
+//
+// нет поля durationISO8601 ???
+//
 //LowerItem — универсальная модель нижней секции
 //
 //import Foundation
@@ -625,10 +707,10 @@
 //    let trackCount: Int?               // для плейлистов
 //    let isTrack: Bool                  // true → трек, false → плейлист
 //}
-
-
+//
+//
 //Плейлист → LowerItem
-
+//
 //LowerItem(
 //    id: playlistDoc.playlistId,
 //    title: playlistDoc.title,
@@ -638,11 +720,11 @@
 //    trackCount: playlistDoc.trackCount,
 //    isTrack: false
 //)
-
-
-
+//
+//
+//
 //Трек → LowerItem
-
+//
 //LowerItem(
 //    id: trackDoc.videoId,
 //    title: trackDoc.title,
@@ -652,25 +734,25 @@
 //    trackCount: nil,
 //    isTrack: true
 //)
-
-
-
-
-
+//
+//
+//
+//
+//
 // MARK: - 3. DropData — данные для DroplistCompositView
-
-
-
+//
+//
+//
 //struct DropData {
 //    let topSections: [TopSectionModel]        // верхняя секция
 //    let carouselItems: [CarouselItem]         // средняя секция
 //    let initialLowerSection: LowerSectionPage // первая страница нижней секции
 //}
-
-
-
+//
+//
+//
 // MARK: - 4. LowerSectionPage — страница пагинации
-
+//
 //import FirebaseFirestore
 //
 //struct LowerSectionPage {
@@ -678,11 +760,11 @@
 //    let lastDocumentSnapshot: DocumentSnapshot?
 //    let hasMore: Bool
 //}
-
-
-
+//
+//
+//
 // MARK: - 5. CarouselItem — элементы средней секции
-
+//
 //enum CarouselItemType: String, Codable {
 //    case droplist
 //    case allTracks
@@ -698,12 +780,12 @@
 //    let type: CarouselItemType
 //}
 //
-
-
-
-
+//
+//
+//
+//
 // MARK: - 6. TopSectionModel — верхняя секция (как в GalleryCompositView)
-
+//
 //struct TopSectionModel: Identifiable {
 //    let id: String
 //    let title: String
@@ -715,6 +797,20 @@
 //    let title: String
 //    let imageURL: URL?
 //}
+//
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1339,7 +1435,7 @@
 
 
 
-// MARK: - DroplistCompositView
+// MARK: - !!! DroplistCompositView !!!
 
 
 //import SwiftUI

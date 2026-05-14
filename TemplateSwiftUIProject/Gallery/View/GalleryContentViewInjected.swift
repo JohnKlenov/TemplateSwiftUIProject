@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 22.01.26.
 //
 
+
 import SwiftUI
 
 struct GalleryContentViewInjected: View {
