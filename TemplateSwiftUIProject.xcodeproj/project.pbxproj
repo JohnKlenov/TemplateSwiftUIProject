@@ -123,6 +123,8 @@
 		5EBBE6DB2FAF5DC8009AC141 /* YouTubeAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6DA2FAF5DC8009AC141 /* YouTubeAPIClient.swift */; };
 		5EBBE6DD2FB5C9AC009AC141 /* DroplistCompositView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6DC2FB5C9AB009AC141 /* DroplistCompositView.swift */; };
 		5EBBE6DF2FB5CC0E009AC141 /* DroplistModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6DE2FB5CC0E009AC141 /* DroplistModel.swift */; };
+		5EBBE6E12FB70E30009AC141 /* DropListFirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6E02FB70E30009AC141 /* DropListFirestoreService.swift */; };
+		5EBBE6E32FB720B9009AC141 /* DropListDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6E22FB720B9009AC141 /* DropListDataSource.swift */; };
 		5EBFD5C22E055CBC00A3C74C /* SignUpViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */; };
 		5EBFD5C42E1008C000A3C74C /* LifeCycleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */; };
 		5EBFD5C62E1A868E00A3C74C /* RunLoopSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */; };
@@ -296,6 +298,8 @@
 		5EBBE6DA2FAF5DC8009AC141 /* YouTubeAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeAPIClient.swift; sourceTree = "<group>"; };
 		5EBBE6DC2FB5C9AB009AC141 /* DroplistCompositView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DroplistCompositView.swift; sourceTree = "<group>"; };
 		5EBBE6DE2FB5CC0E009AC141 /* DroplistModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DroplistModel.swift; sourceTree = "<group>"; };
+		5EBBE6E02FB70E30009AC141 /* DropListFirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropListFirestoreService.swift; sourceTree = "<group>"; };
+		5EBBE6E22FB720B9009AC141 /* DropListDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropListDataSource.swift; sourceTree = "<group>"; };
 		5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewInjected.swift; sourceTree = "<group>"; };
 		5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeCycleView.swift; sourceTree = "<group>"; };
 		5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLoopSetting.swift; sourceTree = "<group>"; };
@@ -526,6 +530,8 @@
 			isa = PBXGroup;
 			children = (
 				5E54663B2F961927009D7210 /* AppSessionManager.swift */,
+				5EBBE6E02FB70E30009AC141 /* DropListFirestoreService.swift */,
+				5EBBE6E22FB720B9009AC141 /* DropListDataSource.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -1548,6 +1554,8 @@
 				5EC88EE82DBD815900A95224 /* GlobalRetryHandler.swift in Sources */,
 				5EBBE6D92FAF5D6F009AC141 /* SafariView.swift in Sources */,
 				5E5466292F7E835B009D7210 /* PlaylistTrackRow.swift in Sources */,
+				5EBBE6E32FB720B9009AC141 /* DropListDataSource.swift in Sources */,
+				5EBBE6E12FB70E30009AC141 /* DropListFirestoreService.swift in Sources */,
 				5EC4B2542F320F5000F0C2D7 /* ErrorContext.swift in Sources */,
 				5E8F9CCF2D99777A004036F6 /* ImageCacheManager.swift in Sources */,
 				5E5466362F9613F2009D7210 /* DroplistView.swift in Sources */,

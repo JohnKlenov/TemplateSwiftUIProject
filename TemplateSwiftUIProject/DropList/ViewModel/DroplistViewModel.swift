@@ -819,9 +819,9 @@
 
 
 
-// MARK: -  DropListFirestoreServiceProtocol
-
-
+// MARK: -  !!! DropListFirestoreServiceProtocol !!!
+//
+//
 //import Foundation
 //import FirebaseFirestore
 //
@@ -846,10 +846,10 @@
 //        pageSize: Int
 //    ) async throws -> LowerSectionPage
 //}
-
-
-
-
+//
+//
+//
+//
 //import Foundation
 //import FirebaseFirestore
 //
@@ -948,7 +948,7 @@
 //        pageSize: Int
 //    ) async throws -> LowerSectionPage {
 //        
-//        var query: Query = db.collection("playlists")
+//        var query: Query = db.collection("droplist")
 //            .order(by: "createdAt", descending: true)
 //            .limit(to: pageSize)
 //        
@@ -1014,8 +1014,8 @@
 //        after lastSnapshot: DocumentSnapshot?
 //    ) async throws -> LowerSectionPage {
 //        
-//        var query: Query = db.collection("tracks")
-//        
+//        var query: Query = db.collection("dropTracks")
+//
 //        if let tag {
 //            query = query.whereField("tags", arrayContains: tag)
 //        }
@@ -1076,6 +1076,7 @@
 //        )
 //    }
 //}
+//
 
 
 
@@ -1083,9 +1084,15 @@
 
 
 
-// MARK: - DropListDataSource
 
 
+
+
+
+
+// MARK: - !!! DropListDataSource !!! 
+//
+//
 //import Foundation
 //import FirebaseFirestore
 //
