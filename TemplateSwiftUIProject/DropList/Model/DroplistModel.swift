@@ -122,6 +122,17 @@ import Foundation
 import FirebaseFirestore
 
 
+struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
+    @DocumentID var id: String?
+    let videoId: String
+    let title: String
+    let artist: String?
+    let thumbnailURL: String?
+    let durationISO8601: String?
+    let tags: [String]?
+    let playlists: [String]?           // YouTube playlist IDs
+    let createdAt: Date
+}
 
 // MARK: - 1. Firestore DTO (Data Transfer Objects)
 

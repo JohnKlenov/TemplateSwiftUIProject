@@ -529,6 +529,9 @@
 		5E5466302F961000009D7210 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */,
+				5EC94A052CC29770003736A9 /* AuthenticationService.swift */,
+				5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */,
 				5E54663B2F961927009D7210 /* AppSessionManager.swift */,
 				5EBBE6E02FB70E30009AC141 /* DropListFirestoreService.swift */,
 				5EBBE6E22FB720B9009AC141 /* DropListDataSource.swift */,
@@ -1363,9 +1366,6 @@
 		5EC949FC2CC291A6003736A9 /* Service */ = {
 			isa = PBXGroup;
 			children = (
-				5EC94A052CC29770003736A9 /* AuthenticationService.swift */,
-				5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */,
-				5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */,
 				5E00EE102F1E2C8900A521AC /* HomeManager.swift */,
 			);
 			path = Service;

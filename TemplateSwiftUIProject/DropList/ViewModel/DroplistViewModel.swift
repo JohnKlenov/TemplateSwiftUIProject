@@ -6,147 +6,341 @@
 //
 
 
+import Combine
+import SwiftUI
+
+
+enum DropeState {
+    case loading
+    case error(String)
+    case myTracks([MyTrackCloud])
+    case errorList(String)
+    case contentList(DropData)
+}
+
+extension DropeState {
+    var isError: Bool {
+        switch self {
+        case .error, .errorList:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+
+
+final class DroplistViewModel: ObservableObject {
+    
+    @Published var viewState: DropeState = .loading
+    
+    private let sessionManager: AppSessionManager
+    let managerCRUDS: CRUDSManager
+    private var cancellables = Set<AnyCancellable>()
+    
+    private(set) var myTracks: [MyTrackCloud] = []
+    private var isDropListLoaded = false
+    
+    init(sessionManager: AppSessionManager,
+         managerCRUDS: CRUDSManager) {
+        self.sessionManager = sessionManager
+        self.managerCRUDS = managerCRUDS
+        print("init HomeContentView + HomeContentViewModel")
+        
+        sessionManager.statePublisher
+            .compactMap { $0 }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                self?.handleHomeManagerState(state)
+            }
+            .store(in: &cancellables)
+    }
+    
+    deinit {
+        print("deinit HomeContentView + HomeContentViewModel")
+    }
+    
+    func setupViewModel() {
+        viewState = .loading
+        sessionManager.start()
+        sessionManager.observe()
+    }
+    
+    func setRetryHandler(_ handler: GlobalRetryHandler) {
+        sessionManager.setRetryHandler(handler)
+    }
+    
+    func retry() {
+        myTracks = []
+        isDropListLoaded = false
+        viewState = .loading
+        sessionManager.retry()
+    }
+    
+    // MARK: - DropList
+
+
+func fetchDataDroplist() {
+    guard !isDropListLoaded else { return }
+    isDropListLoaded = true
+    
+    loadDropList(isInitial: true) { [weak self] result in
+        switch result {
+        case .success(let dropData):
+            self?.viewState = .contentList(dropData)
+        case .failure(let error):
+            self?.viewState = .errorList(error.localizedDescription)
+        }
+    }
+}
+
+    
+    func retryFetchDataDroplist() {
+        isDropListLoaded = false
+        fetchDataDroplist()
+    }
+    
+func refreshDropList() {
+    loadDropList(isInitial: false) { [weak self] result in
+        switch result {
+        case .success(let dropData):
+            self?.viewState = .contentList(dropData)
+        case .failure(let error):
+            print("DropList refresh failed: \(error.localizedDescription)")
+        }
+    }
+}
+
+    
+    // MARK: - Handle HomeManager state
+    
+    private func handleHomeManagerState(_ state: DropeState) {
+        switch state {
+            
+        case .loading:
+            viewState = .loading
+            
+        case .error(let message):
+            viewState = .error(message)
+            
+        case .myTracks(let tracks):
+            // Сохраняем треки, но НЕ меняем viewState
+            myTracks = tracks
+            fetchDataDroplist()
+            
+        case .contentList, .errorList:
+            break
+        }
+    }
+    
+    // MARK: - Abstract DropList API
+    
+private func loadDropList(
+    isInitial: Bool,
+    completion: @escaping (Result<DropData, Error>) -> Void
+) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        completion(.success(DropData(topSections: [], carouselItems: [], initialLowerSection: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: true))))
+    }
+}
+}
+
+
+
+
+
+
+
+
+
+
+// MARK: - HomeContentViewModel
+
+
+//import Foundation
 //import Combine
 //import SwiftUI
+//import FirebaseFirestore
 //
-//struct DropData {}
-//struct TrackCloud {}
+//@MainActor
+//final class HomeContentViewModel: ObservableObject {
 //
-//enum DropeState {
-//    case loading
-//    case error(String)
-//    case myTracks([TrackCloud])
-//    case errorList(String)
-//    case contentList(DropData)
-//}
+//    // MARK: - Published UI State
 //
-//extension DropeState {
-//    var isError: Bool {
-//        switch self {
-//        case .error, .errorList:
-//            return true
-//        default:
-//            return false
-//        }
-//    }
-//}
+//    @Published var viewState: ViewState = .loading
 //
+//    // MARK: - Dependencies
 //
+//    private let sessionManager: AppSessionManager        // бывший HomeManager
+//    private let managerCRUDS: CRUDSManager
+//    private let dropDataSource: DropListDataSource
 //
-//final class DroplistViewModel: ObservableObject {
-//    
-//    @Published var viewState: DropeState = .loading
-//    
-//    private let homeManager: HomeManager
-//    let managerCRUDS: CRUDSManager
+//    // MARK: - Internal State
+//
 //    private var cancellables = Set<AnyCancellable>()
-//    
-//    private(set) var myTracks: [TrackCloud] = []
-//    private var isDropListLoaded = false
-//    
-//    init(homeManager: HomeManager,
-//         managerCRUDS: CRUDSManager) {
-//        self.homeManager = homeManager
+//    private var isInitialLoaded = false
+//
+//    // MARK: - Init
+//
+//    init(
+//        sessionManager: AppSessionManager,
+//        managerCRUDS: CRUDSManager,
+//        firestoreService: DropListFirestoreServiceProtocol
+//    ) {
+//        self.sessionManager = sessionManager
 //        self.managerCRUDS = managerCRUDS
-//        print("init HomeContentView + HomeContentViewModel")
-//        
-//        homeManager.statePublisher
-//            .compactMap { $0 }
+//        self.dropDataSource = DropListDataSource(
+//            firestoreService: firestoreService,
+//            pageSize: 20
+//        )
+//
+//        observeSessionState()
+//    }
+//
+//    deinit {
+//        print("deinit HomeContentViewModel")
+//    }
+//
+//    // MARK: - Observe AppSessionManager
+//
+//    private func observeSessionState() {
+//        sessionManager.statePublisher
 //            .receive(on: DispatchQueue.main)
 //            .sink { [weak self] state in
-//                self?.handleHomeManagerState(state)
+//                self?.handleSessionState(state)
 //            }
 //            .store(in: &cancellables)
 //    }
-//    
-//    deinit {
-//        print("deinit HomeContentView + HomeContentViewModel")
-//    }
-//    
-//    func setupViewModel() {
-//        viewState = .loading
-//        homeManager.start()
-//        homeManager.observe()
-//    }
-//    
-//    func setRetryHandler(_ handler: GlobalRetryHandler) {
-//        homeManager.setRetryHandler(handler)
-//    }
-//    
-//    func retry() {
-//        myTracks = []
-//        isDropListLoaded = false
-//        viewState = .loading
-//        homeManager.retry()
-//    }
-//    
-//    // MARK: - DropList
 //
-
-//func fetchDataDroplist() {
-//    guard !isDropListLoaded else { return }
-//    isDropListLoaded = true
-//    
-//    loadDropList(isInitial: true) { [weak self] result in
-//        switch result {
-//        case .success(let dropData):
-//            self?.viewState = .contentList(dropData)
-//        case .failure(let error):
-//            self?.viewState = .errorList(error.localizedDescription)
-//        }
-//    }
-//}
-
-//    
-//    func retryFetchDataDroplist() {
-//        isDropListLoaded = false
-//        fetchDataDroplist()
-//    }
-//    
-//func refreshDropList() {
-//    loadDropList(isInitial: false) { [weak self] result in
-//        switch result {
-//        case .success(let dropData):
-//            self?.viewState = .contentList(dropData)
-//        case .failure(let error):
-//            print("DropList refresh failed: \(error.localizedDescription)")
-//        }
-//    }
-//}
-
-//    
-//    // MARK: - Handle HomeManager state
-//    
-//    private func handleHomeManagerState(_ state: DropeState) {
+//    private func handleSessionState(_ state: ViewState) {
 //        switch state {
-//            
 //        case .loading:
 //            viewState = .loading
-//            
+//
 //        case .error(let message):
 //            viewState = .error(message)
-//            
+//
 //        case .myTracks(let tracks):
-//            // Сохраняем треки, но НЕ меняем viewState
-//            myTracks = tracks
-//            fetchDataDroplist()
-//            
+//            // Треки нужны только для бизнес‑логики (например, сравнение videoId)
+//            // UI не показывает myTracks → не меняем viewState
+//            sessionManager.cacheMyTracks(tracks)
+//
+//            // Первичная загрузка Droplist
+//            if !isInitialLoaded {
+//                Task { await self.loadInitial() }
+//            }
+//
 //        case .contentList, .errorList:
 //            break
 //        }
 //    }
-//    
-//    // MARK: - Abstract DropList API
-//    
-//private func loadDropList(
-//    isInitial: Bool,
-//    completion: @escaping (Result<DropData, Error>) -> Void
-//) {
-//    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-//        completion(.success(DropData()))
+//
+//    // MARK: - Initial Load
+//
+//    func setupViewModel() {
+//        viewState = .loading
+//        sessionManager.start()
+//        sessionManager.observe()
+//    }
+//
+//    private func loadInitial() async {
+//        do {
+//            let dropData = try await dropDataSource.loadInitialDropList(defaultSelectedIndex: 0)
+//            viewState = .contentList(dropData)
+//            isInitialLoaded = true
+//        } catch {
+//            viewState = .errorList(error.localizedDescription)
+//        }
+//    }
+//
+//    // MARK: - Retry
+//
+//    func retry() {
+//        isInitialLoaded = false
+//        viewState = .loading
+//        sessionManager.retry()
+//    }
+//
+//    func retryFetchDataDroplist() {
+//        Task { await loadInitial() }
+//    }
+//
+//    // MARK: - Refresh (Pull-to-Refresh)
+//
+//    func refreshDropList() {
+//        Task {
+//            do {
+//                let page = try await dropDataSource.refreshCurrentItem()
+//
+//                guard case .contentList(let oldData) = viewState else { return }
+//
+//                let newData = DropData(
+//                    topSections: oldData.topSections,
+//                    carouselItems: oldData.carouselItems,
+//                    initialLowerSection: page
+//                )
+//
+//                viewState = .contentList(newData)
+//
+//            } catch {
+//                print("Refresh failed: \(error.localizedDescription)")
+//            }
+//        }
+//    }
+//
+//    // MARK: - Carousel Selection
+//
+//    func didSelectCarouselItem(_ item: CarouselItem) {
+//        Task {
+//            do {
+//                let page = try await dropDataSource.selectCarouselItem(item)
+//
+//                guard case .contentList(let oldData) = viewState else { return }
+//
+//                let newData = DropData(
+//                    topSections: oldData.topSections,
+//                    carouselItems: oldData.carouselItems,
+//                    initialLowerSection: page
+//                )
+//
+//                viewState = .contentList(newData)
+//
+//            } catch {
+//                viewState = .errorList(error.localizedDescription)
+//            }
+//        }
+//    }
+//
+//    // MARK: - Pagination
+//
+//    func loadNextPageIfNeeded(for item: CarouselItem) {
+//        Task {
+//            do {
+//                guard let newPage = try await dropDataSource.loadNextPageIfNeeded(for: item) else { return }
+//
+//                guard case .contentList(let oldData) = viewState else { return }
+//
+//                let newData = DropData(
+//                    topSections: oldData.topSections,
+//                    carouselItems: oldData.carouselItems,
+//                    initialLowerSection: newPage
+//                )
+//
+//                viewState = .contentList(newData)
+//
+//            } catch {
+//                print("Pagination failed: \(error.localizedDescription)")
+//            }
+//        }
 //    }
 //}
-//}
+//
+
+
+
+
+
 
 
 
