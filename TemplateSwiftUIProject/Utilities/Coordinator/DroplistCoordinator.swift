@@ -1,14 +1,14 @@
 //
-//  HomeCoordinator.swift
+//  DroplistCoordinator.swift
 //  TemplateSwiftUIProject
 //
-//  Created by Evgenyi on 5.02.25.
+//  Created by Evgenyi on 18.05.26.
 //
 
 
 import SwiftUI
 
-class HomeCoordinator:ObservableObject {
+class DroplistCoordinator:ObservableObject {
     
     @Published var path: NavigationPath = NavigationPath() {
         didSet {
@@ -50,3 +50,4 @@ class HomeCoordinator:ObservableObject {
         self.fullScreenItem = nil
     }
 }
+

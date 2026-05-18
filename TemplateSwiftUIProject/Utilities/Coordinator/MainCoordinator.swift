@@ -10,6 +10,7 @@
 //var galleryCoordinator = GalleryCoordinator()
 //var accountCoordinator = AccountCoordinator()
 
+
 import SwiftUI
 
 class MainCoordinator:ObservableObject {
@@ -18,12 +19,14 @@ class MainCoordinator:ObservableObject {
     var homeCoordinator: HomeCoordinator
     var galleryCoordinator: GalleryCoordinator
     var accountCoordinator: AccountCoordinator
+    var droplistCoordinator: DroplistCoordinator
     
-    init(tabViewSwitcher: TabViewSwitcher = TabViewSwitcher(), homeCoordinator: HomeCoordinator = HomeCoordinator(), galleryCoordinator: GalleryCoordinator = GalleryCoordinator(), accountCoordinator: AccountCoordinator = AccountCoordinator()) {
+    init(tabViewSwitcher: TabViewSwitcher = TabViewSwitcher(), homeCoordinator: HomeCoordinator = HomeCoordinator(), galleryCoordinator: GalleryCoordinator = GalleryCoordinator(), accountCoordinator: AccountCoordinator = AccountCoordinator(), droplistCoordinator:DroplistCoordinator = DroplistCoordinator()) {
         self.tabViewSwitcher = tabViewSwitcher
         self.homeCoordinator = homeCoordinator
         self.galleryCoordinator = galleryCoordinator
         self.accountCoordinator = accountCoordinator
+        self.droplistCoordinator = droplistCoordinator
         print("init MainCoordinator")
     }
     

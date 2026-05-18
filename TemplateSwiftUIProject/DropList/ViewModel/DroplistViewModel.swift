@@ -6,6 +6,8 @@
 //
 
 
+
+
 import Combine
 import SwiftUI
 
@@ -36,16 +38,13 @@ final class DroplistViewModel: ObservableObject {
     @Published var viewState: DropeState = .loading
     
     private let sessionManager: AppSessionManager
-    let managerCRUDS: CRUDSManager
     private var cancellables = Set<AnyCancellable>()
     
     private(set) var myTracks: [MyTrackCloud] = []
     private var isDropListLoaded = false
     
-    init(sessionManager: AppSessionManager,
-         managerCRUDS: CRUDSManager) {
+    init(sessionManager: AppSessionManager) {
         self.sessionManager = sessionManager
-        self.managerCRUDS = managerCRUDS
         print("init HomeContentView + HomeContentViewModel")
         
         sessionManager.statePublisher

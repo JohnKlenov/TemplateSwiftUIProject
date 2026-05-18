@@ -125,6 +125,8 @@
 		5EBBE6DF2FB5CC0E009AC141 /* DroplistModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6DE2FB5CC0E009AC141 /* DroplistModel.swift */; };
 		5EBBE6E12FB70E30009AC141 /* DropListFirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6E02FB70E30009AC141 /* DropListFirestoreService.swift */; };
 		5EBBE6E32FB720B9009AC141 /* DropListDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6E22FB720B9009AC141 /* DropListDataSource.swift */; };
+		5EBBE6E52FBAFEE0009AC141 /* DroplistCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6E42FBAFEE0009AC141 /* DroplistCoordinator.swift */; };
+		5EBBE6E72FBB01D6009AC141 /* DropViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBBE6E62FBB01D6009AC141 /* DropViewModel.swift */; };
 		5EBFD5C22E055CBC00A3C74C /* SignUpViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */; };
 		5EBFD5C42E1008C000A3C74C /* LifeCycleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */; };
 		5EBFD5C62E1A868E00A3C74C /* RunLoopSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */; };
@@ -300,6 +302,8 @@
 		5EBBE6DE2FB5CC0E009AC141 /* DroplistModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DroplistModel.swift; sourceTree = "<group>"; };
 		5EBBE6E02FB70E30009AC141 /* DropListFirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropListFirestoreService.swift; sourceTree = "<group>"; };
 		5EBBE6E22FB720B9009AC141 /* DropListDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropListDataSource.swift; sourceTree = "<group>"; };
+		5EBBE6E42FBAFEE0009AC141 /* DroplistCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DroplistCoordinator.swift; sourceTree = "<group>"; };
+		5EBBE6E62FBB01D6009AC141 /* DropViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropViewModel.swift; sourceTree = "<group>"; };
 		5EBFD5C12E055CBC00A3C74C /* SignUpViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpViewInjected.swift; sourceTree = "<group>"; };
 		5EBFD5C32E1008C000A3C74C /* LifeCycleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeCycleView.swift; sourceTree = "<group>"; };
 		5EBFD5C52E1A868E00A3C74C /* RunLoopSetting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLoopSetting.swift; sourceTree = "<group>"; };
@@ -502,6 +506,7 @@
 		5E54662D2F960FE8009D7210 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				5E8F9C8F2D634EA4004036F6 /* ContentErrorView.swift */,
 				5E5466312F96106E009D7210 /* DroplistViewInjected.swift */,
 				5E5466352F9613F2009D7210 /* DroplistView.swift */,
 				5E5466372F961494009D7210 /* DroplistContentView.swift */,
@@ -514,6 +519,7 @@
 			isa = PBXGroup;
 			children = (
 				5E5466392F961529009D7210 /* DroplistViewModel.swift */,
+				5EBBE6E62FBB01D6009AC141 /* DropViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -937,6 +943,7 @@
 				5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */,
 				5E8F9CA82D7ED71D004036F6 /* GalleryCoordinator.swift */,
 				5EC88ED92DB128F100A95224 /* AccountCoordinator.swift */,
+				5EBBE6E42FBAFEE0009AC141 /* DroplistCoordinator.swift */,
 			);
 			path = Coordinator;
 			sourceTree = "<group>";
@@ -1356,7 +1363,6 @@
 				5EA4FE352D21C8D7001CA401 /* HomeContentView.swift */,
 				5E8F9C8B2D6348BF004036F6 /* BooksListView.swift */,
 				5E8F9C8D2D6348D8004036F6 /* BookRowView.swift */,
-				5E8F9C8F2D634EA4004036F6 /* ContentErrorView.swift */,
 				5EC88ED72DAE8E8D00A95224 /* EmptyStateView.swift */,
 				5E00EE122F1E354100A521AC /* HomeContentViewInjected.swift */,
 			);
@@ -1578,6 +1584,7 @@
 				5E8F9CB32D819F21004036F6 /* GalleryViewModel.swift in Sources */,
 				5EA2E60B2DF2DF6600C53E52 /* Layout.swift in Sources */,
 				5E8F9CBF2D81A451004036F6 /* ShopsSectionView.swift in Sources */,
+				5EBBE6E72FBB01D6009AC141 /* DropViewModel.swift in Sources */,
 				5EC332E82E5C43820051BE5B /* ClearButtonModifier.swift in Sources */,
 				5EC88EDC2DB136F500A95224 /* AccountView.swift in Sources */,
 				5E00EE172F22368700A521AC /* GalleryContentViewInjected.swift in Sources */,
@@ -1621,6 +1628,7 @@
 				5EC4B2662F74143300F0C2D7 /* DesignAndStructure.swift in Sources */,
 				5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */,
 				5E00EE112F1E2C8900A521AC /* HomeManager.swift in Sources */,
+				5EBBE6E52FBAFEE0009AC141 /* DroplistCoordinator.swift in Sources */,
 				5E8F9CA12D7CDFB7004036F6 /* GalleryContentViewModel(test).swift in Sources */,
 				5EA082972EA5107C00E244B8 /* FirebaseAuthUserProvider.swift in Sources */,
 				5EC332E12E48D3470051BE5B /* UserInfoEditViewInjected.swift in Sources */,

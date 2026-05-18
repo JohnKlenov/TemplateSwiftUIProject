@@ -14,7 +14,7 @@ struct DroplistContentView: View {
     
     @ObservedObject var viewModel: DroplistViewModel
     
-    @EnvironmentObject var homeCoordinator: HomeCoordinator
+    @EnvironmentObject var droplistCoordinator: DroplistCoordinator
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var retryHandler: GlobalRetryHandler
     
@@ -26,7 +26,7 @@ struct DroplistContentView: View {
                 ProgressView(Localized.Home.loading.localized())
                 
             case .myTracks:
-                // На HomeContentView мы НЕ отображаем треки
+                // На DroplistContentView мы НЕ отображаем треки
                 ProgressView(Localized.Home.loading.localized())
                 
             case .contentList(let dropData):
@@ -63,12 +63,9 @@ struct DroplistContentView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(Localized.Home.addButton.localized()) {
                     let sheetContent = AnyView(
-                        BookEditView(
-                            managerCRUDS: viewModel.managerCRUDS,
-                            presentEditView: "HomeView"
-                        )
+                        AdminView()
                     )
-                    homeCoordinator.presentSheet(SheetItem(content: sheetContent))
+                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
                 }
                 .foregroundStyle(AppColors.activeColor)
                 .padding()

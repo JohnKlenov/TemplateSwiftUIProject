@@ -96,6 +96,7 @@
 
 
 
+
 // MARK: - ContentView может быть пересоздан системой
 
 // ContentView().id("ContentView")  - Гарантированно один экземпляр
@@ -136,8 +137,8 @@ struct ContentView: View {
     
     
     // MARK: - ViewBuilderService (вынести в TemplateSwiftUIProjectApp и HomeView, GalleryView, AccountView создавать там же и в LazyView { viewBuilderService.buildGalleryView } тогда все сервисы можно инициализировать в ViewBuilderService)
-    private var homeView: LazyView<HomeView> {
-        return LazyView { HomeView() }
+    private var droplistView: LazyView<DroplistView> {
+        return LazyView { DroplistView() }
     }
     
     private var galleryView: LazyView<GalleryView> {
@@ -171,7 +172,7 @@ struct ContentView: View {
         ZStack {
             VStack {
                 TabView(selection: $selection) {
-                    homeView
+                    droplistView
                         .tabItem {
                             Label(Localized.TabBar.home.localized(), systemImage: AppIcons.TabBar.home)
                         }
@@ -241,6 +242,127 @@ struct LazyView<Content: View>: View {
     }
 }
 
+
+
+
+
+
+// MARK: - before DroplistView
+
+
+
+//import SwiftUI
+//import Combine
+//
+//
+//struct ContentView: View {
+//    
+//    
+//    // MARK: - ViewBuilderService (вынести в TemplateSwiftUIProjectApp и HomeView, GalleryView, AccountView создавать там же и в LazyView { viewBuilderService.buildGalleryView } тогда все сервисы можно инициализировать в ViewBuilderService)
+//    private var homeView: LazyView<HomeView> {
+//        return LazyView { HomeView() }
+//    }
+//    
+//    private var galleryView: LazyView<GalleryView> {
+//        return LazyView { GalleryView() }
+//    }
+//   
+//    private var accountView: LazyView<AccountView> {
+//        return LazyView { AccountView() }
+//    }
+//    
+//    @StateObject private var viewModel:ContentViewModel
+//    
+//    @State private var selection: Int = 0
+//    @State private var isShowAlert: Bool = false
+//    @State private var alertMessage: String = ""
+//    @State private var alertTitle: String = ""
+//    @State private var alertType: AlertType = .ok
+//    @State private var cancellables = Set<AnyCancellable>()
+//    
+//    @EnvironmentObject var localization: LocalizationService
+//    @EnvironmentObject var mainCoordinator: MainCoordinator
+//    
+//    init() {
+//        print("init ContentView")
+//        _viewModel = StateObject(wrappedValue: ContentViewModel(alertManager: AlertManager.shared))
+//
+//    }
+//    
+//
+//    var body: some View {
+//        ZStack {
+//            VStack {
+//                TabView(selection: $selection) {
+//                    homeView
+//                        .tabItem {
+//                            Label(Localized.TabBar.home.localized(), systemImage: AppIcons.TabBar.home)
+//                        }
+//                        .tag(0)
+//                    
+//                    galleryView
+//                        .tabItem {
+//                            Label(Localized.TabBar.gallery.localized(), systemImage: AppIcons.TabBar.gallery)
+//                        }
+//                        .tag(1)
+//                        
+//                    accountView
+//                        .tabItem {
+//                            Label(Localized.TabBar.profile.localized(), systemImage: AppIcons.TabBar.profile)
+//                        }
+//                        .tag(2)
+//                        
+//                }
+//                .background(
+//                    AlertViewGlobal(isShowAlert: $isShowAlert,
+//                                    alertTitle: $alertTitle,
+//                                    alertMessage: $alertMessage,
+//                                    alertType: $alertType)
+//                )
+//                .onFirstAppear {
+//                    print("onFirstAppear ContentView")
+//                    subscribeToGlobalAlerts()
+//                    subscribeToSwitchTabViewItem()
+//                }
+//            }
+//        }
+//    }
+//    
+//    // Подписка на изменения глобальных алертов. При получении алерта извлекаем все данные, включая тип.
+//    private func subscribeToGlobalAlerts() {
+//        viewModel.alertManager.$globalAlert
+//            .sink { globalAlert in
+//                if let alerts = globalAlert["globalError"], let alert = alerts.first {
+//                    self.alertMessage = alert.message.localized()
+//                    self.alertTitle = alert.operationDescription.localized()
+//                    self.alertType = alert.type
+//                    self.isShowAlert = true
+//                }
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    private func subscribeToSwitchTabViewItem() {
+//        mainCoordinator.tabViewSwitcher.$tabSelection
+//            .sink { selectionItem in
+//                selection = selectionItem
+//            }
+//            .store(in: &cancellables)
+//    }
+//}
+//
+//
+/////в TabBarViewController инициализация вкладок происходит по умолчанию при их выборе.
+/////LazyView - это удобный и простой способ. Он позволяет отложить инициализацию до момента, когда представление действительно потребуется, что может улучшить производительность приложения.
+//struct LazyView<Content: View>: View {
+//    let build: () -> Content
+//    init(_ build: @escaping () -> Content) {
+//        self.build = build
+//    }
+//    var body: Content {
+//        build()
+//    }
+//}
 
 
 

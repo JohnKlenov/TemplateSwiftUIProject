@@ -13,6 +13,7 @@ import SwiftUI
 ///Протокол Hashable используется для создания хэш-кода для объекта. Если тип соответствует Hashable, это означает, что экземпляры этого типа можно хэшировать, что требуется для использования в структурах данных, таких как словари и множества.
 
 
+
 enum HomeFlow: Hashable {
     case home
     case bookDetails(BookCloud)
@@ -46,6 +47,31 @@ enum HomeFlow: Hashable {
             } else {
                 hasher.combine(book)
             }
+        }
+    }
+}
+
+
+enum DroplistFlow: Hashable {
+    case droplist
+    case someDroplistView
+
+    static func == (lhs: DroplistFlow, rhs: DroplistFlow) -> Bool {
+        switch (lhs, rhs) {
+        case (.droplist, .droplist),
+             (.someDroplistView, .someDroplistView):
+            return true
+        default:
+            return false
+        }
+    }
+
+    func hash(into hasher: inout Hasher) {
+        switch self {
+        case .droplist:
+            hasher.combine("droplist")
+        case .someDroplistView:
+            hasher.combine("someDroplistView")
         }
     }
 }

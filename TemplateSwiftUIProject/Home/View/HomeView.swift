@@ -46,48 +46,50 @@
 /// почему мы обеспокоиным этим поведением , потому что когда мы использовали Binding для .sheet то при перерисовки view на котором у нас открывался модальный экран срабатывал binding и его блок set со значением false что саоуничтожало модальный экран - помог SheetManager
 /// Различия в поведении могут объясняться тем, как SwiftUI обрабатывает состояния для различных видов представлений. Для sheet, важно постоянное обновление состояния, чтобы избежать дублирования (поэтому когда у нас обновлялся bindingSheet в set создать новый он не мог так как генерировался false - !viewModel.isSheetActive && presentAddBookSheet ноj set вызывался что бы избежать дублирования автоматически - ответ чата). Для alert, достаточно установить состояние в true, чтобы отобразить алерт, и управлять его закрытием через пользовательские действия.
 
-import SwiftUI
-import Combine
 
 
-struct HomeView: View {
-    
-    @StateObject private var viewModel:HomeViewModel
-    
-    @EnvironmentObject var homeCoordinator:HomeCoordinator
-    @EnvironmentObject var viewBuilderService:ViewBuilderService
-    
-    init() {
-        _viewModel = StateObject(wrappedValue: HomeViewModel(alertManager: AlertManager.shared))
-        print("init HomeView")
-    }
-    
-    var body: some View {
-        ///в момент rerendering в init View передаются те же параметры что и при первой инициализации 
-        ///поэксперементировать с homeCoordinator - вынести его из состояния в HomeView
-        NavigationStack(path: $homeCoordinator.path) {
-            viewBuilderService.homeViewBuild(page: .home)
-                .navigationDestination(for: HomeFlow.self) { page in
-                    viewBuilderService.homeViewBuild(page: page)
-                }
-        }
-        .sheet(item: $homeCoordinator.sheet) { sheet in
-            viewBuilderService.buildSheet(sheet: sheet)
-        }
-        .fullScreenCover(item: $homeCoordinator.fullScreenItem) { cover in
-            viewBuilderService.buildCover(cover: cover)
-        }
-        .onFirstAppear {
-            print("onFirstAppear HomeView")
-        }
-        .onAppear {
-            print("onAppear HomeView")
-        }
-        .onDisappear {
-            print("onDisappear HomeView")
-        }
-    }
-}
+//import SwiftUI
+//import Combine
+//
+//
+//struct HomeView: View {
+//    
+//    @StateObject private var viewModel:HomeViewModel
+//    
+//    @EnvironmentObject var homeCoordinator:HomeCoordinator
+//    @EnvironmentObject var viewBuilderService:ViewBuilderService
+//    
+//    init() {
+//        _viewModel = StateObject(wrappedValue: HomeViewModel(alertManager: AlertManager.shared))
+//        print("init HomeView")
+//    }
+//    
+//    var body: some View {
+//        ///в момент rerendering в init View передаются те же параметры что и при первой инициализации 
+//        ///поэксперементировать с homeCoordinator - вынести его из состояния в HomeView
+//        NavigationStack(path: $homeCoordinator.path) {
+//            viewBuilderService.homeViewBuild(page: .home)
+//                .navigationDestination(for: HomeFlow.self) { page in
+//                    viewBuilderService.homeViewBuild(page: page)
+//                }
+//        }
+//        .sheet(item: $homeCoordinator.sheet) { sheet in
+//            viewBuilderService.buildSheet(sheet: sheet)
+//        }
+//        .fullScreenCover(item: $homeCoordinator.fullScreenItem) { cover in
+//            viewBuilderService.buildCover(cover: cover)
+//        }
+//        .onFirstAppear {
+//            print("onFirstAppear HomeView")
+//        }
+//        .onAppear {
+//            print("onAppear HomeView")
+//        }
+//        .onDisappear {
+//            print("onDisappear HomeView")
+//        }
+//    }
+//}
 
 
 

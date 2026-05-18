@@ -114,7 +114,9 @@
 //          └── searchKeywords?
 
 
-
+// LowerItem
+//нет поля durationISO8601 ???
+//  let sampleThumbnails: [URL]        // для плейлистов - у нас вообще небудет такого поля есть только coverImageURL
 
 
 
@@ -189,6 +191,7 @@ struct TrackDoc: Codable, Identifiable {
 // MARK: - 2. Domain Models (UI‑модели)
 
 //нет поля durationISO8601 ???
+//  let sampleThumbnails: [URL]        // для плейлистов - у нас вообще небудет такого поля есть только coverImageURL
 
 //LowerItem — универсальная модель нижней секции
 

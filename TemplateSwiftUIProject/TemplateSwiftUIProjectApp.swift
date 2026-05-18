@@ -110,6 +110,7 @@ struct TemplateSwiftUIProjectApp: App {
                 .environmentObject(mainCoordinator.homeCoordinator)
                 .environmentObject(mainCoordinator.galleryCoordinator)
                 .environmentObject(mainCoordinator.accountCoordinator)
+                .environmentObject(mainCoordinator.droplistCoordinator)
                 .environment(\.sizeCategory, .medium)
                 .onChange(of: scenePhase) { oldPhase, newPhase in
                     //            print("TemplateSwiftUIProjectApp - oldPhase: \(oldPhase), newPhase: \(newPhase))")

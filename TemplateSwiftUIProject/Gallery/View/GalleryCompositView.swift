@@ -22,6 +22,7 @@ import SwiftUI
 
 
 
+
 struct GalleryCompositView: View {
     
     @EnvironmentObject var localization: LocalizationService 
