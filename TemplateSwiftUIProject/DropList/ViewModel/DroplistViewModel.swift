@@ -84,6 +84,8 @@ func fetchDataDroplist() {
     guard !isDropListLoaded else { return }
     isDropListLoaded = true
     
+    //  вызов func loadInitialDropList(defaultSelectedIndex: Int = 0) async throws -> DropData
+    // но он не ворзвращает result - нужно возвращать result
     loadDropList(isInitial: true) { [weak self] result in
         switch result {
         case .success(let dropData):

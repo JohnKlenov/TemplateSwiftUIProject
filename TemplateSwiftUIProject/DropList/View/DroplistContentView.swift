@@ -31,13 +31,13 @@ struct DroplistContentView: View {
                 
             case .contentList(let dropData):
                 DroplistCompositView(data: dropData, onRefresh: {
-                    <#code#>
-                }, onSelectCarouselItem: { <#CarouselItem#> in
-                    <#code#>
-                }, onLoadNextPage: { <#CarouselItem#> in
-                    <#code#>
-                }, onSelectLowerItem: { <#LowerItem#> in
-                    <#code#>
+                    print("")
+                }, onSelectCarouselItem: { CarouselItem in
+                    print("")
+                }, onLoadNextPage: { CarouselItem in
+                    print("")
+                }, onSelectLowerItem: { LowerItem in
+                    print("")
                 })
 //                DroplistCompositView(
 //                    data: dropData,
@@ -47,6 +47,7 @@ struct DroplistContentView: View {
 //                )
                 
             case .error(let error):
+                // если ошибка пришла когда Droplist успешно отображен будем отображать ContentErrorView ???
                 ContentErrorView(error: error) {
                     viewModel.retry()
                 }

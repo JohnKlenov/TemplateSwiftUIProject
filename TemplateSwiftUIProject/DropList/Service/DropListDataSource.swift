@@ -59,6 +59,11 @@ final class DropListDataSource {
    /// - topSections
    /// - carouselItems
    /// - первая страница нижней секции для defaultSelectedIndex
+
+    // нужно возвращать result - .success(let dropData) + .failure(let error)
+    // если вернулась .failure(let error) нужно при повторном loadInitialDropList обнулить кэши (lowerPagesCache[selected.id] .. )
+    // на сколько я понимаю firestoreService.fetchTopSections() + firestoreService.fetchCarouselItems() + firestoreService.fetchInitialLowerPage - должны иметь возможность возвращать ошибку !
+    // тогда если хотя бы один из них заканчивает свою работу с ошибкой мы из loadInitialDropList возвращаем .failure(let error) иначе .success(let dropData)
    func loadInitialDropList(defaultSelectedIndex: Int = 0) async throws -> DropData {
        
        // Загружаем верхнюю секцию и карусель параллельно

@@ -119,10 +119,11 @@
 //  let sampleThumbnails: [URL]        // для плейлистов - у нас вообще небудет такого поля есть только coverImageURL
 
 
-
 import Foundation
 import FirebaseFirestore
 
+
+// MARK: - MyTrackCloud (users/{userId}/myTracks/{docId})
 
 struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
     @DocumentID var id: String?
@@ -132,172 +133,301 @@ struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
     let thumbnailURL: String?
     let durationISO8601: String?
     let tags: [String]?
-    let playlists: [String]?           // YouTube playlist IDs
+    let playlists: [String]?
     let createdAt: Date
 }
 
 // MARK: - 1. Firestore DTO (Data Transfer Objects)
 
-
-//PlaylistDoc — документ плейлиста
-
+// MARK: PlaylistDoc — документ плейлиста (droplist/{playlistId})
 
 struct PlaylistDoc: Codable, Identifiable {
-   let id: String                     // Firestore document ID (заполняется вручную после decode)
-   let playlistId: String             // YouTube playlist ID
-   let title: String
-   let description: String?
-   let curatedTags: [String]?
-   let coverImageURL: String?
-   let sampleThumbnails: [String]?
-   let trackCount: Int
-   let createdAt: Date
+    let id: String                 // Firestore document ID
+    let playlistId: String         // YouTube playlist ID
+    let title: String
+    let description: String?
+    let coverImageURL: String?
+    let trackCount: Int
+    let createdAt: Date
 }
 
-
-
-
-//PlaylistTrackDoc — документ трека внутри плейлиста
+// MARK: PlaylistTrackDoc — документ трека внутри плейлиста (droplist/{playlistId}/tracks/{videoId})
 
 struct PlaylistTrackDoc: Codable, Identifiable {
-   let id: String                     // videoId (Firestore doc ID)
-   let videoId: String
-   let title: String
-   let artist: String?
-   let thumbnailURL: String?
-   let durationISO8601: String?
-   let orderIndex: Int
-   let createdAt: Date
+    let id: String                 // videoId
+    let videoId: String
+    let title: String
+    let artist: String?
+    let thumbnailURL: String?
+    let durationISO8601: String?
+    let orderIndex: Int
+    let createdAt: Date
 }
 
-
-//TrackDoc — глобальный трек (коллекция tracks)
+// MARK: TrackDoc — глобальный трек (dropTracks/{videoId})
 
 struct TrackDoc: Codable, Identifiable {
-   let id: String                     // videoId (Firestore doc ID)
-   let videoId: String
-   let title: String
-   let artist: String?
-   let thumbnailURL: String?
-   let durationISO8601: String?
-   let tags: [String]?
-   let playlists: [String]?           // YouTube playlist IDs
-   let createdAt: Date
-   let searchKeywords: [String]?      // optional (если не используем Algolia)
+    let id: String                 // videoId
+    let videoId: String
+    let title: String
+    let artist: String?
+    let thumbnailURL: String?
+    let durationISO8601: String?
+    let tags: [String]?
+    let playlists: [String]?
+    let createdAt: Date
+    let searchKeywords: [String]?
 }
-
-
 
 // MARK: - 2. Domain Models (UI‑модели)
 
-//нет поля durationISO8601 ???
-//  let sampleThumbnails: [URL]        // для плейлистов - у нас вообще небудет такого поля есть только coverImageURL
-
-//LowerItem — универсальная модель нижней секции
-
+// LowerItem — универсальная модель нижней секции
+// Адаптирована под реальную структуру Firestore:
+// - У плейлистов НЕТ sampleThumbnails → удалено
+// - У треков thumbnail один → thumbnailURL
+// - durationISO8601 добавлено для треков
 
 struct LowerItem: Identifiable {
-   let id: String                     // playlistId или videoId
-   let title: String
-   let subtitle: String?
-   let coverImageURL: URL?            // для плейлистов
-   let sampleThumbnails: [URL]        // для плейлистов
-   let trackCount: Int?               // для плейлистов
-   let isTrack: Bool                  // true → трек, false → плейлист
+    let id: String                     // playlistId или videoId
+    let title: String
+    let subtitle: String?              // description (playlist) или artist (track)
+    let coverImageURL: URL?            // только для плейлистов
+    let thumbnailURL: URL?             // только для треков
+    let durationISO8601: String?       // только для треков
+    let trackCount: Int?               // только для плейлистов
+    let isTrack: Bool                  // true → трек, false → плейлист
 }
-
-
-//Плейлист → LowerItem
-
-//LowerItem(
-//   id: playlistDoc.playlistId,
-//   title: playlistDoc.title,
-//   subtitle: playlistDoc.description,
-//   coverImageURL: URL(string: playlistDoc.coverImageURL ?? ""),
-//   sampleThumbnails: playlistDoc.sampleThumbnails?.compactMap { URL(string: $0) } ?? [],
-//   trackCount: playlistDoc.trackCount,
-//   isTrack: false
-//)
-
-
-
-//Трек → LowerItem
-
-//LowerItem(
-//   id: trackDoc.videoId,
-//   title: trackDoc.title,
-//   subtitle: trackDoc.artist,
-//   coverImageURL: nil,
-//   sampleThumbnails: [URL(string: trackDoc.thumbnailURL ?? "")].compactMap { $0 },
-//   trackCount: nil,
-//   isTrack: true
-//)
-
-
-
-
 
 // MARK: - 3. DropData — данные для DroplistCompositView
 
-
-
 struct DropData {
-   let topSections: [TopSectionModel]        // верхняя секция
-   let carouselItems: [CarouselItem]         // средняя секция
-   let initialLowerSection: LowerSectionPage // первая страница нижней секции
+    let topSections: [TopSectionModel]
+    let carouselItems: [CarouselItem]
+    let initialLowerSection: LowerSectionPage
 }
-
-
 
 // MARK: - 4. LowerSectionPage — страница пагинации
 
-
 struct LowerSectionPage {
-   let items: [LowerItem]
-   let lastDocumentSnapshot: DocumentSnapshot?
-   let hasMore: Bool
+    let items: [LowerItem]
+    let lastDocumentSnapshot: DocumentSnapshot?
+    let hasMore: Bool
 }
-
-
 
 // MARK: - 5. CarouselItem — элементы средней секции
 
 enum CarouselItemType: String, Codable {
-   case droplist
-   case allTracks
-   case gym
-   case party
-   case rnb
-   // можно расширять
+    case droplist
+    case allTracks
+    case gym
+    case party
+    case rnb
 }
 
 struct CarouselItem: Identifiable, Codable, Equatable {
-   let id: String
-   let title: String
-   let type: CarouselItemType
+    let id: String
+    let title: String
+    let type: CarouselItemType
 }
 
-
-
-
-
-// MARK: - 6. TopSectionModel — верхняя секция (как в GalleryCompositView)
+// MARK: - 6. TopSectionModel — верхняя секция
 
 struct TopSectionModel: Identifiable {
-   let id: String
-   let title: String
-   let items: [TopItem]
+    let id: String
+    let title: String
+    let items: [TopItem]
 }
 
 struct TopItem: Identifiable {
-   let id: String
-   let title: String
-   let imageURL: URL?
+    let id: String
+    let title: String
+    let imageURL: URL?
 }
 
 
 
 
+// MARK: - before adaption models
+
+
+//import Foundation
+//import FirebaseFirestore
+//
+//
+//struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
+//    @DocumentID var id: String?
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let tags: [String]?
+//    let playlists: [String]?           // YouTube playlist IDs
+//    let createdAt: Date
+//}
+//
+//// MARK: - 1. Firestore DTO (Data Transfer Objects)
+//
+//
+////PlaylistDoc — документ плейлиста
+//
+//
+//struct PlaylistDoc: Codable, Identifiable {
+//   let id: String                     // Firestore document ID (заполняется вручную после decode)
+//   let playlistId: String             // YouTube playlist ID
+//   let title: String
+//   let description: String?
+//   let curatedTags: [String]?
+//   let coverImageURL: String?
+//   let sampleThumbnails: [String]?
+//   let trackCount: Int
+//   let createdAt: Date
+//}
+//
+//
+//
+//
+////PlaylistTrackDoc — документ трека внутри плейлиста
+//
+//struct PlaylistTrackDoc: Codable, Identifiable {
+//   let id: String                     // videoId (Firestore doc ID)
+//   let videoId: String
+//   let title: String
+//   let artist: String?
+//   let thumbnailURL: String?
+//   let durationISO8601: String?
+//   let orderIndex: Int
+//   let createdAt: Date
+//}
+//
+//
+////TrackDoc — глобальный трек (коллекция tracks)
+//
+//struct TrackDoc: Codable, Identifiable {
+//   let id: String                     // videoId (Firestore doc ID)
+//   let videoId: String
+//   let title: String
+//   let artist: String?
+//   let thumbnailURL: String?
+//   let durationISO8601: String?
+//   let tags: [String]?
+//   let playlists: [String]?           // YouTube playlist IDs
+//   let createdAt: Date
+//   let searchKeywords: [String]?      // optional (если не используем Algolia)
+//}
+//
+//
+//
+//// MARK: - 2. Domain Models (UI‑модели)
+//
+////нет поля durationISO8601 ???
+////  let sampleThumbnails: [URL]        // для плейлистов - у нас вообще небудет такого поля есть только coverImageURL
+//
+////LowerItem — универсальная модель нижней секции
+//
+//
+//struct LowerItem: Identifiable {
+//   let id: String                     // playlistId или videoId
+//   let title: String
+//   let subtitle: String?
+//   let coverImageURL: URL?            // для плейлистов
+//   let sampleThumbnails: [URL]        // для плейлистов
+//   let trackCount: Int?               // для плейлистов
+//   let isTrack: Bool                  // true → трек, false → плейлист
+//}
+//
+//
+////Плейлист → LowerItem
+//
+////LowerItem(
+////   id: playlistDoc.playlistId,
+////   title: playlistDoc.title,
+////   subtitle: playlistDoc.description,
+////   coverImageURL: URL(string: playlistDoc.coverImageURL ?? ""),
+////   sampleThumbnails: playlistDoc.sampleThumbnails?.compactMap { URL(string: $0) } ?? [],
+////   trackCount: playlistDoc.trackCount,
+////   isTrack: false
+////)
+//
+//
+//
+////Трек → LowerItem
+//
+////LowerItem(
+////   id: trackDoc.videoId,
+////   title: trackDoc.title,
+////   subtitle: trackDoc.artist,
+////   coverImageURL: nil,
+////   sampleThumbnails: [URL(string: trackDoc.thumbnailURL ?? "")].compactMap { $0 },
+////   trackCount: nil,
+////   isTrack: true
+////)
+//
+//
+//
+//
+//
+//// MARK: - 3. DropData — данные для DroplistCompositView
+//
+//
+//
+//struct DropData {
+//   let topSections: [TopSectionModel]        // верхняя секция
+//   let carouselItems: [CarouselItem]         // средняя секция
+//   let initialLowerSection: LowerSectionPage // первая страница нижней секции
+//}
+//
+//
+//
+//// MARK: - 4. LowerSectionPage — страница пагинации
+//
+//
+//struct LowerSectionPage {
+//   let items: [LowerItem]
+//   let lastDocumentSnapshot: DocumentSnapshot?
+//   let hasMore: Bool
+//}
+//
+//
+//
+//// MARK: - 5. CarouselItem — элементы средней секции
+//
+//enum CarouselItemType: String, Codable {
+//   case droplist
+//   case allTracks
+//   case gym
+//   case party
+//   case rnb
+//   // можно расширять
+//}
+//
+//struct CarouselItem: Identifiable, Codable, Equatable {
+//   let id: String
+//   let title: String
+//   let type: CarouselItemType
+//}
+//
+//
+//
+//
+//
+//// MARK: - 6. TopSectionModel — верхняя секция (как в GalleryCompositView)
+//
+//struct TopSectionModel: Identifiable {
+//   let id: String
+//   let title: String
+//   let items: [TopItem]
+//}
+//
+//struct TopItem: Identifiable {
+//   let id: String
+//   let title: String
+//   let imageURL: URL?
+//}
+//
+//
+//
+//
 
 
 

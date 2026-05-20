@@ -154,7 +154,7 @@ private extension DroplistCompositView {
     func thumbnail(for item: LowerItem) -> some View {
         if item.isTrack {
             // Single thumbnail
-            AsyncImage(url: item.sampleThumbnails.first) { img in
+            AsyncImage(url: item.thumbnailURL) { img in
                 img.resizable().scaledToFill()
             } placeholder: {
                 Color.gray.opacity(0.2)
