@@ -70,6 +70,16 @@ enum ErrorContext: String {
     case FirestoreGetService_fetchShops
     case FirestoreGetService_fetchPopularProducts
     
+    // MARK: - DropListFirestoreService
+    case DropListFirestoreService_fetchPlaylistsPage
+    case DropListFirestoreService_fetchTracksPage
+    case DropListFirestoreService_fetchTopSections
+    case DropListFirestoreService_fetchCarouselItems
+    
+    // MARK: - DropListDataSource
+    case DropListDataSource_loadInitialDropList
+    case DropListDataSource_loadInitialDropList_DropListFirestoreService
+    
     // MARK: - StorageProfileService
     case StorageProfileService_deleteImage
     

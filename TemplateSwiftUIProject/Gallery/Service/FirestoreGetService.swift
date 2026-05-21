@@ -61,10 +61,10 @@ import FirebaseFirestore
 import Foundation
 
 
-struct FirestoreGetServiceError: Error {
-    let underlying: Error
-    let context: ErrorContext
-}
+//struct FirestoreGetServiceError: Error {
+//    let underlying: Error
+//    let context: ErrorContext
+//}
 
 
 import FirebaseFirestore

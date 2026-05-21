@@ -116,6 +116,7 @@ class ViewBuilderService: ObservableObject {
     private let profileService:FirestoreProfileService
     private let storageProfileService: StorageProfileServiceProtocol
     private let authService: AuthenticationServiceProtocol
+    private let dropListDataSource: DropListDataSource
     
 //    private let crudManager: CRUDSManager
     private let authorizationManager: AuthorizationManager
@@ -124,6 +125,7 @@ class ViewBuilderService: ObservableObject {
 //    private let homeManager: HomeManager
     private let appSessionManager: AppSessionManager
     private let galleryManager: GalleryManager
+    
 
     init() {
         let userProvider: CurrentUserProvider = FirebaseAuthUserProvider()
@@ -147,6 +149,7 @@ class ViewBuilderService: ObservableObject {
 //            databaseService: FirestoreDatabaseCRUDService()
 //        )
 
+        self.dropListDataSource = DropListDataSource(firestoreService: DropListFirestoreService(errorHandler: ErrorDiagnosticsCenter()), errorHandler: ErrorDiagnosticsCenter())
         self.appSessionManager = AppSessionManager(
             authService: authService,
             firestoreService: FirestoreCollectionObserverService(errorHandler: ErrorDiagnosticsCenter()),
@@ -172,7 +175,7 @@ class ViewBuilderService: ObservableObject {
     func dropViewBuild(page: DroplistFlow) -> some View {
         switch page {
         case .droplist:
-            DroplistViewInjected(sessionManager: appSessionManager)
+            DroplistViewInjected(sessionManager: appSessionManager, dropListDataSource: dropListDataSource)
         case .someDroplistView:
             SomeView()
         }

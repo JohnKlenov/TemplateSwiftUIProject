@@ -11,11 +11,11 @@ struct DroplistViewInjected: View {
     
     @StateObject private var viewModel: DroplistViewModel
     
-    init(sessionManager: AppSessionManager) {
+    init(sessionManager: AppSessionManager, dropListDataSource:DropListDataSource) {
         
         _viewModel = StateObject(
             wrappedValue: DroplistViewModel(
-                sessionManager: sessionManager)
+                sessionManager: sessionManager, dropListDataSource: dropListDataSource)
         )
     }
     
