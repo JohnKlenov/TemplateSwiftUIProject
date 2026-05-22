@@ -31,7 +31,7 @@ struct DroplistContentView: View {
                 
             case .contentList(let dropData):
                 DroplistCompositView(data: dropData, onRefresh: {
-                    print("")
+                    Task { await viewModel.refreshDropList() }
                 }, onSelectCarouselItem: { CarouselItem in
                     print("")
                 }, onLoadNextPage: { CarouselItem in
@@ -39,12 +39,6 @@ struct DroplistContentView: View {
                 }, onSelectLowerItem: { LowerItem in
                     print("")
                 })
-//                DroplistCompositView(
-//                    data: dropData,
-//                    onRefresh: {
-//                        viewModel.refreshDropList()
-//                    }
-//                )
                 
             case .error(let error):
                 // если ошибка пришла когда Droplist успешно отображен будем отображать ContentErrorView ???
@@ -77,6 +71,10 @@ struct DroplistContentView: View {
             viewModel.setRetryHandler(retryHandler)
             viewModel.setupViewModel()
         }
+        .onAppear {
+            Task { await viewModel.checkAndRefreshIfNeeded() }
+        }
+
     }
 }
 

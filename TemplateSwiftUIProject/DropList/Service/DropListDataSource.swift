@@ -167,22 +167,57 @@ final class DropListDataSource {
         return mergedPage
     }
 
-    // Мягкий refresh (pull‑to‑refresh)
-    // от хедера экрана подразумевает в моем случае обновление всего экрана и если где то в трех асинхронных запросах (firestoreService.fetchTopSections() +  firestoreService.fetchCarouselItems() + firestoreService.fetchInitialLowerPage) приходит ошибка мы оставляем наш DropView без изменения и не заменяем DropView плэйсхолдером с кнопкой retry как при первом старте
-    func refreshCurrentItem() async throws -> LowerSectionPage {
-        guard let item = currentItem else {
-            throw NSError(domain: "DropListDataSource", code: -1, userInfo: [
-                NSLocalizedDescriptionKey: "No current carousel item selected"
-            ])
+    
+    // MARK: - Soft Refresh (обновляет три секции, но не ломает UI при ошибке)
+
+    func refreshAll() async -> DropData? {
+        do {
+            // Параллельные запросы (как в Gallery)
+            async let topTask: [TopSectionModel] = firestoreService.fetchTopSections()
+            async let carouselTask: [CarouselItem] = firestoreService.fetchCarouselItems()
+
+            let (topSections, carouselItems) = try await (topTask, carouselTask)
+
+            // Определяем текущий выбранный item
+            let selectedItem: CarouselItem
+            if let current = currentItem,
+               let matched = carouselItems.first(where: { $0.id == current.id }) {
+                selectedItem = matched
+            } else {
+                // fallback — первый элемент
+                guard let first = carouselItems.first else {
+                    return nil
+                }
+                selectedItem = first
+            }
+
+            // Загружаем первую страницу нижней секции
+            let firstPage = try await firestoreService.fetchInitialLowerPage(
+                for: selectedItem,
+                pageSize: pageSize
+            )
+
+            // Обновляем кэш
+            lowerPagesCache.removeAll()
+            currentItem = selectedItem
+            lowerPagesCache[selectedItem.id] = firstPage
+
+
+            // Собираем DropData
+            return DropData(
+                topSections: topSections,
+                carouselItems: carouselItems,
+                initialLowerSection: firstPage
+            )
+
+        } catch {
+            // Мягкий refresh — UI не ломаем
+            let _ = errorHandler.handle(
+                error: error,
+                context: ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue
+            )
+            return nil
         }
-
-        let firstPage = try await firestoreService.fetchInitialLowerPage(
-            for: item,
-            pageSize: pageSize
-        )
-
-        lowerPagesCache[item.id] = firstPage
-        return firstPage
     }
 
     // MARK: - Error Handling

@@ -36,8 +36,37 @@
 //    ├─ createdAt: Timestamp
 
 
+//carouselItems (collection)
+//└─ {docId}
+//   ├─ id: String
+//   ├─ title: String
+//   ├─ type: String   // "droplist", "allTracks", "gym", "party", "rnb"
+//   ├─ orderIndex: Int
+//   ├─ createdAt: Timestamp
 
 
+
+
+
+
+
+//topSections (collection)
+//└─ {docId}                         // Firestore document ID
+//   ├─ id: String                   // идентификатор секции
+//   ├─ title: String                // название секции
+//   ├─ description: String?         // опциональное описание секции
+//   ├─ coverImageURL: String?       // картинка для секции
+//   ├─ orderIndex: Int              // порядок отображения
+//   ├─ createdAt: Timestamp         // дата создания
+//   └─ tracks (subcollection)       // треки внутри секции
+//      └─ {videoId}
+//         ├─ videoId: String
+//         ├─ title: String
+//         ├─ artist: String?
+//         ├─ thumbnailURL: String?
+//         ├─ durationISO8601: String?
+//         ├─ orderIndex: Int
+//         ├─ createdAt: Timestamp
 
 
 
@@ -114,6 +143,10 @@
 //          └── searchKeywords?
 
 
+
+
+
+
 // LowerItem
 //нет поля durationISO8601 ???
 //  let sampleThumbnails: [URL]        // для плейлистов - у нас вообще небудет такого поля есть только coverImageURL
@@ -178,6 +211,15 @@ struct TrackDoc: Codable, Identifiable {
     let createdAt: Date
     let searchKeywords: [String]?
 }
+
+struct CarouselDoc: Codable, Identifiable {
+    let id: String
+    let title: String
+    let type: CarouselItemType
+    let orderIndex: Int
+    let createdAt: Date
+}
+
 
 // MARK: - 2. Domain Models (UI‑модели)
 
