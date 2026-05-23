@@ -23,7 +23,7 @@
 //            ├─ durationISO8601: String
 //            ├─ orderIndex: Int
 //            ├─ createdAt: Timestamp
-//
+
 //dropTracks (collection)
 //└─ {videoId}
 //    ├─ videoId: String
@@ -43,6 +43,25 @@
 //   ├─ type: String   // "droplist", "allTracks", "gym", "party", "rnb"
 //   ├─ orderIndex: Int
 //   ├─ createdAt: Timestamp
+
+//topSection (collection)
+//└─ {playlistId}
+//   ├─ playlistId: String
+//   ├─ title: String
+//   ├─ description: String
+//   ├─ coverImageURL: String
+//   ├─ trackCount: Int
+//   ├─ createdAt: Timestamp
+//   ├─ orderIndex: Int
+//   └─ tracks (subcollection)
+//      └─ {videoId}
+//         ├─ videoId: String
+//         ├─ title: String
+//         ├─ artist: String
+//         ├─ thumbnailURL: String
+//         ├─ durationISO8601: String
+//         ├─ orderIndex: Int
+//         ├─ createdAt: Timestamp
 
 
 
@@ -212,6 +231,8 @@ struct TrackDoc: Codable, Identifiable {
     let searchKeywords: [String]?
 }
 
+// MARK: CarouselDoc — документ плейлиста (carouselItems/{docId})
+
 struct CarouselDoc: Codable, Identifiable {
     let id: String
     let title: String
@@ -219,6 +240,36 @@ struct CarouselDoc: Codable, Identifiable {
     let orderIndex: Int
     let createdAt: Date
 }
+
+
+// MARK: TopSectionDoc — документ плейлиста (topSections/{playlistId})
+
+struct TopSectionDoc: Codable, Identifiable {
+    let id: String
+    let playlistId: String
+    let title: String
+    let description: String?
+    let coverImageURL: String?
+    let trackCount: Int
+    let createdAt: Date
+    let orderIndex: Int
+}
+
+// MARK: TopSectionTrackDoc — трек (topSections/tracks (subcollection)/{videoId})
+
+struct TopSectionTrackDoc: Codable, Identifiable {
+    let id: String
+    let videoId: String
+    let title: String
+    let artist: String?
+    let thumbnailURL: String?
+    let durationISO8601: String?
+    let orderIndex: Int
+    let createdAt: Date
+}
+
+
+
 
 
 // MARK: - 2. Domain Models (UI‑модели)
@@ -243,7 +294,7 @@ struct LowerItem: Identifiable {
 // MARK: - 3. DropData — данные для DroplistCompositView
 
 struct DropData {
-    let topSections: [TopSectionModel]
+    let topSection: TopSectionModel
     let carouselItems: [CarouselItem]
     let initialLowerSection: LowerSectionPage
 }

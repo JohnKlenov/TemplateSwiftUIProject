@@ -69,11 +69,11 @@ final class DropListDataSource {
         defaultSelectedIndex: Int = 0
     ) async -> Result<DropData, DropListUserFacingError> {
         do {
-            async let topTask: [TopSectionModel] = firestoreService.fetchTopSections()
+            async let topTask: TopSectionModel = firestoreService.fetchTopSection()
             async let carouselTask: [CarouselItem] = firestoreService.fetchCarouselItems()
 
             // Загружаем верхнюю секцию и карусель параллельно
-            let (topSections, carouselItems) = try await (topTask, carouselTask)
+            let (topSection, carouselItems) = try await (topTask, carouselTask)
 
             // зачем это нам если мы возвращаем ошибку на DropListFirestoreService при пустых значениях
             // возможно этот кейс .DropListDataSource_loadInitialDropList будет не нужен
@@ -101,7 +101,7 @@ final class DropListDataSource {
             lowerPagesCache[selected.id] = firstPage
 
             let dropData = DropData(
-                topSections: topSections,
+                topSection: topSection,
                 carouselItems: carouselItems,
                 initialLowerSection: firstPage
             )
@@ -173,10 +173,10 @@ final class DropListDataSource {
     func refreshAll() async -> DropData? {
         do {
             // Параллельные запросы (как в Gallery)
-            async let topTask: [TopSectionModel] = firestoreService.fetchTopSections()
+            async let topTask: TopSectionModel = firestoreService.fetchTopSection()
             async let carouselTask: [CarouselItem] = firestoreService.fetchCarouselItems()
 
-            let (topSections, carouselItems) = try await (topTask, carouselTask)
+            let (topSection, carouselItems) = try await (topTask, carouselTask)
 
             // Определяем текущий выбранный item
             let selectedItem: CarouselItem
@@ -205,7 +205,7 @@ final class DropListDataSource {
 
             // Собираем DropData
             return DropData(
-                topSections: topSections,
+                topSection: topSection,
                 carouselItems: carouselItems,
                 initialLowerSection: firstPage
             )

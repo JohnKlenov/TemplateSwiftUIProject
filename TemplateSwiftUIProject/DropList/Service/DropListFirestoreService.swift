@@ -23,7 +23,7 @@ struct FirestoreGetServiceError: Error {
 // MARK: - Protocol
 
 protocol DropListFirestoreServiceProtocol {
-    func fetchTopSections() async throws -> [TopSectionModel]
+    func fetchTopSection() async throws -> TopSectionModel
     func fetchCarouselItems() async throws -> [CarouselItem]
     func fetchInitialLowerPage(
         for item: CarouselItem,
@@ -52,11 +52,10 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
 
     // MARK: - Top Sections
 
-
-    func fetchTopSections() async throws -> [TopSectionModel] {
+    func fetchTopSection() async throws -> TopSectionModel {
         try await withCheckedThrowingContinuation { continuation in
-            db.collection("topSections")
-                .order(by: "createdAt", descending: true)
+            db.collection("topSection")
+                .order(by: "orderIndex", descending: false)
                 .getDocuments { [weak self] snapshot, error in
                     guard let self else { return }
 
@@ -90,28 +89,29 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                         return
                     }
 
-                    let docs: [PlaylistDoc] = snapshot.documents.compactMap { doc in
+                    let docs: [TopSectionDoc] = snapshot.documents.compactMap { doc in
                         do {
-                            var playlist = try doc.data(as: PlaylistDoc.self)
-                            playlist = PlaylistDoc(
+                            var section = try doc.data(as: TopSectionDoc.self)
+                            section = TopSectionDoc(
                                 id: doc.documentID,
-                                playlistId: playlist.playlistId,
-                                title: playlist.title,
-                                description: playlist.description,
-                                coverImageURL: playlist.coverImageURL,
-                                trackCount: playlist.trackCount,
-                                createdAt: playlist.createdAt
+                                playlistId: section.playlistId,
+                                title: section.title,
+                                description: section.description,
+                                coverImageURL: section.coverImageURL,
+                                trackCount: section.trackCount,
+                                createdAt: section.createdAt,
+                                orderIndex: section.orderIndex
                             )
-                            return playlist
+                            return section
                         } catch {
                             let _ = self.errorHandler.handle(
                                 error: error,
-                                context: "\(ErrorContext.DropListFirestoreService_fetchTopSections.rawValue) | documentID: \(doc.documentID)"
+                                context: "fetchTopSection | decode \(doc.documentID)"
                             )
                             return nil
                         }
                     }
-
+                    
                     if docs.isEmpty {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
@@ -122,29 +122,28 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                         return
                     }
 
-                    let sections: [TopSectionModel] = docs.map { playlist in
-                        let coverURL = playlist.coverImageURL.flatMap { URL(string: $0) }
-                        return TopSectionModel(
+                    // если пустой то возвращаем ошибку
+                    let items: [TopItem] = docs.map { playlist in
+                        TopItem(
                             id: playlist.playlistId,
                             title: playlist.title,
-                            items: [
-                                TopItem(
-                                    id: playlist.playlistId,
-                                    title: playlist.title,
-                                    imageURL: coverURL
-                                )
-                            ]
+                            imageURL: playlist.coverImageURL.flatMap { URL(string: $0) }
                         )
                     }
 
-                    continuation.resume(returning: sections)
+                    let sectionModel = TopSectionModel(
+                        id: "top_section",
+                        title: "Top Section",
+                        items: items
+                    )
+
+                    continuation.resume(returning: sectionModel)
                 }
         }
     }
 
     // MARK: - Carousel Items
 
-    // MARK: - Fetch Carousel Items
 
     func fetchCarouselItems() async throws -> [CarouselItem] {
         try await withCheckedThrowingContinuation { continuation in
@@ -504,8 +503,166 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
             }
         }
     }
+    
+    // MARK: - Fetch Tracks for Top Section Playlist
+
+//    func fetchTopSectionTracks(for playlistId: String) async throws -> [TopSectionTrackDoc] {
+//        try await withCheckedThrowingContinuation { continuation in
+//            db.collection("topSections")
+//                .document(playlistId)
+//                .collection("tracks")
+//                .order(by: "orderIndex", descending: false)
+//                .getDocuments { [weak self] snapshot, error in
+//                    guard let self else { return }
+//
+//                    if let error {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: error,
+//                                context: .DropListFirestoreService_fetchTopSectionTracks
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    guard let snapshot else {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.nilSnapshot,
+//                                context: .DropListFirestoreService_fetchTopSectionTracks
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    if snapshot.documents.isEmpty {
+//                        continuation.resume(returning: [])
+//                        return
+//                    }
+//
+//                    let tracks: [TopSectionTrackDoc] = snapshot.documents.compactMap { doc in
+//                        do {
+//                            var track = try doc.data(as: TopSectionTrackDoc.self)
+//                            track = TopSectionTrackDoc(
+//                                id: doc.documentID,
+//                                videoId: track.videoId,
+//                                title: track.title,
+//                                artist: track.artist,
+//                                thumbnailURL: track.thumbnailURL,
+//                                durationISO8601: track.durationISO8601,
+//                                orderIndex: track.orderIndex,
+//                                createdAt: track.createdAt
+//                            )
+//                            return track
+//                        } catch {
+//                            let _ = self.errorHandler.handle(
+//                                error: error,
+//                                context: "fetchTopSectionTracks | decode \(doc.documentID)"
+//                            )
+//                            return nil
+//                        }
+//                    }
+//
+//                    continuation.resume(returning: tracks)
+//                }
+//        }
+//    }
+
 }
 
+
+
+
+
+
+//    func fetchTopSections() async throws -> [TopSectionModel] {
+//        try await withCheckedThrowingContinuation { continuation in
+//            db.collection("topSections")
+//                .order(by: "createdAt", descending: true)
+//                .getDocuments { [weak self] snapshot, error in
+//                    guard let self else { return }
+//
+//                    if let error {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: error,
+//                                context: .DropListFirestoreService_fetchTopSections
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    guard let snapshot else {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.nilSnapshot,
+//                                context: .DropListFirestoreService_fetchTopSections
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    if snapshot.documents.isEmpty {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.emptyResult,
+//                                context: .DropListFirestoreService_fetchTopSections
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    let docs: [PlaylistDoc] = snapshot.documents.compactMap { doc in
+//                        do {
+//                            var playlist = try doc.data(as: PlaylistDoc.self)
+//                            playlist = PlaylistDoc(
+//                                id: doc.documentID,
+//                                playlistId: playlist.playlistId,
+//                                title: playlist.title,
+//                                description: playlist.description,
+//                                coverImageURL: playlist.coverImageURL,
+//                                trackCount: playlist.trackCount,
+//                                createdAt: playlist.createdAt
+//                            )
+//                            return playlist
+//                        } catch {
+//                            let _ = self.errorHandler.handle(
+//                                error: error,
+//                                context: "\(ErrorContext.DropListFirestoreService_fetchTopSections.rawValue) | documentID: \(doc.documentID)"
+//                            )
+//                            return nil
+//                        }
+//                    }
+//
+//                    if docs.isEmpty {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.emptyResult,
+//                                context: .DropListFirestoreService_fetchTopSections
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    let sections: [TopSectionModel] = docs.map { playlist in
+//                        let coverURL = playlist.coverImageURL.flatMap { URL(string: $0) }
+//                        return TopSectionModel(
+//                            id: playlist.playlistId,
+//                            title: playlist.title,
+//                            items: [
+//                                TopItem(
+//                                    id: playlist.playlistId,
+//                                    title: playlist.title,
+//                                    imageURL: coverURL
+//                                )
+//                            ]
+//                        )
+//                    }
+//
+//                    continuation.resume(returning: sections)
+//                }
+//        }
+//    }
 
 
 // MARK: - before return FirestoreGetServiceError

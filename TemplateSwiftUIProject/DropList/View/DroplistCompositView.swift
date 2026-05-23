@@ -51,25 +51,24 @@ struct DroplistCompositView: View {
 private extension DroplistCompositView {
     var topSections: some View {
         VStack(spacing: 12) {
-            ForEach(data.topSections) { section in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(section.title)
-                        .font(.headline)
-                        .padding(.horizontal)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(section.items) { item in
-                                TopSectionItemView(item: item)
-                            }
+            VStack(alignment: .leading, spacing: 8) {
+                Text(data.topSection.title)
+                    .font(.headline)
+                    .padding(.horizontal)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(data.topSection.items) { item in
+                            TopSectionItemView(item: item)
                         }
-                        .padding(.horizontal)
                     }
+                    .padding(.horizontal)
                 }
             }
         }
     }
 }
+
 
 // MARK: - Carousel Section
 
@@ -215,3 +214,29 @@ struct TopSectionItemView: View {
         .frame(width: 140, alignment: .leading)
     }
 }
+
+
+
+
+//private extension DroplistCompositView {
+//    var topSections: some View {
+//        VStack(spacing: 12) {
+//            ForEach(data.topSections) { section in
+//                VStack(alignment: .leading, spacing: 8) {
+//                    Text(section.title)
+//                        .font(.headline)
+//                        .padding(.horizontal)
+//
+//                    ScrollView(.horizontal, showsIndicators: false) {
+//                        HStack(spacing: 12) {
+//                            ForEach(section.items) { item in
+//                                TopSectionItemView(item: item)
+//                            }
+//                        }
+//                        .padding(.horizontal)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
