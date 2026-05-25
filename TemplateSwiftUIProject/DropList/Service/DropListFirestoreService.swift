@@ -89,20 +89,10 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                         return
                     }
 
-                    let docs: [TopSectionDoc] = snapshot.documents.compactMap { doc in
+                    let docs: [(id: String, data: TopSectionDoc)] = snapshot.documents.compactMap { doc in
                         do {
-                            var section = try doc.data(as: TopSectionDoc.self)
-                            section = TopSectionDoc(
-                                id: doc.documentID,
-                                playlistId: section.playlistId,
-                                title: section.title,
-                                description: section.description,
-                                coverImageURL: section.coverImageURL,
-                                trackCount: section.trackCount,
-                                createdAt: section.createdAt,
-                                orderIndex: section.orderIndex
-                            )
-                            return section
+                            let decoded = try doc.data(as: TopSectionDoc.self)
+                            return (doc.documentID, decoded)
                         } catch {
                             let _ = self.errorHandler.handle(
                                 error: error,
@@ -111,7 +101,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                             return nil
                         }
                     }
-                    
+
                     if docs.isEmpty {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
@@ -122,16 +112,14 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                         return
                     }
 
-                    // если пустой то возвращаем ошибку
                     let items: [TopItem] = docs.map { playlist in
                         TopItem(
-                            id: playlist.playlistId,
-                            title: playlist.title,
-                            imageURL: playlist.coverImageURL.flatMap { URL(string: $0) }
+                            id: playlist.id,
+                            title: playlist.data.title,
+                            imageURL: playlist.data.coverImageURL.flatMap { URL(string: $0) }
                         )
                     }
 
-                    // title должен тоже приходить из сети (два запроса в сеть из метода) ! 
                     let sectionModel = TopSectionModel(
                         id: "top_section",
                         title: "Top Section",
@@ -326,17 +314,17 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
 
                 let docs: [PlaylistDoc] = snapshot.documents.compactMap { doc in
                     do {
-                        var playlist = try doc.data(as: PlaylistDoc.self)
-                        playlist = PlaylistDoc(
-                            id: doc.documentID,
-                            playlistId: playlist.playlistId,
-                            title: playlist.title,
-                            description: playlist.description,
-                            coverImageURL: playlist.coverImageURL,
-                            trackCount: playlist.trackCount,
-                            createdAt: playlist.createdAt
+                        let decoded = try doc.data(as: PlaylistDoc.self)
+
+                        return PlaylistDoc(
+                            playlistId: decoded.playlistId,
+                            title: decoded.title,
+                            description: decoded.description,
+                            coverImageURL: decoded.coverImageURL,
+                            trackCount: decoded.trackCount,
+                            createdAt: decoded.createdAt
                         )
-                        return playlist
+
                     } catch {
                         let _ = self.errorHandler.handle(
                             error: error,

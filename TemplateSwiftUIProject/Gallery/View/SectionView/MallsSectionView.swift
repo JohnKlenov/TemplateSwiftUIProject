@@ -87,6 +87,7 @@ struct CellHeightKey: PreferenceKey {
     }
 }
 
+
 struct MallsSectionView: View {
     let items: [MallItem]
     let headerTitle: String

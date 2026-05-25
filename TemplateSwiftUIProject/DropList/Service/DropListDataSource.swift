@@ -51,7 +51,7 @@ final class DropListDataSource {
         firestoreService: DropListFirestoreServiceProtocol,
         errorHandler: ErrorDiagnosticsProtocol,
         alertManager: AlertManager = .shared,
-        pageSize: Int = 20
+        pageSize: Int = 10
     ) {
         self.firestoreService = firestoreService
         self.errorHandler = errorHandler

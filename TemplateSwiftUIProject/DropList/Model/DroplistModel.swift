@@ -100,14 +100,13 @@ struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
 
 //  PlaylistDoc — документ плейлиста (droplist/{playlistId})
 
-struct PlaylistDoc: Codable, Identifiable {
-    let id: String                 // Firestore document ID
-    let playlistId: String         // YouTube playlist ID
+struct PlaylistDoc: Codable {
+    let playlistId: String
     let title: String
     let description: String?
     let coverImageURL: String?
     let trackCount: Int
-    let createdAt: Date
+    let createdAt: Date?
 }
 
 //  PlaylistTrackDoc — документ трека внутри плейлиста (droplist/{playlistId}/tracks/{videoId})
@@ -151,14 +150,13 @@ struct CarouselDoc: Codable, Identifiable {
 
 //  TopSectionDoc — документ плейлиста (topSections/{playlistId})
 
-struct TopSectionDoc: Codable, Identifiable {
-    let id: String
+struct TopSectionDoc: Codable {
     let playlistId: String
     let title: String
     let description: String?
     let coverImageURL: String?
     let trackCount: Int
-    let createdAt: Date
+    let createdAt: Date?   // или даже Date, если ты гарантируешь, что поле всегда есть
     let orderIndex: Int
 }
 
@@ -243,6 +241,44 @@ struct TopItem: Identifiable {
     let title: String
     let imageURL: URL?
 }
+
+
+
+
+
+
+//struct PlaylistDoc: Codable, Identifiable {
+//    let id: String                 // Firestore document ID
+//    let playlistId: String         // YouTube playlist ID
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    let createdAt: Date
+//}
+
+
+//struct TopSectionDoc: Codable, Identifiable {
+//    let id: String
+//    let playlistId: String
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    @ServerTimestamp var createdAt: Date?
+//    let orderIndex: Int
+//}
+
+//struct TopSectionDoc: Codable, Identifiable {
+//    let id: String
+//    let playlistId: String
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    let createdAt: Date
+//    let orderIndex: Int
+//}
 
 
 

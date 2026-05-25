@@ -8,6 +8,7 @@
 import SwiftUI
 
 
+
 struct ShopsSectionView: View {
     let items: [ShopItem]
     let headerTitle: String

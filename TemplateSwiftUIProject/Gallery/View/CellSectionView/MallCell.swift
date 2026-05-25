@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 12.03.25.
 //
 
+
 import SwiftUI
 
 struct MallCell: View {
