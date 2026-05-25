@@ -119,6 +119,7 @@ import FirebaseFirestore
 import FirebaseDatabase
 
 
+
 protocol FirestoreCollectionObserverProtocol {
     func observeCollection<T: Decodable & Identifiable>(at path: String) -> AnyPublisher<Result<[T], Error>, Never>
     func cancelListener()
@@ -191,7 +192,7 @@ class FirestoreCollectionObserverService: FirestoreCollectionObserverProtocol {
                     }
                 } ?? []
                 
-                print("FirestoreCollectionObserverService Received objects: \(data)")
+                print("FirestoreCollectionObserverService Received objects MyTrackCloud: \(data)")
                 subject.send(.success(data))
             }
         }

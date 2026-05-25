@@ -75,19 +75,9 @@ final class DropListDataSource {
             // Загружаем верхнюю секцию и карусель параллельно
             let (topSection, carouselItems) = try await (topTask, carouselTask)
 
-            // зачем это нам если мы возвращаем ошибку на DropListFirestoreService при пустых значениях
-            // возможно этот кейс .DropListDataSource_loadInitialDropList будет не нужен
-            guard !carouselItems.isEmpty else {
-                let message = handleError(
-                    FirestoreGetServiceError(
-                        underlying: AppInternalError.emptyResult,
-                        context: .DropListDataSource_loadInitialDropList
-                    )
-                )
-                return .failure(DropListUserFacingError(message: message))
-            }
-
             // Определяем дефолтный item
+            // Гарантируем, что индекс всегда в допустимых пределах массива (0 ... count-1),
+            // чтобы избежать выхода за границы и всегда иметь валидный выбранный элемент.
             let index = min(max(0, defaultSelectedIndex), carouselItems.count - 1)
             let selected = carouselItems[index]
             currentItem = selected

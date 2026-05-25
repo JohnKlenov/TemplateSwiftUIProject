@@ -24,6 +24,8 @@
 //            ├─ orderIndex: Int
 //            ├─ createdAt: Timestamp
 
+
+
 //dropTracks (collection)
 //└─ {videoId}
 //    ├─ videoId: String
@@ -36,6 +38,7 @@
 //    ├─ createdAt: Timestamp
 
 
+
 //carouselItems (collection)
 //└─ {docId}
 //   ├─ id: String
@@ -43,6 +46,8 @@
 //   ├─ type: String   // "droplist", "allTracks", "gym", "party", "rnb"
 //   ├─ orderIndex: Int
 //   ├─ createdAt: Timestamp
+
+
 
 //topSection (collection)
 //└─ {playlistId}
@@ -66,109 +71,11 @@
 
 
 
-
-
-
-//topSections (collection)
-//└─ {docId}                         // Firestore document ID
-//   ├─ id: String                   // идентификатор секции
-//   ├─ title: String                // название секции
-//   ├─ description: String?         // опциональное описание секции
-//   ├─ coverImageURL: String?       // картинка для секции
-//   ├─ orderIndex: Int              // порядок отображения
-//   ├─ createdAt: Timestamp         // дата создания
-//   └─ tracks (subcollection)       // треки внутри секции
-//      └─ {videoId}
-//         ├─ videoId: String
-//         ├─ title: String
-//         ├─ artist: String?
-//         ├─ thumbnailURL: String?
-//         ├─ durationISO8601: String?
-//         ├─ orderIndex: Int
-//         ├─ createdAt: Timestamp
-
-
-
-
-
-//playlists (collection)
-// └─ {firestorePlaylistDocId} (document)
-//     ├─ playlistId: String                // YouTube playlist ID (обязательно)
-//     ├─ title: String
-//     ├─ description: String?
-//     ├─ curatedTags: [String]?            // категории плейлиста (опционально)
-//     ├─ coverImageURL: String?            // URL на Storage (генерируется)
-//     ├─ sampleThumbnails: [String]?       // первые 4 thumbnailURL (кэш)
-//     ├─ trackCount: Int                   // количество треков
-//     ├─ createdAt: Timestamp              // сортировка плейлистов
-//     └─ tracks (subcollection)
-//         └─ {videoId} (document)
-//             ├─ videoId: String
-//             ├─ title: String
-//             ├─ artist: String
-//             ├─ thumbnailURL: String
-//             ├─ durationISO8601: String
-//             ├─ orderIndex: Int           // порядок в плейлисте
-//             ├─ createdAt: Timestamp      // сортировка внутри плейлиста
-//
-
-
-//tracks (collection)
-// └─ {videoId} (document)
-//     ├─ videoId: String
-//     ├─ title: String
-//     ├─ artist: String
-//     ├─ thumbnailURL: String
-//     ├─ durationISO8601: String
-//     ├─ tags: [String]                    // ["gym","party","rnb"]
-//     ├─ playlists: [String]               // список YouTube playlistId
-//     ├─ createdAt: Timestamp              // сортировка и пагинация
 //     ├─ searchKeywords: [String]?         // если не используем Algolia
 
 
 
 
-
-//ROOT
-//├── playlists
-//│    └── {firestorePlaylistDocId}
-//│         ├── playlistId (YouTube)
-//│         ├── title
-//│         ├── description
-//│         ├── curatedTags
-//│         ├── coverImageURL
-//│         ├── trackCount
-//│         ├── createdAt
-//│         └── tracks
-//│              └── {videoId}
-//│                   ├── videoId
-//│                   ├── title
-//│                   ├── artist
-//│                   ├── thumbnailURL
-//│                   ├── durationISO8601
-//│                   ├── orderIndex
-//│                   └── createdAt
-//│
-//└── tracks
-//     └── {videoId}
-//          ├── videoId
-//          ├── title
-//          ├── artist
-//          ├── thumbnailURL
-//          ├── durationISO8601
-//          ├── tags
-//          ├── playlists
-//          ├── createdAt
-//          └── searchKeywords?
-
-
-
-
-
-
-// LowerItem
-//нет поля durationISO8601 ???
-//  let sampleThumbnails: [URL]        // для плейлистов - у нас вообще небудет такого поля есть только coverImageURL
 
 
 import Foundation
@@ -191,7 +98,7 @@ struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
 
 // MARK: - 1. Firestore DTO (Data Transfer Objects)
 
-// MARK: PlaylistDoc — документ плейлиста (droplist/{playlistId})
+//  PlaylistDoc — документ плейлиста (droplist/{playlistId})
 
 struct PlaylistDoc: Codable, Identifiable {
     let id: String                 // Firestore document ID
@@ -203,7 +110,7 @@ struct PlaylistDoc: Codable, Identifiable {
     let createdAt: Date
 }
 
-// MARK: PlaylistTrackDoc — документ трека внутри плейлиста (droplist/{playlistId}/tracks/{videoId})
+//  PlaylistTrackDoc — документ трека внутри плейлиста (droplist/{playlistId}/tracks/{videoId})
 
 struct PlaylistTrackDoc: Codable, Identifiable {
     let id: String                 // videoId
@@ -216,7 +123,7 @@ struct PlaylistTrackDoc: Codable, Identifiable {
     let createdAt: Date
 }
 
-// MARK: TrackDoc — глобальный трек (dropTracks/{videoId})
+// TrackDoc — глобальный трек (dropTracks/{videoId})
 
 struct TrackDoc: Codable, Identifiable {
     let id: String                 // videoId
@@ -231,7 +138,7 @@ struct TrackDoc: Codable, Identifiable {
     let searchKeywords: [String]?
 }
 
-// MARK: CarouselDoc — документ плейлиста (carouselItems/{docId})
+//  CarouselDoc — документ плейлиста (carouselItems/{docId})
 
 struct CarouselDoc: Codable, Identifiable {
     let id: String
@@ -242,7 +149,7 @@ struct CarouselDoc: Codable, Identifiable {
 }
 
 
-// MARK: TopSectionDoc — документ плейлиста (topSections/{playlistId})
+//  TopSectionDoc — документ плейлиста (topSections/{playlistId})
 
 struct TopSectionDoc: Codable, Identifiable {
     let id: String
@@ -255,7 +162,7 @@ struct TopSectionDoc: Codable, Identifiable {
     let orderIndex: Int
 }
 
-// MARK: TopSectionTrackDoc — трек (topSections/tracks (subcollection)/{videoId})
+// TopSectionTrackDoc — трек (topSections/tracks (subcollection)/{videoId})
 
 struct TopSectionTrackDoc: Codable, Identifiable {
     let id: String
@@ -291,7 +198,7 @@ struct LowerItem: Identifiable {
     let isTrack: Bool                  // true → трек, false → плейлист
 }
 
-// MARK: - 3. DropData — данные для DroplistCompositView
+//  3. DropData — данные для DroplistCompositView
 
 struct DropData {
     let topSection: TopSectionModel
@@ -299,7 +206,7 @@ struct DropData {
     let initialLowerSection: LowerSectionPage
 }
 
-// MARK: - 4. LowerSectionPage — страница пагинации
+//  4. LowerSectionPage — страница пагинации
 
 struct LowerSectionPage {
     let items: [LowerItem]
@@ -307,7 +214,7 @@ struct LowerSectionPage {
     let hasMore: Bool
 }
 
-// MARK: - 5. CarouselItem — элементы средней секции
+//  5. CarouselItem — элементы средней секции
 
 enum CarouselItemType: String, Codable {
     case droplist
@@ -323,7 +230,7 @@ struct CarouselItem: Identifiable, Codable, Equatable {
     let type: CarouselItemType
 }
 
-// MARK: - 6. TopSectionModel — верхняя секция
+//  TopSectionModel — верхняя секция
 
 struct TopSectionModel: Identifiable {
     let id: String

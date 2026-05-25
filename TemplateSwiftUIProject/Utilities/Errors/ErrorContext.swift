@@ -73,7 +73,7 @@ enum ErrorContext: String {
     // MARK: - DropListFirestoreService
     case DropListFirestoreService_fetchPlaylistsPage
     case DropListFirestoreService_fetchTracksPage
-    case DropListFirestoreService_fetchTopSections
+    case DropListFirestoreService_fetchTopSection
     case DropListFirestoreService_fetchCarouselItems
     
     // MARK: - DropListDataSource

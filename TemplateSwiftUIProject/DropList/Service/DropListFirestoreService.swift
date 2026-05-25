@@ -63,7 +63,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
                                 underlying: error,
-                                context: .DropListFirestoreService_fetchTopSections
+                                context: .DropListFirestoreService_fetchTopSection
                             )
                         )
                         return
@@ -73,7 +73,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
                                 underlying: AppInternalError.nilSnapshot,
-                                context: .DropListFirestoreService_fetchTopSections
+                                context: .DropListFirestoreService_fetchTopSection
                             )
                         )
                         return
@@ -83,7 +83,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
                                 underlying: AppInternalError.emptyResult,
-                                context: .DropListFirestoreService_fetchTopSections
+                                context: .DropListFirestoreService_fetchTopSection
                             )
                         )
                         return
@@ -116,7 +116,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
                                 underlying: AppInternalError.emptyResult,
-                                context: .DropListFirestoreService_fetchTopSections
+                                context: .DropListFirestoreService_fetchTopSection
                             )
                         )
                         return
@@ -131,6 +131,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                         )
                     }
 
+                    // title должен тоже приходить из сети (два запроса в сеть из метода) ! 
                     let sectionModel = TopSectionModel(
                         id: "top_section",
                         title: "Top Section",

@@ -238,8 +238,7 @@ final class AdminViewModel: ObservableObject {
         await task.value
     }
 
-
-    // MARK: - Сохранение
+    // MARK: - Сохранение для topSection
     func savePlaylistToFirestore() async {
         guard !playlistTitle.isEmpty else {
             status = "Ошибка: заголовок пуст"
@@ -254,7 +253,7 @@ final class AdminViewModel: ObservableObject {
         status = "Сохраняем плейлист и треки…"
 
         do {
-            let droplistRef = db.collection("droplist").document(playlistId)
+            let droplistRef = db.collection("topSection").document(playlistId)
 
             try await droplistRef.setData([
                 "playlistId": playlistId,
@@ -262,6 +261,7 @@ final class AdminViewModel: ObservableObject {
                 "description": playlistDescription,
                 "coverImageURL": playlistImageURL,
                 "trackCount": tracks.count,
+                "orderIndex": 3,
                 "createdAt": FieldValue.serverTimestamp()
             ], merge: true)
 
@@ -279,18 +279,6 @@ final class AdminViewModel: ObservableObject {
                     "orderIndex": track.orderIndex,
                     "createdAt": FieldValue.serverTimestamp()
                 ], forDocument: subRef)
-
-                let globalRef = db.collection("dropTracks").document(track.videoId)
-                batch.setData([
-                    "videoId": track.videoId,
-                    "title": track.title,
-                    "artist": track.artist,
-                    "thumbnailURL": track.thumbnailURL,
-                    "durationISO8601": track.durationISO8601,
-                    "playlists": FieldValue.arrayUnion([playlistId]),
-                    "tags": track.tags,
-                    "createdAt": FieldValue.serverTimestamp()
-                ], forDocument: globalRef)
             }
 
             try await batch.commit()
@@ -299,6 +287,67 @@ final class AdminViewModel: ObservableObject {
             status = "Ошибка сохранения: \(error.localizedDescription)"
         }
     }
+
+//    // MARK: - Сохранение для droplist
+//    func savePlaylistToFirestore() async {
+//        guard !playlistTitle.isEmpty else {
+//            status = "Ошибка: заголовок пуст"
+//            return
+//        }
+//
+//        guard !playlistImageURL.isEmpty else {
+//            status = "Сначала сгенерируйте coverImage"
+//            return
+//        }
+//
+//        status = "Сохраняем плейлист и треки…"
+//
+//        do {
+//            let droplistRef = db.collection("droplist").document(playlistId)
+//
+//            try await droplistRef.setData([
+//                "playlistId": playlistId,
+//                "title": playlistTitle,
+//                "description": playlistDescription,
+//                "coverImageURL": playlistImageURL,
+//                "trackCount": tracks.count,
+//                "createdAt": FieldValue.serverTimestamp()
+//            ], merge: true)
+//
+//            let batch = db.batch()
+//
+//            for track in tracks {
+//
+//                let subRef = droplistRef.collection("tracks").document(track.videoId)
+//                batch.setData([
+//                    "videoId": track.videoId,
+//                    "title": track.title,
+//                    "artist": track.artist,
+//                    "thumbnailURL": track.thumbnailURL,
+//                    "durationISO8601": track.durationISO8601,
+//                    "orderIndex": track.orderIndex,
+//                    "createdAt": FieldValue.serverTimestamp()
+//                ], forDocument: subRef)
+//
+//                let globalRef = db.collection("dropTracks").document(track.videoId)
+//                batch.setData([
+//                    "videoId": track.videoId,
+//                    "title": track.title,
+//                    "artist": track.artist,
+//                    "thumbnailURL": track.thumbnailURL,
+//                    "durationISO8601": track.durationISO8601,
+//                    "playlists": FieldValue.arrayUnion([playlistId]),
+//                    "tags": track.tags,
+//                    "createdAt": FieldValue.serverTimestamp()
+//                ], forDocument: globalRef)
+//            }
+//
+//            try await batch.commit()
+//            status = "Плейлист и треки сохранены"
+//        } catch {
+//            status = "Ошибка сохранения: \(error.localizedDescription)"
+//        }
+//    }
 }
 
 

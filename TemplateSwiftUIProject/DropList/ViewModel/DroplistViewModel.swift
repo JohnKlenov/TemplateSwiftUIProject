@@ -66,6 +66,7 @@ final class DroplistViewModel: ObservableObject {
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
+                print(" sessionManager.statePublisher - \(state)")
                 self?.handleHomeManagerState(state)
             }
             .store(in: &cancellables)
@@ -93,13 +94,19 @@ final class DroplistViewModel: ObservableObject {
         viewState = .loading
         sessionManager.retry()
     }
+    
+    func resetLastUpdated() {
+        lastUpdated = nil
+    }
 
     // MARK: - Initial Load (Strict)
 
     func fetchDataDroplist() async {
+        print("func fetchDataDroplist() before guard")
         guard !isDropListLoaded else { return }
         isDropListLoaded = true
-
+        print("func fetchDataDroplist() after guard")
+        
         let result = await dropListDataSource.loadInitialDropList()
 
         switch result {
@@ -115,12 +122,20 @@ final class DroplistViewModel: ObservableObject {
     // MARK: - Retry Initial Load
 
     func retryFetchDataDroplist() {
+        viewState = .loading
         isDropListLoaded = false
         Task { await fetchDataDroplist() }
     }
 
     // MARK: - Soft Refresh (Pull-to-Refresh + Auto Refresh)
 
+    // вопрос может ли быть кей при котором мы вызовем refreshDropList()
+    // то есть после .success(let dropData) мы получаем case .error(let error): на DroplistContentView
+    // сможем ли мы вызвать рефреш потянув от хедара (будет ли в памяти находиться DroplistCompositView?)
+    // может стоит обнулять lastUpdated = nil как только к нам приходит case .error(let error): на DroplistContentView
+    // потому что если мы уйдем из таба и придем снова отработает .onAppear и func checkAndRefreshIfNeeded()
+    // и если lastUpdated не nil а мы при этом потеряли авторизацию то мы сразу поймаем еще одну ошибку в dropListDataSource.refreshAll()
+    // нарушив правила CloudFirestore
     func refreshDropList() async {
         guard !isRefreshing else { return }
         isRefreshing = true
@@ -137,6 +152,8 @@ final class DroplistViewModel: ObservableObject {
 
     // MARK: - Auto Refresh
 
+    // при case .error(let error): на DroplistContentView когда у нас успешно был вызван viewState = .contentList(dropData) до этого
+    // нужно lastUpdated = nil сразу же иначе при переходе из одной табы в другую мы вызовим .onAppear и придет ошибка dropListDataSource.refreshAll() но она не ломает UI но лог в консоль админу упадет!
     func checkAndRefreshIfNeeded() async {
         if let lastUpdated {
             let elapsed = Date().timeIntervalSince(lastUpdated)
@@ -156,6 +173,7 @@ final class DroplistViewModel: ObservableObject {
             viewState = .loading
 
         case .error(let message):
+            resetLastUpdated()
             viewState = .error(message)
 
         case .myTracks(let tracks):

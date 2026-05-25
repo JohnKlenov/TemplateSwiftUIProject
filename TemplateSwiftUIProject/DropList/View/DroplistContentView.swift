@@ -40,8 +40,10 @@ struct DroplistContentView: View {
                     print("")
                 })
                 
+                // При смене viewState (с .contentList на .error) SwiftUI полностью удаляет старый View из иерархии.
+                // Поэтому DroplistCompositView исчезает, и его refresh/pull-to-refresh больше недоступны.
+                // нужно протестировать иначе нужно блокировать вызов func refreshDropList()
             case .error(let error):
-                // если ошибка пришла когда Droplist успешно отображен будем отображать ContentErrorView ???
                 ContentErrorView(error: error) {
                     viewModel.retry()
                 }
@@ -72,6 +74,7 @@ struct DroplistContentView: View {
             viewModel.setupViewModel()
         }
         .onAppear {
+            // 
             Task { await viewModel.checkAndRefreshIfNeeded() }
         }
 
