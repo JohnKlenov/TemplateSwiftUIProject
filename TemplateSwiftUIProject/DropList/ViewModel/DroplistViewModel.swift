@@ -143,6 +143,8 @@ final class DroplistViewModel: ObservableObject {
 
         if let newData = await dropListDataSource.refreshAll() {
             lastUpdated = Date()
+            print("Soft refresh success — UI changed")
+            print(newData)
             viewState = .contentList(newData)
         } else {
             print("Soft refresh failed — UI unchanged")

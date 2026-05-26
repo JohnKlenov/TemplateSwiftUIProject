@@ -44,6 +44,7 @@
 import Foundation
 import SwiftUI
 
+
 //Этот класс управляет текущим языком приложения и уведомляет о его изменении.
 
 final class LocalizationService: ObservableObject {
