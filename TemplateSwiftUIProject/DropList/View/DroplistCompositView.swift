@@ -173,6 +173,10 @@ private extension DroplistCompositView {
         }
     }
     
+    /// Проверяет, нужно ли загрузить следующую страницу.
+    /// Метод вызывается при появлении каждой ячейки.
+    /// Если пользователь долистал до последних 5 элементов текущей страницы,
+    /// триггерит пагинацию через onLoadNextPage(selectedCarouselItem).
     func triggerPaginationIfNeeded(_ item: LowerItem) {
         guard let selected = selectedCarouselItem else { return }
         

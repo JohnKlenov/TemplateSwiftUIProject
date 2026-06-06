@@ -32,12 +32,12 @@ struct DroplistContentView: View {
             case .contentList(let dropData):
                 DroplistCompositView(data: dropData, onRefresh: {
                     Task { await viewModel.refreshDropList() }
-                }, onSelectCarouselItem: { CarouselItem in
-                    print("")
-                }, onLoadNextPage: { CarouselItem in
-                    print("")
-                }, onSelectLowerItem: { LowerItem in
-                    print("")
+                }, onSelectCarouselItem: { carouselItem in
+                    print("onSelectCarouselItem - \(carouselItem)")
+                }, onLoadNextPage: { carouselItem in
+                    print("onLoadNextPage - \(carouselItem)")
+                }, onSelectLowerItem: { lowerItem in
+                    print("onSelectLowerItem - \(lowerItem)")
                 })
                 
                 // При смене viewState (с .contentList на .error) SwiftUI полностью удаляет старый View из иерархии.

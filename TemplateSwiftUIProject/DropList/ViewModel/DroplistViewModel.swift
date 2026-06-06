@@ -89,6 +89,7 @@ final class DroplistViewModel: ObservableObject {
     }
 
     func retry() {
+        dropListDataSource.resetCache()
         myTracks = []
         isDropListLoaded = false
         viewState = .loading
@@ -129,7 +130,7 @@ final class DroplistViewModel: ObservableObject {
 
     // MARK: - Soft Refresh (Pull-to-Refresh + Auto Refresh)
 
-    // вопрос может ли быть кей при котором мы вызовем refreshDropList()
+    // вопрос может ли быть кейс при котором мы вызовем refreshDropList()
     // то есть после .success(let dropData) мы получаем case .error(let error): на DroplistContentView
     // сможем ли мы вызвать рефреш потянув от хедара (будет ли в памяти находиться DroplistCompositView?)
     // может стоит обнулять lastUpdated = nil как только к нам приходит case .error(let error): на DroplistContentView
@@ -187,6 +188,73 @@ final class DroplistViewModel: ObservableObject {
         }
     }
 }
+
+
+
+// MARK: - implemintation new methods
+
+// при смене carouselItem
+// я боюсь что при смене carouselItem отработает  case .contentList(let dropData):
+// будет создан новый DroplistCompositView и его selectedCarouselItem = data.carouselItems.first
+// то есть данные в нижней секции изменяться а индикатор выбранного carouselItem всегда будет на первом элементе в carouselItem
+
+
+//func didSelectCarouselItem(_ item: CarouselItem) async {
+//    guard case .contentList(let currentDropData) = viewState else { return }
+//
+//    do {
+//        let page = try await dropListDataSource.selectCarouselItem(item)
+//
+//        let newDropData = DropData(
+//            topSection: currentDropData.topSection,
+//            carouselItems: currentDropData.carouselItems,
+//            initialLowerSection: page
+//        )
+//
+//        await MainActor.run {
+//            viewState = .contentList(newDropData)
+//        }
+//    } catch {
+//        let message = "Не удалось загрузить данные для выбранного раздела"
+//        await MainActor.run {
+//            viewState = .errorList(message)
+//        }
+//    }
+//}
+//
+//onSelectCarouselItem: { carouselItem in
+//    Task { await viewModel.didSelectCarouselItem(carouselItem) }
+//}
+//
+//func loadNextPage(for item: CarouselItem) async {
+//    guard case .contentList(let currentDropData) = viewState else { return }
+//
+//    do {
+//        if let nextPage = try await dropListDataSource.loadNextPageIfNeeded(for: item) {
+//            let newDropData = DropData(
+//                topSection: currentDropData.topSection,
+//                carouselItems: currentDropData.carouselItems,
+//                initialLowerSection: nextPage
+//            )
+//
+//            await MainActor.run {
+//                viewState = .contentList(newDropData)
+//            }
+//        } else {
+//            // Нет следующей страницы — просто игнорируем
+//        }
+//    } catch {
+//        let _ = dropListDataSource.handleError(error) // или через errorHandler
+//        // UI можно не ломать, пагинация — мягкая
+//    }
+//}
+//
+//onLoadNextPage: { carouselItem in
+//    Task { await viewModel.loadNextPage(for: carouselItem) }
+//}
+
+
+
 
 
 // MARK: - before fetchDataDroplist + refresh

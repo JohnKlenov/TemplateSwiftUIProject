@@ -58,6 +58,15 @@ final class DropListDataSource {
         self.alertManager = alertManager
         self.pageSize = pageSize
     }
+    
+    
+    
+    // MARK: - help methods
+    
+    func resetCache() {
+        lowerPagesCache.removeAll()
+        currentItem = nil
+    }
 
     // MARK: - Public API
 
@@ -187,8 +196,7 @@ final class DropListDataSource {
                 pageSize: pageSize
             )
 
-            // Обновляем кэш
-            lowerPagesCache.removeAll()
+            resetCache()
             currentItem = selectedItem
             lowerPagesCache[selectedItem.id] = firstPage
 
