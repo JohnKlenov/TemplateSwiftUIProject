@@ -166,6 +166,43 @@ final class DroplistViewModel: ObservableObject {
         }
         // else: ничего не делаем, потому что initial load уже был
     }
+    
+    
+    // MARK: - didSelectCarouselItem
+    
+    func didSelectCarouselItem(_ item: CarouselItem) async {
+        guard case .contentList(let currentDropData) = viewState else { return }
+
+        do {
+            let page = try await dropListDataSource.selectCarouselItem(item)
+
+            let newDropData = DropData(
+                topSection: currentDropData.topSection,
+                carouselItems: currentDropData.carouselItems,
+                initialLowerSection: page
+            )
+
+            await MainActor.run {
+                viewState = .contentList(newDropData)
+            }
+
+        } catch {
+            await MainActor.run {
+                viewState = .contentList(
+                    DropData(
+                        topSection: currentDropData.topSection,
+                        carouselItems: currentDropData.carouselItems,
+                        initialLowerSection: LowerSectionPage(
+                            items: [],
+                            lastDocumentSnapshot: nil,
+                            hasMore: false
+                        )
+                    )
+                )
+            }
+        }
+    }
+
 
     // MARK: - Handle AppSessionManager State
 

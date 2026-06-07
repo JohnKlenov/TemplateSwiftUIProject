@@ -119,6 +119,7 @@ final class DropListDataSource {
 
         /// Если есть кэш — возвращаем мгновенно
         if let cached = lowerPagesCache[item.id] {
+            print("func selectCarouselItem: return cached ")
             return cached
         }
 
