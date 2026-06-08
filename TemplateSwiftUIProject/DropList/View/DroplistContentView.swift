@@ -37,6 +37,7 @@ struct DroplistContentView: View {
                     Task { await viewModel.didSelectCarouselItem(carouselItem) }
                 }, onLoadNextPage: { carouselItem in
                     print("onLoadNextPage - \(carouselItem)")
+//                    Task { await viewModel.loadNextPage(for: carouselItem) }
                 }, onSelectLowerItem: { lowerItem in
                     print("onSelectLowerItem - \(lowerItem)")
                 })

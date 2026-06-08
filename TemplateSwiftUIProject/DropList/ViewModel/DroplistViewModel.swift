@@ -213,6 +213,27 @@ final class DroplistViewModel: ObservableObject {
         }
     }
 
+    // MARK: - loadNextPage
+    
+    func loadNextPage(for item: CarouselItem) async {
+          guard case .contentList(let currentDropData) = viewState else { return }
+
+          do {
+              if let nextPage = try await dropListDataSource.loadNextPageIfNeeded(for: item) {
+                  let newDropData = DropData(
+                      topSection: currentDropData.topSection,
+                      carouselItems: currentDropData.carouselItems,
+                      initialLowerSection: nextPage,
+                      selectedItem: currentDropData.selectedItem
+                  )
+
+                  viewState = .contentList(newDropData)
+              }
+          } catch {
+              let _ = dropListDataSource.handleError(error)
+          }
+      }
+
 
     // MARK: - Handle AppSessionManager State
 

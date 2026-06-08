@@ -43,8 +43,9 @@ final class DropListDataSource {
     // MARK: - Cached State
 
     private var lowerPagesCache: [String: LowerSectionPage] = [:]
-    // зачем нам currentItem ???
     private(set) var currentItem: CarouselItem?
+    // Флаг, предотвращающий гонку при пагинации
+    private var isLoadingNextPageForItem: Set<String> = []
 
     // MARK: - Init
 
@@ -67,6 +68,7 @@ final class DropListDataSource {
     func resetCache() {
         lowerPagesCache.removeAll()
         currentItem = nil
+        isLoadingNextPageForItem.removeAll()
     }
 
     // MARK: - Public API
@@ -138,36 +140,44 @@ final class DropListDataSource {
     // Пагинация — загрузка следующей страницы
     func loadNextPageIfNeeded(for item: CarouselItem) async throws -> LowerSectionPage? {
         
-        guard let currentPage = lowerPagesCache[item.id] else {
-            /// Нет первой страницы — значит UI вызвал пагинацию слишком рано
+        // Защита от гонки: если уже грузим для этого item — выходим
+        if isLoadingNextPageForItem.contains(item.id) {
             return nil
         }
-
+        
+        guard let currentPage = lowerPagesCache[item.id] else {
+            return nil
+        }
+        
         guard currentPage.hasMore,
               let lastSnapshot = currentPage.lastDocumentSnapshot else {
-            /// Больше страниц нет
-            /// Нет курсора — странно, но защищаемся
             return nil
         }
-
+        
+        isLoadingNextPageForItem.insert(item.id)
+        defer {
+            isLoadingNextPageForItem.remove(item.id)
+        }
+        
         let nextPage = try await firestoreService.fetchNextLowerPage(
             for: item,
             after: lastSnapshot,
             pageSize: pageSize
         )
-
+        
         let mergedItems = currentPage.items + nextPage.items
-
+        
         let mergedPage = LowerSectionPage(
             items: mergedItems,
             lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
             hasMore: nextPage.hasMore
         )
-
+        
         lowerPagesCache[item.id] = mergedPage
-
+        
         return mergedPage
     }
+
 
     
     // MARK: - Soft Refresh (обновляет три секции, но не ломает UI при ошибке)
@@ -224,11 +234,11 @@ final class DropListDataSource {
 
     // MARK: - Error Handling
 
-    private func handleError(_ error: Error) -> String {
+    func handleError(_ error: Error) -> String {
         if let serviceError = error as? FirestoreGetServiceError {
             let combinedContext =
             "\(serviceError.context.rawValue) | \(ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue)"
-
+            
             return errorHandler.handle(
                 error: serviceError.underlying,
                 context: combinedContext
@@ -244,6 +254,41 @@ final class DropListDataSource {
 
 
 
+
+
+//    // Пагинация — загрузка следующей страницы
+//    func loadNextPageIfNeeded(for item: CarouselItem) async throws -> LowerSectionPage? {
+//
+//        guard let currentPage = lowerPagesCache[item.id] else {
+//            /// Нет первой страницы — значит UI вызвал пагинацию слишком рано
+//            return nil
+//        }
+//
+//        guard currentPage.hasMore,
+//              let lastSnapshot = currentPage.lastDocumentSnapshot else {
+//            /// Больше страниц нет
+//            /// Нет курсора — странно, но защищаемся
+//            return nil
+//        }
+//
+//        let nextPage = try await firestoreService.fetchNextLowerPage(
+//            for: item,
+//            after: lastSnapshot,
+//            pageSize: pageSize
+//        )
+//
+//        let mergedItems = currentPage.items + nextPage.items
+//
+//        let mergedPage = LowerSectionPage(
+//            items: mergedItems,
+//            lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+//            hasMore: nextPage.hasMore
+//        )
+//
+//        lowerPagesCache[item.id] = mergedPage
+//
+//        return mergedPage
+//    }
 
 
 // MARK: - before return DropListUserFacingError
