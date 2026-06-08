@@ -458,10 +458,17 @@ struct LowerItem: Identifiable {
 
 //  3. DropData — данные для DroplistCompositView
 
+//struct DropData {
+//    let topSection: TopSectionModel
+//    let carouselItems: [CarouselItem]
+//    let initialLowerSection: LowerSectionPage
+//}
+
 struct DropData {
     let topSection: TopSectionModel
     let carouselItems: [CarouselItem]
     let initialLowerSection: LowerSectionPage
+    let selectedItem: CarouselItem   // ← добавили
 }
 
 //  4. LowerSectionPage — страница пагинации

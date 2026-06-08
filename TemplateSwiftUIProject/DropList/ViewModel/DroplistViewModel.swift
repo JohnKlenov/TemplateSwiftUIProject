@@ -5,6 +5,12 @@
 //  Created by Evgenyi on 20.04.26.
 //
 
+
+
+// сначала загружаем allTrack с ошибкой через правила безопасности (смотрим как будет работать placeholder) !
+// исправляем ошибку правил и жмем try!
+// если все ок листаем вниз и ждем подгрузки еще 10 треков через loadNextPage (нужно подумать как реагировать на возникновении ишибки при loadNextPage - показывать ли это как то на UI ???)
+
 import Combine
 import Foundation
 
@@ -175,11 +181,14 @@ final class DroplistViewModel: ObservableObject {
 
         do {
             let page = try await dropListDataSource.selectCarouselItem(item)
-
+            
+            print("func didSelectCarouselItem - fetch count - \(page.items.count) elements for \(item.id)")
+            
             let newDropData = DropData(
                 topSection: currentDropData.topSection,
                 carouselItems: currentDropData.carouselItems,
-                initialLowerSection: page
+                initialLowerSection: page,
+                selectedItem: item
             )
 
             await MainActor.run {
@@ -196,7 +205,8 @@ final class DroplistViewModel: ObservableObject {
                             items: [],
                             lastDocumentSnapshot: nil,
                             hasMore: false
-                        )
+                        ), 
+                        selectedItem: item
                     )
                 )
             }

@@ -32,9 +32,7 @@ struct DroplistCompositView: View {
                 onRefresh()
             }
             .onAppear {
-                if selectedCarouselItem == nil {
-                    selectedCarouselItem = data.carouselItems.first
-                }
+                selectedCarouselItem = data.selectedItem
             }
         }
     }

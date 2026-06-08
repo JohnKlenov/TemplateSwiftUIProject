@@ -43,6 +43,7 @@ final class DropListDataSource {
     // MARK: - Cached State
 
     private var lowerPagesCache: [String: LowerSectionPage] = [:]
+    // зачем нам currentItem ???
     private(set) var currentItem: CarouselItem?
 
     // MARK: - Init
@@ -102,7 +103,8 @@ final class DropListDataSource {
             let dropData = DropData(
                 topSection: topSection,
                 carouselItems: carouselItems,
-                initialLowerSection: firstPage
+                initialLowerSection: firstPage,
+                selectedItem: selected
             )
 
             return .success(dropData)
@@ -119,7 +121,7 @@ final class DropListDataSource {
 
         /// Если есть кэш — возвращаем мгновенно
         if let cached = lowerPagesCache[item.id] {
-            print("func selectCarouselItem: return cached ")
+            print("func selectCarouselItem: return cached for - \(item.id)")
             return cached
         }
 
@@ -206,7 +208,8 @@ final class DropListDataSource {
             return DropData(
                 topSection: topSection,
                 carouselItems: carouselItems,
-                initialLowerSection: firstPage
+                initialLowerSection: firstPage, 
+                selectedItem: selectedItem
             )
 
         } catch {
