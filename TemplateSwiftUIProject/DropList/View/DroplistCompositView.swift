@@ -110,8 +110,7 @@ private extension DroplistCompositView {
                 ForEach(data.initialLowerSection.items) { item in
                     lowerItemCell(item)
                 }
-//                data.initialLowerSection.hasMore
-                if true  {
+                if data.initialLowerSection.hasMore  {
                     footerLoader
                 }
             }
@@ -143,6 +142,7 @@ private extension DroplistCompositView {
             Spacer()
             ProgressView()
                 .onAppear {
+                    print("onAppear footerLoader")
                     if let selected = selectedCarouselItem {
                         onLoadNextPage(selected)
                     }

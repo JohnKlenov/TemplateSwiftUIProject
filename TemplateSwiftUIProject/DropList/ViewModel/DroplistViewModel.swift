@@ -196,6 +196,9 @@ final class DroplistViewModel: ObservableObject {
             }
 
         } catch {
+            
+            let _ = dropListDataSource.handleError(error)
+            
             await MainActor.run {
                 viewState = .contentList(
                     DropData(
@@ -216,6 +219,7 @@ final class DroplistViewModel: ObservableObject {
     // MARK: - loadNextPage
     
     func loadNextPage(for item: CarouselItem) async {
+        print("DroplistViewModel: func loadNextPage")
           guard case .contentList(let currentDropData) = viewState else { return }
 
           do {
@@ -226,7 +230,7 @@ final class DroplistViewModel: ObservableObject {
                       initialLowerSection: nextPage,
                       selectedItem: currentDropData.selectedItem
                   )
-
+                  print(" dropListDataSource.loadNextPageIfNeeded(for: item): nextPage.items.count - \(nextPage.items.count))")
                   viewState = .contentList(newDropData)
               }
           } catch {
@@ -256,6 +260,118 @@ final class DroplistViewModel: ObservableObject {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+//func didSelectCarouselItem(_ item: CarouselItem) async {
+//        guard case .contentList(let currentDropData) = viewState else { return }
+//
+//        // 1. Проверяем кэш
+//        if let cached = dataSource.lowerPagesCache[item.id] {
+//            viewState = .contentList(
+//                DropData(
+//                    topSection: currentDropData.topSection,
+//                    carouselItems: currentDropData.carouselItems,
+//                    initialLowerSection: cached,
+//                    selectedItem: item,
+//                    isLowerSectionLoading: false
+//                )
+//            )
+//            return
+//        }
+//
+//        // 2. Кэша нет → показываем loader
+//        viewState = .contentList(
+//            DropData(
+//                topSection: currentDropData.topSection,
+//                carouselItems: currentDropData.carouselItems,
+//                initialLowerSection: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false),
+//                selectedItem: item,
+//                isLowerSectionLoading: true
+//            )
+//        )
+//
+//        // 3. Грузим данные
+//        do {
+//            let page = try await dataSource.selectCarouselItem(item)
+//
+//            viewState = .contentList(
+//                DropData(
+//                    topSection: currentDropData.topSection,
+//                    carouselItems: currentDropData.carouselItems,
+//                    initialLowerSection: page,
+//                    selectedItem: item,
+//                    isLowerSectionLoading: false
+//                )
+//            )
+//
+//        } catch {
+//            let _ = dataSource.handleError(error)
+//
+//            viewState = .contentList(
+//                DropData(
+//                    topSection: currentDropData.topSection,
+//                    carouselItems: currentDropData.carouselItems,
+//                    initialLowerSection: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false),
+//                    selectedItem: item,
+//                    isLowerSectionLoading: false
+//                )
+//            )
+//        }
+//    }
+
+
+//@ViewBuilder
+//var lowerSection: some View {
+//
+//    if data.isLowerSectionLoading {
+//        VStack(spacing: 12) {
+//            ProgressView()
+//            Text("Загрузка...")
+//                .foregroundColor(.secondary)
+//        }
+//        .frame(maxWidth: .infinity, minHeight: 200)
+//    }
+//
+//    else if data.initialLowerSection.items.isEmpty {
+//        VStack(spacing: 12) {
+//            Text("Не удалось загрузить данные")
+//            Button("Повторить") {
+//                if let selected = selectedCarouselItem {
+//                    onSelectCarouselItem(selected)
+//                }
+//            }
+//        }
+//        .padding(.top, 40)
+//    }
+//
+//    else {
+//        LazyVStack(spacing: 16) {
+//            ForEach(data.initialLowerSection.items) { item in
+//                lowerItemCell(item)
+//            }
+//
+//            if data.initialLowerSection.hasMore {
+//                footerLoader
+//            }
+//        }
+//        .padding(.horizontal)
+//    }
+//}
+
+//struct DropData {
+//    let topSection: TopSectionModel
+//    let carouselItems: [CarouselItem]
+//    let initialLowerSection: LowerSectionPage
+//    let selectedItem: CarouselItem
+//    let isLowerSectionLoading: Bool
+//}
 
 
 
