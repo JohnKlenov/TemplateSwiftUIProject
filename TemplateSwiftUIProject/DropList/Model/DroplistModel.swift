@@ -464,12 +464,21 @@ struct LowerItem: Identifiable {
 //    let initialLowerSection: LowerSectionPage
 //}
 
+//struct DropData {
+//    let topSection: TopSectionModel
+//    let carouselItems: [CarouselItem]
+//    let initialLowerSection: LowerSectionPage
+//    let selectedItem: CarouselItem   // ← добавили
+//}
+
 struct DropData {
     let topSection: TopSectionModel
     let carouselItems: [CarouselItem]
     let initialLowerSection: LowerSectionPage
-    let selectedItem: CarouselItem   // ← добавили
+    let selectedItem: CarouselItem
+    let isLowerSectionLoading: Bool
 }
+
 
 //  4. LowerSectionPage — страница пагинации
 

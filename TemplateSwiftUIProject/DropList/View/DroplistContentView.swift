@@ -12,6 +12,8 @@ import SwiftUI
 
 struct DroplistContentView: View {
     
+    // что бы не добавлять поля selectedItem и isLowerSectionLoading в DropData
+    // мы можем попробывть создать их в DroplistViewModel и передать DroplistViewModel в DroplistCompositView
     @ObservedObject var viewModel: DroplistViewModel
     
     @EnvironmentObject var droplistCoordinator: DroplistCoordinator

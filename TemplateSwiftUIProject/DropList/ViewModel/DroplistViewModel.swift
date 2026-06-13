@@ -55,6 +55,8 @@ final class DroplistViewModel: ObservableObject {
     private var isDropListLoaded = false
     private var isRefreshing = false
 
+    private var currentSelectionRequestID = UUID()
+
     /// Авто‑обновление (как в Gallery)
     private let autoRefreshThreshold: TimeInterval = 2 * 60 * 60
     // private let autoRefreshThreshold: TimeInterval = 20 // для тестов
@@ -177,44 +179,122 @@ final class DroplistViewModel: ObservableObject {
     // MARK: - didSelectCarouselItem
     
     func didSelectCarouselItem(_ item: CarouselItem) async {
+        print("func didSelectCarouselItem(_ item: CarouselItem) async")
         guard case .contentList(let currentDropData) = viewState else { return }
 
-        do {
-            let page = try await dropListDataSource.selectCarouselItem(item)
-            
-            print("func didSelectCarouselItem - fetch count - \(page.items.count) elements for \(item.id)")
-            
-            let newDropData = DropData(
+        // Создаём новый токен запроса
+        let requestID = UUID()
+        currentSelectionRequestID = requestID
+
+        // 1. Проверяем кэш
+        if let cached = dropListDataSource.cachedPage(for: item) {
+            // Проверяем, что запрос всё ещё актуален
+            guard requestID == currentSelectionRequestID else { return }
+
+            viewState = .contentList(
+                DropData(
+                    topSection: currentDropData.topSection,
+                    carouselItems: currentDropData.carouselItems,
+                    initialLowerSection: cached,
+                    selectedItem: item,
+                    isLowerSectionLoading: false
+                )
+            )
+            return
+        }
+
+        // 2. Кэша нет → показываем loader
+        viewState = .contentList(
+            DropData(
                 topSection: currentDropData.topSection,
                 carouselItems: currentDropData.carouselItems,
-                initialLowerSection: page,
-                selectedItem: item
+                initialLowerSection: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false),
+                selectedItem: item,
+                isLowerSectionLoading: true
+            )
+        )
+
+        // 3. Грузим данные
+        do {
+            let page = try await dropListDataSource.selectCarouselItem(item)
+
+            // Проверяем, что это всё ещё актуальный запрос
+            guard requestID == currentSelectionRequestID else {
+                print("⚠️ stale response for \(item.id), ignoring")
+                return
+            }
+
+            viewState = .contentList(
+                DropData(
+                    topSection: currentDropData.topSection,
+                    carouselItems: currentDropData.carouselItems,
+                    initialLowerSection: page,
+                    selectedItem: item,
+                    isLowerSectionLoading: false
+                )
             )
 
-            await MainActor.run {
-                viewState = .contentList(newDropData)
-            }
-
         } catch {
-            
-            let _ = dropListDataSource.handleError(error)
-            
-            await MainActor.run {
-                viewState = .contentList(
-                    DropData(
-                        topSection: currentDropData.topSection,
-                        carouselItems: currentDropData.carouselItems,
-                        initialLowerSection: LowerSectionPage(
-                            items: [],
-                            lastDocumentSnapshot: nil,
-                            hasMore: false
-                        ), 
-                        selectedItem: item
-                    )
+            print("catch - func didSelectCarouselItem(_ item: CarouselItem) async")
+            print("ERROR TYPE = \(type(of: error))")
+
+            let err = dropListDataSource.handleError(error)
+            print("err - \(err)")
+
+            // Проверяем актуальность
+            guard requestID == currentSelectionRequestID else { return }
+
+            viewState = .contentList(
+                DropData(
+                    topSection: currentDropData.topSection,
+                    carouselItems: currentDropData.carouselItems,
+                    initialLowerSection: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false),
+                    selectedItem: item,
+                    isLowerSectionLoading: false
                 )
-            }
+            )
         }
     }
+
+//    func didSelectCarouselItem(_ item: CarouselItem) async {
+//        guard case .contentList(let currentDropData) = viewState else { return }
+//
+//        do {
+//            let page = try await dropListDataSource.selectCarouselItem(item)
+//            
+//            print("func didSelectCarouselItem - fetch count - \(page.items.count) elements for \(item.id)")
+//            
+//            let newDropData = DropData(
+//                topSection: currentDropData.topSection,
+//                carouselItems: currentDropData.carouselItems,
+//                initialLowerSection: page,
+//                selectedItem: item
+//            )
+//
+//            await MainActor.run {
+//                viewState = .contentList(newDropData)
+//            }
+//
+//        } catch {
+//            
+//            let _ = dropListDataSource.handleError(error)
+//            
+//            await MainActor.run {
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: currentDropData.topSection,
+//                        carouselItems: currentDropData.carouselItems,
+//                        initialLowerSection: LowerSectionPage(
+//                            items: [],
+//                            lastDocumentSnapshot: nil,
+//                            hasMore: false
+//                        ), 
+//                        selectedItem: item
+//                    )
+//                )
+//            }
+//        }
+//    }
 
     // MARK: - loadNextPage
     
@@ -228,7 +308,8 @@ final class DroplistViewModel: ObservableObject {
                       topSection: currentDropData.topSection,
                       carouselItems: currentDropData.carouselItems,
                       initialLowerSection: nextPage,
-                      selectedItem: currentDropData.selectedItem
+                      selectedItem: currentDropData.selectedItem, 
+                      isLowerSectionLoading: false
                   )
                   print(" dropListDataSource.loadNextPageIfNeeded(for: item): nextPage.items.count - \(nextPage.items.count))")
                   viewState = .contentList(newDropData)

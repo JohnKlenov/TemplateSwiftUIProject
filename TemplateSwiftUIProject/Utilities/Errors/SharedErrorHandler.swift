@@ -117,6 +117,7 @@ enum GoogleSignInErrorCode: Int {
 // MARK: - ErrorDiagnosticsCenter
 
 
+
 protocol ErrorDiagnosticsProtocol {
     func handle(error: (any Error)?, context: String?) -> String
 }
@@ -133,13 +134,15 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
     
     // MARK: - Основной метод обработки ошибок
     
+//    (any Error)?
     func handle(error: (any Error)?, context: String? = nil) -> String {
-        print("ErrorDiagnosticsCenter received error: \(String(describing: error?.localizedDescription))")
+        print("ERROR TYPE 2 = \(type(of: error))")
+//        print("ErrorDiagnosticsCenter received error: \(String(describing: error?.localizedDescription))")
         
         guard let error = error else {
             return Localized.AppInternalError.defaultError
         }
-        
+        print("guard let error = error else ")
         // 1. Специальные типы до NSError
         
         // Обработка ошибок декодирования (DecodingError)
@@ -172,8 +175,9 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         }
         
         // 2. Преобразуем в NSError
-        
+        print("before let nsError = error as NSError")
         let nsError = error as NSError
+        print("after let nsError = error as NSError")
         
 #if DEBUG
         print("NSError domain=\(nsError.domain) code=\(nsError.code) desc=\(nsError.localizedDescription)")
