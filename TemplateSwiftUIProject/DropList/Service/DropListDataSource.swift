@@ -136,25 +136,7 @@ final class DropListDataSource {
         lowerPagesCache[item.id] = firstPage
         return firstPage
     }
-    
-//    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
-//        currentItem = item
-//
-//        /// Если есть кэш — возвращаем мгновенно
-//        if let cached = lowerPagesCache[item.id] {
-//            print("func selectCarouselItem: return cached for - \(item.id)")
-//            return cached
-//        }
-//
-//        /// Иначе загружаем первую страницу
-//        let firstPage = try await firestoreService.fetchInitialLowerPage(
-//            for: item,
-//            pageSize: pageSize
-//        )
-//
-//        lowerPagesCache[item.id] = firstPage
-//        return firstPage
-//    }
+
 
     // Пагинация — загрузка следующей страницы
     func loadNextPageIfNeeded(for item: CarouselItem) async throws -> LowerSectionPage? {
@@ -254,116 +236,129 @@ final class DropListDataSource {
 
     // MARK: - Error Handling
 
-//    func handleError(_ error: Error) -> String {
-//        if let serviceError = error as? FirestoreGetServiceError {
-//            let combinedContext =
-//            "\(serviceError.context.rawValue) | \(ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue)"
-//            print("func handleError combinedContext - \(combinedContext), serviceError.underlying - \(serviceError.underlying)")
-//            return errorHandler.handle(
-//                error: serviceError.underlying,
-//                context: combinedContext
-//            )
-//        } else {
-//            print("func handleError else")
-//            return errorHandler.handle(
-//                error: error,
-//                context: ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue
-//            )
-//        }
-//    }
-
     func handleError(_ error: Error) -> String {
-
-        print("🔵 [handleError] START")
-        print("🔵 [handleError] incoming error type = \(type(of: error))")
-        print("🔵 [handleError] incoming error = \(error)")
-
-        // 1. FirestoreGetServiceError
         if let serviceError = error as? FirestoreGetServiceError {
-
-            print("🟣 [handleError] Detected FirestoreGetServiceError")
-            print("🟣 [handleError] serviceError.context = \(serviceError.context.rawValue)")
-            print("🟣 [handleError] underlying type = \(type(of: serviceError.underlying))")
-            print("🟣 [handleError] underlying = \(serviceError.underlying)")
-
-            let underlying = serviceError.underlying
-
-            // 1.1 Swift enum AppInternalError
-            if let appError = underlying as? AppInternalError {
-                print("🟠 [handleError] underlying is AppInternalError")
-                print("🟠 [handleError] appError.rawValue = \(appError.rawValue)")
-//                print("🟠 [handleError] appError.localizedDescription = \(appError.localizedDescription)")
-
-                let safeError = NSError(
-                    domain: AppInternalError.errorDomain,
-                    code: appError.rawValue,
-                    userInfo: [
-                        NSLocalizedDescriptionKey: appError.errorDescription ?? "Internal error"
-
-                    ]
-                )
-
-                print("🟠 [handleError] created safe NSError for AppInternalError")
-                print("🟠 [handleError] safeError.domain = \(safeError.domain)")
-                print("🟠 [handleError] safeError.code = \(safeError.code)")
-                print("🟠 [handleError] safeError.localizedDescription = \(safeError.localizedDescription)")
-
-                let result = errorHandler.handle(
-                    error: safeError,
-                    context: serviceError.context.rawValue
-                )
-
-                print("🟠 [handleError] result from ErrorDiagnosticsCenter = \(result)")
-                print("🔵 [handleError] END")
-                return result
-            }
-
-            // 1.2 underlying is already NSError
-            if let ns = underlying as? NSError {
-                print("🟢 [handleError] underlying is already NSError")
-                print("🟢 [handleError] ns.domain = \(ns.domain)")
-                print("🟢 [handleError] ns.code = \(ns.code)")
-                print("🟢 [handleError] ns.localizedDescription = \(ns.localizedDescription)")
-
-                let result = errorHandler.handle(
-                    error: ns,
-                    context: serviceError.context.rawValue
-                )
-
-                print("🟢 [handleError] result from ErrorDiagnosticsCenter = \(result)")
-                print("🔵 [handleError] END")
-                return result
-            }
-
-            // 1.3 underlying is some other Error
-            print("🟡 [handleError] underlying is OTHER Error type")
-            print("🟡 [handleError] type = \(type(of: underlying))")
-            print("🟡 [handleError] value = \(underlying)")
-
-            let result = errorHandler.handle(
-                error: underlying,
-                context: serviceError.context.rawValue
+            let combinedContext =
+            "\(serviceError.context.rawValue) | \(ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue)"
+            return errorHandler.handle(
+                error: serviceError.underlying,
+                context: combinedContext
             )
-
-            print("🟡 [handleError] result from ErrorDiagnosticsCenter = \(result)")
-            print("🔵 [handleError] END")
-            return result
+        } else {
+            return errorHandler.handle(
+                error: error,
+                context: ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue
+            )
         }
-
-        // 2. Not FirestoreGetServiceError
-        print("🔴 [handleError] NOT FirestoreGetServiceError")
-        print("🔴 [handleError] error type = \(type(of: error))")
-        print("🔴 [handleError] error = \(error)")
-
-        let result = errorHandler.handle(
-            error: error,
-            context: "DropListDataSource"
-        )
-
-        print("🔴 [handleError] result from ErrorDiagnosticsCenter = \(result)")
-        print("🔵 [handleError] END")
-        return result
     }
+
+    
+    
+    
+    // MARK: - Trash
+    
+    
+    //    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
+    //        currentItem = item
+    //
+    //        /// Если есть кэш — возвращаем мгновенно
+    //        if let cached = lowerPagesCache[item.id] {
+    //            print("func selectCarouselItem: return cached for - \(item.id)")
+    //            return cached
+    //        }
+    //
+    //        /// Иначе загружаем первую страницу
+    //        let firstPage = try await firestoreService.fetchInitialLowerPage(
+    //            for: item,
+    //            pageSize: pageSize
+    //        )
+    //
+    //        lowerPagesCache[item.id] = firstPage
+    //        return firstPage
+    //    }
+    
+    
+    
+    //        let err = AppInternalError.emptyResult
+    //        if let serviceError = err as? AppInternalError {
+    //            print("func handleError if let serviceError = error as? AppInternalError ")
+    //            return errorHandler.handle(
+    //                error: serviceError,
+    //                context: "combinedContext"
+    //            )
+    //        } else {
+    //            print("func handleError else")
+    //            return errorHandler.handle(
+    //                error: err,
+    //                context: ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue
+    //            )
+    //        }
+    //                let err = PhotoPickerError.iCloudRequired
+            //        if let serviceError = err as? PhotoPickerError {
+            //            print("func handleError if let serviceError = error as? PhotoPickerError ")
+            //            return errorHandler.handle(
+            //                error: serviceError,
+            //                context: "combinedContext"
+            //            )
+            //        } else {
+            //            print("func handleError else")
+            //            return errorHandler.handle(
+            //                error: error,
+            //                context: ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue
+            //            )
+            //        }
+            
+    
+//    func handleError(_ error: Error) -> String {
+//
+//        // 1. FirestoreGetServiceError
+//        if let serviceError = error as? FirestoreGetServiceError {
+//
+//            let underlying = serviceError.underlying
+//
+//            // 1.1 Swift enum AppInternalError
+//            if let appError = underlying as? AppInternalError {
+//                let safeError = NSError(
+//                    domain: AppInternalError.errorDomain,
+//                    code: appError.rawValue,
+//                    userInfo: [
+//                        NSLocalizedDescriptionKey: appError.errorDescription ?? "AppInternalError"
+//
+//                    ]
+//                )
+//
+//                let result = errorHandler.handle(
+//                    error: safeError,
+//                    context: serviceError.context.rawValue
+//                )
+//                return result
+//            }
+//
+//            // 1.2 underlying is already NSError
+//            if let ns = underlying as? NSError {
+//
+//                let result = errorHandler.handle(
+//                    error: ns,
+//                    context: serviceError.context.rawValue
+//                )
+//                return result
+//            }
+//
+//            // 1.3 underlying is some other Error
+//            let result = errorHandler.handle(
+//                error: underlying,
+//                context: serviceError.context.rawValue
+//            )
+//            return result
+//        }
+//
+//        // 2. Not FirestoreGetServiceError
+//        let result = errorHandler.handle(
+//            error: error,
+//            context: "DropListDataSource"
+//        )
+//        return result
+//    }
 
 }
 

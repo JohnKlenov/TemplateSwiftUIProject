@@ -101,23 +101,6 @@ private extension DroplistCompositView {
 
 private extension DroplistCompositView {
     
-//    @ViewBuilder
-//    func lowerSectionWithFooter() -> some View {
-//        if data.initialLowerSection.items.isEmpty {
-//            lowerSectionErrorPlaceholder
-//        } else {
-//            LazyVStack(spacing: 16) {
-//                ForEach(data.initialLowerSection.items) { item in
-//                    lowerItemCell(item)
-//                }
-//                if data.initialLowerSection.hasMore  {
-//                    footerLoader
-//                }
-//            }
-//            .padding(.horizontal)
-//        }
-//    }
-    
     @ViewBuilder
     func lowerSectionWithFooter() -> some View {
         if data.isLowerSectionLoading {
@@ -253,6 +236,25 @@ struct TopSectionItemView: View {
     }
 }
 
+
+
+
+//    @ViewBuilder
+//    func lowerSectionWithFooter() -> some View {
+//        if data.initialLowerSection.items.isEmpty {
+//            lowerSectionErrorPlaceholder
+//        } else {
+//            LazyVStack(spacing: 16) {
+//                ForEach(data.initialLowerSection.items) { item in
+//                    lowerItemCell(item)
+//                }
+//                if data.initialLowerSection.hasMore  {
+//                    footerLoader
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
 
 
 // MARK: - before footer‑loader

@@ -120,6 +120,15 @@ import Foundation
 
 
 
+/// ВАЖНО: AppInternalError — это Swift enum, который НЕ совместим с NSError.
+/// Swift enum не поддерживает Objective‑C bridging и не содержит domain/code.
+/// Если передать его напрямую в ErrorDiagnosticsCenter, то при приведении:
+///     let nsError = error as NSError
+/// произойдёт КРАШ рантайма.
+/// Поэтому ВСЕ кастомные Swift‑enum ошибки (AppInternalError и подобные)
+/// необходимо ОБОРАЧИВАТЬ в безопасный NSError перед передачей дальше.
+
+
 enum AppInternalError: Int, Error {
     case invalidCollectionPath
     case failedDeployOptionalError
@@ -155,9 +164,17 @@ extension AppInternalError: CustomNSError {
 
     var errorCode: Int { self.rawValue }
 
+    
+    /// ВАЖНО: Нельзя использовать `self.localizedDescription` внутри CustomNSError.
+    /// Для Swift‑enum это вызывает рекурсивный bridging:
+    ///   localizedDescription → NSError(error) → localizedDescription → …
+    /// В итоге возникает бесконечный цикл и краш рантайма (EXC_BAD_ACCESS).
+    /// Используем только `errorDescription` или собственные строки (например, technicalDescription),
+    /// чтобы избежать рекурсии и сделать bridging в NSError безопасным.
     var errorUserInfo: [String : Any] {
-        [NSLocalizedDescriptionKey: self.localizedDescription]
+        [NSLocalizedDescriptionKey: self.technicalDescription]
     }
+    
 }
 
 extension AppInternalError: LocalizedError {

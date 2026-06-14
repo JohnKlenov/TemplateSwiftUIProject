@@ -135,6 +135,7 @@ extension PhotoPickerError: CustomNSError {
         }
     }
 
+    
     var errorUserInfo: [String : Any] {
         [
             NSLocalizedDescriptionKey: self.technicalDescription

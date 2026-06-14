@@ -11,6 +11,29 @@
 // исправляем ошибку правил и жмем try!
 // если все ок листаем вниз и ждем подгрузки еще 10 треков через loadNextPage (нужно подумать как реагировать на возникновении ишибки при loadNextPage - показывать ли это как то на UI ???)
 
+
+// MARK: - пытаемся сломать UI
+// cases одновременного использования нескольких запросов в сеть одновременно
+// имитируем плохую работу инета и хаотичного использования DroplistCompositView
+// то есть проверяем можно ли словать UI и вызвать баг при таких сценариях
+
+// вызов func didSelectCarouselItem(_ item: CarouselItem) async
+// если мы вызываем сначала один item не дожидаясь ответа переходим на второй item - если первым загрузится первый item то мы не перепрыгним в первый item нас оберегает requestID! то есть мы всегда работаем в средней секции только с текущим запросам
+// однако загрузка в DropListDataSource для всех вызванных item идет до конца и в lowerPagesCache[item.id] = firstPage будет записаны данные
+// то есть если мы начали загрузку в первом item не дождались и ушли на другой то в lowerPagesCache[item.id] первого item данные будут записаны в случае успеха и затем когда мы заново перейдем на первый item мы сразу заберем их из локального кэша!
+
+
+// вызов func refreshDropList() или func checkAndRefreshIfNeeded() а именно dropListDataSource.refreshAll()
+// допустим мы ждем ответа от func didSelectCarouselItem(_ item: CarouselItem) async то есть в какой то момент мы изменим viewState = .contentList
+// и не дождавшись вызываем dropListDataSource.refreshAll() тут мы тоже ожидаем изменения viewState = .contentList(newData)
+// если раньше отработает dropListDataSource.refreshAll() а затем func didSelectCarouselItem(_ item: CarouselItem) async то мы получается вернемся к старым данным для верхней и средней секции то есть экран измениться через viewState = .contentList(DropData()) ?
+// может в refreshAll() при успехи создавать новый currentSelectionRequestID = UUID() тогда если мы ожидали загрузки в func didSelectCarouselItem(_ item: CarouselItem) async  мы не обновим UI старыми данными, но то что придет будет сохранено в локальном кеше lowerPagesCache[item.id] что будет не пустой операцией в итоге?
+// смотри под копотом в dropListDataSource.refreshAll() мы делаем запрос для нижней секции по текущему currentItem на момент вызова! так же нужно помнить что когда ответ приходит мы полностью чистим func resetCache() ! то есть если мы после вызова dropListDataSource.refreshAll() ушли на другой item и в этот момент приходит ответ из refreshAll то мы окажемся на другом
+
+
+
+
+
 import Combine
 import Foundation
 
@@ -235,11 +258,7 @@ final class DroplistViewModel: ObservableObject {
             )
 
         } catch {
-            print("catch - func didSelectCarouselItem(_ item: CarouselItem) async")
-            print("ERROR TYPE = \(type(of: error))")
-
-            let err = dropListDataSource.handleError(error)
-            print("err - \(err)")
+            let _ = dropListDataSource.handleError(error)
 
             // Проверяем актуальность
             guard requestID == currentSelectionRequestID else { return }
@@ -255,46 +274,6 @@ final class DroplistViewModel: ObservableObject {
             )
         }
     }
-
-//    func didSelectCarouselItem(_ item: CarouselItem) async {
-//        guard case .contentList(let currentDropData) = viewState else { return }
-//
-//        do {
-//            let page = try await dropListDataSource.selectCarouselItem(item)
-//            
-//            print("func didSelectCarouselItem - fetch count - \(page.items.count) elements for \(item.id)")
-//            
-//            let newDropData = DropData(
-//                topSection: currentDropData.topSection,
-//                carouselItems: currentDropData.carouselItems,
-//                initialLowerSection: page,
-//                selectedItem: item
-//            )
-//
-//            await MainActor.run {
-//                viewState = .contentList(newDropData)
-//            }
-//
-//        } catch {
-//            
-//            let _ = dropListDataSource.handleError(error)
-//            
-//            await MainActor.run {
-//                viewState = .contentList(
-//                    DropData(
-//                        topSection: currentDropData.topSection,
-//                        carouselItems: currentDropData.carouselItems,
-//                        initialLowerSection: LowerSectionPage(
-//                            items: [],
-//                            lastDocumentSnapshot: nil,
-//                            hasMore: false
-//                        ), 
-//                        selectedItem: item
-//                    )
-//                )
-//            }
-//        }
-//    }
 
     // MARK: - loadNextPage
     
@@ -346,7 +325,45 @@ final class DroplistViewModel: ObservableObject {
 
 
 
-
+//    func didSelectCarouselItem(_ item: CarouselItem) async {
+//        guard case .contentList(let currentDropData) = viewState else { return }
+//
+//        do {
+//            let page = try await dropListDataSource.selectCarouselItem(item)
+//
+//            print("func didSelectCarouselItem - fetch count - \(page.items.count) elements for \(item.id)")
+//
+//            let newDropData = DropData(
+//                topSection: currentDropData.topSection,
+//                carouselItems: currentDropData.carouselItems,
+//                initialLowerSection: page,
+//                selectedItem: item
+//            )
+//
+//            await MainActor.run {
+//                viewState = .contentList(newDropData)
+//            }
+//
+//        } catch {
+//
+//            let _ = dropListDataSource.handleError(error)
+//
+//            await MainActor.run {
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: currentDropData.topSection,
+//                        carouselItems: currentDropData.carouselItems,
+//                        initialLowerSection: LowerSectionPage(
+//                            items: [],
+//                            lastDocumentSnapshot: nil,
+//                            hasMore: false
+//                        ),
+//                        selectedItem: item
+//                    )
+//                )
+//            }
+//        }
+//    }
 
 
 
