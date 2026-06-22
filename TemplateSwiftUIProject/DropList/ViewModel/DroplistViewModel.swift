@@ -31,6 +31,11 @@
 // смотри под копотом в dropListDataSource.refreshAll() мы делаем запрос для нижней секции по текущему currentItem на момент вызова! так же нужно помнить что когда ответ приходит мы полностью чистим func resetCache() ! то есть если мы после вызова dropListDataSource.refreshAll() ушли на другой item и в этот момент приходит ответ из refreshAll то мы окажемся на другом
 
 
+//func loadNextPage(for item: CarouselItem) async {
+// при вызове footerLoader запускается ProgressView() и крутится до тех пор пока не будет с успехом выполнен loadNextPage! то есть если loadNextPage выполнится с ошибкой спинер продолжет вращаться, если мы спрячем с экрана проскролим вверх то ProgressView()  будет .onDisappear!
+// так как footerLoader находится в LazyVStack то он инит лениво когда мы к нему приближаемся! то есть похоже  что после первого запуска он работает постоянно пока мы не обновим состоняие на DroplistCompositView и тогда огн должен пропасть!
+// но вопрос окажемся мы в ленте нижней секции после успешного вызова func loadNextPage в том же месте где появились новые данные, скорее всего мы просто окажемся на самом верху но уже с новыми данными которые нужно будет долистать вниз!
+// так же важно func loadNextPage(for item: CarouselItem)  мы инициализируем в ProgressView().onAppear то есть нам нужно придумать механизм который избавит нас от гонки то есть не вызывать dropListDataSource.loadNextPageIfNeeded(for: item) пока выполнение первого запроса не завершится, но так же важно понимать что func loadNextPage(for item: CarouselItem) может быть вызван уже с другой секции до того как вернеться ответ из первой секции! 
 
 
 
@@ -203,7 +208,10 @@ final class DroplistViewModel: ObservableObject {
     
     func didSelectCarouselItem(_ item: CarouselItem) async {
         print("func didSelectCarouselItem(_ item: CarouselItem) async")
-        guard case .contentList(let currentDropData) = viewState else { return }
+        guard case .contentList(let currentDropData) = viewState else {
+            print("tap currrent section")
+            return
+        }
 
         // Создаём новый токен запроса
         let requestID = UUID()

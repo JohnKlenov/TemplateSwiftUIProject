@@ -119,6 +119,7 @@ private extension DroplistCompositView {
                 ForEach(data.initialLowerSection.items) { item in
                     lowerItemCell(item)
                 }
+                // так как это LazyVStack мы footerLoader запускае когда к ниму приближаемся?
                 if data.initialLowerSection.hasMore {
                     footerLoader
                 }
