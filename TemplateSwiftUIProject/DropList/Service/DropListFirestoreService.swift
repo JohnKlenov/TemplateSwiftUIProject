@@ -670,8 +670,6 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                 }
 
                 print("snapshot.documents.count = \(snapshot.documents.count)")
-                print(snapshot.documents.first?.data() ?? [])
-
 
                 let docs: [TrackDoc] = snapshot.documents.compactMap { doc in
                     do {

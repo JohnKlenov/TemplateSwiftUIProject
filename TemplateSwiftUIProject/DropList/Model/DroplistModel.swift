@@ -385,7 +385,7 @@ struct PlaylistTrackDoc: Codable, Identifiable {
 // TrackDoc — глобальный трек (dropTracks/{videoId})
 
 struct TrackDoc: Codable, Identifiable {
-    let id: String                 // videoId
+    let id: String?                 // videoId
     let videoId: String
     let title: String
     let artist: String?
