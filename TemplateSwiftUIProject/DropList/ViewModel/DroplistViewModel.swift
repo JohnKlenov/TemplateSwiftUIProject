@@ -34,7 +34,7 @@
 //func loadNextPage(for item: CarouselItem) async {
 // при вызове footerLoader запускается ProgressView() и крутится до тех пор пока не будет с успехом выполнен loadNextPage! то есть если loadNextPage выполнится с ошибкой спинер продолжет вращаться, если мы спрячем с экрана проскролим вверх то ProgressView()  будет .onDisappear но при этом будет вращаться? !
 // если запрос в loadNextPage выполнится с ошибкои то мы должны отключить спинер и сообщить пользователю это как то в footerLoader толи текстом толи символом!
-// далее нам нужно что бы мы могли инициировать вызов loadNextPage потянув вниз ленту! (сейчас мы можем вызвать loadNextPage только когда ProgressView перейдет в onDisappear и затем нам нужно снова инициировать .onAppear и для этого нам нужно матать ленту вверх и затем опять вниз!?  )
+// далее нам нужно что бы мы могли инициировать вызов loadNextPage потянув вниз ленту! (сейчас мы можем вызвать loadNextPage только когда ProgressView перейдет в onDisappear и затем нам нужно снова инициировать .onAppear и для этого нам нужно матать ленту вверх и затем опять вниз -  этот механизм знаю я как разработчик но не пользователь!?  )
 // так как footerLoader находится в LazyVStack то он инит лениво когда мы к нему приближаемся! то есть похоже  что после первого запуска он работает постоянно пока мы не обновим состоняие на DroplistCompositView и тогда огн должен пропасть!
 // но вопрос окажемся мы в ленте нижней секции после успешного вызова func loadNextPage в том же месте где появились новые данные, скорее всего мы просто окажемся на самом верху но уже с новыми данными которые нужно будет долистать вниз!
 // isLoadingNextPageForItem избавляет от гонки!
@@ -331,6 +331,322 @@ final class DroplistViewModel: ObservableObject {
         }
     }
 }
+
+
+
+
+
+
+
+// MARK: - new first implemintation with FooterState
+
+//enum FooterState: Equatable {
+//    case idle          // footer виден, но не показывает загрузку
+//    case loading       // footer показывает ProgressView
+//    case error(String) // footer показывает ошибку + кнопку "Повторить"
+//}
+//
+//
+//struct DropData {
+//    let topSection: [TopSectionItem]
+//    let carouselItems: [CarouselItem]
+//    let initialLowerSection: LowerSectionPage
+//    let selectedItem: CarouselItem?
+//    let isLowerSectionLoading: Bool
+//    let footerState: FooterState
+//}
+
+
+
+//import SwiftUI
+//
+//struct DroplistCompositView: View {
+//    
+//    let data: DropData
+//    let onRefresh: () -> Void
+//    let onSelectCarouselItem: (CarouselItem) -> Void
+//    let onLoadNextPage: (CarouselItem) -> Void
+//    let onSelectLowerItem: (LowerItem) -> Void
+//    
+//    @State private var selectedCarouselItem: CarouselItem?
+//    
+//    var body: some View {
+//        ScrollViewReader { _ in
+//            ScrollView {
+//                VStack(spacing: 16) {
+//                    topSections
+//                    carouselSection
+//                    lowerSectionWithFooter()
+//                }
+//                .padding(.vertical, 12)
+//            }
+//            .refreshable {
+//                onRefresh()
+//            }
+//            .onAppear {
+//                selectedCarouselItem = data.selectedItem
+//            }
+//        }
+//    }
+//}
+//
+//private extension DroplistCompositView {
+//    
+//    @ViewBuilder
+//    func lowerSectionWithFooter() -> some View {
+//        if data.isLowerSectionLoading {
+//            VStack {
+//                ProgressView()
+//                Text("Загрузка...")
+//                    .foregroundColor(.secondary)
+//            }
+//            .frame(maxWidth: .infinity, minHeight: 200)
+//        }
+//        else if data.initialLowerSection.items.isEmpty {
+//            lowerSectionErrorPlaceholder
+//        }
+//        else {
+//            LazyVStack(spacing: 16) {
+//                ForEach(data.initialLowerSection.items) { item in
+//                    lowerItemCell(item)
+//                }
+//                
+//                // footer показываем только если есть что догружать
+//                if data.initialLowerSection.hasMore {
+//                    footerView
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//    
+//    // MARK: - Footer
+//    
+//    @ViewBuilder
+//    var footerView: some View {
+//        switch data.footerState {
+//            
+//        case .idle:
+//            // idle: footer виден, но не показывает загрузку.
+//            // onAppear → триггер первой подгрузки.
+//            HStack {
+//                Spacer()
+//                Color.clear
+//                    .frame(height: 44)
+//                    .onAppear {
+//                        if let selected = selectedCarouselItem {
+//                            onLoadNextPage(selected)
+//                        }
+//                    }
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//            
+//        case .loading:
+//            HStack {
+//                Spacer()
+//                ProgressView()
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//            
+//        case .error(let message):
+//            HStack {
+//                Spacer()
+//                VStack(spacing: 6) {
+//                    Text(message)
+//                        .foregroundColor(.secondary)
+//                    Button("Повторить") {
+//                        if let selected = selectedCarouselItem {
+//                            onLoadNextPage(selected)
+//                        }
+//                    }
+//                }
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//        }
+//    }
+//    
+//    func lowerItemCell(_ item: LowerItem) -> some View {
+//        Button {
+//            onSelectLowerItem(item)
+//        } label: {
+//            HStack(spacing: 12) {
+//                thumbnail(for: item)
+//                
+//                VStack(alignment: .leading, spacing: 4) {
+//                    Text(item.title)
+//                        .font(.headline)
+//                        .foregroundColor(.primary)
+//                    
+//                    if let subtitle = item.subtitle {
+//                        Text(subtitle)
+//                            .font(.subheadline)
+//                            .foregroundColor(.secondary)
+//                    }
+//                }
+//                
+//                Spacer()
+//            }
+//        }
+//    }
+//    
+//    var lowerSectionErrorPlaceholder: some View {
+//        VStack(spacing: 12) {
+//            Text("Не удалось загрузить данные")
+//                .font(.headline)
+//                .foregroundColor(.secondary)
+//            
+//            Button("Повторить") {
+//                if let selected = selectedCarouselItem {
+//                    onSelectCarouselItem(selected)
+//                }
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 8)
+//            .background(Color.blue.opacity(0.2))
+//            .cornerRadius(8)
+//        }
+//        .padding(.top, 40)
+//    }
+//}
+
+
+
+//import SwiftUI
+//import Combine
+//
+//@MainActor
+//final class DroplistViewModel: ObservableObject {
+//
+//    @Published var viewState: DropeState = .loading
+//    @Published var lastUpdated: Date? = nil
+//
+//    private let sessionManager: AppSessionManager
+//    private let dropListDataSource: DropListDataSource
+//
+//    private var cancellables = Set<AnyCancellable>()
+//    private var isDropListLoaded = false
+//    private var isRefreshing = false
+//    private var currentSelectionRequestID = UUID()
+//
+//    init(
+//        sessionManager: AppSessionManager,
+//        dropListDataSource: DropListDataSource
+//    ) {
+//        self.sessionManager = sessionManager
+//        self.dropListDataSource = dropListDataSource
+//        
+//        sessionManager.statePublisher
+//            .compactMap { $0 }
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                self?.handleHomeManagerState(state)
+//            }
+//            .store(in: &cancellables)
+//    }
+//    
+//    // MARK: - Refresh
+//    
+//    func refreshDropList() async {
+//        isRefreshing = true
+//        defer { isRefreshing = false }
+//        
+//        do {
+//            let dropData = try await dropListDataSource.loadInitialDropList()
+//            
+//            let normalized = DropData(
+//                topSection: dropData.topSection,
+//                carouselItems: dropData.carouselItems,
+//                initialLowerSection: dropData.initialLowerSection,
+//                selectedItem: dropData.selectedItem,
+//                isLowerSectionLoading: false,
+//                footerState: dropData.initialLowerSection.hasMore ? .idle : .idle
+//            )
+//            
+//            viewState = .contentList(normalized)
+//            
+//        } catch {
+//            let _ = dropListDataSource.handleError(error)
+//            viewState = .errorList("Не удалось обновить данные")
+//        }
+//    }
+//    
+//    // MARK: - Pagination
+//    
+//    func loadNextPage(for item: CarouselItem) async {
+//        guard case .contentList(let currentDropData) = viewState else { return }
+//        
+//        // если больше нечего грузить — выходим
+//        guard currentDropData.initialLowerSection.hasMore else { return }
+//        
+//        // ставим footer в состояние загрузки
+//        let loadingDropData = DropData(
+//            topSection: currentDropData.topSection,
+//            carouselItems: currentDropData.carouselItems,
+//            initialLowerSection: currentDropData.initialLowerSection,
+//            selectedItem: currentDropData.selectedItem,
+//            isLowerSectionLoading: false,
+//            footerState: .loading
+//        )
+//        viewState = .contentList(loadingDropData)
+//        
+//        do {
+//            // DataSource сам защищает от гонок и сам делает merge
+//            if let mergedPage = try await dropListDataSource.loadNextPageIfNeeded(for: item) {
+//                
+//                let newDropData = DropData(
+//                    topSection: currentDropData.topSection,
+//                    carouselItems: currentDropData.carouselItems,
+//                    initialLowerSection: mergedPage,
+//                    selectedItem: currentDropData.selectedItem,
+//                    isLowerSectionLoading: false,
+//                    footerState: mergedPage.hasMore ? .idle : .idle
+//                )
+//                
+//                viewState = .contentList(newDropData)
+//                
+//            } else {
+//                // DataSource вернул nil → либо гонка, либо нечего грузить
+//                let newDropData = DropData(
+//                    topSection: currentDropData.topSection,
+//                    carouselItems: currentDropData.carouselItems,
+//                    initialLowerSection: currentDropData.initialLowerSection,
+//                    selectedItem: currentDropData.selectedItem,
+//                    isLowerSectionLoading: false,
+//                    footerState: .idle
+//                )
+//                viewState = .contentList(newDropData)
+//            }
+//            
+//        } catch {
+//            let _ = dropListDataSource.handleError(error)
+//            
+//            let errorDropData = DropData(
+//                topSection: currentDropData.topSection,
+//                carouselItems: currentDropData.carouselItems,
+//                initialLowerSection: currentDropData.initialLowerSection,
+//                selectedItem: currentDropData.selectedItem,
+//                isLowerSectionLoading: false,
+//                footerState: .error("Не удалось загрузить данные")
+//            )
+//            
+//            viewState = .contentList(errorDropData)
+//        }
+//    }
+//}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
