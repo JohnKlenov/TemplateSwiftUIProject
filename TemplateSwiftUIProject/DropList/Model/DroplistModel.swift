@@ -471,12 +471,28 @@ struct LowerItem: Identifiable {
 //    let selectedItem: CarouselItem   // ← добавили
 //}
 
+//struct DropData {
+//    let topSection: TopSectionModel
+//    let carouselItems: [CarouselItem]
+//    let initialLowerSection: LowerSectionPage
+//    let selectedItem: CarouselItem
+//    let isLowerSectionLoading: Bool
+//}
+
 struct DropData {
     let topSection: TopSectionModel
     let carouselItems: [CarouselItem]
     let initialLowerSection: LowerSectionPage
     let selectedItem: CarouselItem
     let isLowerSectionLoading: Bool
+    let footerState: FooterState
+}
+
+
+enum FooterState: Equatable {
+    case idle          // footer виден, но не показывает загрузку
+    case loading       // footer показывает ProgressView
+    case error(String) // footer показывает ошибку + кнопку "Повторить"
 }
 
 

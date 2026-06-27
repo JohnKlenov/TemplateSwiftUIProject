@@ -5,6 +5,8 @@
 //  Created by Evgenyi on 14.05.26.
 //
 
+
+
 import SwiftUI
 
 struct DroplistCompositView: View {
@@ -101,6 +103,7 @@ private extension DroplistCompositView {
 
 private extension DroplistCompositView {
     
+    
     @ViewBuilder
     func lowerSectionWithFooter() -> some View {
         if data.isLowerSectionLoading {
@@ -119,51 +122,62 @@ private extension DroplistCompositView {
                 ForEach(data.initialLowerSection.items) { item in
                     lowerItemCell(item)
                 }
-                // так как это LazyVStack мы footerLoader запускае когда к ниму приближаемся?
+                
+                // footer показываем только если есть что догружать
                 if data.initialLowerSection.hasMore {
-                    footerLoader
+                    footerView
                 }
             }
             .padding(.horizontal)
         }
     }
-
     
-    var lowerSectionErrorPlaceholder: some View {
-        VStack(spacing: 12) {
-            Text("Не удалось загрузить данные")
-                .font(.headline)
-                .foregroundColor(.secondary)
+    // MARK: - Footer
+    
+    @ViewBuilder
+    var footerView: some View {
+        switch data.footerState {
             
-            Button("Повторить") {
-                if let selected = selectedCarouselItem {
-                    onSelectCarouselItem(selected)
-                }
+        case .idle:
+            // idle: footer виден, но не показывает загрузку.
+            // onAppear → триггер первой подгрузки.
+            HStack {
+                Spacer()
+                Color.clear
+                    .frame(height: 44)
+                    .onAppear {
+                        if let selected = selectedCarouselItem {
+                            onLoadNextPage(selected)
+                        }
+                    }
+                Spacer()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(Color.blue.opacity(0.2))
-            .cornerRadius(8)
-        }
-        .padding(.top, 40)
-    }
-    
-    var footerLoader: some View {
-        HStack {
-            Spacer()
-            ProgressView()
-                .onAppear {
-                    print("onAppear footerLoader")
-                    if let selected = selectedCarouselItem {
-                        onLoadNextPage(selected)
+            .padding(.vertical, 12)
+            
+        case .loading:
+            HStack {
+                Spacer()
+                ProgressView()
+                Spacer()
+            }
+            .padding(.vertical, 12)
+            
+        case .error(let message):
+            HStack {
+                Spacer()
+                VStack(spacing: 6) {
+                    Text(message)
+                        .foregroundColor(.secondary)
+                    Button("Повторить") {
+                        if let selected = selectedCarouselItem {
+                            onLoadNextPage(selected)
+                        }
                     }
                 }
-                .onDisappear {
-                    print("onDisappear footerLoader")
-                }
-            Spacer()
+                Spacer()
+            }
+            .padding(.vertical, 12)
         }
-        .padding(.vertical, 12)
     }
     
     func lowerItemCell(_ item: LowerItem) -> some View {
@@ -190,6 +204,25 @@ private extension DroplistCompositView {
         }
     }
     
+    var lowerSectionErrorPlaceholder: some View {
+        VStack(spacing: 12) {
+            Text("Не удалось загрузить данные")
+                .font(.headline)
+                .foregroundColor(.secondary)
+            
+            Button("Повторить") {
+                if let selected = selectedCarouselItem {
+                    onSelectCarouselItem(selected)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(Color.blue.opacity(0.2))
+            .cornerRadius(8)
+        }
+        .padding(.top, 40)
+    }
+
     @ViewBuilder
     func thumbnail(for item: LowerItem) -> some View {
         if item.isTrack {
@@ -236,6 +269,245 @@ struct TopSectionItemView: View {
         .frame(width: 140, alignment: .leading)
     }
 }
+
+
+
+
+
+
+// MARK: - implemintation before FooterState
+
+//import SwiftUI
+//
+//struct DroplistCompositView: View {
+//    
+//    let data: DropData
+//    let onRefresh: () -> Void
+//    let onSelectCarouselItem: (CarouselItem) -> Void
+//    let onLoadNextPage: (CarouselItem) -> Void
+//    let onSelectLowerItem: (LowerItem) -> Void
+//    
+//    @State private var selectedCarouselItem: CarouselItem?
+//    
+//    var body: some View {
+//        ScrollViewReader { proxy in
+//            ScrollView {
+//                VStack(spacing: 16) {
+//                    topSections
+//                    carouselSection
+//                    lowerSectionWithFooter()
+//                }
+//                .padding(.vertical, 12)
+//            }
+//            .refreshable {
+//                onRefresh()
+//            }
+//            .onAppear {
+//                selectedCarouselItem = data.selectedItem
+//            }
+//        }
+//    }
+//}
+//
+//// MARK: - Top Sections
+//
+//private extension DroplistCompositView {
+//    var topSections: some View {
+//        VStack(spacing: 12) {
+//            VStack(alignment: .leading, spacing: 8) {
+//                Text(data.topSection.title)
+//                    .font(.headline)
+//                    .padding(.horizontal)
+//
+//                ScrollView(.horizontal, showsIndicators: false) {
+//                    HStack(spacing: 12) {
+//                        ForEach(data.topSection.items) { item in
+//                            TopSectionItemView(item: item)
+//                        }
+//                    }
+//                    .padding(.horizontal)
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//// MARK: - Carousel Section
+//
+//private extension DroplistCompositView {
+//    var carouselSection: some View {
+//        ScrollView(.horizontal, showsIndicators: false) {
+//            HStack(spacing: 12) {
+//                ForEach(data.carouselItems) { item in
+//                    carouselItem(item)
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//    
+//    func carouselItem(_ item: CarouselItem) -> some View {
+//        let isSelected = selectedCarouselItem?.id == item.id
+//        
+//        return Text(item.title)
+//            .font(.subheadline.weight(.medium))
+//            .padding(.horizontal, 14)
+//            .padding(.vertical, 8)
+//            .background(
+//                RoundedRectangle(cornerRadius: 12)
+//                    .fill(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.15))
+//            )
+//            .overlay(
+//                RoundedRectangle(cornerRadius: 12)
+//                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 1.5)
+//            )
+//            .onTapGesture {
+//                guard selectedCarouselItem?.id != item.id else { return }
+//                selectedCarouselItem = item
+//                onSelectCarouselItem(item)
+//            }
+//    }
+//}
+//
+//// MARK: - Lower Section + Footer Loader
+//
+//private extension DroplistCompositView {
+//    
+//    @ViewBuilder
+//    func lowerSectionWithFooter() -> some View {
+//        if data.isLowerSectionLoading {
+//            VStack {
+//                ProgressView()
+//                Text("Загрузка...")
+//                    .foregroundColor(.secondary)
+//            }
+//            .frame(maxWidth: .infinity, minHeight: 200)
+//        }
+//        else if data.initialLowerSection.items.isEmpty {
+//            lowerSectionErrorPlaceholder
+//        }
+//        else {
+//            LazyVStack(spacing: 16) {
+//                ForEach(data.initialLowerSection.items) { item in
+//                    lowerItemCell(item)
+//                }
+//                // так как это LazyVStack мы footerLoader запускае когда к ниму приближаемся?
+//                if data.initialLowerSection.hasMore {
+//                    footerLoader
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//
+//    
+//    var lowerSectionErrorPlaceholder: some View {
+//        VStack(spacing: 12) {
+//            Text("Не удалось загрузить данные")
+//                .font(.headline)
+//                .foregroundColor(.secondary)
+//            
+//            Button("Повторить") {
+//                if let selected = selectedCarouselItem {
+//                    onSelectCarouselItem(selected)
+//                }
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 8)
+//            .background(Color.blue.opacity(0.2))
+//            .cornerRadius(8)
+//        }
+//        .padding(.top, 40)
+//    }
+//    
+//    var footerLoader: some View {
+//        HStack {
+//            Spacer()
+//            ProgressView()
+//                .onAppear {
+//                    print("onAppear footerLoader")
+//                    if let selected = selectedCarouselItem {
+//                        onLoadNextPage(selected)
+//                    }
+//                }
+//                .onDisappear {
+//                    print("onDisappear footerLoader")
+//                }
+//            Spacer()
+//        }
+//        .padding(.vertical, 12)
+//    }
+//    
+//    func lowerItemCell(_ item: LowerItem) -> some View {
+//        Button {
+//            onSelectLowerItem(item)
+//        } label: {
+//            HStack(spacing: 12) {
+//                thumbnail(for: item)
+//                
+//                VStack(alignment: .leading, spacing: 4) {
+//                    Text(item.title)
+//                        .font(.headline)
+//                        .foregroundColor(.primary)
+//                    
+//                    if let subtitle = item.subtitle {
+//                        Text(subtitle)
+//                            .font(.subheadline)
+//                            .foregroundColor(.secondary)
+//                    }
+//                }
+//                
+//                Spacer()
+//            }
+//        }
+//    }
+//    
+//    @ViewBuilder
+//    func thumbnail(for item: LowerItem) -> some View {
+//        if item.isTrack {
+//            AsyncImage(url: item.thumbnailURL) { img in
+//                img.resizable().scaledToFill()
+//            } placeholder: {
+//                Color.gray.opacity(0.2)
+//            }
+//            .frame(width: 60, height: 60)
+//            .clipShape(RoundedRectangle(cornerRadius: 8))
+//        } else {
+//            AsyncImage(url: item.coverImageURL) { img in
+//                img.resizable().scaledToFill()
+//            } placeholder: {
+//                Color.gray.opacity(0.2)
+//            }
+//            .frame(width: 60, height: 60)
+//            .clipShape(RoundedRectangle(cornerRadius: 8))
+//        }
+//    }
+//}
+//
+//// MARK: - Top Section Item View
+//
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 6) {
+//            AsyncImage(url: item.imageURL) { img in
+//                img.resizable()
+//                    .scaledToFill()
+//            } placeholder: {
+//                Color.gray.opacity(0.2)
+//            }
+//            .frame(width: 140, height: 90)
+//            .clipShape(RoundedRectangle(cornerRadius: 12))
+//            
+//            Text(item.title)
+//                .font(.subheadline)
+//                .foregroundColor(.primary)
+//                .lineLimit(1)
+//        }
+//        .frame(width: 140, alignment: .leading)
+//    }
+//}
 
 
 

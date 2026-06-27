@@ -112,7 +112,8 @@ final class DropListDataSource {
                 carouselItems: carouselItems,
                 initialLowerSection: firstPage,
                 selectedItem: selected, 
-                isLowerSectionLoading: false
+                isLowerSectionLoading: false,
+                footerState: .idle
             )
 
             return .success(dropData)
@@ -221,7 +222,8 @@ final class DropListDataSource {
                 carouselItems: carouselItems,
                 initialLowerSection: firstPage, 
                 selectedItem: selectedItem, 
-                isLowerSectionLoading: false
+                isLowerSectionLoading: false, 
+                footerState: .idle
             )
 
         } catch {

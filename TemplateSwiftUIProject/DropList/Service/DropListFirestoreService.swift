@@ -615,6 +615,15 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
 
     // MARK: - Private: Tracks Page (dropTracks)
 
+    /// Firestore использует оффлайн‑кэш по умолчанию.
+    /// Поэтому поведение getDocuments зависит от состояния сети:
+    /// • Сеть есть → возвращаются актуальные online‑данные
+    /// • Сети нет, но есть кэш → возвращаются cached‑данные без ошибки
+    /// • Сети нет и кэша нет → генерируется ошибка
+    ///
+    /// Это нормальное поведение Firestore SDK: запросы не гарантируют онлайн‑результат,
+    /// а автоматически подставляют локальный кэш, если сеть недоступна.
+
     private func fetchTracksPage(
         tag: String?,
         pageSize: Int,
