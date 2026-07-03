@@ -42,6 +42,205 @@
 
 
 
+
+
+// MARK: - операции которые могут быть инициированы паралельно (приоритет, конфликты): -
+
+
+// во DroplistViewModel в методах которые инициируются паралельно  перед тем как мы делаем viewState = .contentList(newData) проверять что viewState != .error или case .errorList во избежания dealoack (viewState != .error может прийти раньше чем viewState = .contentList(newData) и тогда когда придет .contentList(newData) мы не сможем сделать ретрай )
+
+
+
+
+// MARK: - refreshDropList
+
+// refreshDropList() - если в момент вызова refreshDropList придет ошибка case .error а потом ответ от refreshDropList() который переведет  viewState = .contentList ? может  refreshDropList() перед viewState = .contentList(newData) проверять что viewState != .error ?    нужно в retry isRefreshing = false ?
+
+
+
+
+// MARK: - didSelectCarouselItem
+
+// c didSelectCarouselItem() и  loadNextPage() могут быть многократные вызовы с ожиданием
+// то есть до получения ответа от первого didSelectCarouselItem мы можем вызвать несколько новых didSelectCarouselItem
+
+// currentSelectionRequest работает
+// если мы вызвали didSelectCarouselItem() для allTrack не дождались ответа и ушли на gym дождались ответа ушли назад на allTrack на котором ответ от первого запроса didSelectCarouselItem() еще не пришол а от второго пришол сразу то мы его и отображаем а ответ от первого запроса будет проигнорирован на UI! но нужно помнить что последний ответ от сети будет записан в lowerPagesCache[item.id]
+
+// нужно проверить как didSelectCarouselItem() работает в сценариях паралельных вызовов refreshDropList() + loadNextPage()
+
+
+// MARK: - loadNextPage
+
+
+
+
+
+
+
+//
+//  РЕКОМЕНДАЦИИ ПО УСТОЙЧИВОЙ АСИНХРОННОЙ АРХИТЕКТУРЕ DROPLIST
+//  -----------------------------------------------------------
+//
+//  Данный блок описывает все необходимые улучшения для устойчивой работы
+//  Droplist при одновременных асинхронных вызовах:
+//
+//  • onSelectCarouselItem
+//  • onLoadNextPage
+//  • onRefresh
+//
+//  Цель — устранить гонки, устаревшие ответы (stale responses),
+//  визуальные скачки footer, конфликтующие записи в кэш и проблемы с пагинацией.
+//
+//  -----------------------------------------------------------
+//  1. ЯВНЫЙ КОНТРАКТ ПАГИНАЦИИ (ОБЯЗАТЕЛЬНО)
+//  -----------------------------------------------------------
+//
+//  loadNextPageIfNeeded(for:) НЕ должен возвращать Optional.
+//  Optional создаёт двусмысленность: nil означает и гонку, и отсутствие страниц,
+//  и ошибочное состояние (нет lastSnapshot).
+//
+//  Нужно заменить на enum:
+//
+//      enum NextPageResult {
+//          case loaded(LowerSectionPage)   // успех
+//          case noMore                     // больше страниц нет
+//          case alreadyLoading             // запрос уже выполняется
+//          case invalidState               // нет lastSnapshot или кэша
+//      }
+//
+//  Это позволит ViewModel корректно управлять footerState:
+//  • при alreadyLoading — НЕ сбрасывать .loading
+//  • при noMore — скрыть footer (hasMore = false)
+//  • при invalidState — безопасно завершить без вечного спиннера
+//
+//  -----------------------------------------------------------
+//  2. ОТМЕНА ЗАДАЧ В didSelectCarouselItem (ОБЯЗАТЕЛЬНО)
+//  -----------------------------------------------------------
+//
+//  При быстром переключении карусели старые ответы могут прийти позже новых.
+//  Это приводит к stale‑response: UI показывает данные для старого item.
+//
+//  Нужно хранить Task и отменять её:
+//
+//      private var currentSelectionTask: Task<Void, Never>?
+//
+//      currentSelectionTask?.cancel()
+//      currentSelectionTask = Task { ... }
+//
+//  Проверка requestID остаётся как дополнительная защита.
+//
+//  -----------------------------------------------------------
+//  3. АТОМАРНЫЙ КЭШ ЧЕРЕЗ ACTOR (ОБЯЗАТЕЛЬНО)
+//  -----------------------------------------------------------
+//
+//  lowerPagesCache — обычный словарь, который читается/пишется из разных задач.
+//  Это создаёт race conditions при:
+//
+//  • selectCarouselItem
+//  • loadNextPageIfNeeded
+//  • refreshAll
+//
+//  Нужно заменить на actor:
+//
+//      actor PagesCache {
+//          private var cache: [String: LowerSectionPage] = [:]
+//          func get(_ id: String) -> LowerSectionPage? { cache[id] }
+//          func set(_ id: String, page: LowerSectionPage) { cache[id] = page }
+//          func reset() { cache.removeAll() }
+//      }
+//
+//  Это гарантирует отсутствие гонок при работе с кэшем.
+//
+//  -----------------------------------------------------------
+//  4. ПРАВИЛЬНАЯ ОБРАБОТКА ПАГИНАЦИИ В ViewModel
+//  -----------------------------------------------------------
+//
+//  Сейчас при nil ViewModel всегда ставит footerState = .idle,
+//  что вызывает визуальный скачок (спиннер исчезает).
+//
+//  При использовании NextPageResult:
+//
+//      case .alreadyLoading:
+//          // НЕ сбрасываем footerState — просто выходим
+//
+//      case .noMore:
+//          // footer не показывается, hasMore = false
+//
+//      case .invalidState:
+//          // безопасно завершаем без вечного спиннера
+//
+//  -----------------------------------------------------------
+//  5. ПОВЕДЕНИЕ REFRESH (ОБЯЗАТЕЛЬНО)
+//  -----------------------------------------------------------
+//
+//  refreshAll() очищает кэш и пишет новые данные,
+//  но параллельные select/pagination могут перезаписать кэш обратно.
+//
+//  Нужно:
+//
+//  • отменять ВСЕ текущие selection/pagination задачи перед refresh
+//  • затем вызывать resetCache()
+//  • затем выполнять refreshAll()
+//
+//  Это предотвращает конфликтующие записи.
+//
+//  -----------------------------------------------------------
+//  6. ПОЛИТИКА FOOTERSTATE
+//  -----------------------------------------------------------
+//
+//  footerState управляет только внутренним состоянием footer,
+//  а его отображение определяется initialLowerSection.hasMore.
+//
+//  Правила:
+//
+//  • перед запросом → footerState = .loading
+//  • при успехе → footerState = .idle
+//  • при alreadyLoading → НЕ менять footerState
+//  • при noMore → footer скрывается (hasMore = false)
+//  • при ошибке → footerState = .error("…")
+//
+//  -----------------------------------------------------------
+//  7. ЛОГИРОВАНИЕ FIRESTORE КЭША (РЕКОМЕНДУЕТСЯ)
+//
+//  Firestore по умолчанию использует оффлайн‑кэш:
+//
+//      Сеть есть → online data
+//      Сети нет, но есть кэш → cached data
+//      Сети нет и нет кэша → error
+//
+//  Для отладки:
+//
+//      print("isFromCache = \(snapshot.metadata.isFromCache)")
+//
+//  -----------------------------------------------------------
+//  8. ИТОГ
+//  -----------------------------------------------------------
+//
+//  Чтобы Droplist работал устойчиво при любых комбинациях вызовов:
+//
+//  ✔ Ввести NextPageResult вместо Optional
+//  ✔ Ввести actor PagesCache для атомарного кэша
+//  ✔ Отменять задачи в didSelectCarouselItem
+//  ✔ Корректно обрабатывать alreadyLoading в пагинации
+//  ✔ При refresh отменять все задачи и очищать кэш
+//  ✔ Не сбрасывать footerState при alreadyLoading
+//
+//  После внедрения этих пунктов Droplist станет устойчивым к:
+//
+//  • гонкам
+//  • устаревшим ответам
+//  • конфликтам кэша
+//  • визуальным скачкам footer
+//  • параллельным вызовам select + refresh + pagination
+//
+//  -----------------------------------------------------------
+//  КОНЕЦ РЕКОМЕНДАЦИЙ
+//  -----------------------------------------------------------
+//
+
+
+
 import Combine
 import Foundation
 
@@ -128,7 +327,8 @@ final class DroplistViewModel: ObservableObject {
     }
 
     func retry() {
-//        currentSelectionRequestID = UUID() ?
+        // currentSelectionRequestID = UUID() ?
+        // isRefreshing = false ?
         dropListDataSource.resetCache()
         myTracks = []
         isDropListLoaded = false
@@ -192,6 +392,7 @@ final class DroplistViewModel: ObservableObject {
         }
     }
     
+    
 
     // MARK: - Auto Refresh
 
@@ -239,6 +440,7 @@ final class DroplistViewModel: ObservableObject {
             return
         }
 
+        
         // 2. Кэша нет → показываем loader
         viewState = .contentList(
             DropData(
@@ -310,36 +512,39 @@ final class DroplistViewModel: ObservableObject {
     ///
     /// Такое поведение используется в большинстве продакшен‑приложений (YouTube, Instagram, TikTok),
     /// где исчезновение спиннера при повторном скролле считается нормой и не ухудшает UX.
-
+    
+    
     func loadNextPage(for item: CarouselItem) async {
-        print("DroplistViewModel: func loadNextPage")
-//        guard case .contentList(let currentDropData) = viewState else { return }
-//        
-//        // если больше нечего грузить — выходим
-//        guard currentDropData.initialLowerSection.hasMore else { return }
-//        
-//        // ставим footer в состояние загрузки
-//        let loadingDropData = DropData(
-//            topSection: currentDropData.topSection,
-//            carouselItems: currentDropData.carouselItems,
-//            initialLowerSection: currentDropData.initialLowerSection,
-//            selectedItem: currentDropData.selectedItem,
-//            isLowerSectionLoading: false,
-//            footerState: .loading
-//        )
-//        viewState = .contentList(loadingDropData)
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-//            let errorDropData = DropData(
-//                topSection: currentDropData.topSection,
-//                carouselItems: currentDropData.carouselItems,
-//                initialLowerSection: currentDropData.initialLowerSection,
-//                selectedItem: currentDropData.selectedItem,
-//                isLowerSectionLoading: false,
-//                footerState: .error("Не удалось загрузить данные")
-//            )
-//            
-//            self.viewState = .contentList(errorDropData)
-//        }
+        
+        //        print("DroplistViewModel: func loadNextPage")
+        //        guard case .contentList(let currentDropData) = viewState else { return }
+        //
+        //        // если больше нечего грузить — выходим
+        //        guard currentDropData.initialLowerSection.hasMore else { return }
+        //
+        //        // ставим footer в состояние загрузки
+        //        let loadingDropData = DropData(
+        //            topSection: currentDropData.topSection,
+        //            carouselItems: currentDropData.carouselItems,
+        //            initialLowerSection: currentDropData.initialLowerSection,
+        //            selectedItem: currentDropData.selectedItem,
+        //            isLowerSectionLoading: false,
+        //            footerState: .loading
+        //        )
+        //        viewState = .contentList(loadingDropData)
+        //        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+        //            let errorDropData = DropData(
+        //                topSection: currentDropData.topSection,
+        //                carouselItems: currentDropData.carouselItems,
+        //                initialLowerSection: currentDropData.initialLowerSection,
+        //                selectedItem: currentDropData.selectedItem,
+        //                isLowerSectionLoading: false,
+        //                footerState: .error("Не удалось загрузить данные")
+        //            )
+        //
+        //            self.viewState = .contentList(errorDropData)
+        //        }
+
         guard case .contentList(let currentDropData) = viewState else { return }
         
         // если больше нечего грузить — выходим

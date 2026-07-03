@@ -39,7 +39,8 @@ final class DropListDataSource {
     private let errorHandler: ErrorDiagnosticsProtocol
     private let alertManager: AlertManager
     private let pageSize: Int
-
+    
+    
     // MARK: - Cached State
 
     private var lowerPagesCache: [String: LowerSectionPage] = [:]
@@ -123,7 +124,6 @@ final class DropListDataSource {
             return .failure(DropListUserFacingError(message: message))
         }
     }
-
     // Смена item в карусели
     func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
         currentItem = item
@@ -134,9 +134,54 @@ final class DropListDataSource {
             pageSize: pageSize
         )
 
+        /// если в lowerPagesCache произойдет конфликтующая запись по одному [item.id?
+        /// к примеру мы вызвали  selectCarouselItem для одного итема дважды)
         lowerPagesCache[item.id] = firstPage
         return firstPage
     }
+    
+    
+//    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
+//        currentItem = item
+//
+//        // ИСКУССТВЕННАЯ ЗАДЕРЖКА ДЛЯ ТЕСТА ГОНКИ
+//        try await Task.sleep(nanoseconds: 5_000_000_000) // 5 секунд
+//
+//        // Возвращаем пустую страницу
+//        let page = LowerSectionPage(
+//            items: [],
+//            lastDocumentSnapshot: nil,
+//            hasMore: false
+//        )
+//
+////        lowerPagesCache[item.id] = page
+//        return page
+//    }
+
+//    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
+//        currentItem = item
+//
+//        // Считаем количество вызовов для конкретного item.id
+//        count += 1
+//
+//        // Первая загрузка — 10 секунд, вторая — 3 секунды
+//        if count == 1 {
+//            try await Task.sleep(nanoseconds: 15_000_000_000)
+//        } else {
+//            try await Task.sleep(nanoseconds: 3_000_000_000)
+//        }
+//
+//        // Возвращаем пустую страницу
+//        let page = LowerSectionPage(
+//            items: [],
+//            lastDocumentSnapshot: nil,
+//            hasMore: false
+//        )
+//
+////        lowerPagesCache[item.id] = page
+//        return page
+//    }
+
 
 
     // Пагинация — загрузка следующей страницы
