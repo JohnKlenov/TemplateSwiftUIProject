@@ -140,49 +140,6 @@ final class DropListDataSource {
         return firstPage
     }
     
-    
-//    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
-//        currentItem = item
-//
-//        // ИСКУССТВЕННАЯ ЗАДЕРЖКА ДЛЯ ТЕСТА ГОНКИ
-//        try await Task.sleep(nanoseconds: 5_000_000_000) // 5 секунд
-//
-//        // Возвращаем пустую страницу
-//        let page = LowerSectionPage(
-//            items: [],
-//            lastDocumentSnapshot: nil,
-//            hasMore: false
-//        )
-//
-////        lowerPagesCache[item.id] = page
-//        return page
-//    }
-
-//    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
-//        currentItem = item
-//
-//        // Считаем количество вызовов для конкретного item.id
-//        count += 1
-//
-//        // Первая загрузка — 10 секунд, вторая — 3 секунды
-//        if count == 1 {
-//            try await Task.sleep(nanoseconds: 15_000_000_000)
-//        } else {
-//            try await Task.sleep(nanoseconds: 3_000_000_000)
-//        }
-//
-//        // Возвращаем пустую страницу
-//        let page = LowerSectionPage(
-//            items: [],
-//            lastDocumentSnapshot: nil,
-//            hasMore: false
-//        )
-//
-////        lowerPagesCache[item.id] = page
-//        return page
-//    }
-
-
 
     // Пагинация — загрузка следующей страницы
     func loadNextPageIfNeeded(for item: CarouselItem) async throws -> LowerSectionPage? {
@@ -299,7 +256,46 @@ final class DropListDataSource {
         }
     }
 
-    
+    //    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
+    //        currentItem = item
+    //
+    //        // ИСКУССТВЕННАЯ ЗАДЕРЖКА ДЛЯ ТЕСТА ГОНКИ
+    //        try await Task.sleep(nanoseconds: 5_000_000_000) // 5 секунд
+    //
+    //        // Возвращаем пустую страницу
+    //        let page = LowerSectionPage(
+    //            items: [],
+    //            lastDocumentSnapshot: nil,
+    //            hasMore: false
+    //        )
+    //
+    ////        lowerPagesCache[item.id] = page
+    //        return page
+    //    }
+
+    //    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
+    //        currentItem = item
+    //
+    //        // Считаем количество вызовов для конкретного item.id
+    //        count += 1
+    //
+    //        // Первая загрузка — 10 секунд, вторая — 3 секунды
+    //        if count == 1 {
+    //            try await Task.sleep(nanoseconds: 15_000_000_000)
+    //        } else {
+    //            try await Task.sleep(nanoseconds: 3_000_000_000)
+    //        }
+    //
+    //        // Возвращаем пустую страницу
+    //        let page = LowerSectionPage(
+    //            items: [],
+    //            lastDocumentSnapshot: nil,
+    //            hasMore: false
+    //        )
+    //
+    ////        lowerPagesCache[item.id] = page
+    //        return page
+    //    }
     
     
     // MARK: - Trash

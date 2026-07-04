@@ -543,6 +543,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                 }
 
                 if snapshot.documents.isEmpty {
+                    print("snapshot.documents.isEmpty")
                     continuation.resume(
                         throwing: FirestoreGetServiceError(
                             underlying: AppInternalError.emptyResult,
@@ -575,6 +576,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                 }
 
                 if docs.isEmpty {
+                    print("docs.isEmpty")
                     continuation.resume(
                         throwing: FirestoreGetServiceError(
                             underlying: AppInternalError.emptyResult,
@@ -601,6 +603,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
 
                 let last = snapshot.documents.last
                 let hasMore = snapshot.documents.count == pageSize
+                print("private func fetchPlaylistsPage - snapshot.documents.count - \(snapshot.documents.count), hasMore - \(hasMore), last - \(String(describing: last))")
 
                 continuation.resume(
                     returning: LowerSectionPage(
