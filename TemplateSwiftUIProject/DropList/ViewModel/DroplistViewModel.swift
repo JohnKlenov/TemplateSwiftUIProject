@@ -55,6 +55,7 @@
 // MARK: - refreshDropList
 
 // refreshDropList() - если в момент вызова refreshDropList придет ошибка case .error а потом ответ от refreshDropList() который переведет  viewState = .contentList ? может  refreshDropList() перед viewState = .contentList(newData) проверять что viewState != .error ?    нужно в retry isRefreshing = false ?
+// мы нашли решение проверять guard !viewState.isError else { return } но и туту может быть коварная вещь если мы снова сделали ретрай у нас viewState = .loading и тогда в этот момент может проскочить content ! может лучше сделать отдельное состояние
 
 
 
@@ -81,9 +82,9 @@
 // и в футере видим Button("Повторить") - это не корректоное поведение!
 // в DropListFirestoreService в private func fetchPlaylistsPage если у нас lastSnapshot не равен nil то при snapshot.documents.isEmpty или возможно и при docs.isEmpty мы не должны возвращать ощибку или обрабатывать ее как ошибку во viewModel что бы не выводить в футере видим Button("Повторить")
 //
-// 3:
+// 3: Тут ошибки нет!!!!
 //если мы проскролили ленту до низа и вызвали в DroplistCompositView footerView инициировав вызов loadNextPage и спинер внизу ленты
-// а затем не дождавшись ответа от loadNextPage поднялись на верх ленты и снова спустились вниз вновь инициировав вызов loadNextPage
+// а затем не дождавшись ответа от loadNextPage поднялись на верх ленты и снова спустились вниз вновь инициировав вызов loadNextPage (мы его не инициируем так как в footerView data.footerState = .loading:)
 // мы в dropListDataSource.loadNextPageIfNeeded вернем сразу же nil так как у нас в DropListDataSource стоит защита от гонок if isLoadingNextPageForItem.contains(item.id) { return nil }
 // тем самым мы footerState: .idle и у нас пропадает спинер и загрузка от первого запроса loadNextPage придет уже как будто внезапно то есть спинер погас прошло какое то время и только потом лента увеличилась!
 // это как будто не критично но все же плохой UX
@@ -91,7 +92,7 @@
 //
 // 4:
 // допустим мы на одном item вызвали loadNextPage не дождавшись ответа перешли на новый item на котором дернули didSelectCarouselItem() который возврашщает данные и обновляет UI! и после обновления UI приходит ответ от loadNextPage на соседнем item!
-// и он получается обновит viewState = .contentList(newDropData) и мы перескочим на новый item ?
+// и он получается обновит viewState = .contentList(newDropData) и мы перескочим на новый item с того item на котором только что успешно отработал didSelectCarouselItem()?
 // это можно протестировать
 
 
@@ -535,34 +536,34 @@ final class DroplistViewModel: ObservableObject {
     
     func loadNextPage(for item: CarouselItem) async {
         
-        //        print("DroplistViewModel: func loadNextPage")
-        //        guard case .contentList(let currentDropData) = viewState else { return }
-        //
-        //        // если больше нечего грузить — выходим
-        //        guard currentDropData.initialLowerSection.hasMore else { return }
-        //
-        //        // ставим footer в состояние загрузки
-        //        let loadingDropData = DropData(
-        //            topSection: currentDropData.topSection,
-        //            carouselItems: currentDropData.carouselItems,
-        //            initialLowerSection: currentDropData.initialLowerSection,
-        //            selectedItem: currentDropData.selectedItem,
-        //            isLowerSectionLoading: false,
-        //            footerState: .loading
-        //        )
-        //        viewState = .contentList(loadingDropData)
-        //        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-        //            let errorDropData = DropData(
-        //                topSection: currentDropData.topSection,
-        //                carouselItems: currentDropData.carouselItems,
-        //                initialLowerSection: currentDropData.initialLowerSection,
-        //                selectedItem: currentDropData.selectedItem,
-        //                isLowerSectionLoading: false,
-        //                footerState: .error("Не удалось загрузить данные")
-        //            )
-        //
-        //            self.viewState = .contentList(errorDropData)
-        //        }
+//                print("DroplistViewModel: func loadNextPage")
+//                guard case .contentList(let currentDropData) = viewState else { return }
+//        
+//                // если больше нечего грузить — выходим
+//                guard currentDropData.initialLowerSection.hasMore else { return }
+//        
+//                // ставим footer в состояние загрузки
+//                let loadingDropData = DropData(
+//                    topSection: currentDropData.topSection,
+//                    carouselItems: currentDropData.carouselItems,
+//                    initialLowerSection: currentDropData.initialLowerSection,
+//                    selectedItem: currentDropData.selectedItem,
+//                    isLowerSectionLoading: false,
+//                    footerState: .loading
+//                )
+//                viewState = .contentList(loadingDropData)
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+//                    let errorDropData = DropData(
+//                        topSection: currentDropData.topSection,
+//                        carouselItems: currentDropData.carouselItems,
+//                        initialLowerSection: currentDropData.initialLowerSection,
+//                        selectedItem: currentDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .error("Не удалось загрузить данные")
+//                    )
+//        
+//                    self.viewState = .contentList(errorDropData)
+//                }
 
         guard case .contentList(let currentDropData) = viewState else { return }
         
@@ -646,6 +647,109 @@ final class DroplistViewModel: ObservableObject {
         }
     }
 }
+
+//func loadNextPage(for item: CarouselItem) async {
+//    guard case .contentList(let currentDropData) = viewState else { return }
+//    guard currentDropData.initialLowerSection.hasMore else { return }
+//
+//    // Показываем footer spinner
+//    viewState = .contentList(
+//        DropData(
+//            topSection: currentDropData.topSection,
+//            carouselItems: currentDropData.carouselItems,
+//            initialLowerSection: currentDropData.initialLowerSection,
+//            selectedItem: currentDropData.selectedItem,
+//            isLowerSectionLoading: false,
+//            footerState: .loading
+//        )
+//    )
+//
+//    let requestID = UUID()
+//    currentPaginationRequestID = requestID
+//
+//    let task = Task { @MainActor in
+//        do {
+//            let result = try await dropListDataSource.loadNextPageIfNeeded(for: item)
+//
+//            // Проверяем, что это актуальный запрос
+//            guard requestID == currentPaginationRequestID else { return }
+//
+//            // Проверяем актуальный selectedItem, а не захваченный
+//            guard case .contentList(let latestDropData) = viewState else { return }
+//            guard latestDropData.selectedItem?.id == result.itemId else { return }
+//            guard !viewState.isError else { return }
+//
+//            switch result {
+//
+//            case .loaded(_, let mergedPage):
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        carouselItems: latestDropData.carouselItems,
+//                        initialLowerSection: mergedPage,
+//                        selectedItem: latestDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .noMore:
+//                let cached = await dropListDataSource.cachedPage(for: item)
+//                    ?? latestDropData.initialLowerSection
+//
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        carouselItems: latestDropData.carouselItems,
+//                        initialLowerSection: cached,
+//                        selectedItem: latestDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .alreadyLoading:
+//                return
+//
+//            case .invalidState:
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        carouselItems: latestDropData.carouselItems,
+//                        initialLowerSection: latestDropData.initialLowerSection,
+//                        selectedItem: latestDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
+//                    )
+//                )
+//            }
+//
+//        } catch {
+//            guard requestID == currentPaginationRequestID else { return }
+//            guard case .contentList(let latestDropData) = viewState else { return }
+//            guard !viewState.isError else { return }
+//
+//            viewState = .contentList(
+//                DropData(
+//                    topSection: latestDropData.topSection,
+//                    carouselItems: latestDropData.carouselItems,
+//                    initialLowerSection: latestDropData.initialLowerSection,
+//                    selectedItem: latestDropData.selectedItem,
+//                    isLowerSectionLoading: false,
+//                    footerState: .error("Не удалось загрузить данные")
+//                )
+//            )
+//        }
+//    }
+//
+//    ongoingPaginationTasks[item.id] = task
+//    Task {
+//        await task.value
+//        ongoingPaginationTasks.removeValue(forKey: item.id)
+//    }
+//}
+
+
 //
 //
 //

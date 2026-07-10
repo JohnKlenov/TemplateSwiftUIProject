@@ -136,9 +136,11 @@ private extension DroplistCompositView {
     
     @ViewBuilder
     var footerView: some View {
+        
         switch data.footerState {
             
         case .idle:
+            
             // idle: footer виден, но не показывает загрузку.
             // onAppear → триггер первой подгрузки.
             HStack {
@@ -146,6 +148,7 @@ private extension DroplistCompositView {
                 Color.clear
                     .frame(height: 44)
                     .onAppear {
+                        print("footerView case .idle")
                         if let selected = selectedCarouselItem {
                             onLoadNextPage(selected)
                         }
@@ -161,6 +164,9 @@ private extension DroplistCompositView {
                 Spacer()
             }
             .padding(.vertical, 12)
+            .onAppear {
+                print("footerView case .loading")
+            }
             
         case .error(let message):
             HStack {
