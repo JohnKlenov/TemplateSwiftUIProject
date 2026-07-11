@@ -141,6 +141,7 @@ final class DropListDataSource {
     }
     
 
+    
     // Пагинация — загрузка следующей страницы
     func loadNextPageIfNeeded(for item: CarouselItem) async throws -> LowerSectionPage? {
         
