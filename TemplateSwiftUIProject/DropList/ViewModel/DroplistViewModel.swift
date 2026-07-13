@@ -758,8 +758,8 @@ final class DroplistViewModel: ObservableObject {
 //    /// Текущая задача выбора элемента карусели
 //    private var currentSelectionTask: Task<Void, Never>? = nil
 //
-//    /// Задачи пагинации по item.id
-//    private var ongoingPaginationTasks: [String: Task<Void, Never>] = [:]
+//    /// Задачи пагинации
+//    private var currentPaginationTask: Task<Void, Never>? = nil
 //
 //    /// Авто‑обновление (как в Gallery)
 //    private let autoRefreshThreshold: TimeInterval = 2 * 60 * 60
@@ -810,8 +810,7 @@ final class DroplistViewModel: ObservableObject {
 //
 //        // Отменяем все фоновые задачи
 //        currentSelectionTask?.cancel()
-//        ongoingPaginationTasks.values.forEach { $0.cancel() }
-//        ongoingPaginationTasks.removeAll()
+//        currentPaginationTask?.cancel()
 //
 //        // Обновляем токен актуальности
 //        currentRequestID = UUID()
@@ -838,8 +837,9 @@ final class DroplistViewModel: ObservableObject {
 //
 //        let result = await dropListDataSource.loadInitialDropList()
 //
-//        // Проверяем, что запрос всё ещё актуален
+//        // Проверяем, что запрос всё ещё актуален и нет глобальной ошибки (иначе deadlock)
 //        guard requestID == currentRequestID else { return }
+//        guard !viewState.isError else { return }
 //
 //        switch result {
 //        case .success(let dropData):
@@ -858,9 +858,6 @@ final class DroplistViewModel: ObservableObject {
 //        viewState = .loading
 //        isDropListLoaded = false
 //
-//        // Обновляем токен актуальности
-//        currentRequestID = UUID()
-//
 //        Task { await fetchDataDroplist() }
 //    }
 //
@@ -877,11 +874,7 @@ final class DroplistViewModel: ObservableObject {
 //
 //        // Отменяем все фоновые задачи Droplist
 //        currentSelectionTask?.cancel()
-//        ongoingPaginationTasks.values.forEach { $0.cancel() }
-//        ongoingPaginationTasks.removeAll()
-//
-//        // Очищаем кэш
-//        await dropListDataSource.resetCacheAsync()
+//        currentPaginationTask?.cancel()
 //
 //        // Загружаем новые данные
 //        if let newData = await dropListDataSource.refreshAll() {
@@ -1000,85 +993,70 @@ final class DroplistViewModel: ObservableObject {
 //
 //    // MARK: - loadNextPage
 //
-//    func loadNextPage(for item: CarouselItem) async {
-//        guard case .contentList(let currentDropData) = viewState else { return }
-//        guard currentDropData.initialLowerSection.hasMore else { return }
 //
-//        // Новый токен актуальности для пагинации
-//        let requestID = UUID()
-//        currentRequestID = requestID
+//func loadNextPage(for item: CarouselItem) async {
+//    guard case .contentList(let currentDropData) = viewState else { return }
+//    guard currentDropData.initialLowerSection.hasMore else { return }
 //
-//        // Показываем footer spinner
-//        viewState = .contentList(
-//            DropData(
-//                topSection: currentDropData.topSection,
-//                carouselItems: currentDropData.carouselItems,
-//                initialLowerSection: currentDropData.initialLowerSection,
-//                selectedItem: currentDropData.selectedItem,
-//                isLowerSectionLoading: false,
-//                footerState: .loading
-//            )
+//    // Новый токен актуальности
+//    let requestID = UUID()
+//    currentRequestID = requestID
+//
+//    // Отменяем предыдущую пагинацию
+//    currentPaginationTask?.cancel()
+//
+//    // Показываем footer spinner
+//    viewState = .contentList(
+//        DropData(
+//            topSection: currentDropData.topSection,
+//            carouselItems: currentDropData.carouselItems,
+//            initialLowerSection: currentDropData.initialLowerSection,
+//            selectedItem: currentDropData.selectedItem,
+//            isLowerSectionLoading: false,
+//            footerState: .loading
 //        )
+//    )
 //
-//        let task = Task { @MainActor in
-//            do {
-//                let result = try await dropListDataSource.loadNextPageIfNeeded(for: item)
+//    currentPaginationTask = Task { @MainActor in
+//        do {
+//            let result = try await dropListDataSource.loadNextPageIfNeeded(for: item)
 //
-//                // Проверяем актуальность запроса
-//                guard requestID == currentRequestID else { return }
-//                guard case .contentList(let latestDropData) = viewState else { return }
-//                guard !viewState.isError else { return }
+//            guard requestID == currentRequestID else { return }
+//            guard case .contentList(let latestDropData) = viewState else { return }
+//            guard !viewState.isError else { return }
 //
-//                switch result {
-//
-//                case .loaded(_, let mergedPage):
-//                    viewState = .contentList(
-//                        DropData(
-//                            topSection: latestDropData.topSection,
-//                            carouselItems: latestDropData.carouselItems,
-//                            initialLowerSection: mergedPage,
-//                            selectedItem: latestDropData.selectedItem,
-//                            isLowerSectionLoading: false,
-//                            footerState: .idle
-//                        )
+//            switch result {
+//            case .loaded(_, let mergedPage):
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        carouselItems: latestDropData.carouselItems,
+//                        initialLowerSection: mergedPage,
+//                        selectedItem: latestDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
 //                    )
+//                )
 //
-//                case .noMore:
-//                    let cached = await dropListDataSource.cachedPage(for: item)
-//                        ?? latestDropData.initialLowerSection
+//            case .noMore:
+//                let cached = await dropListDataSource.cachedPage(for: item)
+//                    ?? latestDropData.initialLowerSection
 //
-//                    viewState = .contentList(
-//                        DropData(
-//                            topSection: latestDropData.topSection,
-//                            carouselItems: latestDropData.carouselItems,
-//                            initialLowerSection: cached,
-//                            selectedItem: latestDropData.selectedItem,
-//                            isLowerSectionLoading: false,
-//                            footerState: .idle
-//                        )
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        carouselItems: latestDropData.carouselItems,
+//                        initialLowerSection: cached,
+//                        selectedItem: latestDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
 //                    )
+//                )
 //
-//                case .alreadyLoading:
-//                    return
+//            case .alreadyLoading:
+//                return
 //
-//                case .invalidState:
-//                    viewState = .contentList(
-//                        DropData(
-//                            topSection: latestDropData.topSection,
-//                            carouselItems: latestDropData.carouselItems,
-//                            initialLowerSection: latestDropData.initialLowerSection,
-//                            selectedItem: latestDropData.selectedItem,
-//                            isLowerSectionLoading: false,
-//                            footerState: .idle
-//                        )
-//                    )
-//                }
-//
-//            } catch {
-//                guard requestID == currentRequestID else { return }
-//                guard case .contentList(let latestDropData) = viewState else { return }
-//                guard !viewState.isError else { return }
-//
+//            case .invalidState:
 //                viewState = .contentList(
 //                    DropData(
 //                        topSection: latestDropData.topSection,
@@ -1086,18 +1064,29 @@ final class DroplistViewModel: ObservableObject {
 //                        initialLowerSection: latestDropData.initialLowerSection,
 //                        selectedItem: latestDropData.selectedItem,
 //                        isLowerSectionLoading: false,
-//                        footerState: .error("Не удалось загрузить данные")
+//                        footerState: .idle
 //                    )
 //                )
 //            }
-//        }
 //
-//        ongoingPaginationTasks[item.id] = task
-//        Task {
-//            await task.value
-//            ongoingPaginationTasks.removeValue(forKey: item.id)
+//        } catch {
+//            guard requestID == currentRequestID else { return }
+//            guard case .contentList(let latestDropData) = viewState else { return }
+//            guard !viewState.isError else { return }
+//
+//            viewState = .contentList(
+//                DropData(
+//                    topSection: latestDropData.topSection,
+//                    carouselItems: latestDropData.carouselItems,
+//                    initialLowerSection: latestDropData.initialLowerSection,
+//                    selectedItem: latestDropData.selectedItem,
+//                    isLowerSectionLoading: false,
+//                    footerState: .error("Не удалось загрузить данные")
+//                )
+//            )
 //        }
 //    }
+//}
 //
 //    // MARK: - Handle AppSessionManager State
 //
@@ -1108,6 +1097,7 @@ final class DroplistViewModel: ObservableObject {
 //            viewState = .loading
 //
 //        case .error(let message):
+/// можем обновляем токен актуальности - currentRequestID = UUID() вместо проверок case .error в методах
 //            resetLastUpdated()
 //            viewState = .error(message)
 //
