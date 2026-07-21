@@ -7,6 +7,8 @@
 
 
 
+
+
 import SwiftUI
 
 struct DroplistCompositView: View {

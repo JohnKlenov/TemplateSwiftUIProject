@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 20.04.26.
 //
 
+
 import SwiftUI
 
 struct DroplistViewInjected: View {

@@ -11,7 +11,6 @@
 // исправляем ошибку правил и жмем try!
 // если все ок листаем вниз и ждем подгрузки еще 10 треков через loadNextPage (нужно подумать как реагировать на возникновении ишибки при loadNextPage - показывать ли это как то на UI ???)
 
-
 // MARK: - пытаемся сломать UI
 // cases одновременного использования нескольких запросов в сеть одновременно
 // имитируем плохую работу инета и хаотичного использования DroplistCompositView
@@ -258,6 +257,8 @@
 //  КОНЕЦ РЕКОМЕНДАЦИЙ
 //  -----------------------------------------------------------
 //
+
+
 
 
 
@@ -647,6 +648,317 @@ final class DroplistViewModel: ObservableObject {
         }
     }
 }
+
+
+
+
+// MARK: - bild DroplistDataSource and DroplistFirestoreService
+
+// решение проблемы (делаем запрос на loadNextPage и получаем snapshot.isEmpty -> error -> view try agayn -> а по факту просто больше нет данных)
+
+// 0. обязательно добавить AppInternalError case snapshotIsEmpty + case docsIsEmpty что бы возвращать их с контекстом а то у нас сейчас на все случаи snapshot.documents.isEmpty и docs.isEmpty ошибка AppInternalError.resultisEmpty
+
+// 1. проверять в DroplistFirestoreService (func fetchPlaylistsPage + func fetchTracksPage) в (snapshot.documents.isEmpty и docs.isEmpty (не нужно тут сразу возвращаем error)  на всякий случай так как если при func fetchNextLowerPage у нас в методах func fetchPlaylistsPage + func fetchTracksPage) мы не сможем преобраховать не один объект к модели лучше показать что все ок но тогда мы никода больше не сможем подгрузить новые данные пока не сделаем рефреш! лучше не делать такой проверки в docs.isEmpty)на if lastSnapshot != nil и return [] иначе error
+// во всех остальных методах (func fetchTopSection() + func fetchCarouselItems() ) проверок в (snapshot.documents.isEmpty и docs.isEmpty) на lastSnapshot != nil не делаем и возвращаем error! потому что если данных нет то для нас это критично и нужно логировать с контекстом и сообщать пользователю!
+/// if snapshot.documents.isEmpty { if lastSnapshot != nil { continuation.resume( returning: LowerSectionPage(items: [],lastDocumentSnapshot: nil, hasMore: false) )
+/// и тогда нам  нужно в DroplistDataSource.func loadNextPageIfNeeded проверять documents.isEmpty и возвращать return .noMore(itemId: item.id)
+/// а в DroplistDataSource.func loadInitialDropList оставить как есть и не делать проверок documents.isEmpty так как мы не передаем lastSnapshot
+
+
+// 2. во всех методах DroplistFirestoreService (func fetchPlaylistsPage + func fetchTracksPage)  возвращать в snapshot.documents.isEmpty пустой [] и затем в DroplistDataSource уже во всех DroplistDataSource.func loadNextPageIfNeeded + DroplistDataSource.func loadInitialDropList  проверять documents.isEmpty  и реагировать!
+
+
+
+
+//private func fetchPlaylistsPage(
+//    after lastSnapshot: DocumentSnapshot?,
+//    pageSize: Int
+//) async throws -> LowerSectionPage {
+//
+//    try await withCheckedThrowingContinuation { continuation in
+//        var query: Query = db.collection("droplist")
+//            .order(by: "createdAt", descending: true)
+//            .limit(to: pageSize)
+//
+//        if let lastSnapshot {
+//            query = query.start(afterDocument: lastSnapshot)
+//        }
+//
+//        query.getDocuments { [weak self] snapshot, error in
+//            guard let self else { return }
+//
+//            if let error {
+//                continuation.resume(
+//                    throwing: FirestoreGetServiceError(
+//                        underlying: error,
+//                        context: .DropListFirestoreService_fetchPlaylistsPage
+//                    )
+//                )
+//                return
+//            }
+//
+//            guard let snapshot else {
+//                continuation.resume(
+//                    throwing: FirestoreGetServiceError(
+//                        underlying: AppInternalError.nilSnapshot,
+//                        context: .DropListFirestoreService_fetchPlaylistsPage
+//                    )
+//                )
+//                return
+//            }
+//
+//            // Пустой snapshot → пустая страница
+//            if snapshot.documents.isEmpty {
+//                continuation.resume(
+//                    returning: LowerSectionPage(
+//                        items: [],
+//                        lastDocumentSnapshot: nil,
+//                        hasMore: false
+//                    )
+//                )
+//                return
+//            }
+//
+//            let docs: [PlaylistDoc] = snapshot.documents.compactMap { doc in
+//                do {
+//                    return try doc.data(as: PlaylistDoc.self)
+//                } catch {
+//                    let _ = self.errorHandler.handle(
+//                        error: error,
+//                        context: "\(ErrorContext.DropListFirestoreService_fetchPlaylistsPage.rawValue) | documentID: \(doc.documentID)"
+//                    )
+//                    return nil
+//                }
+//            }
+//
+//            // damaged docs → пустая страница
+//            let items: [LowerItem] = docs.map { playlist in
+//                LowerItem(
+//                    id: playlist.playlistId,
+//                    title: playlist.title,
+//                    subtitle: playlist.description,
+//                    coverImageURL: playlist.coverImageURL.flatMap { URL(string: $0) },
+//                    thumbnailURL: nil,
+//                    durationISO8601: nil,
+//                    trackCount: playlist.trackCount,
+//                    isTrack: false
+//                )
+//            }
+//
+//            let last = snapshot.documents.last
+//            let hasMore = snapshot.documents.count == pageSize
+//
+//            continuation.resume(
+//                returning: LowerSectionPage(
+//                    items: items,
+//                    lastDocumentSnapshot: last,
+//                    hasMore: hasMore
+//                )
+//            )
+//        }
+//    }
+//}
+
+
+//DropListDataSource
+
+//func loadNextPageIfNeeded(for item: CarouselItem) async throws -> NextPageResult {
+//
+//    // Защита от гонки
+//    if isLoadingNextPageForItem.contains(item.id) {
+//        return .alreadyLoading(itemId: item.id)
+//    }
+//
+//    guard let currentPage = await pagesCache.get(item.id) else {
+//        return .invalidState(itemId: item.id)
+//    }
+//
+//    guard currentPage.hasMore,
+//          let lastSnapshot = currentPage.lastDocumentSnapshot else {
+//        return .noMore(itemId: item.id)
+//    }
+//
+//    isLoadingNextPageForItem.insert(item.id)
+//    defer { isLoadingNextPageForItem.remove(item.id) }
+//
+//    // Firestore больше НЕ бросает emptyResult при пагинации
+//    let nextPage = try await firestoreService.fetchNextLowerPage(
+//        for: item,
+//        after: lastSnapshot,
+//        pageSize: pageSize
+//    )
+//
+//    // Пустая страница = конец списка
+//    if nextPage.items.isEmpty {
+//        let mergedPage = LowerSectionPage(
+//            items: currentPage.items,
+//            lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+//            hasMore: false
+//        )
+//        await pagesCache.set(item.id, page: mergedPage)
+//        return .noMore(itemId: item.id)
+//    }
+//
+//    // Нормальная страница
+//    let mergedItems = currentPage.items + nextPage.items
+//    let mergedPage = LowerSectionPage(
+//        items: mergedItems,
+//        lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+//        hasMore: nextPage.hasMore
+//    )
+//
+//    await pagesCache.set(item.id, page: mergedPage)
+//    return .loaded(itemId: item.id, page: mergedPage)
+//}
+
+
+
+
+//func loadInitialDropList(
+//    defaultSelectedIndex: Int = 0
+//) async -> Result<DropData, DropListUserFacingError> {
+//    do {
+//        async let topTask: TopSectionModel = firestoreService.fetchTopSection()
+//        async let carouselTask: [CarouselItem] = firestoreService.fetchCarouselItems()
+//
+//        let (topSection, carouselItems) = try await (topTask, carouselTask)
+//
+//        let index = min(max(0, defaultSelectedIndex), carouselItems.count - 1)
+//        let selected = carouselItems[index]
+//        currentItem = selected
+//
+//        let firstPage = try await firestoreService.fetchInitialLowerPage(
+//            for: selected,
+//            pageSize: pageSize
+//        )
+//
+//        // Initial load: пустая страница = ошибка
+//        if firstPage.items.isEmpty {
+//            return .failure(DropListUserFacingError(message: "Нет данных"))
+//        }
+//
+//        await pagesCache.set(selected.id, page: firstPage)
+//
+//        let dropData = DropData(
+//            topSection: topSection,
+//            carouselItems: carouselItems,
+//            initialLowerSection: firstPage,
+//            selectedItem: selected,
+//            isLowerSectionLoading: false,
+//            footerState: .idle
+//        )
+//
+//        return .success(dropData)
+//
+//    } catch {
+//        let message = handleError(error)
+//        return .failure(DropListUserFacingError(message: message))
+//    }
+//}
+
+
+
+//func loadNextPage(for item: CarouselItem) async {
+//    guard case .contentList(let currentDropData) = viewState else { return }
+//    guard currentDropData.initialLowerSection.hasMore else { return }
+//
+//    // Показываем footer spinner
+//    viewState = .contentList(
+//        DropData(
+//            topSection: currentDropData.topSection,
+//            carouselItems: currentDropData.carouselItems,
+//            initialLowerSection: currentDropData.initialLowerSection,
+//            selectedItem: currentDropData.selectedItem,
+//            isLowerSectionLoading: false,
+//            footerState: .loading
+//        )
+//    )
+//
+//    let task = Task { @MainActor in
+//        do {
+//            let result = try await dropListDataSource.loadNextPageIfNeeded(for: item)
+//
+//            switch result {
+//
+//            case .loaded(let itemId, let mergedPage):
+//                guard currentDropData.selectedItem?.id == itemId else { return }
+//                guard !viewState.isError else { return }
+//
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: currentDropData.topSection,
+//                        carouselItems: currentDropData.carouselItems,
+//                        initialLowerSection: mergedPage,
+//                        selectedItem: currentDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .noMore(let itemId):
+//                guard currentDropData.selectedItem?.id == itemId else { return }
+//                guard !viewState.isError else { return }
+//
+//                let cached = await dropListDataSource.cachedPage(for: item)
+//                    ?? currentDropData.initialLowerSection
+//
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: currentDropData.topSection,
+//                        carouselItems: currentDropData.carouselItems,
+//                        initialLowerSection: cached,
+//                        selectedItem: currentDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .alreadyLoading:
+//                // НЕ гасим спиннер
+//                return
+//
+//            case .invalidState:
+//                guard !viewState.isError else { return }
+//
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: currentDropData.topSection,
+//                        carouselItems: currentDropData.carouselItems,
+//                        initialLowerSection: currentDropData.initialLowerSection,
+//                        selectedItem: currentDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
+//                    )
+//                )
+//            }
+//
+//        } catch {
+//            let _ = dropListDataSource.handleError(error)
+//            guard !viewState.isError else { return }
+//
+//            viewState = .contentList(
+//                DropData(
+//                    topSection: currentDropData.topSection,
+//                    carouselItems: currentDropData.carouselItems,
+//                    initialLowerSection: currentDropData.initialLowerSection,
+//                    selectedItem: currentDropData.selectedItem,
+//                    isLowerSectionLoading: false,
+//                    footerState: .error("Не удалось загрузить данные")
+//                )
+//            )
+//        }
+//    }
+//
+//    ongoingPaginationTasks[item.id] = task
+//    Task {
+//        await task.value
+//        ongoingPaginationTasks.removeValue(forKey: item.id)
+//    }
+//}
+
+
+
+
 
 
 

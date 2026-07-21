@@ -7,6 +7,7 @@
 
 
 
+
 // MARK: - Безопасное декодирование Firestore
 //
 // 🔐 do-catch + compactMap + errorHandler.handle = 100% защита от крашей
