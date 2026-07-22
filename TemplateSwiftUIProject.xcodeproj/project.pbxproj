@@ -14,6 +14,7 @@
 		5E00EE192F22385200A521AC /* GalleryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00EE182F22385200A521AC /* GalleryManager.swift */; };
 		5E00EE1C2F27691B00A521AC /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5E00EE1B2F27691B00A521AC /* FirebaseCrashlytics */; };
 		5E00EE1E2F27692400A521AC /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5E00EE1D2F27692400A521AC /* FirebaseAnalytics */; };
+		5E481D5F3010C54500D55309 /* PagesCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D5E3010C54500D55309 /* PagesCache.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -199,6 +200,7 @@
 		5E00EE142F2220CD00A521AC /* BookDetailsViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailsViewInjected.swift; sourceTree = "<group>"; };
 		5E00EE162F22368700A521AC /* GalleryContentViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryContentViewInjected.swift; sourceTree = "<group>"; };
 		5E00EE182F22385200A521AC /* GalleryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryManager.swift; sourceTree = "<group>"; };
+		5E481D5E3010C54500D55309 /* PagesCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagesCache.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -541,6 +543,7 @@
 				5E54663B2F961927009D7210 /* AppSessionManager.swift */,
 				5EBBE6E02FB70E30009AC141 /* DropListFirestoreService.swift */,
 				5EBBE6E22FB720B9009AC141 /* DropListDataSource.swift */,
+				5E481D5E3010C54500D55309 /* PagesCache.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -1609,6 +1612,7 @@
 				5EB96B582F0A9E8900C7CDBC /* AppIcons.swift in Sources */,
 				5EBFD5CA2E1CFF4A00A3C74C /* ContentAccountViewInjected.swift in Sources */,
 				5EC4B25A2F6AE51900F0C2D7 /* BySpotify.swift in Sources */,
+				5E481D5F3010C54500D55309 /* PagesCache.swift in Sources */,
 				5EC88EE32DB2347800A95224 /* NavigationCellView.swift in Sources */,
 				5EA4FE2C2CFDAECE001CA401 /* AlertManager.swift in Sources */,
 				5EC332D82E3E49F20051BE5B /* ReauthenticateViewModel.swift in Sources */,

@@ -306,7 +306,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                     if snapshot.documents.isEmpty {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
-                                underlying: AppInternalError.emptyResult,
+                                underlying: AppInternalError.snapshotIsEmpty,
                                 context: .DropListFirestoreService_fetchTopSection
                             )
                         )
@@ -346,7 +346,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                     if docs.isEmpty {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
-                                underlying: AppInternalError.emptyResult,
+                                underlying: AppInternalError.docsIsEmpty,
                                 context: .DropListFirestoreService_fetchTopSection
                             )
                         )
@@ -405,7 +405,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                     if snapshot.documents.isEmpty {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
-                                underlying: AppInternalError.emptyResult,
+                                underlying: AppInternalError.snapshotIsEmpty,
                                 context: .DropListFirestoreService_fetchCarouselItems
                             )
                         )
@@ -432,7 +432,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                     if items.isEmpty {
                         continuation.resume(
                             throwing: FirestoreGetServiceError(
-                                underlying: AppInternalError.emptyResult,
+                                underlying: AppInternalError.docsIsEmpty,
                                 context: .DropListFirestoreService_fetchCarouselItems
                             )
                         )
@@ -544,14 +544,22 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                 }
 
                 if snapshot.documents.isEmpty {
-                    print("snapshot.documents.isEmpty")
-                    continuation.resume(
-                        throwing: FirestoreGetServiceError(
-                            underlying: AppInternalError.emptyResult,
-                            context: .DropListFirestoreService_fetchPlaylistsPage
+                    if lastSnapshot != nil {
+                        // пагинация → конец списка
+                        continuation.resume(
+                            returning: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false)
                         )
-                    )
-                    return
+                        return
+                    } else {
+                        // initial load → ошибка
+                        continuation.resume(
+                            throwing: FirestoreGetServiceError(
+                                underlying: AppInternalError.snapshotIsEmpty,
+                                context: .DropListFirestoreService_fetchTracksPage
+                            )
+                        )
+                        return
+                    }
                 }
 
                 let docs: [PlaylistDoc] = snapshot.documents.compactMap { doc in
@@ -580,7 +588,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                     print("docs.isEmpty")
                     continuation.resume(
                         throwing: FirestoreGetServiceError(
-                            underlying: AppInternalError.emptyResult,
+                            underlying: AppInternalError.docsIsEmpty,
                             context: .DropListFirestoreService_fetchPlaylistsPage
                         )
                     )
@@ -616,6 +624,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
             }
         }
     }
+    
 
     // MARK: - Private: Tracks Page (dropTracks)
 
@@ -673,14 +682,22 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                 }
 
                 if snapshot.documents.isEmpty {
-                    continuation.resume(
-                        throwing: FirestoreGetServiceError(
-                            underlying: AppInternalError.emptyResult,
-                            context: .DropListFirestoreService_fetchTracksPage
+                    if lastSnapshot != nil {
+                        // пагинация → конец списка
+                        continuation.resume(
+                            returning: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false)
                         )
-                    )
-                    print("private func fetchTracksPage - snapshot.documents.isEmpty - error ")
-                    return
+                        return
+                    } else {
+                        // initial load → ошибка
+                        continuation.resume(
+                            throwing: FirestoreGetServiceError(
+                                underlying: AppInternalError.snapshotIsEmpty,
+                                context: .DropListFirestoreService_fetchTracksPage
+                            )
+                        )
+                        return
+                    }
                 }
 
                 print("snapshot.documents.count = \(snapshot.documents.count)")
@@ -713,7 +730,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol {
                 if docs.isEmpty {
                     continuation.resume(
                         throwing: FirestoreGetServiceError(
-                            underlying: AppInternalError.emptyResult,
+                            underlying: AppInternalError.docsIsEmpty,
                             context: .DropListFirestoreService_fetchTracksPage
                         )
                     )

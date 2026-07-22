@@ -315,6 +315,8 @@ enum Localized {
         static var notSignedIn = "error.custom_firebase.not_signed_in"
         static var anonymousAuthError = "error.anonymous_auth"
         static var emptyResult = "error.custom_firebase.empty_result"
+        static var snapshotIsEmpty = "error.custom_firebase.snapshot_is_empty"
+        static var docsIsEmpty = "error.custom_firebase.docs_is_empty"
         static var nilSnapshot = "error.custom_firebase.nil_snapshot"
         static var imageEncodingFailed = "error.custom_firebase.image_encoding_failed"
         static var delayedConfirmation = "error.custom_firebase.delayed_confirmation"

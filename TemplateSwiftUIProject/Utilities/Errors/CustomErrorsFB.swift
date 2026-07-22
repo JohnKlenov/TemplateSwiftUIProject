@@ -138,6 +138,8 @@ enum AppInternalError: Int, Error {
     case notSignedIn
     case defaultError
     case emptyResult
+    case snapshotIsEmpty
+    case docsIsEmpty
     case nilSnapshot
     case imageEncodingFailed
     case delayedConfirmation
@@ -195,6 +197,10 @@ extension AppInternalError: LocalizedError {
             return Localized.AppInternalError.defaultError
         case .emptyResult:
             return Localized.AppInternalError.emptyResult
+        case .snapshotIsEmpty:
+            return Localized.AppInternalError.snapshotIsEmpty
+        case .docsIsEmpty:
+            return Localized.AppInternalError.docsIsEmpty
         case .nilSnapshot:
             return Localized.AppInternalError.nilSnapshot
         case .imageEncodingFailed:
@@ -251,6 +257,10 @@ extension AppInternalError {
             return "Default internal error"
         case .emptyResult:
             return "Empty result"
+        case .snapshotIsEmpty:
+            return "Firestore returned a nil or empty snapshot unexpectedly"
+        case .docsIsEmpty:
+            return "Firestore snapshot contains zero documents unexpectedly"
         case .nilSnapshot:
             return "Snapshot is nil"
         case .imageEncodingFailed:
