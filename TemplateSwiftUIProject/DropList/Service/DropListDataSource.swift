@@ -39,7 +39,6 @@ import FirebaseFirestore
 enum NextPageResult {
     case loaded(page: LowerSectionPage)
     case noMore
-    case alreadyLoading
     case invalidState
 }
 
@@ -60,7 +59,7 @@ final class DropListDataSource {
     private let pagesCache = PagesCache()
     private(set) var currentItem: CarouselItem?
     // Флаг, предотвращающий гонку при пагинации (локальная защита)
-    private var isLoadingNextPageForItem: Set<String> = []
+//    private var isLoadingNextPageForItem: Set<String> = []
 
     // MARK: - Init
 
@@ -87,7 +86,6 @@ final class DropListDataSource {
             await pagesCache.reset()
         }
         currentItem = nil
-        isLoadingNextPageForItem.removeAll()
     }
 
     // Полностью сбрасывает кэш страниц и состояние пагинации,
@@ -97,7 +95,6 @@ final class DropListDataSource {
     func resetCacheAsync() async {
         await pagesCache.reset()
         currentItem = nil
-        isLoadingNextPageForItem.removeAll()
     }
 
     func cachedPage(for item: CarouselItem) async -> LowerSectionPage? {
@@ -162,11 +159,6 @@ final class DropListDataSource {
     // Пагинация — возвращаем явный NextPageResult
     func loadNextPageIfNeeded(for item: CarouselItem) async throws -> NextPageResult {
 
-        // Защита от гонки
-        if isLoadingNextPageForItem.contains(item.id) {
-            return .alreadyLoading
-        }
-
         guard let currentPage = await pagesCache.get(item.id) else {
             return .invalidState
         }
@@ -175,9 +167,6 @@ final class DropListDataSource {
               let lastSnapshot = currentPage.lastDocumentSnapshot else {
             return .noMore
         }
-
-        isLoadingNextPageForItem.insert(item.id)
-        defer { isLoadingNextPageForItem.remove(item.id) }
 
         // Firestore больше НЕ бросает emptyResult при пагинации
         let nextPage = try await firestoreService.fetchNextLowerPage(
@@ -276,6 +265,93 @@ final class DropListDataSource {
     }
 }
     
+
+
+// MARK: - before deleted isLoadingNextPageForItem
+
+
+
+// case:
+//но смотри что может произойти если я конечно не ввел себя в заблуждение! допустим мы вызвали на одном selectedCarouselItem loadNextPage не дождались ответа так как от сервера он еще не пришол и значит func loadNextPageIfNeeded(for item: CarouselItem) async throws -> NextPageResult еще не завершил свою работу и не вызвал defer { isLoadingNextPageForItem.remove(item.id) } и ушли на овый selectedCarouselItem затем вернулись быстро обратно на первый selectedCarouselItem и снова вызвали там loadNextPage ! и если в   первом вызове func loadNextPageIfNeeded(for item: CarouselItem) async throws -> NextPageResult еще не завершил свою работу то мы получим if isLoadingNextPageForItem.contains(item.id) {
+//            return .alreadyLoading
+//        } что приведет к тому что спинер будет крутится и он не остановится когда в первом вызове func loadNextPageIfNeeded(for item: CarouselItem) async throws -> NextPageResult придеть ответ от сервера потому что requestID уже другой! что скажегь моя мысль верная? или это на столько редкий кейс что можно не переживать ?или как это улучшить ?
+
+
+
+//enum NextPageResult {
+//    case loaded(page: LowerSectionPage)
+//    case noMore
+//    case alreadyLoading
+//    case invalidState
+//}
+
+//func resetCache() {
+//    // синхронный wrapper — для совместимости с существующим кодом
+//    Task {
+//        await pagesCache.reset()
+//    }
+//    currentItem = nil
+//    // возможно isLoadingNextPageForItem будет не нужен
+//    isLoadingNextPageForItem.removeAll()
+//}
+
+//func resetCacheAsync() async {
+//    await pagesCache.reset()
+//    currentItem = nil
+//    isLoadingNextPageForItem.removeAll()
+//}
+
+
+//func loadNextPageIfNeeded(for item: CarouselItem) async throws -> NextPageResult {
+//
+//    // Защита от гонки
+//    if isLoadingNextPageForItem.contains(item.id) {
+//        return .alreadyLoading
+//    }
+//
+//    guard let currentPage = await pagesCache.get(item.id) else {
+//        return .invalidState
+//    }
+//
+//    guard currentPage.hasMore,
+//          let lastSnapshot = currentPage.lastDocumentSnapshot else {
+//        return .noMore
+//    }
+//
+//    isLoadingNextPageForItem.insert(item.id)
+//    defer { isLoadingNextPageForItem.remove(item.id) }
+//
+//    // Firestore больше НЕ бросает emptyResult при пагинации
+//    let nextPage = try await firestoreService.fetchNextLowerPage(
+//        for: item,
+//        after: lastSnapshot,
+//        pageSize: pageSize
+//    )
+//
+//    // Пустая страница = конец списка
+//    if nextPage.items.isEmpty {
+//        let mergedPage = LowerSectionPage(
+//            items: currentPage.items,
+//            lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+//            hasMore: false
+//        )
+//        await pagesCache.set(item.id, page: mergedPage)
+//        return .noMore
+//    }
+//
+//    // Нормальная страница
+//    let mergedItems = currentPage.items + nextPage.items
+//    let mergedPage = LowerSectionPage(
+//        items: mergedItems,
+//        lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+//        hasMore: nextPage.hasMore
+//    )
+//
+//    await pagesCache.set(item.id, page: mergedPage)
+//    return .loaded(page: mergedPage)
+//}
+
+
     
     // MARK: - before Query relevance mechanism (Task + currentRequestID + cancellation)
     

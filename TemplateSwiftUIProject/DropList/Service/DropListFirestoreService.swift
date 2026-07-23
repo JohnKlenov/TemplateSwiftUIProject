@@ -229,6 +229,24 @@
  */
 
 
+// MARK: - Concurrency Note
+//
+// Класс помечен как @unchecked Sendable, потому что Firestore SDK использует
+// @Sendable‑замыкания (например, getDocuments { ... }), и Swift требует,
+// чтобы все захватываемые объекты были Sendable.
+//
+// DropListFirestoreService безопасно объявлять @unchecked Sendable, потому что:
+//
+// • Класс не содержит изменяемого состояния, доступного из разных потоков.
+// • Все поля — это ссылки на Firestore и errorHandler, которые сами по себе
+//   потокобезопасны при использовании в read‑only режиме.
+// • Сервис работает как DI‑объект и не передаётся между актор‑изоляциями.
+// • Мы не выполняем мутаций внутри @Sendable‑замыканий Firestore.
+// • Firestore SDK официально не является Sendable, поэтому приходится
+//   использовать @unchecked, что является стандартной практикой для Firebase.
+//
+// Таким образом, @unchecked Sendable здесь безопасен и устраняет ворнинг
+// "Capture of 'self' with non-Sendable type in a @Sendable closure".
 
 
 // реализация новой логики после после изменения в model
@@ -261,7 +279,7 @@ protocol DropListFirestoreServiceProtocol {
 }
 
 
-final class DropListFirestoreService: DropListFirestoreServiceProtocol {
+final class DropListFirestoreService: DropListFirestoreServiceProtocol, @unchecked Sendable {
 
     private let db: Firestore
     private let errorHandler: ErrorDiagnosticsProtocol

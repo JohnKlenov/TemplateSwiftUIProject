@@ -261,6 +261,11 @@
 
 
 
+// продолжим изучение DroplistViewModel на func refreshDropList() async и func checkAndRefreshIfNeeded() async
+// по хорошему протестировать работу всех сценариев
+// при повторном переходе на selectedCarouselItem который мы уже подгружали как будто мы заново подгружаем все картинки а ведь должен быть кэшь? AsyncImage не кэширует по этому такой эффект
+
+
 
 import Combine
 import Foundation
@@ -355,8 +360,13 @@ final class DroplistViewModel: ObservableObject {
     }
 
     func retry() {
+        
+        // Обновляем токен актуальности
+        currentRequestID = UUID()
+        
         // Полный сброс состояния Droplist
         dropListDataSource.resetCache()
+        
         myTracks = []
         isDropListLoaded = false
         isRefreshing = false
@@ -365,9 +375,6 @@ final class DroplistViewModel: ObservableObject {
         // Отменяем все фоновые задачи
         currentSelectionTask?.cancel()
         currentPaginationTask?.cancel()
-
-        // Обновляем токен актуальности
-        currentRequestID = UUID()
 
         viewState = .loading
         sessionManager.retry()
@@ -566,7 +573,10 @@ final class DroplistViewModel: ObservableObject {
     /// где исчезновение спиннера при повторном скролле считается нормой и не ухудшает UX.
 func loadNextPage(for item: CarouselItem) async {
     guard case .contentList(let currentDropData) = viewState else { return }
-    guard currentDropData.initialLowerSection.hasMore else { return }
+    guard currentDropData.initialLowerSection.hasMore else {
+        print("func loadNextPage guard currentDropData.initialLowerSection.hasMore else")
+        return
+    }
 
     // Новый токен актуальности
     let requestID = UUID()
@@ -575,6 +585,9 @@ func loadNextPage(for item: CarouselItem) async {
     // Отменяем предыдущую пагинацию
     currentPaginationTask?.cancel()
 
+    guard requestID == currentRequestID else { return }
+    guard !viewState.isError else { return }
+    
     // Показываем footer spinner
     viewState = .contentList(
         DropData(
@@ -622,9 +635,6 @@ func loadNextPage(for item: CarouselItem) async {
                         footerState: .idle
                     )
                 )
-
-            case .alreadyLoading:
-                return
 
             case .invalidState:
                 viewState = .contentList(
@@ -683,6 +693,105 @@ func loadNextPage(for item: CarouselItem) async {
 }
 
 
+
+// MARK: - before deleted isLoadingNextPageForItem
+
+//func loadNextPage(for item: CarouselItem) async {
+//    guard case .contentList(let currentDropData) = viewState else { return }
+//    guard currentDropData.initialLowerSection.hasMore else { return }
+//
+//    // Новый токен актуальности
+//    let requestID = UUID()
+//    currentRequestID = requestID
+//
+//    // Отменяем предыдущую пагинацию
+//    currentPaginationTask?.cancel()
+//
+//    guard requestID == currentRequestID else { return }
+//    guard !viewState.isError else { return }
+//    
+//    // Показываем footer spinner
+//    viewState = .contentList(
+//        DropData(
+//            topSection: currentDropData.topSection,
+//            carouselItems: currentDropData.carouselItems,
+//            initialLowerSection: currentDropData.initialLowerSection,
+//            selectedItem: currentDropData.selectedItem,
+//            isLowerSectionLoading: false,
+//            footerState: .loading
+//        )
+//    )
+//
+//    currentPaginationTask = Task { @MainActor in
+//        do {
+//            let result = try await dropListDataSource.loadNextPageIfNeeded(for: item)
+//
+//            guard requestID == currentRequestID else { return }
+//            guard case .contentList(let latestDropData) = viewState else { return }
+//            guard !viewState.isError else { return }
+//
+//            switch result {
+//            case .loaded(let mergedPage):
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        carouselItems: latestDropData.carouselItems,
+//                        initialLowerSection: mergedPage,
+//                        selectedItem: latestDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .noMore:
+//                let cached = await dropListDataSource.cachedPage(for: item)
+//                    ?? latestDropData.initialLowerSection
+//
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        carouselItems: latestDropData.carouselItems,
+//                        initialLowerSection: cached,
+//                        selectedItem: latestDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .alreadyLoading:
+//                return
+//
+//            case .invalidState:
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        carouselItems: latestDropData.carouselItems,
+//                        initialLowerSection: latestDropData.initialLowerSection,
+//                        selectedItem: latestDropData.selectedItem,
+//                        isLowerSectionLoading: false,
+//                        footerState: .idle
+//                    )
+//                )
+//            }
+//
+//        } catch {
+//            guard requestID == currentRequestID else { return }
+//            guard case .contentList(let latestDropData) = viewState else { return }
+//            guard !viewState.isError else { return }
+//
+//            viewState = .contentList(
+//                DropData(
+//                    topSection: latestDropData.topSection,
+//                    carouselItems: latestDropData.carouselItems,
+//                    initialLowerSection: latestDropData.initialLowerSection,
+//                    selectedItem: latestDropData.selectedItem,
+//                    isLowerSectionLoading: false,
+//                    footerState: .error("Не удалось загрузить данные")
+//                )
+//            )
+//        }
+//    }
+//}
 
 
 
