@@ -10,6 +10,7 @@ import SwiftUI
     
 
 
+
 struct ProductCell: View {
     
     @EnvironmentObject var localization: LocalizationService

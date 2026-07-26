@@ -145,6 +145,9 @@ final class DropListDataSource {
 
     // Смена item в карусели
     func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
+        print("item - \(item)")
+        print("item.type- \(item.type)")
+        print("item.type.rawValue - \(item.type.rawValue)")
         currentItem = item
 
         let firstPage = try await firestoreService.fetchInitialLowerPage(
@@ -213,6 +216,10 @@ final class DropListDataSource {
                 selectedItem = matched
             } else {
                 guard let first = carouselItems.first else {
+                    let _ = errorHandler.handle(
+                        error: AppInternalError.snapshotIsEmpty,
+                        context: "refreshAll | carouselItems.isEmpty"
+                    )
                     return nil
                 }
                 selectedItem = first
