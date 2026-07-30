@@ -72,7 +72,7 @@ private extension DroplistCompositView {
         // Чистая математика. Никаких защитных констант.
         let cardWidth = screenWidth * 0.80
         let cardHeight = cardWidth * 0.50
-        let imageSize = cardHeight - 16
+        let imageSize = cardHeight
         
         return VStack(alignment: .leading, spacing: 20) {
             Text(data.topSection.title)
@@ -89,7 +89,7 @@ private extension DroplistCompositView {
                                 cardHeight: cardHeight,
                                 imageSize: imageSize
                             )
-                            .frame(width: cardWidth, height: cardHeight)
+//                            .padding(10)
                         }
                     }
                     .padding(.horizontal)
@@ -99,6 +99,7 @@ private extension DroplistCompositView {
     }
 }
 
+                    
 // MARK: - Carousel Section (Без изменений)
 private extension DroplistCompositView {
     var carouselSection: some View {
@@ -267,70 +268,499 @@ private extension DroplistCompositView {
 }
 
 // MARK: - Top Section Item View (Идеальный макет)
+
+
+
 struct TopSectionItemView: View {
     let item: TopItem
     let cardWidth: CGFloat
     let cardHeight: CGFloat
     let imageSize: CGFloat
-    
+
     let artists: [String] = [
-        "French Montana", "Kodak Black", "Lil Wayne", "Drake"
+        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake"
     ]
-    let trackCount: Int = 50
-    
+
     var body: some View {
         HStack(spacing: 14) {
-            WebImageView(
-                url: item.imageURL,
-                placeholderColor: AppColors.secondarySystemBackground,
-                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
-                context: "TopSectionCard_\(item.id)"
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading) {
+                WebImageView(
+                    url: item.imageURL,
+                    placeholderColor: AppColors.secondarySystemBackground,
+                    displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+                    context: "TopSectionCard_\(item.id)"
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+          
+            VStack(alignment: .leading, spacing: 0) {
                 Text("TOP 10")
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(AppColors.primary)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    ForEach(artists.prefix(4), id: \.self) { artist in
-                        Text(artist)
-                            .font(.subheadline)
-                            .foregroundColor(AppColors.secondary)
-                            .lineLimit(1)
-                    }
-                }
-                
-                Spacer(minLength: 0)
-                
-                HStack(alignment: .bottom) {
-                    Text("....")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(AppColors.secondary)
-                    
-                    Spacer()
-                    
-                    Text("\(trackCount) tracks")
-                        .font(.footnote)
-                        .foregroundColor(AppColors.secondary)
-                }
-                .padding(.bottom, 2)
+                FadingBottomLines(
+                    lines: artists,
+                    font: .subheadline,
+                    foreground: AppColors.secondary,
+                    fadeHeight: cardHeight / 2
+                )
             }
-            .padding(.top, 8)
-            .padding(.bottom, 4)
-            .padding(.trailing, 4)
-            
-            Spacer()
         }
-        .padding(10)
+//        .frame(width: cardWidth, height: cardHeight)
+        .frame(width: cardWidth)
+//        .padding(10)
         .background(AppColors.secondarySystemBackground)
-        .cornerRadius(16)
+        .cornerRadius(10)
         .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
     }
 }
+
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//    
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake"
+//    ]
+//    
+//    var body: some View {
+//        HStack(spacing: 14) {
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 10))
+//            
+//            VStack(alignment: .leading, spacing: 6) {
+//                Text("TOP 10")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//                
+//                FadingBottomLines(
+//                    lines: artists,
+//                    font: .subheadline,
+//                    foreground: AppColors.secondary,
+//                    fadeHeight: cardHeight / 2
+//                )
+//            }
+//        }
+//        .frame(width: cardWidth)
+//        .padding(10)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(16)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
+
+struct FadingBottomLines: View {
+    let lines: [String]
+    let font: Font
+    let foreground: Color
+    let fadeHeight: CGFloat
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            // ИЗМЕНЕНИЕ: .prefix(4) гарантирует, что мы никогда не выйдем за рамки
+            ForEach(Array(lines.prefix(4).enumerated()), id: \.offset) { _, line in
+                Text(line)
+                    .font(font)
+                    .foregroundColor(foreground)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+        }
+        .mask(
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.white,
+                    Color.white,
+                    Color.white.opacity(0.0)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+}
+
+//struct FadingBottomLines: View {
+//    let lines: [String]
+//    let font: Font
+//    let foreground: Color
+//    let fadeHeight: CGFloat
+//
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 2) {
+//            ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+//                Text(line)
+//                    .font(font)
+//                    .foregroundColor(foreground)
+//                    .lineLimit(1)
+//                    .truncationMode(.tail)
+//            }
+//        }
+//        .mask(
+//            LinearGradient(
+//                gradient: Gradient(colors: [
+//                    Color.white,
+//                    Color.white,
+//                    Color.white.opacity(0.0)
+//                ]),
+//                startPoint: .top,
+//                endPoint: .bottom
+//            )
+//        )
+//    }
+//}
+
+
+
+//struct FadingBottomLines: View {
+//    let lines: [String]
+//    let font: Font
+//    let foreground: Color
+//    let fadeHeight: CGFloat
+//
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 2) {
+//            ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+//                Text(line)
+//                    .font(font)
+//                    .foregroundColor(foreground)
+//                    .lineLimit(1)
+//                    .truncationMode(.tail)
+//            }
+//        }
+//        .mask(
+//            LinearGradient(
+//                gradient: Gradient(colors: [
+//                    Color.white,
+//                    Color.white,
+//                    Color.white.opacity(0.0)
+//                ]),
+//                startPoint: .top,
+//                endPoint: .bottom
+//            )
+//        )
+//    }
+//}
+
+
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//    
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake", "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake"
+//    ]
+//    let trackCount: Int = 50
+//    
+//    var body: some View {
+//        HStack(spacing: 14) {
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 10))
+//            
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text("TOP 10")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//                FadingBottomLines(
+//                                    lines: artists,
+//                                    font: .subheadline,
+//                                    foreground: AppColors.secondary,
+//                                    background: AppColors.secondarySystemBackground,
+//                                    fadeHeight: imageSize/2
+//                                )
+//                // ВАЖНО: ограничиваем высоту по картинке, ширину не трогаем
+//                                .frame(height: imageSize, alignment: .topLeading)
+//                FadingBottomText(
+//                    text: artists.joined(separator: "\n"),
+//                    font: .subheadline,
+//                    foreground: AppColors.secondary,
+//                    background: AppColors.secondarySystemBackground,
+//                    lineLimit: 1,          // сколько строк показывать максимум
+//                    fadeHeight: cardHeight/2         // высота зоны исчезновения
+//                )
+//            }
+//        }
+//        .frame(width: cardWidth, height: cardHeight)
+//        .padding(10)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(16)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
+//
+//
+//
+//struct FadingBottomLines: View {
+//    let lines: [String]
+//    let font: Font
+//    let foreground: Color
+//    let background: Color
+//    let fadeHeight: CGFloat
+//
+//    var body: some View {
+//        ZStack(alignment: .topLeading) {
+//            VStack(alignment: .leading, spacing: 2) {
+//                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+//                    Text(line)
+//                        .font(font)
+//                        .foregroundColor(foreground)
+//                        .lineLimit(1)
+//                        .truncationMode(.tail)
+//                }
+//            }
+//            .padding(.bottom, fadeHeight)
+//
+//            VStack {
+//                Spacer()
+//                LinearGradient(
+//                    gradient: Gradient(colors: [
+//                        Color.clear,
+//                        background.opacity(0.7),
+//                        background
+//                    ]),
+//                    startPoint: .top,
+//                    endPoint: .bottom
+//                )
+//                .frame(height: fadeHeight)
+//            }
+//        }
+//        .clipped()              // критично: обрезаем содержимое по высоте родителя
+//        .background(background)
+//    }
+//}
+
+
+
+
+
+
+
+//struct FadingBottomText: View {
+//    let text: String
+//    let font: Font
+//    let foreground: Color
+//    let background: Color
+//    let lineLimit: Int
+//    let fadeHeight: CGFloat   // высота зоны градиента снизу
+//
+//    var body: some View {
+//        ZStack(alignment: .topLeading) {
+//            Text(text)
+//                .font(font)
+//                .foregroundColor(foreground)
+//
+//            // Градиент снизу, который делает текст прозрачным
+//            VStack {
+//                Spacer()
+//                LinearGradient(
+//                    gradient: Gradient(colors: [
+//                        Color.clear,
+//                        background.opacity(0.9),
+//                        background
+//                    ]),
+//                    startPoint: .top,
+//                    endPoint: .bottom
+//                )
+//                .frame(height: fadeHeight)
+//                .allowsHitTesting(false)
+//            }
+//        }
+//        .background(background)
+//        .compositingGroup()
+//    }
+//}
+
+//                .lineLimit(lineLimit)
+//                .multilineTextAlignment(.leading)
+//                .fixedSize(horizontal: false, vertical: true)
+
+
+
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake"
+//    ]
+//    let trackCount: Int = 50
+//
+//    var body: some View {
+//        HStack(spacing: 14) {
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 10))
+//
+//            VStack(alignment: .leading, spacing: 4) {
+//                Text("TOP 10")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//
+//                VStack(alignment: .leading, spacing: 2) {
+//                    ForEach(artists.prefix(4), id: \.self) { artist in
+//                        Text(artist)
+//                            .font(.subheadline)
+//                            .foregroundColor(AppColors.secondary)
+//                            .lineLimit(1)
+//                    }
+//                }
+//
+//                Spacer(minLength: 0)
+//
+//                HStack(alignment: .bottom) {
+//                    Text("....")
+//                        .font(.subheadline)
+//                        .fontWeight(.medium)
+//                        .foregroundColor(AppColors.secondary)
+//
+//                    Spacer()
+//
+//                    Text("\(trackCount) tracks")
+//                        .font(.footnote)
+//                        .foregroundColor(AppColors.secondary)
+//                }
+//                .padding(.bottom, 2)
+//            }
+//            .padding(.top, 8)
+//            .padding(.bottom, 4)
+//            .padding(.trailing, 4)
+//
+//            Spacer()
+//        }
+//        .padding(10)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(16)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
+
+//+------------------------------------------------------+
+//| [IMAGE]   TOP 50                                     |
+//|          50 tracks                                   |
+//|                                                      |
+//| French Montana, Kodak Black, Lil Wayne, Drake        |
+//+------------------------------------------------------+
+
+
+
+//private extension DroplistCompositView {
+//    func topSections(screenWidth: CGFloat) -> some View {
+//        // Чистая математика. Никаких защитных констант.
+//        let cardWidth = screenWidth * 0.80
+//        let cardHeight = cardWidth * 0.50
+//        let imageSize = cardHeight - 16
+//        
+//        return VStack(alignment: .leading, spacing: 20) {
+//            Text(data.topSection.title)
+//                .font(.headline)
+//                .padding(.horizontal)
+//            
+//            VStack(alignment: .leading, spacing: 8) {
+//                ScrollView(.horizontal, showsIndicators: false) {
+//                    HStack(spacing: 16) {
+//                        ForEach(data.topSection.items) { item in
+//                            TopSectionItemView(
+//                                item: item,
+//                                cardWidth: cardWidth,
+//                                cardHeight: cardHeight
+//                            )
+//                        }
+//                    }
+//                    .padding(.horizontal)
+//                }
+//            }
+//        }
+//    }
+//}
+
+
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake"
+//    ]
+//    var body: some View {
+//        
+//        let artistsLine = artists.joined(separator: ", ")
+//        
+//        VStack(alignment: .leading, spacing: 12) {
+//            
+//            // MARK: - Верхняя строка: картинка + заголовок справа
+//            HStack(alignment: .top, spacing: 12) {
+//                
+//                WebImageView(
+//                    url: item.imageURL,
+//                    placeholderColor: AppColors.secondarySystemBackground,
+//                    displayStyle: .fixedFrame(width: cardHeight * 0.55, height: cardHeight * 0.55),
+//                    context: "TopSectionCard_\(item.id)"
+//                )
+//                .clipShape(RoundedRectangle(cornerRadius: 12))
+//                
+//                VStack(alignment: .leading, spacing: 4) {
+//                    Text("TOP 50")
+//                        .font(.headline)
+//                        .fontWeight(.bold)
+//                        .foregroundColor(.primary)
+//                    
+//                    Text("\(50) tracks")
+//                        .font(.subheadline)
+//                        .foregroundColor(.secondary)
+//                }
+//                
+//                Spacer()
+//            }
+//            
+//            // MARK: - Artists в одну строку под картинкой
+//            Text(artistsLine)
+//                .font(.subheadline)
+//                .foregroundColor(.secondary)
+//                .lineLimit(1)
+//                .padding(.horizontal, 4)
+//            
+//        }
+//        .padding(12)
+//        .frame(width: cardWidth)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(16)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
+
+
+
+
+
+
+
+
 
 
 
