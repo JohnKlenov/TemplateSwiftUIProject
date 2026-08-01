@@ -271,26 +271,21 @@ private extension DroplistCompositView {
 
 // MARK: - Top Section Item View (Идеальный макет)
 
-
-// implement deepseek #work cod
-
 struct TopSectionItemView: View {
     let item: TopItem
     let cardWidth: CGFloat
     let cardHeight: CGFloat
     let imageSize: CGFloat
 
-    
     let artists: [String] = [
         "French Montana", "Kodak Black", "Lil Wayne", "Drake",
-        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake"
+        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake",
+        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+        "Future", "21 Savage", "Travis Scott"
     ]
 
     var body: some View {
-        // 1. Жестко фиксируем выравнивание влево через leading!
         HStack(alignment: .top, spacing: 16) {
-            
-            // ЛЕВАЯ ЧАСТЬ: Картинка
             WebImageView(
                 url: item.imageURL,
                 placeholderColor: AppColors.secondarySystemBackground,
@@ -298,33 +293,54 @@ struct TopSectionItemView: View {
                 context: "TopSectionCard_\(item.id)"
             )
             .clipShape(RoundedRectangle(cornerRadius: 12))
-            // 2. УБРАЛИ .padding(.leading, 10) полностью!
-            // Теперь картинка занимает ровно свой размер, не создавая лишнего отступа.
 
-            // ПРАВАЯ ЧАСТЬ: Текст
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 0) { // spacing: 0, чтобы мы сами управляли отступами
+                
+                // 1. ЗАГОЛОВОК "TOP 50"
                 Text("TOP 50")
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(AppColors.primary)
+                    // Отступ НИЖЕ заголовка
+                    .padding(.bottom, 2) // spacing между TOP 50 и 15 tracks = 4
                 
-                FadingBottomLines(
-                    lines: artists,
-                    font: .subheadline,
-                    foreground: AppColors.secondary,
-                    fadeHeight: cardHeight / 2
-                )
-                .frame(maxHeight: imageSize, alignment: .top)
+                // 2. ПОДЗАГОЛОВОК С КОЛИЧЕСТВОМ ТРЕКОВ
+                Text("\(artists.count) tracks")
+                    .font(.footnote)
+                    .fontWeight(.regular)
+                    .foregroundColor(AppColors.secondary)
+                    // Отступ НИЖЕ количества треков
+                    .padding(.bottom, 6) // spacing между 15 tracks и списком = 6
+
+                // 3. СПИСОК АРТИСТОВ
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(Array(artists.enumerated()), id: \.offset) { _, line in
+                        Text(line)
+                            .font(.caption2)
+                            .foregroundColor(AppColors.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                }
+                .frame(height: imageSize, alignment: .top)
+                .clipped()
                 
-                // Spacer() убран. Контент сам прижмется к верху за счет alignment .top в HStack
+                // ОВЕРЛЕЙ с градиентом
+                .overlay(alignment: .bottom) {
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            AppColors.secondarySystemBackground.opacity(0.0),
+                            AppColors.secondarySystemBackground.opacity(0.8),
+                            AppColors.secondarySystemBackground
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: imageSize)
+                }
             }
-            .padding(.top, 0) // Убираем лишний отступ сверху для текста
             .padding(.trailing, 16)
-            
-            // Не добавляем Spacer в конце. Это жестко прижмет HStack к левому краю!
         }
-        // 3. ГЛАВНЫЙ ФИКС: Задаем ВНЕШНИЕ отступы для всей карточки РАЗОМ!
-        // Это создаст идеально ровный отступ 12пт со всех сторон.
         .padding(12)
         .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
         .background(AppColors.secondarySystemBackground)
@@ -333,49 +349,264 @@ struct TopSectionItemView: View {
     }
 }
 
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "Future", "21 Savage", "Travis Scott"
+//    ]
+//
+//    var body: some View {
+//        HStack(alignment: .top, spacing: 16) {
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 12))
+//
+//            VStack(alignment: .leading, spacing: 6) { // spacing немного уменьшили для компактности
+//                
+//                // 1. ЗАГОЛОВОК "TOP 50" (Чуть крупнее, но не огромный)
+//                Text("TOP 50")
+//                    .font(.headline) // Системный заголовок. Отлично масштабируется.
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//                
+//                // 2. ПОДЗАГОЛОВОК С КОЛИЧЕСТВОМ ТРЕКОВ (Меньше, обычный вес)
+//                Text("\(artists.count) tracks")
+//                    .font(.footnote) // Самый маленький системный читаемый шрифт.
+//                    .fontWeight(.regular)
+//                    .foregroundColor(AppColors.primary)
+//                    .padding(.bottom, 4) // Небольшой отступ до списка
+//
+//                // 3. СПИСОК АРТИСТОВ (Самый мелкий, но читаемый)
+//                VStack(alignment: .leading, spacing: 2) {
+//                    ForEach(Array(artists.enumerated()), id: \.offset) { _, line in
+//                        Text(line)
+//                            // Используем .caption2, это самый мелкий системный шрифт iOS.
+//                            // На Pro Max он будет ~13pt, на iPhone 8 ~10pt. Идеально читается!
+//                            .font(.caption2)
+//                            .foregroundColor(AppColors.secondary)
+//                            .lineLimit(1)
+//                            .truncationMode(.tail)
+//                    }
+//                }
+//                // Фиксируем высоту
+//                .frame(height: imageSize, alignment: .top)
+//                .clipped()
+//                
+//                // ОВЕРЛЕЙ с градиентом
+//                .overlay(alignment: .bottom) {
+//                    LinearGradient(
+//                        gradient: Gradient(colors: [
+//                            AppColors.secondarySystemBackground.opacity(0.0),
+//                            AppColors.secondarySystemBackground.opacity(0.8),
+//                            AppColors.secondarySystemBackground
+//                        ]),
+//                        startPoint: .top,
+//                        endPoint: .bottom
+//                    )
+//                    .frame(height: imageSize)
+//                }
+//            }
+//            .padding(.trailing, 16)
+//        }
+//        .padding(12)
+//        .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(16)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
 
-struct FadingBottomLines: View {
-    let lines: [String]
-    let font: Font
-    let foreground: Color
-    let fadeHeight: CGFloat // Теперь эта переменная реально используется!
-    
-    var body: some View {
-        // 1. Используем GeometryReader, чтобы узнать реальную высоту списка
-        GeometryReader { geometry in
-            VStack(alignment: .leading, spacing: 2) {
-                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-                    Text(line)
-                        .font(font)
-                        .foregroundColor(foreground)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                }
-            }
-            // 2. Накладываем маску. Высота градиента берется из переданной fadeHeight
-            .mask(
-                VStack(spacing: 0) {
-                    // Верхняя часть до начала исчезновения (полностью видна)
-                    Color.white
-                        .frame(height: geometry.size.height - fadeHeight)
-                    
-                    // Нижняя часть - плавный градиент от белого к прозрачному
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color.white,
-                            Color.white.opacity(0.0)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: fadeHeight)
-                }
-            )
-        }
-        // 3. Важно: Фиксируем высоту контейнера, чтобы GeometryReader не растягивал лэйаут
-        .frame(height: fadeHeight * 2) // Или передавайте maxHeight извне
-    }
-}
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "Future", "21 Savage", "Travis Scott"
+//    ]
+//
+//    var body: some View {
+//        HStack(alignment: .top, spacing: 16) {
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 12))
+//            
+//            VStack(alignment: .leading, spacing: 8) {
+//                Text("TOP 50")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//
+//                // Список артистов с жесткой высотой
+//                VStack(alignment: .leading, spacing: 2) {
+//                    ForEach(Array(artists.enumerated()), id: \.offset) { _, line in
+//                        Text(line)
+//                            .font(.subheadline)
+//                            .foregroundColor(AppColors.secondary)
+//                            .lineLimit(1)
+//                            .truncationMode(.tail)
+//                    }
+//                }
+//                // Фиксируем высоту
+//                .frame(height: imageSize, alignment: .top)
+//                .clipped()
+//                
+//                // ОВЕРЛЕЙ: Затемнение начинается С САМОГО СТАРТА (плавно нарастает)
+//                .overlay(alignment: .bottom) {
+//                    LinearGradient(
+//                        gradient: Gradient(colors: [
+//                            AppColors.secondarySystemBackground.opacity(0.0), // Самый верх: прозрачный (видно полностью)
+//                            AppColors.secondarySystemBackground.opacity(0.8), // Чуть ниже: легкое затемнение (было 0.3)
+//                            AppColors.secondarySystemBackground               // Внизу: сливается с фоном
+//                        ]),
+//                        startPoint: .top,
+//                        endPoint: .bottom
+//                    )
+//                    .frame(height: imageSize)
+//                }
+//            }
+//            .padding(.trailing, 16)
+//        }
+//        .padding(12)
+//        .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(16)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
+
+// implement deepseek #work cod
+
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//
+//    
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake", "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake"
+//    ]
+////    let artists: [String] = [
+////        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+////        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake"
+////    ]
+//
+//    var body: some View {
+//        // 1. Жестко фиксируем выравнивание влево через leading!
+//        HStack(alignment: .top, spacing: 16) {
+//            
+//            // ЛЕВАЯ ЧАСТЬ: Картинка
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 12))
+//            // 2. УБРАЛИ .padding(.leading, 10) полностью!
+//            // Теперь картинка занимает ровно свой размер, не создавая лишнего отступа.
+//
+//            // ПРАВАЯ ЧАСТЬ: Текст
+//            VStack(alignment: .leading, spacing: 10) {
+//                Text("TOP 50")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//                
+//                FadingBottomLines(
+//                    lines: artists,
+//                    font: .subheadline,
+//                    foreground: AppColors.secondary,
+//                    fadeHeight: cardHeight / 2
+//                )
+//                .frame(maxHeight: imageSize - 50, alignment: .top)
+//                
+//                // Spacer() убран. Контент сам прижмется к верху за счет alignment .top в HStack
+//            }
+//            .padding(.top, 0) // Убираем лишний отступ сверху для текста
+//            .padding(.trailing, 16)
+//            
+//            // Не добавляем Spacer в конце. Это жестко прижмет HStack к левому краю!
+//        }
+//        // 3. ГЛАВНЫЙ ФИКС: Задаем ВНЕШНИЕ отступы для всей карточки РАЗОМ!
+//        // Это создаст идеально ровный отступ 12пт со всех сторон.
+//        .padding(12)
+//        .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(16)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
+//
+//
+//struct FadingBottomLines: View {
+//    let lines: [String]
+//    let font: Font
+//    let foreground: Color
+//    let fadeHeight: CGFloat // Теперь эта переменная реально используется!
+//    
+//    var body: some View {
+//        // 1. Используем GeometryReader, чтобы узнать реальную высоту списка
+//        GeometryReader { geometry in
+//            VStack(alignment: .leading, spacing: 2) {
+//                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+//                    Text(line)
+//                        .font(font)
+//                        .foregroundColor(foreground)
+//                        .lineLimit(1)
+//                        .truncationMode(.tail)
+//                }
+//            }
+//            // 2. Накладываем маску. Высота градиента берется из переданной fadeHeight
+//            .mask(
+//                VStack(spacing: 0) {
+//                    // Верхняя часть до начала исчезновения (полностью видна)
+//                    Color.white
+//                        .frame(height: geometry.size.height - fadeHeight)
+//                    
+//                    // Нижняя часть - плавный градиент от белого к прозрачному
+//                    LinearGradient(
+//                        gradient: Gradient(colors: [
+//                            Color.white,
+//                            Color.white.opacity(0.0)
+//                        ]),
+//                        startPoint: .top,
+//                        endPoint: .bottom
+//                    )
+//                    .frame(height: fadeHeight)
+//                }
+//            )
+//        }
+//        // 3. Важно: Фиксируем высоту контейнера, чтобы GeometryReader не растягивал лэйаут
+//        .frame(height: fadeHeight * 2) // Или передавайте maxHeight извне
+//    }
+//}
+
+
+
+
 
 //struct FadingBottomLines: View {
 //    let lines: [String]
