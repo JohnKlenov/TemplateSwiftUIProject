@@ -381,7 +381,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol, @uncheck
 
                     let sectionModel = TopSectionModel(
                         id: "top_section",
-                        title: "Top Section",
+                        title: "TopDrop",
                         items: items
                     )
 

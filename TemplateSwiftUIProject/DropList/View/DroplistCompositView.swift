@@ -74,8 +74,8 @@ private extension DroplistCompositView {
         let cardWidth = screenWidth * 0.80
         let cardHeight = cardWidth * 0.50
         // ИЗМЕНЕНИЕ: -20, чтобы под картинку можно было сделать padding 10 сверху и снизу
-//        let imageSize = cardHeight - 20
-        let imageSize = cardHeight - 24
+//        let imageSize = cardHeight - 24
+        let imageSize = cardHeight - 12
         
         return VStack(alignment: .leading, spacing: 20) {
             Text(data.topSection.title)
@@ -114,21 +114,23 @@ private extension DroplistCompositView {
             .padding(.horizontal)
         }
     }
-    
+    //AppColors.activeColor
     func carouselItem(_ item: CarouselItem) -> some View {
         let isSelected = selectedCarouselItem?.id == item.id
         
         return Text(item.title)
             .font(.subheadline.weight(.medium))
+            // Активный элемент меняет цвет текста на пурпурный
+            .foregroundColor(isSelected ? AppColors.activeColor : AppColors.secondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
+            // У неактивных элементов фона НЕТ вообще
+            // У активного элемента - легкая пурпурная плашка
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.15))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 1.5)
+                isSelected ?
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(AppColors.secondarySystemBackground.opacity(0.8))
+                : nil
             )
             .onTapGesture {
                 guard selectedCarouselItem?.id != item.id else { return }
@@ -271,6 +273,7 @@ private extension DroplistCompositView {
 
 // MARK: - Top Section Item View (Идеальный макет)
 
+
 struct TopSectionItemView: View {
     let item: TopItem
     let cardWidth: CGFloat
@@ -285,7 +288,7 @@ struct TopSectionItemView: View {
     ]
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .top, spacing: 12) {
             WebImageView(
                 url: item.imageURL,
                 placeholderColor: AppColors.secondarySystemBackground,
@@ -294,25 +297,13 @@ struct TopSectionItemView: View {
             )
             .clipShape(RoundedRectangle(cornerRadius: 12))
 
-            VStack(alignment: .leading, spacing: 0) { // spacing: 0, чтобы мы сами управляли отступами
-                
-                // 1. ЗАГОЛОВОК "TOP 50"
+            VStack(alignment: .leading, spacing: 8) {
                 Text("TOP 50")
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(AppColors.primary)
-                    // Отступ НИЖЕ заголовка
-                    .padding(.bottom, 2) // spacing между TOP 50 и 15 tracks = 4
-                
-                // 2. ПОДЗАГОЛОВОК С КОЛИЧЕСТВОМ ТРЕКОВ
-                Text("\(artists.count) tracks")
-                    .font(.footnote)
-                    .fontWeight(.regular)
-                    .foregroundColor(AppColors.secondary)
-                    // Отступ НИЖЕ количества треков
-                    .padding(.bottom, 6) // spacing между 15 tracks и списком = 6
 
-                // 3. СПИСОК АРТИСТОВ
+                // Список артистов с жесткой высотой
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(Array(artists.enumerated()), id: \.offset) { _, line in
                         Text(line)
@@ -322,16 +313,17 @@ struct TopSectionItemView: View {
                             .truncationMode(.tail)
                     }
                 }
+                // Фиксируем высоту
                 .frame(height: imageSize, alignment: .top)
                 .clipped()
                 
-                // ОВЕРЛЕЙ с градиентом
+                // ОВЕРЛЕЙ: Затемнение начинается С САМОГО СТАРТА (плавно нарастает)
                 .overlay(alignment: .bottom) {
                     LinearGradient(
                         gradient: Gradient(colors: [
-                            AppColors.secondarySystemBackground.opacity(0.0),
-                            AppColors.secondarySystemBackground.opacity(0.8),
-                            AppColors.secondarySystemBackground
+                            AppColors.secondarySystemBackground.opacity(0.0), // Самый верх: прозрачный (видно полностью)
+                            AppColors.secondarySystemBackground.opacity(0.6), // Чуть ниже: легкое затемнение (было 0.3)
+                            AppColors.secondarySystemBackground               // Внизу: сливается с фоном
                         ]),
                         startPoint: .top,
                         endPoint: .bottom
@@ -339,15 +331,107 @@ struct TopSectionItemView: View {
                     .frame(height: imageSize)
                 }
             }
-            .padding(.trailing, 16)
+            .padding(.trailing, 6)
         }
-        .padding(12)
+        .padding(6)
         .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
         .background(AppColors.secondarySystemBackground)
-        .cornerRadius(16)
+        .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+// MARK: - versions TopSectionItemView
+
+
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "Future", "21 Savage", "Travis Scott"
+//    ]
+//
+//    var body: some View {
+//        HStack(alignment: .top, spacing: 16) {
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 12))
+//
+//            VStack(alignment: .leading, spacing: 0) { // spacing: 0, чтобы мы сами управляли отступами
+//                
+//                // 1. ЗАГОЛОВОК "TOP 50"
+//                Text("TOP 50")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//                    // Отступ НИЖЕ заголовка
+//                    .padding(.bottom, 2) // spacing между TOP 50 и 15 tracks = 4
+//                
+//                // 2. ПОДЗАГОЛОВОК С КОЛИЧЕСТВОМ ТРЕКОВ
+//                Text("\(artists.count) tracks")
+//                    .font(.footnote)
+//                    .fontWeight(.regular)
+//                    .foregroundColor(AppColors.secondary)
+//                    // Отступ НИЖЕ количества треков
+//                    .padding(.bottom, 6) // spacing между 15 tracks и списком = 6
+//
+//                // 3. СПИСОК АРТИСТОВ
+//                VStack(alignment: .leading, spacing: 2) {
+//                    ForEach(Array(artists.enumerated()), id: \.offset) { _, line in
+//                        Text(line)
+//                            .font(.caption2)
+//                            .foregroundColor(AppColors.secondary)
+//                            .lineLimit(1)
+//                            .truncationMode(.tail)
+//                    }
+//                }
+//                .frame(height: imageSize, alignment: .top)
+//                .clipped()
+//                
+//                // ОВЕРЛЕЙ с градиентом
+//                .overlay(alignment: .bottom) {
+//                    LinearGradient(
+//                        gradient: Gradient(colors: [
+//                            AppColors.secondarySystemBackground.opacity(0.0),
+//                            AppColors.secondarySystemBackground.opacity(0.8),
+//                            AppColors.secondarySystemBackground
+//                        ]),
+//                        startPoint: .top,
+//                        endPoint: .bottom
+//                    )
+//                    .frame(height: imageSize)
+//                }
+//            }
+//            .padding(.trailing, 16)
+//        }
+//        .padding(12)
+//        .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(16)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
 
 //struct TopSectionItemView: View {
 //    let item: TopItem
