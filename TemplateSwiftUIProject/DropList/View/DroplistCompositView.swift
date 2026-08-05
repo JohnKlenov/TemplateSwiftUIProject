@@ -20,12 +20,13 @@
 // tasks:
 // разобраться с работай текущего кода!
 // добавить при подьеме скрола прилипание средней секции к верхнему краю экрана!
-// доработать правильный макет для TopSectionItemView
+// Droplist - все Colors системные и через единый AppColors + локализация Текстов в App + локализация текстов на стороне Firestore( Внешняя локализация title (строк) (на стороне Firebase как в BookStores)) ?
+// ErrorHandler там где нужно + локализация и контекст
 // добавить кнопку allTopdrop при переходе на который мы попадаем на список Topdrop а в ленте мы отображаем к примеру не больше трех или четырех + добавить индикатор прокрутки по Topdrop (такое новое решение с анимацией как квадратные точечки)
 // доработать дизайн макета для lowerItemCell
+// переходы из плейлиста в плеер со списком треков из плейлиста(или сначало переход на view со списком треков а потом по одному включаем через плеер или открывается плеер со списком) + переход на плеер из трека(allTracks) без списка треков
+// для каждого item в TopSection добавить поле artists + title
 
-
-// MARK: - Внешняя локализация title (строк) (на стороне Firebase как в BookStores)
 
 import SwiftUI
 
@@ -40,19 +41,41 @@ struct DroplistCompositView: View {
     @State private var selectedCarouselItem: CarouselItem?
     
     var body: some View {
-        // Профессиональный подход для адаптивной ширины без поломок скролла
         GeometryReader { geometry in
             let screenWidth = geometry.size.width
             
+            // 1. Меняем ScrollView на LazyVStack
             ScrollView {
-                VStack(spacing: 16) {
-                    topSections(screenWidth: screenWidth)
-                    carouselSection
-                    lowerSectionWithFooter()
+                // 2. Добавляем pinnedViews: [.sectionHeaders] для липких секций
+                LazyVStack(spacing: 16, pinnedViews: [.sectionHeaders]) {
+                    
+                    // Секция 1: Верхняя часть (скроллится как обычно)
+                    Section {
+                        topSections(screenWidth: screenWidth)
+                    }
+                    
+                    // Секция 2: Нижняя часть (Список треков)
+                    Section {
+                        // Обычный контент нижней части
+                        lowerSectionWithFooter()
+                    } header: {
+                        // 3. ВАЖНО: carouselSection выносится в header этой секции.
+                        // Когда при скролле этот header достигнет верхней границы экрана,
+                        // он автоматически "прилипнет" к ней.
+                        carouselSection
+                            // Добавляем padding и фон, чтобы визуально отделить прилипшую карусель от контента
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                            .padding(.bottom, 16)
+                            // ВАЖНО: Фон должен совпадать с цветом экрана, чтобы контент,
+                            // прокручивающийся под каруселью, не просвечивал.
+                            // В вашем приложении AppColors.background идеально подходит.
+                            .background(AppColors.background)
+                    }
                 }
                 .padding(.vertical, 12)
             }
-            // КЛЮЧЕВОЙ МОМЕНТ: Запрещаем анимацию смены размеров при повороте экрана
+            // Запрещаем анимацию смены размеров при повороте экрана
             .animation(.easeOut(duration: 0.0), value: screenWidth)
             .refreshable {
                 onRefresh()
@@ -61,20 +84,52 @@ struct DroplistCompositView: View {
                 selectedCarouselItem = data.selectedItem
             }
         }
-        // Не даем GeometryReader растягивать контент на всю высоту экрана
         .frame(maxHeight: .infinity, alignment: .top)
     }
 }
+//struct DroplistCompositView: View {
+//    
+//    let data: DropData
+//    let onRefresh: () -> Void
+//    let onSelectCarouselItem: (CarouselItem) -> Void
+//    let onLoadNextPage: (CarouselItem) -> Void
+//    let onSelectLowerItem: (LowerItem) -> Void
+//    
+//    @State private var selectedCarouselItem: CarouselItem?
+//    
+//    var body: some View {
+//        // Профессиональный подход для адаптивной ширины без поломок скролла
+//        GeometryReader { geometry in
+//            let screenWidth = geometry.size.width
+//            
+//            ScrollView {
+//                VStack(spacing: 16) {
+//                    topSections(screenWidth: screenWidth)
+//                    carouselSection
+//                    lowerSectionWithFooter()
+//                }
+//                .padding(.vertical, 12)
+//            }
+//            // КЛЮЧЕВОЙ МОМЕНТ: Запрещаем анимацию смены размеров при повороте экрана
+//            .animation(.easeOut(duration: 0.0), value: screenWidth)
+//            .refreshable {
+//                onRefresh()
+//            }
+//            .onAppear {
+//                selectedCarouselItem = data.selectedItem
+//            }
+//        }
+//        // Не даем GeometryReader растягивать контент на всю высоту экрана
+//        .frame(maxHeight: .infinity, alignment: .top)
+//    }
+//}
 
-//        let imageSize = cardHeight
 // MARK: - Top Sections (Идеальные пропорции)
 private extension DroplistCompositView {
     func topSections(screenWidth: CGFloat) -> some View {
         // Чистая математика. Никаких защитных констант.
         let cardWidth = screenWidth * 0.80
         let cardHeight = cardWidth * 0.50
-        // ИЗМЕНЕНИЕ: -20, чтобы под картинку можно было сделать padding 10 сверху и снизу
-//        let imageSize = cardHeight - 24
         let imageSize = cardHeight - 12
         
         return VStack(alignment: .leading, spacing: 20) {
@@ -349,6 +404,800 @@ struct TopSectionItemView: View {
 
 
 
+
+
+
+
+// MARK: - Sticky Header Copilot
+
+//struct DroplistCompositView: View {
+//
+//    let data: DropData
+//    let onRefresh: () -> Void
+//    let onSelectCarouselItem: (CarouselItem) -> Void
+//    let onLoadNextPage: (CarouselItem) -> Void
+//    let onSelectLowerItem: (LowerItem) -> Void
+//
+//    @State private var selectedCarouselItem: CarouselItem?
+//
+//    var body: some View {
+//        // Профессиональный подход для адаптивной ширины без поломок скролла
+//        GeometryReader { geometry in
+//            let screenWidth = geometry.size.width
+//
+//            ScrollView {
+//                VStack(spacing: 16) {
+//                    topSections(screenWidth: screenWidth)
+//                    carouselSection
+//                    lowerSectionWithFooter()
+//                }
+//                .padding(.vertical, 12)
+//            }
+//            // КЛЮЧЕВОЙ МОМЕНТ: Запрещаем анимацию смены размеров при повороте экрана
+//            .animation(.easeOut(duration: 0.0), value: screenWidth)
+//            .refreshable {
+//                onRefresh()
+//            }
+//            .onAppear {
+//                selectedCarouselItem = data.selectedItem
+//            }
+//        }
+//        // Не даем GeometryReader растягивать контент на всю высоту экрана
+//        .frame(maxHeight: .infinity, alignment: .top)
+//    }
+//}
+
+
+
+//import SwiftUI
+//
+//private struct StickyHeaderKey: PreferenceKey {
+//    static var defaultValue: CGFloat = 0
+//    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+//        value = nextValue()
+//    }
+//}
+//
+//
+//// MARK: - Sticky Position Reader
+//private extension View {
+//    func stickyPosition(_ onChange: @escaping (CGFloat) -> Void) -> some View {
+//        self.background(
+//            GeometryReader { proxy in
+//                Color.clear
+//                    .preference(key: StickyHeaderKey.self,
+//                                value: proxy.frame(in: .global).minY)
+//            }
+//        )
+//        .onPreferenceChange(StickyHeaderKey.self, perform: onChange)
+//    }
+//}
+//
+//
+//// MARK: - Sticky Header Container
+//struct StickyHeaderContainer<Content: View>: View {
+//    let content: () -> Content
+//
+//    @State private var minY: CGFloat = 0
+//    @State private var initialY: CGFloat? = nil
+//    @State private var height: CGFloat = 0
+//    @State private var isSticky: Bool = false
+//
+//    var body: some View {
+//        ZStack(alignment: .top) {
+//
+//            // Оригинал внутри ScrollView
+//            content()
+//                .background(
+//                    GeometryReader { proxy in
+//                        Color.clear.onAppear {
+//                            height = proxy.size.height
+//                        }
+//                    }
+//                )
+//                .stickyPosition { y in
+//                    if initialY == nil { initialY = y }
+//                    minY = y
+//                    updateSticky()
+//                }
+//
+//            // Дубликат вне ScrollView
+//            if isSticky {
+//                content()
+//                    .frame(height: height)
+//                    .zIndex(999)
+//            }
+//        }
+//    }
+//
+//    private func updateSticky() {
+//        guard let start = initialY else { return }
+//        isSticky = minY <= start
+//    }
+//}
+//
+//struct StickyCarousel: View {
+//    let items: [CarouselItem]
+//    let selected: CarouselItem?
+//    let onSelect: (CarouselItem) -> Void
+//
+//    var body: some View {
+//        ScrollViewReader { proxy in
+//            HStack(spacing: 12) {
+//                ForEach(items) { item in
+//                    Text(item.title)
+//                        .font(.subheadline.weight(.medium))
+//                        .foregroundColor(selected?.id == item.id ? AppColors.activeColor : AppColors.secondary)
+//                        .padding(.horizontal, 14)
+//                        .padding(.vertical, 8)
+//                        .background(
+//                            selected?.id == item.id ?
+//                            RoundedRectangle(cornerRadius: 10)
+//                                .fill(AppColors.secondarySystemBackground.opacity(0.8))
+//                            : nil
+//                        )
+//                        .id(item.id)
+//                        .onTapGesture {
+//                            onSelect(item)
+//                            withAnimation {
+//                                proxy.scrollTo(item.id, anchor: .center)
+//                            }
+//                        }
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//}
+//
+//
+//// MARK: - DroplistCompositView
+//struct DroplistCompositView: View {
+//
+//    let data: DropData
+//    let onRefresh: () -> Void
+//    let onSelectCarouselItem: (CarouselItem) -> Void
+//    let onLoadNextPage: (CarouselItem) -> Void
+//    let onSelectLowerItem: (LowerItem) -> Void
+//
+//    @State private var selectedCarouselItem: CarouselItem?
+//
+//    var body: some View {
+//        GeometryReader { geometry in
+//            let screenWidth = geometry.size.width
+//
+//            ZStack(alignment: .top) {
+//
+//                ScrollView {
+//                    VStack(spacing: 16) {
+//
+//                        // Верхняя секция
+//                        topSections(screenWidth: screenWidth)
+//
+//                        // Sticky-карусель
+//                        StickyHeaderContainer {
+//                            StickyCarousel(
+//                                items: data.carouselItems,
+//                                selected: selectedCarouselItem,
+//                                onSelect: { item in
+//                                    selectedCarouselItem = item
+//                                    onSelectCarouselItem(item)
+//                                }
+//                            )
+//                        }
+//
+//                        // Нижняя секция
+//                        lowerSectionWithFooter()
+//                    }
+//                    .padding(.vertical, 12)
+//                }
+//                .refreshable { onRefresh() }
+//                .onAppear { selectedCarouselItem = data.selectedItem }
+//            }
+//        }
+//        .frame(maxHeight: .infinity, alignment: .top)
+//    }
+//}
+//
+//
+//
+//// MARK: - Top Sections (Идеальные пропорции)
+//private extension DroplistCompositView {
+//    func topSections(screenWidth: CGFloat) -> some View {
+//        // Чистая математика. Никаких защитных констант.
+//        let cardWidth = screenWidth * 0.80
+//        let cardHeight = cardWidth * 0.50
+//        let imageSize = cardHeight - 12
+//        
+//        return VStack(alignment: .leading, spacing: 20) {
+//            Text(data.topSection.title)
+//                .font(.headline)
+//                .padding(.horizontal)
+//            
+//            VStack(alignment: .leading, spacing: 8) {
+//                ScrollView(.horizontal, showsIndicators: false) {
+//                    HStack(spacing: 16) {
+//                        ForEach(data.topSection.items) { item in
+//                            TopSectionItemView(
+//                                item: item,
+//                                cardWidth: cardWidth,
+//                                cardHeight: cardHeight,
+//                                imageSize: imageSize
+//                            )
+//                        }
+//                    }
+//                    .padding(.horizontal)
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//                    
+//// MARK: - Carousel Section (Без изменений)
+//
+//
+//private extension DroplistCompositView {
+//    var carouselSection: some View {
+//        ScrollView(.horizontal, showsIndicators: false) {
+//            HStack(spacing: 12) {
+//                ForEach(data.carouselItems) { item in
+//                    carouselItem(item)
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//    //AppColors.activeColor
+//    func carouselItem(_ item: CarouselItem) -> some View {
+//        let isSelected = selectedCarouselItem?.id == item.id
+//        
+//        return Text(item.title)
+//            .font(.subheadline.weight(.medium))
+//            // Активный элемент меняет цвет текста на пурпурный
+//            .foregroundColor(isSelected ? AppColors.activeColor : AppColors.secondary)
+//            .padding(.horizontal, 14)
+//            .padding(.vertical, 8)
+//            // У неактивных элементов фона НЕТ вообще
+//            // У активного элемента - легкая пурпурная плашка
+//            .background(
+//                isSelected ?
+//                RoundedRectangle(cornerRadius: 10)
+//                    .fill(AppColors.secondarySystemBackground.opacity(0.8))
+//                : nil
+//            )
+//            .onTapGesture {
+//                guard selectedCarouselItem?.id != item.id else { return }
+//                selectedCarouselItem = item
+//                onSelectCarouselItem(item)
+//            }
+//    }
+//}
+//
+//// MARK: - Lower Section + Footer Loader (Без изменений)
+//private extension DroplistCompositView {
+//    
+//    @ViewBuilder
+//    func lowerSectionWithFooter() -> some View {
+//        if data.isLowerSectionLoading {
+//            VStack {
+//                ProgressView()
+//                Text("Загрузка...")
+//                    .foregroundColor(.secondary)
+//            }
+//            .frame(maxWidth: .infinity, minHeight: 200)
+//        }
+//        else if data.initialLowerSection.items.isEmpty {
+//            lowerSectionErrorPlaceholder
+//        }
+//        else {
+//            LazyVStack(spacing: 16) {
+//                ForEach(data.initialLowerSection.items) { item in
+//                    lowerItemCell(item)
+//                }
+//                
+//                if data.initialLowerSection.hasMore {
+//                    footerView
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//    
+//    @ViewBuilder
+//    var footerView: some View {
+//        switch data.footerState {
+//        case .idle:
+//            HStack {
+//                Spacer()
+//                Color.clear
+//                    .frame(height: 44)
+//                    .onAppear {
+//                        print("footerView case .idle")
+//                        if let selected = selectedCarouselItem {
+//                            onLoadNextPage(selected)
+//                        }
+//                    }
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//            
+//        case .loading:
+//            HStack {
+//                Spacer()
+//                ProgressView()
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//            
+//        case .error(let message):
+//            HStack {
+//                Spacer()
+//                VStack(spacing: 6) {
+//                    Text(message)
+//                        .foregroundColor(.secondary)
+//                    Button("Повторить") {
+//                        if let selected = selectedCarouselItem {
+//                            onLoadNextPage(selected)
+//                        }
+//                    }
+//                }
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//        }
+//    }
+//    
+//    func lowerItemCell(_ item: LowerItem) -> some View {
+//        Button {
+//            onSelectLowerItem(item)
+//        } label: {
+//            HStack(spacing: 12) {
+//                thumbnail(for: item)
+//                
+//                VStack(alignment: .leading, spacing: 4) {
+//                    Text(item.title)
+//                        .font(.headline)
+//                        .foregroundColor(.primary)
+//                    
+//                    if let subtitle = item.subtitle {
+//                        Text(subtitle)
+//                            .font(.subheadline)
+//                            .foregroundColor(.secondary)
+//                            .lineLimit(2)
+//                    }
+//                }
+//                Spacer()
+//            }
+//        }
+//    }
+//    
+//    var lowerSectionErrorPlaceholder: some View {
+//        VStack(spacing: 12) {
+//            Text("Не удалось загрузить данные")
+//                .font(.headline)
+//                .foregroundColor(.secondary)
+//            
+//            Button("Повторить") {
+//                if let selected = selectedCarouselItem {
+//                    onSelectCarouselItem(selected)
+//                }
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 8)
+//            .background(Color.blue.opacity(0.2))
+//            .cornerRadius(8)
+//        }
+//        .padding(.top, 40)
+//    }
+//
+//    @ViewBuilder
+//    func thumbnail(for item: LowerItem) -> some View {
+//        let url = item.isTrack ? item.thumbnailURL : item.coverImageURL
+//        
+//        WebImageView(
+//            url: url,
+//            placeholderColor: AppColors.secondarySystemBackground,
+//            displayStyle: .fixedFrame(width: 60, height: 60),
+//            context: "LowerItemThumbnail_\(item.id)"
+//        )
+//        .clipShape(RoundedRectangle(cornerRadius: 8))
+//    }
+//}
+//
+//// MARK: - Top Section Item View (Идеальный макет)
+//
+//
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "Future", "21 Savage", "Travis Scott"
+//    ]
+//
+//    var body: some View {
+//        HStack(alignment: .top, spacing: 12) {
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 12))
+//
+//            VStack(alignment: .leading, spacing: 8) {
+//                Text("TOP 50")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//
+//                // Список артистов с жесткой высотой
+//                VStack(alignment: .leading, spacing: 2) {
+//                    ForEach(Array(artists.enumerated()), id: \.offset) { _, line in
+//                        Text(line)
+//                            .font(.caption2)
+//                            .foregroundColor(AppColors.secondary)
+//                            .lineLimit(1)
+//                            .truncationMode(.tail)
+//                    }
+//                }
+//                // Фиксируем высоту
+//                .frame(height: imageSize, alignment: .top)
+//                .clipped()
+//                
+//                // ОВЕРЛЕЙ: Затемнение начинается С САМОГО СТАРТА (плавно нарастает)
+//                .overlay(alignment: .bottom) {
+//                    LinearGradient(
+//                        gradient: Gradient(colors: [
+//                            AppColors.secondarySystemBackground.opacity(0.0), // Самый верх: прозрачный (видно полностью)
+//                            AppColors.secondarySystemBackground.opacity(0.6), // Чуть ниже: легкое затемнение (было 0.3)
+//                            AppColors.secondarySystemBackground               // Внизу: сливается с фоном
+//                        ]),
+//                        startPoint: .top,
+//                        endPoint: .bottom
+//                    )
+//                    .frame(height: imageSize)
+//                }
+//            }
+//            .padding(.trailing, 6)
+//        }
+//        .padding(6)
+//        .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(12)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
+//
+
+
+// MARK: - defore implemintation Sticky Header
+
+//import SwiftUI
+//
+//struct DroplistCompositView: View {
+//    
+//    let data: DropData
+//    let onRefresh: () -> Void
+//    let onSelectCarouselItem: (CarouselItem) -> Void
+//    let onLoadNextPage: (CarouselItem) -> Void
+//    let onSelectLowerItem: (LowerItem) -> Void
+//    
+//    @State private var selectedCarouselItem: CarouselItem?
+//    
+//    var body: some View {
+//        // Профессиональный подход для адаптивной ширины без поломок скролла
+//        GeometryReader { geometry in
+//            let screenWidth = geometry.size.width
+//            
+//            ScrollView {
+//                VStack(spacing: 16) {
+//                    topSections(screenWidth: screenWidth)
+//                    carouselSection
+//                    lowerSectionWithFooter()
+//                }
+//                .padding(.vertical, 12)
+//            }
+//            // КЛЮЧЕВОЙ МОМЕНТ: Запрещаем анимацию смены размеров при повороте экрана
+//            .animation(.easeOut(duration: 0.0), value: screenWidth)
+//            .refreshable {
+//                onRefresh()
+//            }
+//            .onAppear {
+//                selectedCarouselItem = data.selectedItem
+//            }
+//        }
+//        // Не даем GeometryReader растягивать контент на всю высоту экрана
+//        .frame(maxHeight: .infinity, alignment: .top)
+//    }
+//}
+//
+//// MARK: - Top Sections (Идеальные пропорции)
+//private extension DroplistCompositView {
+//    func topSections(screenWidth: CGFloat) -> some View {
+//        // Чистая математика. Никаких защитных констант.
+//        let cardWidth = screenWidth * 0.80
+//        let cardHeight = cardWidth * 0.50
+//        let imageSize = cardHeight - 12
+//        
+//        return VStack(alignment: .leading, spacing: 20) {
+//            Text(data.topSection.title)
+//                .font(.headline)
+//                .padding(.horizontal)
+//            
+//            VStack(alignment: .leading, spacing: 8) {
+//                ScrollView(.horizontal, showsIndicators: false) {
+//                    HStack(spacing: 16) {
+//                        ForEach(data.topSection.items) { item in
+//                            TopSectionItemView(
+//                                item: item,
+//                                cardWidth: cardWidth,
+//                                cardHeight: cardHeight,
+//                                imageSize: imageSize
+//                            )
+//                        }
+//                    }
+//                    .padding(.horizontal)
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//                    
+//// MARK: - Carousel Section (Без изменений)
+//private extension DroplistCompositView {
+//    var carouselSection: some View {
+//        ScrollView(.horizontal, showsIndicators: false) {
+//            HStack(spacing: 12) {
+//                ForEach(data.carouselItems) { item in
+//                    carouselItem(item)
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//    //AppColors.activeColor
+//    func carouselItem(_ item: CarouselItem) -> some View {
+//        let isSelected = selectedCarouselItem?.id == item.id
+//        
+//        return Text(item.title)
+//            .font(.subheadline.weight(.medium))
+//            // Активный элемент меняет цвет текста на пурпурный
+//            .foregroundColor(isSelected ? AppColors.activeColor : AppColors.secondary)
+//            .padding(.horizontal, 14)
+//            .padding(.vertical, 8)
+//            // У неактивных элементов фона НЕТ вообще
+//            // У активного элемента - легкая пурпурная плашка
+//            .background(
+//                isSelected ?
+//                RoundedRectangle(cornerRadius: 10)
+//                    .fill(AppColors.secondarySystemBackground.opacity(0.8))
+//                : nil
+//            )
+//            .onTapGesture {
+//                guard selectedCarouselItem?.id != item.id else { return }
+//                selectedCarouselItem = item
+//                onSelectCarouselItem(item)
+//            }
+//    }
+//}
+//
+//// MARK: - Lower Section + Footer Loader (Без изменений)
+//private extension DroplistCompositView {
+//    
+//    @ViewBuilder
+//    func lowerSectionWithFooter() -> some View {
+//        if data.isLowerSectionLoading {
+//            VStack {
+//                ProgressView()
+//                Text("Загрузка...")
+//                    .foregroundColor(.secondary)
+//            }
+//            .frame(maxWidth: .infinity, minHeight: 200)
+//        }
+//        else if data.initialLowerSection.items.isEmpty {
+//            lowerSectionErrorPlaceholder
+//        }
+//        else {
+//            LazyVStack(spacing: 16) {
+//                ForEach(data.initialLowerSection.items) { item in
+//                    lowerItemCell(item)
+//                }
+//                
+//                if data.initialLowerSection.hasMore {
+//                    footerView
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//    
+//    @ViewBuilder
+//    var footerView: some View {
+//        switch data.footerState {
+//        case .idle:
+//            HStack {
+//                Spacer()
+//                Color.clear
+//                    .frame(height: 44)
+//                    .onAppear {
+//                        print("footerView case .idle")
+//                        if let selected = selectedCarouselItem {
+//                            onLoadNextPage(selected)
+//                        }
+//                    }
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//            
+//        case .loading:
+//            HStack {
+//                Spacer()
+//                ProgressView()
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//            
+//        case .error(let message):
+//            HStack {
+//                Spacer()
+//                VStack(spacing: 6) {
+//                    Text(message)
+//                        .foregroundColor(.secondary)
+//                    Button("Повторить") {
+//                        if let selected = selectedCarouselItem {
+//                            onLoadNextPage(selected)
+//                        }
+//                    }
+//                }
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//        }
+//    }
+//    
+//    func lowerItemCell(_ item: LowerItem) -> some View {
+//        Button {
+//            onSelectLowerItem(item)
+//        } label: {
+//            HStack(spacing: 12) {
+//                thumbnail(for: item)
+//                
+//                VStack(alignment: .leading, spacing: 4) {
+//                    Text(item.title)
+//                        .font(.headline)
+//                        .foregroundColor(.primary)
+//                    
+//                    if let subtitle = item.subtitle {
+//                        Text(subtitle)
+//                            .font(.subheadline)
+//                            .foregroundColor(.secondary)
+//                            .lineLimit(2)
+//                    }
+//                }
+//                Spacer()
+//            }
+//        }
+//    }
+//    
+//    var lowerSectionErrorPlaceholder: some View {
+//        VStack(spacing: 12) {
+//            Text("Не удалось загрузить данные")
+//                .font(.headline)
+//                .foregroundColor(.secondary)
+//            
+//            Button("Повторить") {
+//                if let selected = selectedCarouselItem {
+//                    onSelectCarouselItem(selected)
+//                }
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 8)
+//            .background(Color.blue.opacity(0.2))
+//            .cornerRadius(8)
+//        }
+//        .padding(.top, 40)
+//    }
+//
+//    @ViewBuilder
+//    func thumbnail(for item: LowerItem) -> some View {
+//        let url = item.isTrack ? item.thumbnailURL : item.coverImageURL
+//        
+//        WebImageView(
+//            url: url,
+//            placeholderColor: AppColors.secondarySystemBackground,
+//            displayStyle: .fixedFrame(width: 60, height: 60),
+//            context: "LowerItemThumbnail_\(item.id)"
+//        )
+//        .clipShape(RoundedRectangle(cornerRadius: 8))
+//    }
+//}
+//
+//// MARK: - Top Section Item View (Идеальный макет)
+//
+//
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "Future", "21 Savage", "Travis Scott"
+//    ]
+//
+//    var body: some View {
+//        HStack(alignment: .top, spacing: 12) {
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 12))
+//
+//            VStack(alignment: .leading, spacing: 8) {
+//                Text("TOP 50")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//
+//                // Список артистов с жесткой высотой
+//                VStack(alignment: .leading, spacing: 2) {
+//                    ForEach(Array(artists.enumerated()), id: \.offset) { _, line in
+//                        Text(line)
+//                            .font(.caption2)
+//                            .foregroundColor(AppColors.secondary)
+//                            .lineLimit(1)
+//                            .truncationMode(.tail)
+//                    }
+//                }
+//                // Фиксируем высоту
+//                .frame(height: imageSize, alignment: .top)
+//                .clipped()
+//                
+//                // ОВЕРЛЕЙ: Затемнение начинается С САМОГО СТАРТА (плавно нарастает)
+//                .overlay(alignment: .bottom) {
+//                    LinearGradient(
+//                        gradient: Gradient(colors: [
+//                            AppColors.secondarySystemBackground.opacity(0.0), // Самый верх: прозрачный (видно полностью)
+//                            AppColors.secondarySystemBackground.opacity(0.6), // Чуть ниже: легкое затемнение (было 0.3)
+//                            AppColors.secondarySystemBackground               // Внизу: сливается с фоном
+//                        ]),
+//                        startPoint: .top,
+//                        endPoint: .bottom
+//                    )
+//                    .frame(height: imageSize)
+//                }
+//            }
+//            .padding(.trailing, 6)
+//        }
+//        .padding(6)
+//        .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
+//        .background(AppColors.secondarySystemBackground)
+//        .cornerRadius(12)
+//        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//    }
+//}
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
