@@ -231,7 +231,8 @@ final class DroplistViewModel: ObservableObject {
     }
     
     // MARK: - didSelectCarouselItem
-
+    
+  
     func didSelectCarouselItem(_ item: CarouselItem) async {
         print("func didSelectCarouselItem(_ item: CarouselItem) async")
 
@@ -243,6 +244,7 @@ final class DroplistViewModel: ObservableObject {
         let requestID = UUID()
         currentRequestID = requestID
 
+        
         currentSelectionTask?.cancel()
 
         currentSelectionTask = Task { @MainActor in
@@ -267,14 +269,14 @@ final class DroplistViewModel: ObservableObject {
             }
 
             // 2. Показываем loader
+//            LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false)
             guard requestID == currentRequestID else { return }
             guard !viewState.isError else { return }
-
             viewState = .contentList(
                 DropData(
                     topSection: currentDropData.topSection,
                     carouselItems: currentDropData.carouselItems,
-                    initialLowerSection: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false),
+                    initialLowerSection: currentDropData.initialLowerSection,
                     selectedItem: item,
                     isLowerSectionLoading: true,
                     footerState: .idle
@@ -288,6 +290,9 @@ final class DroplistViewModel: ObservableObject {
                 guard requestID == currentRequestID else { return }
                 guard !viewState.isError else { return }
 
+                // 🔥 ИСКУССТВЕННАЯ ЗАДЕРЖКА НА 3 СЕКУНДЫ
+                    // 3 секунды = 3_000_000_000 наносекунд
+//                try await Task.sleep(nanoseconds: 3_000_000_000)
                 viewState = .contentList(
                     DropData(
                         topSection: currentDropData.topSection,

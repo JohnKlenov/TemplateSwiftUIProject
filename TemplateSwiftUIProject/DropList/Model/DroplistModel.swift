@@ -446,7 +446,7 @@ struct TopSectionTrackDoc: Codable, Identifiable {
 // - У треков thumbnail один → thumbnailURL
 // - durationISO8601 добавлено для треков
 
-struct LowerItem: Identifiable {
+struct LowerItem: Identifiable, Equatable {
     let id: String                     // playlistId или videoId
     let title: String
     let subtitle: String?              // description (playlist) или artist (track)
@@ -456,6 +456,18 @@ struct LowerItem: Identifiable {
     let trackCount: Int?               // только для плейлистов
     let isTrack: Bool                  // true → трек, false → плейлист
 }
+
+// до исправлнеия скачка ui на Droplist при переходе на итем в средней секции
+//struct LowerItem: Identifiable {
+//    let id: String                     // playlistId или videoId
+//    let title: String
+//    let subtitle: String?              // description (playlist) или artist (track)
+//    let coverImageURL: URL?            // только для плейлистов
+//    let thumbnailURL: URL?             // только для треков
+//    let durationISO8601: String?       // только для треков
+//    let trackCount: Int?               // только для плейлистов
+//    let isTrack: Bool                  // true → трек, false → плейлист
+//}
 
 //  3. DropData — данные для DroplistCompositView
 
