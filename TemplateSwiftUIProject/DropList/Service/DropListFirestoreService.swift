@@ -253,7 +253,6 @@
 //  let hasMore = snapshot.documents.count == pageSize - как работает эта реализация
 // заетм в DropListDataSource мы  guard currentPage.hasMore else - // Больше страниц нет ! а если они были добавлены админом и теперь там есть новые данные???
 
-
 import Foundation
 import FirebaseFirestore
 
@@ -784,6 +783,541 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol, @uncheck
             }
         }
     }
+
+
+// MARK: - before simple DroplistCompositView
+
+
+//import Foundation
+//import FirebaseFirestore
+//
+//struct FirestoreGetServiceError: Error {
+//    let underlying: Error
+//    let context: ErrorContext
+//}
+//
+//// MARK: - Protocol
+//
+//protocol DropListFirestoreServiceProtocol {
+//    func fetchTopSection() async throws -> TopSectionModel
+//    func fetchCarouselItems() async throws -> [CarouselItem]
+//    func fetchInitialLowerPage(
+//        for item: CarouselItem,
+//        pageSize: Int
+//    ) async throws -> LowerSectionPage
+//    func fetchNextLowerPage(
+//        for item: CarouselItem,
+//        after lastSnapshot: DocumentSnapshot,
+//        pageSize: Int
+//    ) async throws -> LowerSectionPage
+//}
+//
+//
+//final class DropListFirestoreService: DropListFirestoreServiceProtocol, @unchecked Sendable {
+//
+//    private let db: Firestore
+//    private let errorHandler: ErrorDiagnosticsProtocol
+//
+//    init(
+//        db: Firestore = Firestore.firestore(),
+//        errorHandler: ErrorDiagnosticsProtocol
+//    ) {
+//        self.db = db
+//        self.errorHandler = errorHandler
+//    }
+//
+//    // MARK: - Top Sections
+//
+//    func fetchTopSection() async throws -> TopSectionModel {
+//        try await withCheckedThrowingContinuation { continuation in
+//            db.collection("topSection")
+//                .order(by: "orderIndex", descending: false)
+//                .getDocuments { [weak self] snapshot, error in
+//                    guard let self else { return }
+//
+//                    if let error {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: error,
+//                                context: .DropListFirestoreService_fetchTopSection
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    guard let snapshot else {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.nilSnapshot,
+//                                context: .DropListFirestoreService_fetchTopSection
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    if snapshot.documents.isEmpty {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.snapshotIsEmpty,
+//                                context: .DropListFirestoreService_fetchTopSection
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    // MARK: - Безопасное декодирование Firestore
+//                    //
+//                    // 🔐 do-catch + compactMap + errorHandler.handle = 100% защита от крашей
+//                    //
+//                    // ЧТО ЛОВИТ catch (ошибка → логируем → пропускаем документ):
+//                    // • Поле имеет другой тип (String вместо Int)
+//                    // • Отсутствует обязательное поле (не Optional)
+//                    // • Обязательное поле = null
+//                    // • Все поля другие/повреждённые данные
+//                    //
+//                    // ЧТО НЕ ВЫЗЫВАЕТ ОШИБОК:
+//                    // • Лишние поля в Firestore → игнорируются
+//                    // • Отсутствует Optional поле → получает nil
+//                    // • Optional поле = null → получает nil
+//                    //
+//                    // ℹ️ Optional защищает только от ОТСУТСТВИЯ поля, но НЕ от неправильного типа!
+//                    //    String? при Int значении → catch, документ пропущен
+//                    let docs: [(id: String, data: TopSectionDoc)] = snapshot.documents.compactMap { doc in
+//                        do {
+//                            let decoded = try doc.data(as: TopSectionDoc.self)
+//                            return (doc.documentID, decoded)
+//                        } catch {
+//                            let _ = self.errorHandler.handle(
+//                                error: error,
+//                                context: "fetchTopSection | decode \(doc.documentID)"
+//                            )
+//                            return nil
+//                        }
+//                    }
+//
+//                    if docs.isEmpty {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.docsIsEmpty,
+//                                context: .DropListFirestoreService_fetchTopSection
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    let items: [TopItem] = docs.map { playlist in
+//                        TopItem(
+//                            id: playlist.id,
+//                            title: playlist.data.title,
+//                            imageURL: playlist.data.coverImageURL.flatMap { URL(string: $0) }
+//                        )
+//                    }
+//
+//                    let sectionModel = TopSectionModel(
+//                        id: "top_section",
+//                        title: "TopDrop",
+//                        items: items
+//                    )
+//
+//                    continuation.resume(returning: sectionModel)
+//                }
+//        }
+//    }
+//
+//    // MARK: - Carousel Items
+//
+//
+//    func fetchCarouselItems() async throws -> [CarouselItem] {
+//        try await withCheckedThrowingContinuation { continuation in
+//            db.collection("carouselItems")
+//                .order(by: "orderIndex", descending: false) // сортировка по возрастанию
+//                .getDocuments { [weak self] snapshot, error in
+//                    guard let self else { return }
+//
+//                    if let error {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: error,
+//                                context: .DropListFirestoreService_fetchCarouselItems
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    guard let snapshot else {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.nilSnapshot,
+//                                context: .DropListFirestoreService_fetchCarouselItems
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    if snapshot.documents.isEmpty {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.snapshotIsEmpty,
+//                                context: .DropListFirestoreService_fetchCarouselItems
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    let items: [CarouselItem] = snapshot.documents.compactMap { doc in
+//                        do {
+//                            let decoded = try doc.data(as: CarouselDoc.self)
+//                            return CarouselItem(
+//                                id: decoded.id,
+//                                title: decoded.title,
+//                                type: decoded.type
+//                            )
+//                        } catch {
+//                            let _ = self.errorHandler.handle(
+//                                error: error,
+//                                context: "\(ErrorContext.DropListFirestoreService_fetchCarouselItems.rawValue) | documentID: \(doc.documentID)"
+//                            )
+//                            return nil
+//                        }
+//                    }
+//
+//                    if items.isEmpty {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.docsIsEmpty,
+//                                context: .DropListFirestoreService_fetchCarouselItems
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    continuation.resume(returning: items)
+//                }
+//        }
+//    }
+//
+//
+//    // MARK: - Lower Section (Initial Page)
+//
+//    func fetchInitialLowerPage(
+//        for item: CarouselItem,
+//        pageSize: Int
+//    ) async throws -> LowerSectionPage {
+//        switch item.type {
+//        case .droplist:
+//            return try await fetchPlaylistsPage(
+//                after: nil,
+//                pageSize: pageSize
+//            )
+//
+//        case .allTracks:
+//            return try await fetchTracksPage(
+//                tag: nil,
+//                pageSize: pageSize,
+//                after: nil
+//            )
+//
+//        case .gym, .party, .rnb:
+//            return try await fetchTracksPage(
+//                tag: item.type.rawValue,
+//                pageSize: pageSize,
+//                after: nil
+//            )
+//        }
+//    }
+//
+//    // MARK: - Lower Section (Next Page)
+//
+//    func fetchNextLowerPage(
+//        for item: CarouselItem,
+//        after lastSnapshot: DocumentSnapshot,
+//        pageSize: Int
+//    ) async throws -> LowerSectionPage {
+//        switch item.type {
+//        case .droplist:
+//            return try await fetchPlaylistsPage(
+//                after: lastSnapshot,
+//                pageSize: pageSize
+//            )
+//
+//        case .allTracks:
+//            return try await fetchTracksPage(
+//                tag: nil,
+//                pageSize: pageSize,
+//                after: lastSnapshot
+//            )
+//
+//        case .gym, .party, .rnb:
+//            return try await fetchTracksPage(
+//                tag: item.type.rawValue,
+//                pageSize: pageSize,
+//                after: lastSnapshot
+//            )
+//        }
+//    }
+//
+//    // MARK: - Private: Playlists Page (droplist)
+//
+//    private func fetchPlaylistsPage(
+//        after lastSnapshot: DocumentSnapshot?,
+//        pageSize: Int
+//    ) async throws -> LowerSectionPage {
+//
+//        try await withCheckedThrowingContinuation { continuation in
+//            var query: Query = db.collection("droplist")
+//                .order(by: "createdAt", descending: true)
+//                .limit(to: pageSize)
+//
+//            if let lastSnapshot {
+//                query = query.start(afterDocument: lastSnapshot)
+//            }
+//
+//            query.getDocuments { [weak self] snapshot, error in
+//                guard let self else { return }
+//
+//                if let error {
+//                    continuation.resume(
+//                        throwing: FirestoreGetServiceError(
+//                            underlying: error,
+//                            context: .DropListFirestoreService_fetchPlaylistsPage
+//                        )
+//                    )
+//                    return
+//                }
+//
+//                guard let snapshot else {
+//                    continuation.resume(
+//                        throwing: FirestoreGetServiceError(
+//                            underlying: AppInternalError.nilSnapshot,
+//                            context: .DropListFirestoreService_fetchPlaylistsPage
+//                        )
+//                    )
+//                    return
+//                }
+//
+//                if snapshot.documents.isEmpty {
+//                    if lastSnapshot != nil {
+//                        // пагинация → конец списка
+//                        continuation.resume(
+//                            returning: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false)
+//                        )
+//                        return
+//                    } else {
+//                        // initial load → ошибка
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.snapshotIsEmpty,
+//                                context: .DropListFirestoreService_fetchTracksPage
+//                            )
+//                        )
+//                        return
+//                    }
+//                }
+//
+//                let docs: [PlaylistDoc] = snapshot.documents.compactMap { doc in
+//                    do {
+//                        let decoded = try doc.data(as: PlaylistDoc.self)
+//
+//                        return PlaylistDoc(
+//                            playlistId: decoded.playlistId,
+//                            title: decoded.title,
+//                            description: decoded.description,
+//                            coverImageURL: decoded.coverImageURL,
+//                            trackCount: decoded.trackCount,
+//                            createdAt: decoded.createdAt
+//                        )
+//
+//                    } catch {
+//                        let _ = self.errorHandler.handle(
+//                            error: error,
+//                            context: "\(ErrorContext.DropListFirestoreService_fetchPlaylistsPage.rawValue) | documentID: \(doc.documentID)"
+//                        )
+//                        return nil
+//                    }
+//                }
+//
+//                if docs.isEmpty {
+//                    print("docs.isEmpty")
+//                    continuation.resume(
+//                        throwing: FirestoreGetServiceError(
+//                            underlying: AppInternalError.docsIsEmpty,
+//                            context: .DropListFirestoreService_fetchPlaylistsPage
+//                        )
+//                    )
+//                    return
+//                }
+//
+//                let items: [LowerItem] = docs.map { playlist in
+//                    let coverURL = playlist.coverImageURL.flatMap { URL(string: $0) }
+//
+//                    return LowerItem(
+//                        id: playlist.playlistId,
+//                        title: playlist.title,
+//                        subtitle: playlist.description,
+//                        coverImageURL: coverURL,
+//                        thumbnailURL: nil,
+//                        durationISO8601: nil,
+//                        trackCount: playlist.trackCount,
+//                        isTrack: false
+//                    )
+//                }
+//
+//                let last = snapshot.documents.last
+//                let hasMore = snapshot.documents.count == pageSize
+//                print("private func fetchPlaylistsPage - snapshot.documents.count - \(snapshot.documents.count), hasMore - \(hasMore), last - \(String(describing: last))")
+//
+//                continuation.resume(
+//                    returning: LowerSectionPage(
+//                        items: items,
+//                        lastDocumentSnapshot: last,
+//                        hasMore: hasMore
+//                    )
+//                )
+//            }
+//        }
+//    }
+//    
+//
+//    // MARK: - Private: Tracks Page (dropTracks)
+//
+//    /// Firestore использует оффлайн‑кэш по умолчанию.
+//    /// Поэтому поведение getDocuments зависит от состояния сети:
+//    /// • Сеть есть → возвращаются актуальные online‑данные
+//    /// • Сети нет, но есть кэш → возвращаются cached‑данные без ошибки
+//    /// • Сети нет и кэша нет → генерируется ошибка
+//    ///
+//    /// Это нормальное поведение Firestore SDK: запросы не гарантируют онлайн‑результат,
+//    /// а автоматически подставляют локальный кэш, если сеть недоступна.
+//
+//    private func fetchTracksPage(
+//        tag: String?,
+//        pageSize: Int,
+//        after lastSnapshot: DocumentSnapshot?
+//    ) async throws -> LowerSectionPage {
+//
+//        try await withCheckedThrowingContinuation { continuation in
+//            var query: Query = db.collection("dropTracks")
+//
+//            if let tag {
+//                query = query.whereField("tags", arrayContains: tag)
+//            }
+//
+//            query = query
+//                .order(by: "createdAt", descending: true)
+//                .limit(to: pageSize)
+//
+//            if let lastSnapshot {
+//                query = query.start(afterDocument: lastSnapshot)
+//            }
+//
+//            query.getDocuments { [weak self] snapshot, error in
+//                guard let self else { return }
+//
+//                if let error {
+//                    continuation.resume(
+//                        throwing: FirestoreGetServiceError(
+//                            underlying: error,
+//                            context: .DropListFirestoreService_fetchTracksPage
+//                        )
+//                    )
+//                    return
+//                }
+//
+//                guard let snapshot else {
+//                    continuation.resume(
+//                        throwing: FirestoreGetServiceError(
+//                            underlying: AppInternalError.nilSnapshot,
+//                            context: .DropListFirestoreService_fetchTracksPage
+//                        )
+//                    )
+//                    return
+//                }
+//
+//                if snapshot.documents.isEmpty {
+//                    if lastSnapshot != nil {
+//                        // пагинация → конец списка
+//                        continuation.resume(
+//                            returning: LowerSectionPage(items: [], lastDocumentSnapshot: nil, hasMore: false)
+//                        )
+//                        return
+//                    } else {
+//                        // initial load → ошибка
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.snapshotIsEmpty,
+//                                context: .DropListFirestoreService_fetchTracksPage
+//                            )
+//                        )
+//                        return
+//                    }
+//                }
+//
+//                print("snapshot.documents.count = \(snapshot.documents.count)")
+//
+//                let docs: [TrackDoc] = snapshot.documents.compactMap { doc in
+//                    do {
+//                        var track = try doc.data(as: TrackDoc.self)
+//                        track = TrackDoc(
+//                            id: doc.documentID,
+//                            videoId: track.videoId,
+//                            title: track.title,
+//                            artist: track.artist,
+//                            thumbnailURL: track.thumbnailURL,
+//                            durationISO8601: track.durationISO8601,
+//                            tags: track.tags,
+//                            playlists: track.playlists,
+//                            createdAt: track.createdAt,
+//                            searchKeywords: track.searchKeywords
+//                        )
+//                        return track
+//                    } catch {
+//                        let _ = self.errorHandler.handle(
+//                            error: error,
+//                            context: "\(ErrorContext.DropListFirestoreService_fetchTracksPage.rawValue) | tags: \(tag ?? "allTracks") | documentID: \(doc.documentID)"
+//                        )
+//                        return nil
+//                    }
+//                }
+//
+//                if docs.isEmpty {
+//                    continuation.resume(
+//                        throwing: FirestoreGetServiceError(
+//                            underlying: AppInternalError.docsIsEmpty,
+//                            context: .DropListFirestoreService_fetchTracksPage
+//                        )
+//                    )
+//                    print("private func fetchTracksPage - docs.isEmpty - error ")
+//                    return
+//                }
+//
+//                let items: [LowerItem] = docs.map { track in
+//                    let thumbURL = track.thumbnailURL.flatMap { URL(string: $0) }
+//
+//                    return LowerItem(
+//                        id: track.videoId,
+//                        title: track.title,
+//                        subtitle: track.artist,
+//                        coverImageURL: nil,
+//                        thumbnailURL: thumbURL,
+//                        durationISO8601: track.durationISO8601,
+//                        trackCount: nil,
+//                        isTrack: true
+//                    )
+//                }
+//
+//                let last = snapshot.documents.last
+//                let hasMore = snapshot.documents.count == pageSize
+//
+//                continuation.resume(
+//                    returning: LowerSectionPage(
+//                        items: items,
+//                        lastDocumentSnapshot: last,
+//                        hasMore: hasMore
+//                    )
+//                )
+//            }
+//        }
+//    }
     
     // MARK: - Fetch Tracks for Top Section Playlist
 

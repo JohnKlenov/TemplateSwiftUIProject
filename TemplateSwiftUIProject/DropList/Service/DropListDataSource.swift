@@ -30,7 +30,6 @@
 
 // MARK: - DropListDataSource
 
-
 import Foundation
 import FirebaseFirestore
 
@@ -272,6 +271,252 @@ final class DropListDataSource {
     }
 }
     
+
+
+// MARK: - before simple DroplistCompositView
+
+
+//import Foundation
+//import FirebaseFirestore
+//
+//
+//
+//enum NextPageResult {
+//    case loaded(page: LowerSectionPage)
+//    case noMore
+//    case invalidState
+//}
+//
+//struct DropListUserFacingError: Error {
+//    let message: String
+//}
+//
+//final class DropListDataSource {
+//
+//    // MARK: - Dependencies
+//
+//    private let firestoreService: DropListFirestoreServiceProtocol
+//    private let errorHandler: ErrorDiagnosticsProtocol
+//    private let alertManager: AlertManager
+//    private let pageSize: Int
+//
+//    // MARK: - Cached State (actor)
+//    private let pagesCache = PagesCache()
+//    private(set) var currentItem: CarouselItem?
+//    // Флаг, предотвращающий гонку при пагинации (локальная защита)
+////    private var isLoadingNextPageForItem: Set<String> = []
+//
+//    // MARK: - Init
+//
+//    init(
+//        firestoreService: DropListFirestoreServiceProtocol,
+//        errorHandler: ErrorDiagnosticsProtocol,
+//        alertManager: AlertManager = .shared,
+//        pageSize: Int = 10
+//    ) {
+//        self.firestoreService = firestoreService
+//        self.errorHandler = errorHandler
+//        self.alertManager = alertManager
+//        self.pageSize = pageSize
+//    }
+//
+//    // MARK: - help methods
+//
+//    // Сбрасывает весь локальный кэш страниц и состояние пагинации.
+//    // Используется при полном сбросе состояния (retry), когда не требуется
+//    // ждать завершения операции — initial load всё равно загрузит данные заново.
+//    func resetCache() {
+//        // синхронный wrapper — для совместимости с существующим кодом
+//        Task {
+//            await pagesCache.reset()
+//        }
+//        currentItem = nil
+//    }
+//
+//    // Полностью сбрасывает кэш страниц и состояние пагинации,
+//    // гарантируя последовательность выполнения (await).
+//    // Используется в refreshAll(), где важно, чтобы кэш был очищен
+//    // до записи новых данных — предотвращает гонки и некорректные состояния.
+//    func resetCacheAsync() async {
+//        await pagesCache.reset()
+//        currentItem = nil
+//    }
+//
+//    func cachedPage(for item: CarouselItem) async -> LowerSectionPage? {
+//        return await pagesCache.get(item.id)
+//    }
+//
+//    // MARK: - Public API
+//
+//    func loadInitialDropList(
+//        defaultSelectedIndex: Int = 0
+//    ) async -> Result<DropData, DropListUserFacingError> {
+//        do {
+//            async let topTask: TopSectionModel = firestoreService.fetchTopSection()
+//            async let carouselTask: [CarouselItem] = firestoreService.fetchCarouselItems()
+//
+//            let (topSection, carouselItems) = try await (topTask, carouselTask)
+//
+//            // Определяем дефолтный item
+//            // Гарантируем, что индекс всегда в допустимых пределах массива (0 ... count-1),
+//            // чтобы избежать выхода за границы и всегда иметь валидный выбранный элемент.
+//            let index = min(max(0, defaultSelectedIndex), carouselItems.count - 1)
+//            let selected = carouselItems[index]
+//            currentItem = selected
+//
+//            let firstPage = try await firestoreService.fetchInitialLowerPage(
+//                for: selected,
+//                pageSize: pageSize
+//            )
+//
+//            await pagesCache.set(selected.id, page: firstPage)
+//
+//            let dropData = DropData(
+//                topSection: topSection,
+//                carouselItems: carouselItems,
+//                initialLowerSection: firstPage,
+//                selectedItem: selected,
+//                isLowerSectionLoading: false,
+//                footerState: .idle
+//            )
+//
+//            return .success(dropData)
+//
+//        } catch {
+//            let message = handleError(error)
+//            return .failure(DropListUserFacingError(message: message))
+//        }
+//    }
+//
+//    // Смена item в карусели
+//    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
+//        print("item - \(item)")
+//        print("item.type- \(item.type)")
+//        print("item.type.rawValue - \(item.type.rawValue)")
+//        currentItem = item
+//
+//        let firstPage = try await firestoreService.fetchInitialLowerPage(
+//            for: item,
+//            pageSize: pageSize
+//        )
+//
+//        await pagesCache.set(item.id, page: firstPage)
+//        return firstPage
+//    }
+//
+//    // Пагинация — возвращаем явный NextPageResult
+//    func loadNextPageIfNeeded(for item: CarouselItem) async throws -> NextPageResult {
+//
+//        guard let currentPage = await pagesCache.get(item.id) else {
+//            return .invalidState
+//        }
+//
+//        guard currentPage.hasMore,
+//              let lastSnapshot = currentPage.lastDocumentSnapshot else {
+//            return .noMore
+//        }
+//
+//        // Firestore больше НЕ бросает emptyResult при пагинации
+//        let nextPage = try await firestoreService.fetchNextLowerPage(
+//            for: item,
+//            after: lastSnapshot,
+//            pageSize: pageSize
+//        )
+//
+//        // Пустая страница = конец списка
+//        if nextPage.items.isEmpty {
+//            let mergedPage = LowerSectionPage(
+//                items: currentPage.items,
+//                lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+//                hasMore: false
+//            )
+//            await pagesCache.set(item.id, page: mergedPage)
+//            return .noMore
+//        }
+//
+//        // Нормальная страница
+//        let mergedItems = currentPage.items + nextPage.items
+//        let mergedPage = LowerSectionPage(
+//            items: mergedItems,
+//            lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+//            hasMore: nextPage.hasMore
+//        )
+//
+//        await pagesCache.set(item.id, page: mergedPage)
+//        return .loaded(page: mergedPage)
+//    }
+//
+//    // MARK: - Soft Refresh
+//    
+//    func refreshAll() async -> DropData? {
+//        do {
+//            async let topTask: TopSectionModel = firestoreService.fetchTopSection()
+//            async let carouselTask: [CarouselItem] = firestoreService.fetchCarouselItems()
+//
+//            let (topSection, carouselItems) = try await (topTask, carouselTask)
+//
+//            let selectedItem: CarouselItem
+//            if let current = currentItem,
+//               let matched = carouselItems.first(where: { $0.id == current.id }) {
+//                selectedItem = matched
+//            } else {
+//                guard let first = carouselItems.first else {
+//                    let _ = errorHandler.handle(
+//                        error: AppInternalError.snapshotIsEmpty,
+//                        context: "refreshAll | carouselItems.isEmpty"
+//                    )
+//                    return nil
+//                }
+//                selectedItem = first
+//            }
+//
+//            let firstPage = try await firestoreService.fetchInitialLowerPage(
+//                for: selectedItem,
+//                pageSize: pageSize
+//            )
+//
+//            await resetCacheAsync()
+//            currentItem = selectedItem
+//            await pagesCache.set(selectedItem.id, page: firstPage)
+//
+//            return DropData(
+//                topSection: topSection,
+//                carouselItems: carouselItems,
+//                initialLowerSection: firstPage,
+//                selectedItem: selectedItem,
+//                isLowerSectionLoading: false,
+//                footerState: .idle
+//            )
+//
+//        } catch {
+//            // Мягкий refresh — UI не ломаем
+//            let _ = errorHandler.handle(
+//                error: error,
+//                context: ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue
+//            )
+//            return nil
+//        }
+//    }
+//
+//    // MARK: - Error Handling
+//
+//    func handleError(_ error: Error) -> String {
+//        if let serviceError = error as? FirestoreGetServiceError {
+//            let combinedContext =
+//            "\(serviceError.context.rawValue) | \(ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue)"
+//            return errorHandler.handle(
+//                error: serviceError.underlying,
+//                context: combinedContext
+//            )
+//        } else {
+//            return errorHandler.handle(
+//                error: error,
+//                context: ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue
+//            )
+//        }
+//    }
+//}
+//    
 
 
 // MARK: - before deleted isLoadingNextPageForItem

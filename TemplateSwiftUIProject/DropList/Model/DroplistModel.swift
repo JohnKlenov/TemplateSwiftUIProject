@@ -337,8 +337,6 @@
 // MARK: - Внешняя локализация title (строк) (на стороне Firebase как в BookStores)
 
 
-
-
 import Foundation
 import FirebaseFirestore
 
@@ -457,40 +455,6 @@ struct LowerItem: Identifiable, Equatable {
     let isTrack: Bool                  // true → трек, false → плейлист
 }
 
-// до исправлнеия скачка ui на Droplist при переходе на итем в средней секции
-//struct LowerItem: Identifiable {
-//    let id: String                     // playlistId или videoId
-//    let title: String
-//    let subtitle: String?              // description (playlist) или artist (track)
-//    let coverImageURL: URL?            // только для плейлистов
-//    let thumbnailURL: URL?             // только для треков
-//    let durationISO8601: String?       // только для треков
-//    let trackCount: Int?               // только для плейлистов
-//    let isTrack: Bool                  // true → трек, false → плейлист
-//}
-
-//  3. DropData — данные для DroplistCompositView
-
-//struct DropData {
-//    let topSection: TopSectionModel
-//    let carouselItems: [CarouselItem]
-//    let initialLowerSection: LowerSectionPage
-//}
-
-//struct DropData {
-//    let topSection: TopSectionModel
-//    let carouselItems: [CarouselItem]
-//    let initialLowerSection: LowerSectionPage
-//    let selectedItem: CarouselItem   // ← добавили
-//}
-
-//struct DropData {
-//    let topSection: TopSectionModel
-//    let carouselItems: [CarouselItem]
-//    let initialLowerSection: LowerSectionPage
-//    let selectedItem: CarouselItem
-//    let isLowerSectionLoading: Bool
-//}
 
 struct DropData {
     let topSection: TopSectionModel
@@ -546,6 +510,230 @@ struct TopItem: Identifiable {
     let title: String
     let imageURL: URL?
 }
+
+
+
+
+// MARK: - before simple DroplistCompositView
+
+
+
+//import Foundation
+//import FirebaseFirestore
+//
+//
+//// MARK: - MyTrackCloud (users/{userId}/myTracks/{docId})
+//
+//struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
+//    @DocumentID var id: String?
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let tags: [String]?
+//    let playlists: [String]?
+//    let createdAt: Date
+//}
+//
+//// MARK: - 1. Firestore DTO (Data Transfer Objects)
+//
+////  PlaylistDoc — документ плейлиста (droplist/{playlistId})
+//
+//struct PlaylistDoc: Codable {
+//    let playlistId: String
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    let createdAt: Date?
+//}
+//
+////  PlaylistTrackDoc — документ трека внутри плейлиста (droplist/{playlistId}/tracks/{videoId})
+//
+//struct PlaylistTrackDoc: Codable, Identifiable {
+//    let id: String                 // videoId
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let orderIndex: Int
+//    let createdAt: Date
+//}
+//
+//// TrackDoc — глобальный трек (dropTracks/{videoId})
+//
+//struct TrackDoc: Codable, Identifiable {
+//    let id: String?                 // videoId
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let tags: [String]?
+//    let playlists: [String]?
+//    let createdAt: Date
+//    let searchKeywords: [String]?
+//}
+//
+////  CarouselDoc — документ плейлиста (carouselItems/{docId})
+//
+//struct CarouselDoc: Codable, Identifiable {
+//    let id: String
+//    let title: String
+//    let type: CarouselItemType
+//    let orderIndex: Int
+//    let createdAt: Date?
+//}
+//
+//
+////  TopSectionDoc — документ плейлиста (topSections/{playlistId})
+//
+//struct TopSectionDoc: Codable {
+//    let playlistId: String      // Критично → обязательное
+//    let title: String           // Критично → обязательное
+//    let description: String?    // Не критично → опциональное
+//    let coverImageURL: String?  // Не критично → опциональное
+//    let trackCount: Int         // Критично → обязательное
+//    let createdAt: Date?        // Может отсутствовать → опциональное
+//    let orderIndex: Int         // Критично → обязательное
+//}
+//
+//// TopSectionTrackDoc — трек (topSections/tracks (subcollection)/{videoId})
+//
+//struct TopSectionTrackDoc: Codable, Identifiable {
+//    let id: String
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let orderIndex: Int
+//    let createdAt: Date
+//}
+//
+//
+//
+//
+//
+//// MARK: - 2. Domain Models (UI‑модели)
+//
+//// LowerItem — универсальная модель нижней секции
+//// Адаптирована под реальную структуру Firestore:
+//// - У плейлистов НЕТ sampleThumbnails → удалено
+//// - У треков thumbnail один → thumbnailURL
+//// - durationISO8601 добавлено для треков
+//
+//struct LowerItem: Identifiable, Equatable {
+//    let id: String                     // playlistId или videoId
+//    let title: String
+//    let subtitle: String?              // description (playlist) или artist (track)
+//    let coverImageURL: URL?            // только для плейлистов
+//    let thumbnailURL: URL?             // только для треков
+//    let durationISO8601: String?       // только для треков
+//    let trackCount: Int?               // только для плейлистов
+//    let isTrack: Bool                  // true → трек, false → плейлист
+//}
+//
+//// до исправлнеия скачка ui на Droplist при переходе на итем в средней секции
+////struct LowerItem: Identifiable {
+////    let id: String                     // playlistId или videoId
+////    let title: String
+////    let subtitle: String?              // description (playlist) или artist (track)
+////    let coverImageURL: URL?            // только для плейлистов
+////    let thumbnailURL: URL?             // только для треков
+////    let durationISO8601: String?       // только для треков
+////    let trackCount: Int?               // только для плейлистов
+////    let isTrack: Bool                  // true → трек, false → плейлист
+////}
+//
+////  3. DropData — данные для DroplistCompositView
+//
+////struct DropData {
+////    let topSection: TopSectionModel
+////    let carouselItems: [CarouselItem]
+////    let initialLowerSection: LowerSectionPage
+////}
+//
+////struct DropData {
+////    let topSection: TopSectionModel
+////    let carouselItems: [CarouselItem]
+////    let initialLowerSection: LowerSectionPage
+////    let selectedItem: CarouselItem   // ← добавили
+////}
+//
+////struct DropData {
+////    let topSection: TopSectionModel
+////    let carouselItems: [CarouselItem]
+////    let initialLowerSection: LowerSectionPage
+////    let selectedItem: CarouselItem
+////    let isLowerSectionLoading: Bool
+////}
+//
+//struct DropData {
+//    let topSection: TopSectionModel
+//    let carouselItems: [CarouselItem]
+//    let initialLowerSection: LowerSectionPage
+//    let selectedItem: CarouselItem
+//    let isLowerSectionLoading: Bool
+//    let footerState: FooterState
+//}
+//
+//
+//enum FooterState: Equatable {
+//    case idle          // footer виден, но не показывает загрузку
+//    case loading       // footer показывает ProgressView
+//    case error(String) // footer показывает ошибку + кнопку "Повторить"
+//}
+//
+//
+////  4. LowerSectionPage — страница пагинации
+//
+//struct LowerSectionPage {
+//    let items: [LowerItem]
+//    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
+//}
+//
+////  5. CarouselItem — элементы средней секции
+//
+//enum CarouselItemType: String, Codable {
+//    case droplist
+//    case allTracks
+//    case gym
+//    case party
+//    case rnb
+//}
+//
+//struct CarouselItem: Identifiable, Codable, Equatable {
+//    let id: String
+//    let title: String
+//    let type: CarouselItemType
+//}
+//
+////  TopSectionModel — верхняя секция
+//
+//struct TopSectionModel: Identifiable {
+//    let id: String
+//    let title: String
+//    let items: [TopItem]
+//}
+//
+//struct TopItem: Identifiable {
+//    let id: String
+//    let title: String
+//    let imageURL: URL?
+//}
+//
+
+
+
+
+
+
+
+
 
 
 
