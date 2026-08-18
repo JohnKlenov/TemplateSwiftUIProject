@@ -398,13 +398,13 @@ struct TrackDoc: Codable, Identifiable {
 
 //  CarouselDoc — документ плейлиста (carouselItems/{docId})
 
-struct CarouselDoc: Codable, Identifiable {
-    let id: String
-    let title: String
-    let type: CarouselItemType
-    let orderIndex: Int
-    let createdAt: Date?
-}
+//struct CarouselDoc: Codable, Identifiable {
+//    let id: String
+//    let title: String
+//    let type: CarouselItemType
+//    let orderIndex: Int
+//    let createdAt: Date?
+//}
 
 
 //  TopSectionDoc — документ плейлиста (topSections/{playlistId})
@@ -458,10 +458,8 @@ struct LowerItem: Identifiable, Equatable {
 
 struct DropData {
     let topSection: TopSectionModel
-    let carouselItems: [CarouselItem]
     let initialLowerSection: LowerSectionPage
-    let selectedItem: CarouselItem
-    let isLowerSectionLoading: Bool
+//    let isLowerSectionLoading: Bool
     let footerState: FooterState
 }
 
@@ -491,11 +489,11 @@ enum CarouselItemType: String, Codable {
     case rnb
 }
 
-struct CarouselItem: Identifiable, Codable, Equatable {
-    let id: String
-    let title: String
-    let type: CarouselItemType
-}
+//struct CarouselItem: Identifiable, Codable, Equatable {
+//    let id: String
+//    let title: String
+//    let type: CarouselItemType
+//}
 
 //  TopSectionModel — верхняя секция
 

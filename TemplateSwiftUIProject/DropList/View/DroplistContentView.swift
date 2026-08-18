@@ -35,17 +35,30 @@ struct DroplistContentView: View {
                 ProgressView(Localized.Home.loading.localized())
                 
             case .contentList(let dropData):
-                DroplistCompositView(data: dropData, onRefresh: {
+                DroplistCompositView(data: dropData) {
                     Task { await viewModel.refreshDropList() }
-                }, onSelectCarouselItem: { carouselItem in
-                    print("onSelectCarouselItem - \(carouselItem)")
-                    Task { await viewModel.didSelectCarouselItem(carouselItem) }
-                }, onLoadNextPage: { carouselItem in
-                    print("onLoadNextPage - \(carouselItem)")
-                    Task { await viewModel.loadNextPage(for: carouselItem) }
-                }, onSelectLowerItem: { lowerItem in
+                } onLoadNextPage: { itemType in
+                    print("onLoadNextPage - \(itemType)")
+                    Task { await viewModel.loadNextPage(for: itemType) }
+                } onSelectLowerItem: { lowerItem in
                     print("onSelectLowerItem - \(lowerItem)")
-                })
+                } onAllTracks: {
+                    print("tap onAllTracks")
+                } onTopDrop: {
+                    print("tap onTopDrop")
+                }
+
+//                DroplistCompositView(data: dropData, onRefresh: {
+//                    Task { await viewModel.refreshDropList() }
+//                }, onSelectCarouselItem: { carouselItem in
+//                    print("onSelectCarouselItem - \(carouselItem)")
+//                    Task { await viewModel.didSelectCarouselItem(carouselItem) }
+//                }, onLoadNextPage: { carouselItem in
+//                    print("onLoadNextPage - \(carouselItem)")
+//                    Task { await viewModel.loadNextPage(for: carouselItem) }
+//                }, onSelectLowerItem: { lowerItem in
+//                    print("onSelectLowerItem - \(lowerItem)")
+//                })
                 
                 // При смене viewState (с .contentList на .error) SwiftUI полностью удаляет старый View из иерархии.
                 // Поэтому DroplistCompositView исчезает, и его refresh/pull-to-refresh больше недоступны.

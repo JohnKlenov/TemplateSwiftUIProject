@@ -265,13 +265,13 @@ struct FirestoreGetServiceError: Error {
 
 protocol DropListFirestoreServiceProtocol {
     func fetchTopSection() async throws -> TopSectionModel
-    func fetchCarouselItems() async throws -> [CarouselItem]
+//    func fetchCarouselItems() async throws -> [CarouselItem]
     func fetchInitialLowerPage(
-        for item: CarouselItem,
+        for item: CarouselItemType,
         pageSize: Int
     ) async throws -> LowerSectionPage
     func fetchNextLowerPage(
-        for item: CarouselItem,
+        for item: CarouselItemType,
         after lastSnapshot: DocumentSnapshot,
         pageSize: Int
     ) async throws -> LowerSectionPage
@@ -392,83 +392,83 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol, @uncheck
     // MARK: - Carousel Items
 
 
-    func fetchCarouselItems() async throws -> [CarouselItem] {
-        try await withCheckedThrowingContinuation { continuation in
-            db.collection("carouselItems")
-                .order(by: "orderIndex", descending: false) // сортировка по возрастанию
-                .getDocuments { [weak self] snapshot, error in
-                    guard let self else { return }
-
-                    if let error {
-                        continuation.resume(
-                            throwing: FirestoreGetServiceError(
-                                underlying: error,
-                                context: .DropListFirestoreService_fetchCarouselItems
-                            )
-                        )
-                        return
-                    }
-
-                    guard let snapshot else {
-                        continuation.resume(
-                            throwing: FirestoreGetServiceError(
-                                underlying: AppInternalError.nilSnapshot,
-                                context: .DropListFirestoreService_fetchCarouselItems
-                            )
-                        )
-                        return
-                    }
-
-                    if snapshot.documents.isEmpty {
-                        continuation.resume(
-                            throwing: FirestoreGetServiceError(
-                                underlying: AppInternalError.snapshotIsEmpty,
-                                context: .DropListFirestoreService_fetchCarouselItems
-                            )
-                        )
-                        return
-                    }
-
-                    let items: [CarouselItem] = snapshot.documents.compactMap { doc in
-                        do {
-                            let decoded = try doc.data(as: CarouselDoc.self)
-                            return CarouselItem(
-                                id: decoded.id,
-                                title: decoded.title,
-                                type: decoded.type
-                            )
-                        } catch {
-                            let _ = self.errorHandler.handle(
-                                error: error,
-                                context: "\(ErrorContext.DropListFirestoreService_fetchCarouselItems.rawValue) | documentID: \(doc.documentID)"
-                            )
-                            return nil
-                        }
-                    }
-
-                    if items.isEmpty {
-                        continuation.resume(
-                            throwing: FirestoreGetServiceError(
-                                underlying: AppInternalError.docsIsEmpty,
-                                context: .DropListFirestoreService_fetchCarouselItems
-                            )
-                        )
-                        return
-                    }
-
-                    continuation.resume(returning: items)
-                }
-        }
-    }
+//    func fetchCarouselItems() async throws -> [CarouselItem] {
+//        try await withCheckedThrowingContinuation { continuation in
+//            db.collection("carouselItems")
+//                .order(by: "orderIndex", descending: false) // сортировка по возрастанию
+//                .getDocuments { [weak self] snapshot, error in
+//                    guard let self else { return }
+//
+//                    if let error {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: error,
+//                                context: .DropListFirestoreService_fetchCarouselItems
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    guard let snapshot else {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.nilSnapshot,
+//                                context: .DropListFirestoreService_fetchCarouselItems
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    if snapshot.documents.isEmpty {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.snapshotIsEmpty,
+//                                context: .DropListFirestoreService_fetchCarouselItems
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    let items: [CarouselItem] = snapshot.documents.compactMap { doc in
+//                        do {
+//                            let decoded = try doc.data(as: CarouselDoc.self)
+//                            return CarouselItem(
+//                                id: decoded.id,
+//                                title: decoded.title,
+//                                type: decoded.type
+//                            )
+//                        } catch {
+//                            let _ = self.errorHandler.handle(
+//                                error: error,
+//                                context: "\(ErrorContext.DropListFirestoreService_fetchCarouselItems.rawValue) | documentID: \(doc.documentID)"
+//                            )
+//                            return nil
+//                        }
+//                    }
+//
+//                    if items.isEmpty {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying: AppInternalError.docsIsEmpty,
+//                                context: .DropListFirestoreService_fetchCarouselItems
+//                            )
+//                        )
+//                        return
+//                    }
+//
+//                    continuation.resume(returning: items)
+//                }
+//        }
+//    }
 
 
     // MARK: - Lower Section (Initial Page)
 
     func fetchInitialLowerPage(
-        for item: CarouselItem,
+        for item: CarouselItemType,
         pageSize: Int
     ) async throws -> LowerSectionPage {
-        switch item.type {
+        switch item {
         case .droplist:
             return try await fetchPlaylistsPage(
                 after: nil,
@@ -484,7 +484,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol, @uncheck
 
         case .gym, .party, .rnb:
             return try await fetchTracksPage(
-                tag: item.type.rawValue,
+                tag: item.rawValue,
                 pageSize: pageSize,
                 after: nil
             )
@@ -494,11 +494,11 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol, @uncheck
     // MARK: - Lower Section (Next Page)
 
     func fetchNextLowerPage(
-        for item: CarouselItem,
+        for item: CarouselItemType,
         after lastSnapshot: DocumentSnapshot,
         pageSize: Int
     ) async throws -> LowerSectionPage {
-        switch item.type {
+        switch item {
         case .droplist:
             return try await fetchPlaylistsPage(
                 after: lastSnapshot,
@@ -514,7 +514,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol, @uncheck
 
         case .gym, .party, .rnb:
             return try await fetchTracksPage(
-                tag: item.type.rawValue,
+                tag: item.rawValue,
                 pageSize: pageSize,
                 after: lastSnapshot
             )

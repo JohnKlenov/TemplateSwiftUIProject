@@ -70,100 +70,17 @@
 // MARK: - simple DroplistCompositView
 
 
-
-
-
-
-
-
 import SwiftUI
 
-//struct DroplistCompositView: View {
-//    
-//    let data: DropData
-//    let onRefresh: () -> Void
-//    let onSelectCarouselItem: (CarouselItem) -> Void
-//    let onLoadNextPage: (CarouselItem) -> Void
-//    let onSelectLowerItem: (LowerItem) -> Void
-//    
-//    @State private var selectedCarouselItem: CarouselItem?
-//    
-//    // Единственное, что нам нужно — помнить, какой был прошлый item.
-//    @State private var previousItemId: CarouselItem.ID? = nil
-//    
-//    var body: some View {
-//        GeometryReader { geometry in
-//            let screenWidth = geometry.size.width
-//            let screenHeight = geometry.size.height
-//            
-//            ScrollViewReader { proxy in
-//                ScrollView {
-//                    LazyVStack(spacing: 16, pinnedViews: [.sectionHeaders]) {
-//                        
-//                        Section {
-//                            topSections(screenWidth: screenWidth)
-//                        }
-//                        
-//                        Section {
-//                            VStack(spacing: 0) {
-//                                lowerSectionWithFooter()
-//                            }
-//                            .frame(minHeight: max(screenHeight - 200, 400), alignment: .top)
-//                            
-//                        } header: {
-//                            carouselSection
-//                                .padding(.top, 8)
-//                                .padding(.bottom, 16)
-//                                .background(AppColors.background)
-//                        }
-//                    }
-//                    .padding(.vertical, 12)
-//                }
-//                .animation(.easeOut(duration: 0.0), value: screenWidth)
-//                .refreshable {
-//                    onRefresh()
-//                }
-//                .onAppear {
-//                    selectedCarouselItem = data.selectedItem
-//                }
-//                
-//                // 🛡️ Защита от черного экрана и потери позиции
-//                .onChange(of: data.initialLowerSection.items) { _, newItems in
-//                    guard let currentItem = selectedCarouselItem else { return }
-//                    guard !newItems.isEmpty else { return }
-//                    
-//                    // Если мы перешли на НОВУЮ вкладку (сброс не нужен) — выходим
-//                    if previousItemId != currentItem.id {
-//                        previousItemId = currentItem.id
-//                        return
-//                    }
-//                    
-//                    // Если это возврат на СТАРУЮ вкладку — мы должны восстановить скролл
-//                    // Проверяем: не находится ли скролл в пустоте.
-//                    // Самый простой способ — проверить первый элемент.
-//                    if let firstId = newItems.first?.id {
-//                        DispatchQueue.main.async {
-//                            withAnimation(.easeOut(duration: 0.0)) {
-//                                proxy.scrollTo(firstId, anchor: .top)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        .frame(maxHeight: .infinity, alignment: .top)
-//    }
-//}
 
 struct DroplistCompositView: View {
 
     let data: DropData
     let onRefresh: () -> Void
-    let onSelectCarouselItem: (CarouselItem) -> Void
-    let onLoadNextPage: (CarouselItem) -> Void
+    let onLoadNextPage: (CarouselItemType) -> Void
     let onSelectLowerItem: (LowerItem) -> Void
-
-    @State private var selectedCarouselItem: CarouselItem?
+    let onAllTracks: () -> Void
+    let onTopDrop: () -> Void
 
     var body: some View {
         GeometryReader { geometry in
@@ -186,10 +103,7 @@ struct DroplistCompositView: View {
                         .frame(minHeight: max(screenHeight - 200, 400), alignment: .top)
 
                     } header: {
-                        carouselSection
-                            .padding(.top, 8)
-                            .padding(.bottom, 16)
-                            .background(AppColors.background)
+                        navigationSection
                     }
                 }
                 .padding(.vertical, 12)
@@ -197,9 +111,6 @@ struct DroplistCompositView: View {
             .animation(.easeOut(duration: 0.0), value: screenWidth)
             .refreshable {
                 onRefresh()
-            }
-            .onAppear {
-                selectedCarouselItem = data.selectedItem
             }
         }
         .frame(maxHeight: .infinity, alignment: .top)
@@ -239,72 +150,84 @@ private extension DroplistCompositView {
 }
 
                     
-// MARK: - Carousel Section (Без изменений)
+
+// MARK: - Carousel Section (Compact Version)
 private extension DroplistCompositView {
-    var carouselSection: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(data.carouselItems) { item in
-                    carouselItem(item)
-                }
+
+    var navigationSection: some View {
+        HStack(spacing: 10) {
+
+            Spacer() // прижимаем кнопки вправо
+
+            navButton(title: "All Tracks") {
+                onAllTracks()
             }
-            .padding(.horizontal)
+
+            navButton(title: "TopDrop") {
+                onTopDrop()
+            }
         }
+        .padding(.horizontal)
+        .background(Color.clear)
     }
-    //AppColors.activeColor
-    func carouselItem(_ item: CarouselItem) -> some View {
-        let isSelected = selectedCarouselItem?.id == item.id
-        
-        return Text(item.title)
-            .font(.subheadline.weight(.medium))
-            // Активный элемент меняет цвет текста на пурпурный
-            .foregroundColor(isSelected ? AppColors.activeColor : AppColors.secondary)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            // У неактивных элементов фона НЕТ вообще
-            // У активного элемента - легкая пурпурная плашка
-            .background(
-                isSelected ?
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(AppColors.secondarySystemBackground.opacity(0.8))
-                : nil
-            )
-            .onTapGesture {
-                guard selectedCarouselItem?.id != item.id else { return }
-                selectedCarouselItem = item
-                onSelectCarouselItem(item)
-            }
+//    AppColors.primary + AppColors.activeColor + AppColors.secondarySystemBackground.opacity(0.8)
+//    func navButton(title: String, action: @escaping () -> Void) -> some View {
+//        Button(action: action) {
+//            Text(title)
+//                .font(.subheadline.weight(.medium))
+//                .foregroundColor(AppColors.activeColor)
+//                .padding(.horizontal, 14)
+//                .padding(.vertical, 8)
+//                .background(
+//                    RoundedRectangle(cornerRadius: 12)
+//                        .fill(AppColors.secondarySystemBackground.opacity(0.8))
+//                )
+//        }
+//        .buttonStyle(.plain)
+//    }
+
+    func navButton(title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundColor(AppColors.activeColor)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    // Стеклянный фон
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.9)
+                )
+                .overlay(
+                    // 1‑point стеклянная обводка
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.white.opacity(0.25), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+        }
+        .buttonStyle(.plain)
     }
+    
+
 }
+
 
 // MARK: - Lower Section + Footer Loader (Без изменений)
 private extension DroplistCompositView {
    
     @ViewBuilder
     func lowerSectionWithFooter() -> some View {
-        if data.isLowerSectionLoading {
-            VStack {
-                ProgressView()
-                Text("Загрузка...")
-                    .foregroundColor(.secondary)
+        LazyVStack(spacing: 16) {
+            ForEach(data.initialLowerSection.items) { item in
+                lowerItemCell(item)
             }
-            .frame(maxWidth: .infinity, minHeight: 200)
-        }
-        else if data.initialLowerSection.items.isEmpty {
-            lowerSectionErrorPlaceholder
-        }
-        else {
-            LazyVStack(spacing: 16) {
-                ForEach(data.initialLowerSection.items) { item in
-                    lowerItemCell(item)
-                }
-
-                if data.initialLowerSection.hasMore {
-                    footerView
-                }
+            
+            if data.initialLowerSection.hasMore {
+                footerView
             }
-            .padding(.horizontal)
         }
+        .padding(.horizontal)
     }
     
     @ViewBuilder
@@ -317,9 +240,7 @@ private extension DroplistCompositView {
                     .frame(height: 44)
                     .onAppear {
                         print("footerView case .idle")
-                        if let selected = selectedCarouselItem {
-                            onLoadNextPage(selected)
-                        }
+                        onLoadNextPage(CarouselItemType.droplist)
                     }
                 Spacer()
             }
@@ -340,9 +261,7 @@ private extension DroplistCompositView {
                     Text(message)
                         .foregroundColor(.secondary)
                     Button("Повторить") {
-                        if let selected = selectedCarouselItem {
-                            onLoadNextPage(selected)
-                        }
+                        onLoadNextPage(CarouselItemType.droplist)
                     }
                 }
                 Spacer()
@@ -374,25 +293,6 @@ private extension DroplistCompositView {
                 Spacer()
             }
         }
-    }
-    
-    var lowerSectionErrorPlaceholder: some View {
-        VStack(spacing: 12) {
-            Text("Не удалось загрузить данные")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            
-            Button("Повторить") {
-                if let selected = selectedCarouselItem {
-                    onSelectCarouselItem(selected)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(Color.blue.opacity(0.2))
-            .cornerRadius(8)
-        }
-        .padding(.top, 40)
     }
 
     @ViewBuilder
@@ -474,13 +374,148 @@ struct TopSectionItemView: View {
         .padding(6)
         .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
         .background(AppColors.secondarySystemBackground)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
-    }
+               .cornerRadius(12)
+               .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+           }
 }
 
 
 
+
+
+
+//private extension DroplistCompositView {
+//
+//    var navigationSection: some View {
+//        HStack(spacing: 12) {
+//
+//            Spacer() // прижимаем кнопки вправо
+//
+//            navButton(title: "All Tracks") {
+//                onAllTracks()
+//            }
+//
+//            navButton(title: "TopDrop") {
+//                onTopDrop()
+//            }
+//        }
+//        .padding(.horizontal)
+//        .padding(.vertical, 8)
+//        .background(Color.clear) // фон секции полностью прозрачный
+//    }
+//
+//    func navButton(title: String, action: @escaping () -> Void) -> some View {
+//        Button(action: action) {
+//            Text(title)
+//                .font(.subheadline.weight(.medium))
+//                .foregroundColor(AppColors.primary)
+//                .padding(.horizontal, 16)
+//                .padding(.vertical, 10)
+//                .background(
+//                    RoundedRectangle(cornerRadius: 12)
+//                        .fill(AppColors.secondarySystemBackground.opacity(0.8))
+//                )
+//        }
+//        .buttonStyle(.plain)
+//    }
+//}
+
+//    var lowerSectionErrorPlaceholder: some View {
+//        VStack(spacing: 12) {
+//            Text("Не удалось загрузить данные")
+//                .font(.headline)
+//                .foregroundColor(.secondary)
+//
+//            Button("Повторить") {
+////                if let selected = selectedCarouselItem {
+////                    onSelectCarouselItem(selected)
+////                }
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 8)
+//            .background(Color.blue.opacity(0.2))
+//            .cornerRadius(8)
+//        }
+//        .padding(.top, 40)
+//    }
+
+
+//struct DroplistCompositView: View {
+//
+//    let data: DropData
+//    let onRefresh: () -> Void
+//    let onSelectCarouselItem: (CarouselItem) -> Void
+//    let onLoadNextPage: (CarouselItem) -> Void
+//    let onSelectLowerItem: (LowerItem) -> Void
+//
+//    @State private var selectedCarouselItem: CarouselItem?
+//
+//    // Единственное, что нам нужно — помнить, какой был прошлый item.
+//    @State private var previousItemId: CarouselItem.ID? = nil
+//
+//    var body: some View {
+//        GeometryReader { geometry in
+//            let screenWidth = geometry.size.width
+//            let screenHeight = geometry.size.height
+//
+//            ScrollViewReader { proxy in
+//                ScrollView {
+//                    LazyVStack(spacing: 16, pinnedViews: [.sectionHeaders]) {
+//
+//                        Section {
+//                            topSections(screenWidth: screenWidth)
+//                        }
+//
+//                        Section {
+//                            VStack(spacing: 0) {
+//                                lowerSectionWithFooter()
+//                            }
+//                            .frame(minHeight: max(screenHeight - 200, 400), alignment: .top)
+//
+//                        } header: {
+//                            carouselSection
+//                                .padding(.top, 8)
+//                                .padding(.bottom, 16)
+//                                .background(AppColors.background)
+//                        }
+//                    }
+//                    .padding(.vertical, 12)
+//                }
+//                .animation(.easeOut(duration: 0.0), value: screenWidth)
+//                .refreshable {
+//                    onRefresh()
+//                }
+//                .onAppear {
+//                    selectedCarouselItem = data.selectedItem
+//                }
+//
+//                // 🛡️ Защита от черного экрана и потери позиции
+//                .onChange(of: data.initialLowerSection.items) { _, newItems in
+//                    guard let currentItem = selectedCarouselItem else { return }
+//                    guard !newItems.isEmpty else { return }
+//
+//                    // Если мы перешли на НОВУЮ вкладку (сброс не нужен) — выходим
+//                    if previousItemId != currentItem.id {
+//                        previousItemId = currentItem.id
+//                        return
+//                    }
+//
+//                    // Если это возврат на СТАРУЮ вкладку — мы должны восстановить скролл
+//                    // Проверяем: не находится ли скролл в пустоте.
+//                    // Самый простой способ — проверить первый элемент.
+//                    if let firstId = newItems.first?.id {
+//                        DispatchQueue.main.async {
+//                            withAnimation(.easeOut(duration: 0.0)) {
+//                                proxy.scrollTo(firstId, anchor: .top)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        .frame(maxHeight: .infinity, alignment: .top)
+//    }
+//}
 
 //    @ViewBuilder
 //       func lowerSectionWithFooter() -> some View {
@@ -511,6 +546,51 @@ struct TopSectionItemView: View {
 //               }
 //           }
 //       }
+
+
+
+
+//private extension DroplistCompositView {
+//    var carouselSection: some View {
+//        ScrollView(.horizontal, showsIndicators: false) {
+//            HStack(spacing: 12) {
+//                ForEach(data.carouselItems) { item in
+//                    carouselItem(item)
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//    //AppColors.activeColor
+//    func carouselItem(_ item: CarouselItem) -> some View {
+//        let isSelected = selectedCarouselItem?.id == item.id
+//
+//        return Text(item.title)
+//            .font(.subheadline.weight(.medium))
+//            // Активный элемент меняет цвет текста на пурпурный
+//            .foregroundColor(isSelected ? AppColors.activeColor : AppColors.secondary)
+//            .padding(.horizontal, 14)
+//            .padding(.vertical, 8)
+//            // У неактивных элементов фона НЕТ вообще
+//            // У активного элемента - легкая пурпурная плашка
+//            .background(
+//                isSelected ?
+//                RoundedRectangle(cornerRadius: 10)
+//                    .fill(AppColors.secondarySystemBackground.opacity(0.8))
+//                : nil
+//            )
+//            .onTapGesture {
+//                guard selectedCarouselItem?.id != item.id else { return }
+//                selectedCarouselItem = item
+//                onSelectCarouselItem(item)
+//            }
+//    }
+//}
+
+
+
+
+
 
 
 

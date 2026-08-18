@@ -44,6 +44,7 @@ import Foundation
 // параллельными асинхронными операциями.
 //
 
+
 /// Атомарный кэш страниц через actor — предотвращает race conditions
 actor PagesCache {
     private var cache: [String: LowerSectionPage] = [:]
