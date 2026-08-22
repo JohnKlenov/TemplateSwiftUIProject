@@ -143,6 +143,7 @@ private extension DroplistCompositView {
                         }
                     }
                     .padding(.horizontal)
+                    .padding(.vertical)   // ⭐ добавляем пространство для тени
                 }
             }
         }
@@ -170,21 +171,7 @@ private extension DroplistCompositView {
         .padding(.horizontal)
         .background(Color.clear)
     }
-//    AppColors.primary + AppColors.activeColor + AppColors.secondarySystemBackground.opacity(0.8)
-//    func navButton(title: String, action: @escaping () -> Void) -> some View {
-//        Button(action: action) {
-//            Text(title)
-//                .font(.subheadline.weight(.medium))
-//                .foregroundColor(AppColors.activeColor)
-//                .padding(.horizontal, 14)
-//                .padding(.vertical, 8)
-//                .background(
-//                    RoundedRectangle(cornerRadius: 12)
-//                        .fill(AppColors.secondarySystemBackground.opacity(0.8))
-//                )
-//        }
-//        .buttonStyle(.plain)
-//    }
+
 
     func navButton(title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
@@ -199,12 +186,7 @@ private extension DroplistCompositView {
                         .fill(.ultraThinMaterial)
                         .opacity(0.9)
                 )
-                .overlay(
-                    // 1‑point стеклянная обводка
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.25), lineWidth: 0.5)
-                )
-                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+//                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -311,7 +293,6 @@ private extension DroplistCompositView {
 
 // MARK: - Top Section Item View (Идеальный макет)
 
-
 struct TopSectionItemView: View {
     let item: TopItem
     let cardWidth: CGFloat
@@ -359,9 +340,9 @@ struct TopSectionItemView: View {
                 .overlay(alignment: .bottom) {
                     LinearGradient(
                         gradient: Gradient(colors: [
-                            AppColors.secondarySystemBackground.opacity(0.0), // Самый верх: прозрачный (видно полностью)
-                            AppColors.secondarySystemBackground.opacity(0.6), // Чуть ниже: легкое затемнение (было 0.3)
-                            AppColors.secondarySystemBackground               // Внизу: сливается с фоном
+                            AppColors.background.opacity(0.0), // Самый верх: прозрачный (видно полностью)
+                            AppColors.background.opacity(0.6), // Чуть ниже: легкое затемнение (было 0.3)
+                            AppColors.background               // Внизу: сливается с фоном
                         ]),
                         startPoint: .top,
                         endPoint: .bottom
@@ -373,11 +354,115 @@ struct TopSectionItemView: View {
         }
         .padding(6)
         .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
-        .background(AppColors.secondarySystemBackground)
+        .background(AppColors.background)
                .cornerRadius(12)
-               .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+               .shadow(color: AppColors.primary.opacity(0.15), radius: 8, x: 0, y: 4)
            }
 }
+
+
+
+
+//    AppColors.primary + AppColors.activeColor + AppColors.secondarySystemBackground.opacity(0.8)
+//    func navButton(title: String, action: @escaping () -> Void) -> some View {
+//        Button(action: action) {
+//            Text(title)
+//                .font(.subheadline.weight(.medium))
+//                .foregroundColor(AppColors.activeColor)
+//                .padding(.horizontal, 14)
+//                .padding(.vertical, 8)
+//                .background(
+//                    RoundedRectangle(cornerRadius: 12)
+//                        .fill(AppColors.secondarySystemBackground.opacity(0.8))
+//                )
+//        }
+//        .buttonStyle(.plain)
+//    }
+
+
+//Color.black.opacity(0.06)
+
+//struct TopSectionItemView: View {
+//    let item: TopItem
+//    let cardWidth: CGFloat
+//    let cardHeight: CGFloat
+//    let imageSize: CGFloat
+//
+//    let artists: [String] = [
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana + French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "French Montana", "Kodak Black", "Lil Wayne", "Drake",
+//        "Future", "21 Savage", "Travis Scott"
+//    ]
+//
+//    var body: some View {
+//        HStack(alignment: .top, spacing: 12) {
+//            WebImageView(
+//                url: item.imageURL,
+//                placeholderColor: AppColors.secondarySystemBackground,
+//                displayStyle: .fixedFrame(width: imageSize, height: imageSize),
+//                context: "TopSectionCard_\(item.id)"
+//            )
+//            .clipShape(RoundedRectangle(cornerRadius: 12))
+//
+//            VStack(alignment: .leading, spacing: 8) {
+//                Text("TOP 50")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(AppColors.primary)
+//
+//                // Список артистов с жесткой высотой
+//                VStack(alignment: .leading, spacing: 2) {
+//                    ForEach(Array(artists.enumerated()), id: \.offset) { _, line in
+//                        Text(line)
+//                            .font(.caption2)
+//                            .foregroundColor(AppColors.secondary)
+//                            .lineLimit(1)
+//                            .truncationMode(.tail)
+//                    }
+//                }
+//                // Фиксируем высоту
+//                .frame(height: imageSize, alignment: .top)
+//                .clipped()
+//                
+//                // ОВЕРЛЕЙ: Затемнение начинается С САМОГО СТАРТА (плавно нарастает)
+//                .overlay(alignment: .bottom) {
+//                    LinearGradient(
+//                        gradient: Gradient(colors: [
+//                            AppColors.secondarySystemBackground.opacity(0.0), // Самый верх: прозрачный (видно полностью)
+//                            AppColors.secondarySystemBackground.opacity(0.6), // Чуть ниже: легкое затемнение (было 0.3)
+//                            AppColors.secondarySystemBackground               // Внизу: сливается с фоном
+//                        ]),
+//                        startPoint: .top,
+//                        endPoint: .bottom
+//                    )
+//                    .frame(height: imageSize)
+//                }
+//            }
+//            .padding(.trailing, 6)
+//        }
+//        .padding(6)
+//        .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
+//        .background(AppColors.secondarySystemBackground)
+//               .cornerRadius(12)
+//               .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+//           }
+//}
+
+
+
+//    .background(
+//        RoundedRectangle(cornerRadius: 12)
+//            .fill(.ultraThinMaterial)
+//            .opacity(0.55)   // более прозрачный, чем кнопки
+//    )
+//    .overlay(
+//        RoundedRectangle(cornerRadius: 12)
+//            .stroke(Color.white.opacity(0.25), lineWidth: 0.5)
+//    )
+//    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
+
+
 
 
 

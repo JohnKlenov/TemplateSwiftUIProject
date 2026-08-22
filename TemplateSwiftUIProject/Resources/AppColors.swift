@@ -62,6 +62,7 @@ struct AppColors {
     static let secondary = Color(.secondaryLabel) // Второстепенный цвет текста
     static let background = Color(.systemBackground) // Основной цвет фона
     static let secondarySystemBackground = Color(.secondarySystemBackground) // Второстепенный цвет фона
+    static let tertiarySystemBackground = Color(.tertiarySystemBackground) // Второстепенный цвет фона
     static let systemGroupedBackground = Color(.systemGroupedBackground)
     static let activeColor = Color(UIColor.systemPurple)
     static let orange = Color(.systemOrange)
