@@ -125,12 +125,12 @@ private extension DroplistCompositView {
         let cardHeight = cardWidth * 0.50
         let imageSize = cardHeight - 12
         
-        return VStack(alignment: .leading, spacing: 20) {
+        return VStack(alignment: .leading, spacing: 0) {
             Text(data.topSection.title)
                 .font(.headline)
                 .padding(.horizontal)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(data.topSection.items) { item in
@@ -172,25 +172,69 @@ private extension DroplistCompositView {
         .background(Color.clear)
     }
 
-
-    func navButton(title: String, action: @escaping () -> Void) -> some View {
+    
+    func navButton(
+        title: String,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Text(title)
                 .font(.subheadline.weight(.medium))
-                .foregroundColor(AppColors.activeColor)
+                .foregroundStyle(AppColors.activeColor)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(
-                    // Стеклянный фон
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(.ultraThinMaterial)
-                        .opacity(0.9)
-                )
-//                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(.plain)
+        .modifier(NavButtonGlassModifier())
     }
-    
+
+    private struct NavButtonGlassModifier: ViewModifier {
+
+        func body(content: Content) -> some View {
+            
+            if #available(iOS 26.0, *) {
+                content
+                    .glassEffect(
+                        .regular
+                            .tint(.gray.opacity(0.12)),
+                        in: RoundedRectangle(cornerRadius: 14)
+                    )
+            } else {
+                content
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(.ultraThinMaterial)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(
+                                .white.opacity(0.18),
+                                lineWidth: 0.8
+                            )
+                    )
+            }
+        }
+    }
+
+
+
+//    func navButton(title: String, action: @escaping () -> Void) -> some View {
+//        Button(action: action) {
+//            Text(title)
+//                .font(.subheadline.weight(.medium))
+//                .foregroundColor(AppColors.activeColor)
+//                .padding(.horizontal, 16)
+//                .padding(.vertical, 10)
+//                .background(
+//                    // Стеклянный фон
+//                    RoundedRectangle(cornerRadius: 14)
+//                        .fill(.ultraThinMaterial)
+//                        .opacity(0.9)
+//                )
+//        }
+//        .buttonStyle(.plain)
+//    }
+//    
 
 }
 
@@ -252,7 +296,8 @@ private extension DroplistCompositView {
         }
     }
     
-    
+    // пока используем такой title Droplist#143: Artist(Headliner)
+    // subtitle - на альбомы а артисты
     func lowerItemCell(_ item: LowerItem) -> some View {
         Button {
             onSelectLowerItem(item)
@@ -270,7 +315,10 @@ private extension DroplistCompositView {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .lineLimit(2)
+                            .multilineTextAlignment(.leading)          // ← прижимаем строки
+                            .frame(maxWidth: .infinity, alignment: .leading) // ← фиксируем выравнивание
                     }
+
                 }
                 Spacer()
             }
@@ -356,6 +404,11 @@ struct TopSectionItemView: View {
         .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
         .background(AppColors.background)
                .cornerRadius(12)
+        // Настройка тени:
+        // color  – цвет и прозрачность тени
+        // radius – степень размытия (чем больше, тем мягче)
+        // x      – горизонтальное смещение (влево/вправо)
+        // y      – вертикальное смещение (вверх/вниз)
                .shadow(color: AppColors.primary.opacity(0.15), radius: 8, x: 0, y: 4)
            }
 }
