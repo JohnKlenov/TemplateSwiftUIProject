@@ -6,6 +6,7 @@
 //
 
 
+
 import SwiftUI
 
 class DroplistCoordinator:ObservableObject {
@@ -22,9 +23,12 @@ class DroplistCoordinator:ObservableObject {
     }
     @Published var fullScreenItem:FullScreenItem?
     
-    func navigateTo(page:HomeFlow) {
+    func navigateTo(page:DroplistFlow) {
         path.append(page)
     }
+//    func navigateTo(page:HomeFlow) {
+//        path.append(page)
+//    }
     
     func pop() {
         path.removeLast()

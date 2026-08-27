@@ -179,6 +179,14 @@ class ViewBuilderService: ObservableObject {
             DroplistViewInjected(sessionManager: appSessionManager, dropListDataSource: dropListDataSource)
         case .someDroplistView:
             SomeView()
+        case .allTracks:
+            SomeView()
+        case .topDrops:
+            SomeView()
+        case .droplistDetails(playlistId: let playlistId):
+            SomeView()
+        case .topDropDetails(playlistId: let playlistId):
+            SomeView()
         }
     }
     

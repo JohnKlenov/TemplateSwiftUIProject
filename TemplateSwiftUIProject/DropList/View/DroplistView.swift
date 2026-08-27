@@ -12,6 +12,7 @@ import SwiftUI
 import Combine
 
 
+
 struct DroplistView: View {
     
     @StateObject private var viewModel:DropViewModel

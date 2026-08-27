@@ -172,69 +172,23 @@ private extension DroplistCompositView {
         .background(Color.clear)
     }
 
-    
-    func navButton(
-        title: String,
-        action: @escaping () -> Void
-    ) -> some View {
+
+    func navButton(title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(AppColors.activeColor)
+                .foregroundColor(AppColors.activeColor)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
+                .background(
+                    // Стеклянный фон
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(.ultraThinMaterial)
+                )
         }
         .buttonStyle(.plain)
-        .modifier(NavButtonGlassModifier())
     }
-
-    private struct NavButtonGlassModifier: ViewModifier {
-
-        func body(content: Content) -> some View {
-            
-            if #available(iOS 26.0, *) {
-                content
-                    .glassEffect(
-                        .regular
-                            .tint(.gray.opacity(0.12)),
-                        in: RoundedRectangle(cornerRadius: 14)
-                    )
-            } else {
-                content
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(.ultraThinMaterial)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(
-                                .white.opacity(0.18),
-                                lineWidth: 0.8
-                            )
-                    )
-            }
-        }
-    }
-
-
-
-//    func navButton(title: String, action: @escaping () -> Void) -> some View {
-//        Button(action: action) {
-//            Text(title)
-//                .font(.subheadline.weight(.medium))
-//                .foregroundColor(AppColors.activeColor)
-//                .padding(.horizontal, 16)
-//                .padding(.vertical, 10)
-//                .background(
-//                    // Стеклянный фон
-//                    RoundedRectangle(cornerRadius: 14)
-//                        .fill(.ultraThinMaterial)
-//                        .opacity(0.9)
-//                )
-//        }
-//        .buttonStyle(.plain)
-//    }
-//    
+    
 
 }
 
@@ -412,6 +366,62 @@ struct TopSectionItemView: View {
                .shadow(color: AppColors.primary.opacity(0.15), radius: 8, x: 0, y: 4)
            }
 }
+
+
+
+
+
+// MARK: - alternative methods
+
+// native glassEffect
+//
+//    func navButton(
+//        title: String,
+//        action: @escaping () -> Void
+//    ) -> some View {
+//        Button(action: action) {
+//            Text(title)
+//                .font(.subheadline.weight(.medium))
+//                .foregroundStyle(AppColors.activeColor)
+//                .padding(.horizontal, 16)
+//                .padding(.vertical, 10)
+//        }
+//        .buttonStyle(.plain)
+//        .modifier(NavButtonGlassModifier())
+//    }
+//
+//    private struct NavButtonGlassModifier: ViewModifier {
+//
+//        func body(content: Content) -> some View {
+//
+//            if #available(iOS 26.0, *) {
+//                content
+//                    .glassEffect(
+//                        .regular
+//                            .tint(.gray.opacity(0.12)),
+//                        in: RoundedRectangle(cornerRadius: 14)
+//                    )
+//            } else {
+//                content
+//                    .background(
+//                        RoundedRectangle(cornerRadius: 14)
+//                            .fill(.ultraThinMaterial)
+//                    )
+//            }
+//        }
+//    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

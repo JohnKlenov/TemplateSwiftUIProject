@@ -14,6 +14,7 @@ import SwiftUI
 
 
 
+
 enum HomeFlow: Hashable {
     case home
     case bookDetails(BookCloud)
@@ -55,12 +56,26 @@ enum HomeFlow: Hashable {
 enum DroplistFlow: Hashable {
     case droplist
     case someDroplistView
+    case allTracks
+    case topDrops
+    case droplistDetails(playlistId: String)
+    case topDropDetails(playlistId: String)
 
     static func == (lhs: DroplistFlow, rhs: DroplistFlow) -> Bool {
         switch (lhs, rhs) {
+
         case (.droplist, .droplist),
-             (.someDroplistView, .someDroplistView):
+             (.someDroplistView, .someDroplistView),
+             (.allTracks, .allTracks),
+             (.topDrops, .topDrops):
             return true
+
+        case (.droplistDetails(let lhsId), .droplistDetails(let rhsId)):
+            return lhsId == rhsId
+
+        case (.topDropDetails(let lhsId), .topDropDetails(let rhsId)):
+            return lhsId == rhsId
+
         default:
             return false
         }
@@ -68,10 +83,26 @@ enum DroplistFlow: Hashable {
 
     func hash(into hasher: inout Hasher) {
         switch self {
+
         case .droplist:
             hasher.combine("droplist")
+
         case .someDroplistView:
             hasher.combine("someDroplistView")
+
+        case .allTracks:
+            hasher.combine("allTracks")
+
+        case .topDrops:
+            hasher.combine("topDrops")
+
+        case .droplistDetails(let playlistId):
+            hasher.combine("droplistDetails")
+//            hasher.combine(playlistId)
+
+        case .topDropDetails(let playlistId):
+            hasher.combine("topDropDetails")
+//            hasher.combine(playlistId)
         }
     }
 }
@@ -158,6 +189,37 @@ struct FullScreenItem: Identifiable {
     var id = UUID()
     var content: AnyView
 }
+
+
+
+
+
+
+
+
+//enum DroplistFlow: Hashable {
+//    case droplist
+//    case someDroplistView
+//
+//    static func == (lhs: DroplistFlow, rhs: DroplistFlow) -> Bool {
+//        switch (lhs, rhs) {
+//        case (.droplist, .droplist),
+//             (.someDroplistView, .someDroplistView):
+//            return true
+//        default:
+//            return false
+//        }
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        switch self {
+//        case .droplist:
+//            hasher.combine("droplist")
+//        case .someDroplistView:
+//            hasher.combine("someDroplistView")
+//        }
+//    }
+//}
 
 
 

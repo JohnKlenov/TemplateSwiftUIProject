@@ -44,21 +44,10 @@ struct DroplistContentView: View {
                     print("onSelectLowerItem - \(lowerItem)")
                 } onAllTracks: {
                     print("tap onAllTracks")
+                    droplistCoordinator.navigateTo(page: .someDroplistView)
                 } onTopDrop: {
                     print("tap onTopDrop")
                 }
-
-//                DroplistCompositView(data: dropData, onRefresh: {
-//                    Task { await viewModel.refreshDropList() }
-//                }, onSelectCarouselItem: { carouselItem in
-//                    print("onSelectCarouselItem - \(carouselItem)")
-//                    Task { await viewModel.didSelectCarouselItem(carouselItem) }
-//                }, onLoadNextPage: { carouselItem in
-//                    print("onLoadNextPage - \(carouselItem)")
-//                    Task { await viewModel.loadNextPage(for: carouselItem) }
-//                }, onSelectLowerItem: { lowerItem in
-//                    print("onSelectLowerItem - \(lowerItem)")
-//                })
                 
                 // При смене viewState (с .contentList на .error) SwiftUI полностью удаляет старый View из иерархии.
                 // Поэтому DroplistCompositView исчезает, и его refresh/pull-to-refresh больше недоступны.
@@ -104,6 +93,26 @@ struct DroplistContentView: View {
     }
 }
 
+
+
+
+
+
+// MARK: - trash
+
+
+
+//                DroplistCompositView(data: dropData, onRefresh: {
+//                    Task { await viewModel.refreshDropList() }
+//                }, onSelectCarouselItem: { carouselItem in
+//                    print("onSelectCarouselItem - \(carouselItem)")
+//                    Task { await viewModel.didSelectCarouselItem(carouselItem) }
+//                }, onLoadNextPage: { carouselItem in
+//                    print("onLoadNextPage - \(carouselItem)")
+//                    Task { await viewModel.loadNextPage(for: carouselItem) }
+//                }, onSelectLowerItem: { lowerItem in
+//                    print("onSelectLowerItem - \(lowerItem)")
+//                })
 
 //// Временный заглушечный DropListView
 //struct DroplistCompositView: View {
