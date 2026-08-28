@@ -459,7 +459,12 @@ struct LowerItem: Identifiable, Equatable {
 struct DropData {
     let topSection: TopSectionModel
     let initialLowerSection: LowerSectionPage
-//    let isLowerSectionLoading: Bool
+    let footerState: FooterState
+}
+
+// new model for TracklistView
+struct Tracklist {
+    let tracks: LowerSectionPage
     let footerState: FooterState
 }
 
@@ -489,12 +494,6 @@ enum CarouselItemType: String, Codable {
     case rnb
 }
 
-//struct CarouselItem: Identifiable, Codable, Equatable {
-//    let id: String
-//    let title: String
-//    let type: CarouselItemType
-//}
-
 //  TopSectionModel — верхняя секция
 
 struct TopSectionModel: Identifiable {
@@ -509,6 +508,15 @@ struct TopItem: Identifiable {
     let imageURL: URL?
 }
 
+
+
+
+
+//struct CarouselItem: Identifiable, Codable, Equatable {
+//    let id: String
+//    let title: String
+//    let type: CarouselItemType
+//}
 
 
 

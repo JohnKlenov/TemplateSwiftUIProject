@@ -1,0 +1,101 @@
+//
+//  TracklistContentView.swift
+//  TemplateSwiftUIProject
+//
+//  Created by Evgenyi on 27.08.2026.
+//
+
+import SwiftUI
+
+struct TracklistContentView: View {
+
+    @ObservedObject var viewModel: TracklistViewModel
+
+    let navigationTitle: String
+
+    @EnvironmentObject var localization: LocalizationService
+
+    var body: some View {
+        ZStack {
+            switch viewModel.viewState {
+
+            case .loading:
+                ProgressView(
+                    Localized.Home.loading.localized()
+                )
+
+            case .contentList(let tracklist):
+                TracklistView(
+                    data: tracklist
+                ) {
+                    Task {
+                        await viewModel.loadNextPage()
+                    }
+                } onSelectTrack: { trackItem in
+                    print("onSelectTrack - \(trackItem)")
+                }
+
+            case .error(let error):
+                ContentErrorView(error: error) {
+                    Task {
+                        await viewModel.retry()
+                    }
+                }
+            }
+        }
+        .background(AppColors.background)
+        .navigationTitle(navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .onFirstAppear {
+            Task {
+                await viewModel.setupViewModel()
+            }
+        }
+    }
+}
+
+//
+//struct TracklistContentView: View {
+//    
+//    @ObservedObject var viewModel: TracklistViewModel
+//    
+////    @EnvironmentObject var droplistCoordinator: DroplistCoordinator
+//    @EnvironmentObject var localization: LocalizationService
+//    
+//    var body: some View {
+//        ZStack {
+//            switch viewModel.viewState {
+//                
+//            case .loading:
+//                ProgressView(Localized.Home.loading.localized())
+//                
+//            case .contentList(let tracklist):
+//                TracklistView(data: tracklist) {
+//                    print("did tap onLoadNextPage")
+//                    Task { await viewModel.loadNextPage() }
+//                } onSelectTrack: { trackItem in
+//                    print("onSelectTrack - \(trackItem)")
+//                }
+//
+//
+//            case .error(let error):
+//                ContentErrorView(error: error) {
+//                    Task { await viewModel.retry() }
+//                }
+//            }
+//        }
+//        .background(AppColors.background)
+//        .navigationTitle("Traks")
+//        .navigationBarTitleDisplayMode(.inline)
+////        .navigationTitle(Localized.Home.title.localized())
+//        .onFirstAppear {
+//            Task { await viewModel.setupViewModel() }
+//        }
+//    }
+//}
+
+//        .onAppear {
+//            // тут можно сделать проаерку если case .errorList или case .error
+//            // то мы не вызываем checkAndRefreshIfNeeded
+//            Task { await viewModel.checkAndRefreshIfNeeded() }
+//        }

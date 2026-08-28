@@ -180,7 +180,8 @@ class ViewBuilderService: ObservableObject {
         case .someDroplistView:
             SomeView()
         case .allTracks:
-            SomeView()
+            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: .allTracks, navigationTitle: "All Tracks")
+//            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: CarouselItemType.allTracks)
         case .topDrops:
             SomeView()
         case .droplistDetails(playlistId: let playlistId):

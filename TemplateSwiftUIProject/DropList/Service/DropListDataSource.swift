@@ -131,22 +131,19 @@ final class DropListDataSource {
         }
     }
 
-    // Смена item в карусели
-//    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
-//        print("item - \(item)")
-//        print("item.type- \(item.type)")
-//        print("item.type.rawValue - \(item.type.rawValue)")
-////        currentItem = item
-//
-//        let firstPage = try await firestoreService.fetchInitialLowerPage(
-//            for: item,
-//            pageSize: pageSize
-//        )
-//
-//        await pagesCache.set(item.id, page: firstPage)
-//        return firstPage
-//    }
+    
+    func fetchTracksForTag(_ item: CarouselItemType) async throws -> LowerSectionPage {
+        
+        let firstPage = try await firestoreService.fetchInitialLowerPage(
+            for: item,
+            pageSize: pageSize
+        )
+        
+        await pagesCache.set(item.rawValue, page: firstPage)
+        return firstPage
+    }
 
+    
     // Пагинация — возвращаем явный NextPageResult
     func loadNextPageIfNeeded(for item: CarouselItemType) async throws -> NextPageResult {
 
@@ -241,6 +238,24 @@ final class DropListDataSource {
     }
 }
     
+
+
+
+// Смена item в карусели
+//    func selectCarouselItem(_ item: CarouselItem) async throws -> LowerSectionPage {
+//        print("item - \(item)")
+//        print("item.type- \(item.type)")
+//        print("item.type.rawValue - \(item.type.rawValue)")
+////        currentItem = item
+//
+//        let firstPage = try await firestoreService.fetchInitialLowerPage(
+//            for: item,
+//            pageSize: pageSize
+//        )
+//
+//        await pagesCache.set(item.id, page: firstPage)
+//        return firstPage
+//    }
 
 
 // MARK: - before simple DroplistCompositView

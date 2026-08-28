@@ -15,6 +15,10 @@
 		5E00EE1C2F27691B00A521AC /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5E00EE1B2F27691B00A521AC /* FirebaseCrashlytics */; };
 		5E00EE1E2F27692400A521AC /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5E00EE1D2F27692400A521AC /* FirebaseAnalytics */; };
 		5E481D5F3010C54500D55309 /* PagesCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D5E3010C54500D55309 /* PagesCache.swift */; };
+		5E481D6630407D8800D55309 /* TracklistViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6530407D8300D55309 /* TracklistViewInjected.swift */; };
+		5E481D6830407E7700D55309 /* TracklistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6730407E6A00D55309 /* TracklistViewModel.swift */; };
+		5E481D6A3040805000D55309 /* TracklistContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D693040804100D55309 /* TracklistContentView.swift */; };
+		5E481D6C30417EF600D55309 /* TracklistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6B30417EE700D55309 /* TracklistView.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -201,6 +205,10 @@
 		5E00EE162F22368700A521AC /* GalleryContentViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryContentViewInjected.swift; sourceTree = "<group>"; };
 		5E00EE182F22385200A521AC /* GalleryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryManager.swift; sourceTree = "<group>"; };
 		5E481D5E3010C54500D55309 /* PagesCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagesCache.swift; sourceTree = "<group>"; };
+		5E481D6530407D8300D55309 /* TracklistViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistViewInjected.swift; sourceTree = "<group>"; };
+		5E481D6730407E6A00D55309 /* TracklistViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistViewModel.swift; sourceTree = "<group>"; };
+		5E481D693040804100D55309 /* TracklistContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistContentView.swift; sourceTree = "<group>"; };
+		5E481D6B30417EE700D55309 /* TracklistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistView.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -402,6 +410,41 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5E481D6030407C1F00D55309 /* Subview */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D6130407C3F00D55309 /* Tracklist */,
+			);
+			path = Subview;
+			sourceTree = "<group>";
+		};
+		5E481D6130407C3F00D55309 /* Tracklist */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D6330407CA300D55309 /* ViewModel */,
+				5E481D6230407C9C00D55309 /* View */,
+			);
+			path = Tracklist;
+			sourceTree = "<group>";
+		};
+		5E481D6230407C9C00D55309 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D6B30417EE700D55309 /* TracklistView.swift */,
+				5E481D693040804100D55309 /* TracklistContentView.swift */,
+				5E481D6530407D8300D55309 /* TracklistViewInjected.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5E481D6330407CA300D55309 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D6730407E6A00D55309 /* TracklistViewModel.swift */,
+			);
+			path = ViewModel;
 			sourceTree = "<group>";
 		};
 		5E54660C2F7A5B56009D7210 /* Description */ = {
@@ -1222,6 +1265,7 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D6030407C1F00D55309 /* Subview */,
 				5EC4B25B2F712F8D00F0C2D7 /* MusicAPI */,
 				5EC4B2582F43389E00F0C2D7 /* WebImageView */,
 				5EB96B562EF422DB00C7CDBC /* Info.plist */,
@@ -1565,6 +1609,7 @@
 				5E5466292F7E835B009D7210 /* PlaylistTrackRow.swift in Sources */,
 				5EBBE6E32FB720B9009AC141 /* DropListDataSource.swift in Sources */,
 				5EBBE6E12FB70E30009AC141 /* DropListFirestoreService.swift in Sources */,
+				5E481D6A3040805000D55309 /* TracklistContentView.swift in Sources */,
 				5EC4B2542F320F5000F0C2D7 /* ErrorContext.swift in Sources */,
 				5E8F9CCF2D99777A004036F6 /* ImageCacheManager.swift in Sources */,
 				5E5466362F9613F2009D7210 /* DroplistView.swift in Sources */,
@@ -1584,6 +1629,7 @@
 				5EA2E6052DE34EE000C53E52 /* OrientationInfo.swift in Sources */,
 				5E8F9CBD2D81A401004036F6 /* MallsSectionView.swift in Sources */,
 				5EC88EF82DD1D37800A95224 /* SettingLaunchScreen.swift in Sources */,
+				5E481D6C30417EF600D55309 /* TracklistView.swift in Sources */,
 				5E8F9CB32D819F21004036F6 /* GalleryViewModel.swift in Sources */,
 				5EA2E60B2DF2DF6600C53E52 /* Layout.swift in Sources */,
 				5E8F9CBF2D81A451004036F6 /* ShopsSectionView.swift in Sources */,
@@ -1625,6 +1671,7 @@
 				5EC949E82CBA9339003736A9 /* OnboardingPageView.swift in Sources */,
 				5EBFD5D02E228D5200A3C74C /* FirestoreProfileService.swift in Sources */,
 				5EBBE6D72FAF5CC3009AC141 /* AdminModel.swift in Sources */,
+				5E481D6830407E7700D55309 /* TracklistViewModel.swift in Sources */,
 				5EBBE6DB2FAF5DC8009AC141 /* YouTubeAPIClient.swift in Sources */,
 				5EC88EEB2DBF8CEE00A95224 /* NetworkMonitor.swift in Sources */,
 				5E8F9CC12D81A476004036F6 /* PopularProductsSectionView.swift in Sources */,
@@ -1716,6 +1763,7 @@
 				5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */,
 				5E8F9CAD2D7ED912004036F6 /* GalleryViewModel(test).swift in Sources */,
 				5EAF5B0E2D2FF96000D96FD6 /* FirstAppear.swift in Sources */,
+				5E481D6630407D8800D55309 /* TracklistViewInjected.swift in Sources */,
 				5EC4B2572F41F0E700F0C2D7 /* FirestoreError.swift in Sources */,
 				5EC94A022CC2954C003736A9 /* GalleryView(test).swift in Sources */,
 				5E8F9C9A2D65F573004036F6 /* Localized.swift in Sources */,

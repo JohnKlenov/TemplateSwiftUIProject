@@ -44,7 +44,7 @@ struct DroplistContentView: View {
                     print("onSelectLowerItem - \(lowerItem)")
                 } onAllTracks: {
                     print("tap onAllTracks")
-                    droplistCoordinator.navigateTo(page: .someDroplistView)
+                    droplistCoordinator.navigateTo(page: .allTracks)
                 } onTopDrop: {
                     print("tap onTopDrop")
                 }
