@@ -184,9 +184,9 @@ class ViewBuilderService: ObservableObject {
 //            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: CarouselItemType.allTracks)
         case .topDrops:
             SomeView()
-        case .droplistDetails(playlistId: let playlistId):
+        case .droplistDetails(playlistId: _ ):
             SomeView()
-        case .topDropDetails(playlistId: let playlistId):
+        case .topDropDetails(playlistId: _ ):
             SomeView()
         }
     }

@@ -85,8 +85,6 @@ struct DroplistContentView: View {
             viewModel.setupViewModel()
         }
         .onAppear {
-            // тут можно сделать проаерку если case .errorList или case .error
-            // то мы не вызываем checkAndRefreshIfNeeded
             Task { await viewModel.checkAndRefreshIfNeeded() }
         }
 

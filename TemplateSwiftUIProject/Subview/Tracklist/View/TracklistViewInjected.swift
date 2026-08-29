@@ -15,26 +15,14 @@ struct TracklistViewInjected: View {
 
     private let navigationTitle: String
 
-    init(
-        dropListDataSource: DropListDataSource,
-        trackType: CarouselItemType,
-        navigationTitle: String
-    ) {
+    init(dropListDataSource: DropListDataSource, trackType: CarouselItemType, navigationTitle: String) {
+        
         self.navigationTitle = navigationTitle
-
-        _viewModel = StateObject(
-            wrappedValue: TracklistViewModel(
-                dropListDataSource: dropListDataSource,
-                trackType: trackType
-            )
-        )
+        _viewModel = StateObject(wrappedValue: TracklistViewModel(dropListDataSource: dropListDataSource, trackType: trackType))
     }
 
     var body: some View {
-        TracklistContentView(
-            viewModel: viewModel,
-            navigationTitle: navigationTitle
-        )
+        TracklistContentView(viewModel: viewModel, navigationTitle: navigationTitle)
     }
 }
 

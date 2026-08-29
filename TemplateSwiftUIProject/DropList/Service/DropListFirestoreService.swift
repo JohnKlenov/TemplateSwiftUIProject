@@ -675,6 +675,7 @@ final class DropListFirestoreService: DropListFirestoreServiceProtocol, @uncheck
                 query = query.start(afterDocument: lastSnapshot)
             }
 
+            /// возвращает кэш после таймаута
             query.getDocuments { [weak self] snapshot, error in
                 guard let self else { return }
 

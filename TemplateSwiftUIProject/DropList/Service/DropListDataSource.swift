@@ -147,10 +147,18 @@ final class DropListDataSource {
     // Пагинация — возвращаем явный NextPageResult
     func loadNextPageIfNeeded(for item: CarouselItemType) async throws -> NextPageResult {
 
+        // ⚠️ Диагностика:
+        // Если сюда регулярно попадаем — pagination может уйти в цикл:
+        // footer → loadNextPage → invalidState → footer → loadNextPage...
+        // Логируем item и отсутствие страницы в кэше.
         guard let currentPage = await pagesCache.get(item.rawValue) else {
             return .invalidState
         }
-
+        // ⚠️ Диагностика:
+        // Если hasMore == true, но lastDocumentSnapshot == nil —
+        // pagination не может продолжиться. Логируем состояние страницы.
+        // При необходимости фиксируем hasMore = false в кэше,
+        // чтобы footer не запускал повторные запросы.
         guard currentPage.hasMore,
               let lastSnapshot = currentPage.lastDocumentSnapshot else {
             return .noMore
