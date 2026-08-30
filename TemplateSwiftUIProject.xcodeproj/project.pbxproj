@@ -19,6 +19,7 @@
 		5E481D6830407E7700D55309 /* TracklistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6730407E6A00D55309 /* TracklistViewModel.swift */; };
 		5E481D6A3040805000D55309 /* TracklistContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D693040804100D55309 /* TracklistContentView.swift */; };
 		5E481D6C30417EF600D55309 /* TracklistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6B30417EE700D55309 /* TracklistView.swift */; };
+		5E481D6E304487DC00D55309 /* DataRefreshStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -209,6 +210,7 @@
 		5E481D6730407E6A00D55309 /* TracklistViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistViewModel.swift; sourceTree = "<group>"; };
 		5E481D693040804100D55309 /* TracklistContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistContentView.swift; sourceTree = "<group>"; };
 		5E481D6B30417EE700D55309 /* TracklistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistView.swift; sourceTree = "<group>"; };
+		5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataRefreshStateStore.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -580,6 +582,7 @@
 		5E5466302F961000009D7210 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */,
 				5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */,
 				5EC94A052CC29770003736A9 /* AuthenticationService.swift */,
 				5EC94A0F2CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift */,
@@ -1680,6 +1683,7 @@
 				5EC94A062CC29771003736A9 /* AuthenticationService.swift in Sources */,
 				5E00EE112F1E2C8900A521AC /* HomeManager.swift in Sources */,
 				5EBBE6E52FBAFEE0009AC141 /* DroplistCoordinator.swift in Sources */,
+				5E481D6E304487DC00D55309 /* DataRefreshStateStore.swift in Sources */,
 				5E8F9CA12D7CDFB7004036F6 /* GalleryContentViewModel(test).swift in Sources */,
 				5EA082972EA5107C00E244B8 /* FirebaseAuthUserProvider.swift in Sources */,
 				5EC332E12E48D3470051BE5B /* UserInfoEditViewInjected.swift in Sources */,

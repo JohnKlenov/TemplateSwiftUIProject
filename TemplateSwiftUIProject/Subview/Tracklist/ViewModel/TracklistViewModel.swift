@@ -5,6 +5,8 @@
 //  Created by Evgenyi on 27.08.2026.
 //
 
+// c DataRefreshState работает с allTrack + gym .. + в будущем со списком DropTop! (playlist + dropTopItem не меняется никогда поэтому их мы не отслеживаем для обновления)
+
 import SwiftUI
 
 enum TracklistState {
@@ -13,19 +15,16 @@ enum TracklistState {
     case contentList(Tracklist)
 }
 
-
 @MainActor
 final class TracklistViewModel: ObservableObject {
-    
+
     @Published var viewState: TracklistState = .loading
-    
+
     private let dropListDataSource: DropListDataSource
     private let trackType: CarouselItemType
-    
-    /// оставим на случай если появиться паралельный метод обновляющий viewState
-    private var currentRequestID = UUID()
+
     private var isLoadingNextPage = false
-    
+
     init(
         dropListDataSource: DropListDataSource,
         trackType: CarouselItemType
@@ -33,118 +32,142 @@ final class TracklistViewModel: ObservableObject {
         self.dropListDataSource = dropListDataSource
         self.trackType = trackType
     }
-    
+
     func setupViewModel() async {
         await fetchData()
     }
-    
+
     func retry() async {
         await fetchData()
     }
-    
-    //        // пауза 5 секунд
-    //        try? await Task.sleep(nanoseconds: 5_000_000_000)
-    //        viewState = .error("error")
+
+    // MARK: - Fetch Data
+
     func fetchData() async {
+
         viewState = .loading
 
-        if let cached = await dropListDataSource.cachedPage(for: trackType) {
-            print("cached")
+        let needsRefresh = await dropListDataSource.needsDataRefresh(
+            for: trackType
+        )
+
+        // Если экран уже видел текущую revision —
+        // используем cache.
+        if !needsRefresh,
+           let cached = await dropListDataSource.cachedPage(
+               for: trackType
+           ) {
+
+            print("Tracklist — cached")
+
             viewState = .contentList(
                 Tracklist(
                     tracks: cached,
                     footerState: .idle
                 )
             )
+
             return
         }
-        
+
+        // Cache отсутствует или revision изменилась —
+        // обязательно идём в сеть.
+
         do {
-            let page =
-                try await dropListDataSource.fetchTracksForTag(
-                    trackType
-                )
-            print("page")
+
+            let page = try await dropListDataSource.fetchTracksForTag(
+                trackType
+            )
+
+            print("Tracklist — network")
+
             viewState = .contentList(
                 Tracklist(
                     tracks: page,
                     footerState: .idle
                 )
             )
+
+            // Этот конкретный экран теперь видел текущую revision.
+            await dropListDataSource.markDataSeen(
+                for: trackType
+            )
+
         } catch {
-            print("catch")
+
+            print("Tracklist — catch")
+
             viewState = .error(
                 dropListDataSource.handleError(error)
             )
         }
     }
-    
+
+    // MARK: - Pagination
 
     func loadNextPage() async {
+
         guard !isLoadingNextPage else {
             return
         }
-        
+
         guard case .contentList(let currentTracklist) = viewState else {
             return
         }
-        
+
         guard currentTracklist.tracks.hasMore else {
             return
         }
-        
+
         isLoadingNextPage = true
+
         defer {
             isLoadingNextPage = false
         }
-        
-        let requestID = UUID()
-        currentRequestID = requestID
-        
+
         viewState = .contentList(
             Tracklist(
                 tracks: currentTracklist.tracks,
                 footerState: .loading
             )
         )
-        
+
         do {
-            let result =
-                try await dropListDataSource.loadNextPageIfNeeded(
-                    for: trackType
-                )
-            
-            guard requestID == currentRequestID else {
-                return
-            }
-            
+
+            let result = try await dropListDataSource.loadNextPageIfNeeded(
+                for: trackType
+            )
+
             guard case .contentList(let latestTracklist) = viewState else {
                 return
             }
-           
+
             switch result {
+
             case .loaded(let mergedPage):
+
                 viewState = .contentList(
                     Tracklist(
                         tracks: mergedPage,
                         footerState: .idle
                     )
                 )
-                
+
             case .noMore:
-                let cached =
-                    await dropListDataSource.cachedPage(
-                        for: trackType
-                    ) ?? latestTracklist.tracks
-                
+
+                let cached = await dropListDataSource.cachedPage(
+                    for: trackType
+                ) ?? latestTracklist.tracks
+
                 viewState = .contentList(
                     Tracklist(
                         tracks: cached,
                         footerState: .idle
                     )
                 )
-                
+
             case .invalidState:
+
                 viewState = .contentList(
                     Tracklist(
                         tracks: latestTracklist.tracks,
@@ -152,28 +175,22 @@ final class TracklistViewModel: ObservableObject {
                     )
                 )
             }
+
         } catch {
-            guard requestID == currentRequestID else {
-                return
-            }
-            
+
             guard case .contentList(let latestTracklist) = viewState else {
                 return
             }
-            
+
             viewState = .contentList(
                 Tracklist(
                     tracks: latestTracklist.tracks,
-                    footerState: .error(
-                        "Не удалось загрузить данные"
-                    )
+                    footerState: .error("Не удалось загрузить данные")
                 )
             )
         }
     }
 }
-
-
 
 
 //    try? await Task.sleep(nanoseconds: 5_000_000_000)
@@ -191,185 +208,180 @@ final class TracklistViewModel: ObservableObject {
 
 
 
-// MARK: DataRefreshState
 
 
-// c DataRefreshState работает с allTrack + gym .. + в будущем со списком DropTop! (playlist + dropTopItem не меняется никогда поэтому их мы не отслеживаем для обновления)
 
-//actor DataRefreshState {
+
+// MARK: - before DataRefreshStateStore
+
+
+//import SwiftUI
 //
-//    private(set) var updatedAt: Date?
-//
-//    func markUpdated() {
-//        updatedAt = Date()
-//    }
-//
-//    func getUpdatedAt() -> Date? {
-//        updatedAt
-//    }
+//enum TracklistState {
+//    case loading
+//    case error(String)
+//    case contentList(Tracklist)
 //}
-
-//private let refreshState = DataRefreshState()
-
-//actor PagesCache {
 //
-//    private var pages: [String: LowerSectionPage] = [:]
-//    private var updatedAt: [String: Date] = [:]
 //
-//    func get(_ key: String) -> LowerSectionPage? {
-//        pages[key]
-//    }
+//@MainActor
+//final class TracklistViewModel: ObservableObject {
 //
-//    func set(
-//        _ key: String,
-//        page: LowerSectionPage
+//    @Published var viewState: TracklistState = .loading
+//
+//    private let dropListDataSource: DropListDataSource
+//    private let trackType: CarouselItemType
+//
+//    /// оставим на случай если появиться паралельный метод обновляющий viewState
+//    private var currentRequestID = UUID()
+//    private var isLoadingNextPage = false
+//
+//    init(
+//        dropListDataSource: DropListDataSource,
+//        trackType: CarouselItemType
 //    ) {
-//        pages[key] = page
-//        updatedAt[key] = Date()
+//        self.dropListDataSource = dropListDataSource
+//        self.trackType = trackType
 //    }
 //
-//    func updatedAt(for key: String) -> Date? {
-//        updatedAt[key]
+//    func setupViewModel() async {
+//        await fetchData()
 //    }
 //
-//    func reset() {
-//        pages.removeAll()
-//        updatedAt.removeAll()
-//    }
-//}
-
-
-
-//func shouldRefresh(
-//    for item: CarouselItemType
-//) async -> Bool {
-//
-//    guard let cacheUpdatedAt =
-//            await pagesCache.updatedAt(for: item.rawValue)
-//    else {
-//        return true
+//    func retry() async {
+//        await fetchData()
 //    }
 //
-//    guard let dataUpdatedAt =
-//            await refreshState.getUpdatedAt()
-//    else {
-//        return false
-//    }
+//    //        // пауза 5 секунд
+//    //        try? await Task.sleep(nanoseconds: 5_000_000_000)
+//    //        viewState = .error("error")
+//    func fetchData() async {
+//        viewState = .loading
 //
-//    return cacheUpdatedAt < dataUpdatedAt
-//}
-
-//func refreshAll() async -> DropData? {
-//
-//    do {
-//
-//        async let topTask: TopSectionModel =
-//            firestoreService.fetchTopSection()
-//
-//        let topSection = try await topTask
-//
-//        let firstPage =
-//            try await firestoreService.fetchInitialLowerPage(
-//                for: .droplist,
-//                pageSize: pageSize
+//        if let cached = await dropListDataSource.cachedPage(for: trackType) {
+//            print("cached")
+//            viewState = .contentList(
+//                Tracklist(
+//                    tracks: cached,
+//                    footerState: .idle
+//                )
 //            )
-//
-//        await resetCacheAsync()
-//
-//        await pagesCache.set(
-//            CarouselItemType.droplist.rawValue,
-//            page: firstPage
-//        )
-//
-//        await refreshState.markUpdated()
-//
-//        return DropData(
-//            topSection: topSection,
-//            initialLowerSection: firstPage,
-//            footerState: .idle
-//        )
-//
-//    } catch {
-//
-//        let _ = errorHandler.handle(
-//            error: error,
-//            context:
-//                ErrorContext
-//                    .DropListDataSource_loadInitialDropList_DropListFirestore
-//                    .rawValue
-//        )
-//
-//        return nil
-//    }
-//}
-
-//func fetchData() async {
-//
-//    viewState = .loading
-//
-//    if let cached =
-//        await dropListDataSource.cachedPage(for: trackType) {
-//
-//        let shouldRefresh =
-//            await dropListDataSource.shouldRefresh(
-//                for: trackType
-//            )
-//
-//        viewState = .contentList(
-//            Tracklist(
-//                tracks: cached,
-//                footerState: .idle
-//            )
-//        )
-//
-//        if shouldRefresh {
-//            await refreshFromNetwork()
+//            return
 //        }
 //
-//        return
+//        do {
+//            let page =
+//                try await dropListDataSource.fetchTracksForTag(
+//                    trackType
+//                )
+//            print("page")
+//            viewState = .contentList(
+//                Tracklist(
+//                    tracks: page,
+//                    footerState: .idle
+//                )
+//            )
+//        } catch {
+//            print("catch")
+//            viewState = .error(
+//                dropListDataSource.handleError(error)
+//            )
+//        }
 //    }
 //
-//    await refreshFromNetwork()
-//}
-
-//private func refreshFromNetwork() async {
 //
-//    do {
+//    func loadNextPage() async {
+//        guard !isLoadingNextPage else {
+//            return
+//        }
 //
-//        let page =
-//            try await dropListDataSource.fetchTracksForTag(
-//                trackType
-//            )
+//        guard case .contentList(let currentTracklist) = viewState else {
+//            return
+//        }
+//
+//        guard currentTracklist.tracks.hasMore else {
+//            return
+//        }
+//
+//        isLoadingNextPage = true
+//        defer {
+//            isLoadingNextPage = false
+//        }
+//
+//        let requestID = UUID()
+//        currentRequestID = requestID
 //
 //        viewState = .contentList(
 //            Tracklist(
-//                tracks: page,
-//                footerState: .idle
+//                tracks: currentTracklist.tracks,
+//                footerState: .loading
 //            )
 //        )
 //
-//    } catch {
+//        do {
+//            let result =
+//                try await dropListDataSource.loadNextPageIfNeeded(
+//                    for: trackType
+//                )
 //
-//        viewState = .error(
-//            dropListDataSource.handleError(error)
-//        )
+//            guard requestID == currentRequestID else {
+//                return
+//            }
+//
+//            guard case .contentList(let latestTracklist) = viewState else {
+//                return
+//            }
+//
+//            switch result {
+//            case .loaded(let mergedPage):
+//                viewState = .contentList(
+//                    Tracklist(
+//                        tracks: mergedPage,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .noMore:
+//                let cached =
+//                    await dropListDataSource.cachedPage(
+//                        for: trackType
+//                    ) ?? latestTracklist.tracks
+//
+//                viewState = .contentList(
+//                    Tracklist(
+//                        tracks: cached,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .invalidState:
+//                viewState = .contentList(
+//                    Tracklist(
+//                        tracks: latestTracklist.tracks,
+//                        footerState: .idle
+//                    )
+//                )
+//            }
+//        } catch {
+//            guard requestID == currentRequestID else {
+//                return
+//            }
+//
+//            guard case .contentList(let latestTracklist) = viewState else {
+//                return
+//            }
+//
+//            viewState = .contentList(
+//                Tracklist(
+//                    tracks: latestTracklist.tracks,
+//                    footerState: .error(
+//                        "Не удалось загрузить данные"
+//                    )
+//                )
+//            )
+//        }
 //    }
 //}
-//
-//func checkAndRefreshIfNeeded() async {
-//
-//    guard await dropListDataSource.shouldAutoRefresh()
-//    else {
-//        return
-//    }
-//
-//    await refreshDropList()
-//}
-
-
-//Если cache был создан раньше последнего успешного refresh Droplist — cache показываем, но сразу revalidate через сеть. Если cache был создан после него — используем cache без сети.
-
-
 
 // MARK: - before GPT
 

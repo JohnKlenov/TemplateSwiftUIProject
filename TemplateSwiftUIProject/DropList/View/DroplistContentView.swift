@@ -15,8 +15,6 @@ import SwiftUI
 
 struct DroplistContentView: View {
     
-    // что бы не добавлять поля selectedItem и isLowerSectionLoading в DropData
-    // мы можем попробывть создать их в DroplistViewModel и передать DroplistViewModel в DroplistCompositView
     @ObservedObject var viewModel: DroplistViewModel
     
     @EnvironmentObject var droplistCoordinator: DroplistCoordinator
@@ -66,20 +64,20 @@ struct DroplistContentView: View {
         .background(AppColors.background)
         .navigationTitle("Droplist")
         .navigationBarTitleDisplayMode(.inline)
-//        .navigationTitle(Localized.Home.title.localized())
-//        .toolbar {
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button(Localized.Home.addButton.localized()) {
-//                    let sheetContent = AnyView(
-//                        AdminView()
-//                    )
-//                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
-//                }
-//                .foregroundStyle(AppColors.activeColor)
-//                .padding()
-//                .disabled(viewModel.viewState.isError)
-//            }
-//        }
+        //        .navigationTitle(Localized.Home.title.localized())
+        //        .toolbar {
+        //            ToolbarItem(placement: .topBarTrailing) {
+        //                Button(Localized.Home.addButton.localized()) {
+        //                    let sheetContent = AnyView(
+        //                        AdminView()
+        //                    )
+        //                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
+        //                }
+        //                .foregroundStyle(AppColors.activeColor)
+        //                .padding()
+        //                .disabled(viewModel.viewState.isError)
+        //            }
+        //        }
         .onFirstAppear {
             viewModel.setRetryHandler(retryHandler)
             viewModel.setupViewModel()

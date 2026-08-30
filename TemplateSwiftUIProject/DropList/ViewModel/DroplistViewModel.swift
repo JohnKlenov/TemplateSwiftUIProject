@@ -215,6 +215,7 @@ enum DropeState {
 }
 
 extension DropeState {
+
     var isError: Bool {
         switch self {
         case .error, .errorList:
@@ -231,7 +232,6 @@ final class DroplistViewModel: ObservableObject {
     // MARK: - Published
 
     @Published var viewState: DropeState = .loading
-    @Published var lastUpdated: Date? = nil
 
     // MARK: - Dependencies
 
@@ -241,24 +241,17 @@ final class DroplistViewModel: ObservableObject {
     // MARK: - Internal State
 
     private var cancellables = Set<AnyCancellable>()
+
     private(set) var myTracks: [MyTrackCloud] = []
 
-    /// Блокирует повторный initial load / Refresh
     private var isDropListLoaded = false
     private var isRefreshing = false
 
-    /// Единый токен актуальности для всех асинхронных операций (select, pagination, refresh)
     private var currentRequestID = UUID()
-
-    /// Текущая задача выбора элемента карусели
-//    private var currentSelectionTask: Task<Void, Never>? = nil
-
-    /// Задачи пагинации
     private var currentPaginationTask: Task<Void, Never>? = nil
 
-    /// Авто‑обновление (как в Gallery)
+    // 2 часа.
     private let autoRefreshThreshold: TimeInterval = 2 * 60 * 60
-    // private let autoRefreshThreshold: TimeInterval = 20 // для тестов
 
     // MARK: - Init
 
@@ -287,6 +280,7 @@ final class DroplistViewModel: ObservableObject {
 
     func setupViewModel() {
         viewState = .loading
+
         sessionManager.start()
         sessionManager.observe()
     }
@@ -295,37 +289,41 @@ final class DroplistViewModel: ObservableObject {
         sessionManager.setRetryHandler(handler)
     }
 
+    // MARK: - Retry
+
     func retry() {
-        
-        // Обновляем токен актуальности
+
         currentRequestID = UUID()
-        
-        // Полный сброс состояния Droplist
+
         dropListDataSource.resetCache()
-        
+
+        Task {
+            await dropListDataSource.resetDataRefreshState()
+        }
+
         myTracks = []
         isDropListLoaded = false
         isRefreshing = false
-        lastUpdated = nil
 
-        // Отменяем все фоновые задачи
-//        currentSelectionTask?.cancel()
         currentPaginationTask?.cancel()
 
         viewState = .loading
+
         sessionManager.retry()
     }
 
-    func resetLastUpdated() {
-        lastUpdated = nil
-    }
-
-    // MARK: - Initial Load (Strict)
+    // MARK: - Initial Load
 
     func fetchDataDroplist() async {
+
         print("func fetchDataDroplist() before guard")
-        guard !isDropListLoaded else { return }
+
+        guard !isDropListLoaded else {
+            return
+        }
+
         isDropListLoaded = true
+
         print("func fetchDataDroplist() after guard")
 
         let requestID = UUID()
@@ -333,17 +331,29 @@ final class DroplistViewModel: ObservableObject {
 
         let result = await dropListDataSource.loadInitialDropList()
 
-        // Проверяем, что запрос всё ещё актуален и нет глобальной ошибки (иначе deadlock)
-        guard requestID == currentRequestID else { return }
-        guard !viewState.isError else { return }
+        guard requestID == currentRequestID else {
+            return
+        }
+
+        guard !viewState.isError else {
+            return
+        }
 
         switch result {
+
         case .success(let dropData):
-            lastUpdated = Date()
+
+            // Первая запись:
+            // создаём revision = 1 и записываем lastUpdated = Date().
+            await dropListDataSource.markDataUpdated()
+
             viewState = .contentList(dropData)
 
         case .failure(let userError):
-            resetLastUpdated()
+
+            // Ошибка initial load — состояние актуальности сбрасываем.
+            await dropListDataSource.resetDataRefreshState()
+
             viewState = .errorList(userError.message)
         }
     }
@@ -351,159 +361,526 @@ final class DroplistViewModel: ObservableObject {
     // MARK: - Retry Initial Load
 
     func retryFetchDataDroplist() {
+
         viewState = .loading
         isDropListLoaded = false
 
-        Task { await fetchDataDroplist() }
+        Task {
+            await fetchDataDroplist()
+        }
     }
 
-    // MARK: - Soft Refresh (Pull-to-Refresh + Auto Refresh)
+    // MARK: - Soft Refresh
 
     func refreshDropList() async {
-        guard !isRefreshing else { return }
-        isRefreshing = true
-        defer { isRefreshing = false }
 
-        // Новый токен актуальности для refresh
+        guard !isRefreshing else {
+            return
+        }
+
+        isRefreshing = true
+
+        defer {
+            isRefreshing = false
+        }
+
         let requestID = UUID()
         currentRequestID = requestID
 
-        // Отменяем все фоновые задачи Droplist
-//        currentSelectionTask?.cancel()
         currentPaginationTask?.cancel()
 
-        // Загружаем новые данные
         if let newData = await dropListDataSource.refreshAll() {
-            guard requestID == currentRequestID else { return }
-            guard !viewState.isError else { return }
 
-            lastUpdated = Date()
+            guard requestID == currentRequestID else {
+                return
+            }
+
+            guard !viewState.isError else {
+                return
+            }
+
+            // Новое обновление:
+            // revision увеличивается, lastUpdated = Date().
+            await dropListDataSource.markDataUpdated()
+
             print("Soft refresh success — UI changed")
+
             viewState = .contentList(newData)
+
         } else {
+
             print("Soft refresh failed — UI unchanged")
         }
     }
 
+    // MARK: - Auto Refresh
+
     func checkAndRefreshIfNeeded() async {
-        if let lastUpdated {
-            let elapsed = Date().timeIntervalSince(lastUpdated)
-            if elapsed > autoRefreshThreshold {
-                await refreshDropList()
-            }
+
+        guard let lastUpdated = await dropListDataSource.lastUpdated() else {
+            return
         }
-        // else: ничего не делаем, потому что initial load уже был
-    }
-    
-    
-    // MARK: - loadNextPage
-    
-func loadNextPage(for item: CarouselItemType) async {
-    guard case .contentList(let currentDropData) = viewState else { return }
-    guard currentDropData.initialLowerSection.hasMore else {
-        return
+
+        let elapsed = Date().timeIntervalSince(lastUpdated)
+
+        guard elapsed > autoRefreshThreshold else {
+            return
+        }
+
+        await refreshDropList()
     }
 
-    let requestID = UUID()
-    currentRequestID = requestID
+    // MARK: - Pagination
 
-    currentPaginationTask?.cancel()
+    func loadNextPage(for item: CarouselItemType) async {
 
-    guard requestID == currentRequestID else { return }
-    guard !viewState.isError else { return }
-    
-    // Показываем footer spinner
-    viewState = .contentList(
-        DropData(
-            topSection: currentDropData.topSection,
-            initialLowerSection: currentDropData.initialLowerSection,
-            footerState: .loading
+        guard case .contentList(let currentDropData) = viewState else {
+            return
+        }
+
+        guard currentDropData.initialLowerSection.hasMore else {
+            return
+        }
+
+        let requestID = UUID()
+        currentRequestID = requestID
+
+        currentPaginationTask?.cancel()
+
+        guard requestID == currentRequestID else {
+            return
+        }
+
+        guard !viewState.isError else {
+            return
+        }
+
+        viewState = .contentList(
+            DropData(
+                topSection: currentDropData.topSection,
+                initialLowerSection: currentDropData.initialLowerSection,
+                footerState: .loading
+            )
         )
-    )
 
-    currentPaginationTask = Task { @MainActor in
-        do {
-            let result = try await dropListDataSource.loadNextPageIfNeeded(for: item)
+        currentPaginationTask = Task { @MainActor in
 
-            guard requestID == currentRequestID else { return }
-            guard case .contentList(let latestDropData) = viewState else { return }
-            guard !viewState.isError else { return }
+            do {
 
-            switch result {
-            case .loaded(let mergedPage):
-                viewState = .contentList(
-                    DropData(
-                        topSection: latestDropData.topSection,
-                        initialLowerSection: mergedPage,
-                        footerState: .idle
-                    )
+                let result = try await dropListDataSource.loadNextPageIfNeeded(
+                    for: item
                 )
 
-            case .noMore:
-                let cached = await dropListDataSource.cachedPage(for: item)
-                    ?? latestDropData.initialLowerSection
+                guard requestID == currentRequestID else {
+                    return
+                }
 
-                viewState = .contentList(
-                    DropData(
-                        topSection: latestDropData.topSection,
-                        initialLowerSection: cached,
-                        footerState: .idle
+                guard case .contentList(let latestDropData) = viewState else {
+                    return
+                }
+
+                guard !viewState.isError else {
+                    return
+                }
+
+                switch result {
+
+                case .loaded(let mergedPage):
+
+                    viewState = .contentList(
+                        DropData(
+                            topSection: latestDropData.topSection,
+                            initialLowerSection: mergedPage,
+                            footerState: .idle
+                        )
                     )
-                )
 
-            case .invalidState:
+                case .noMore:
+
+                    let cached = await dropListDataSource.cachedPage(
+                        for: item
+                    ) ?? latestDropData.initialLowerSection
+
+                    viewState = .contentList(
+                        DropData(
+                            topSection: latestDropData.topSection,
+                            initialLowerSection: cached,
+                            footerState: .idle
+                        )
+                    )
+
+                case .invalidState:
+
+                    viewState = .contentList(
+                        DropData(
+                            topSection: latestDropData.topSection,
+                            initialLowerSection: latestDropData.initialLowerSection,
+                            footerState: .idle
+                        )
+                    )
+                }
+
+            } catch {
+
+                guard requestID == currentRequestID else {
+                    return
+                }
+
+                guard case .contentList(let latestDropData) = viewState else {
+                    return
+                }
+
+                guard !viewState.isError else {
+                    return
+                }
+
                 viewState = .contentList(
                     DropData(
                         topSection: latestDropData.topSection,
                         initialLowerSection: latestDropData.initialLowerSection,
-                        footerState: .idle
+                        footerState: .error("Не удалось загрузить данные")
                     )
                 )
             }
-
-        } catch {
-            guard requestID == currentRequestID else { return }
-            guard case .contentList(let latestDropData) = viewState else { return }
-            guard !viewState.isError else { return }
-
-            viewState = .contentList(
-                DropData(
-                    topSection: latestDropData.topSection,
-                    initialLowerSection: latestDropData.initialLowerSection,
-                    footerState: .error("Не удалось загрузить данные")
-                )
-            )
         }
     }
-}
 
     // MARK: - Handle AppSessionManager State
 
     private func handleHomeManagerState(_ state: DropeState) {
+
         switch state {
 
         case .loading:
             viewState = .loading
 
         case .error(let message):
-// можем обновляем токен актуальности - currentRequestID = UUID() вместо проверок case .error в методах
-            resetLastUpdated()
+
+            // Глобальная ошибка:
+            // сбрасываем состояние актуальности данных.
+            Task {
+                await dropListDataSource.resetDataRefreshState()
+            }
+
             viewState = .error(message)
 
         case .myTracks(let tracks):
+
             myTracks = tracks
-            Task { await fetchDataDroplist() }   // ВСЕГДА вызываем, но загрузка выполнится только один раз
+
+            Task {
+                await fetchDataDroplist()
+            }
 
         case .contentList, .errorList:
             break
         }
     }
-
 }
 
 
 
 
+// MARK: - before DataRefreshStateStore
+
+
+//import Combine
+//import Foundation
+//
+//enum DropeState {
+//    case loading
+//    case error(String)
+//    case myTracks([MyTrackCloud])
+//    case errorList(String)
+//    case contentList(DropData)
+//}
+//
+//extension DropeState {
+//    var isError: Bool {
+//        switch self {
+//        case .error, .errorList:
+//            return true
+//        default:
+//            return false
+//        }
+//    }
+//}
+//
+//@MainActor
+//final class DroplistViewModel: ObservableObject {
+//
+//    // MARK: - Published
+//
+//    @Published var viewState: DropeState = .loading
+//    @Published var lastUpdated: Date? = nil
+//
+//    // MARK: - Dependencies
+//
+//    private let sessionManager: AppSessionManager
+//    private let dropListDataSource: DropListDataSource
+//
+//    // MARK: - Internal State
+//
+//    private var cancellables = Set<AnyCancellable>()
+//    private(set) var myTracks: [MyTrackCloud] = []
+//
+//    /// Блокирует повторный initial load / Refresh
+//    private var isDropListLoaded = false
+//    private var isRefreshing = false
+//
+//    /// Единый токен актуальности для всех асинхронных операций (select, pagination, refresh)
+//    private var currentRequestID = UUID()
+//
+//    /// Текущая задача выбора элемента карусели
+////    private var currentSelectionTask: Task<Void, Never>? = nil
+//
+//    /// Задачи пагинации
+//    private var currentPaginationTask: Task<Void, Never>? = nil
+//
+//    /// Авто‑обновление (как в Gallery)
+//    private let autoRefreshThreshold: TimeInterval = 2 * 60 * 60
+//    // private let autoRefreshThreshold: TimeInterval = 20 // для тестов
+//
+//    // MARK: - Init
+//
+//    init(
+//        sessionManager: AppSessionManager,
+//        dropListDataSource: DropListDataSource
+//    ) {
+//        self.sessionManager = sessionManager
+//        self.dropListDataSource = dropListDataSource
+//
+//        sessionManager.statePublisher
+//            .compactMap { $0 }
+//            .receive(on: DispatchQueue.main)
+//            .sink { [weak self] state in
+//                print("sessionManager.statePublisher - \(state)")
+//                self?.handleHomeManagerState(state)
+//            }
+//            .store(in: &cancellables)
+//    }
+//
+//    deinit {
+//        print("deinit DroplistViewModel")
+//    }
+//
+//    // MARK: - Setup
+//
+//    func setupViewModel() {
+//        viewState = .loading
+//        sessionManager.start()
+//        sessionManager.observe()
+//    }
+//
+//    func setRetryHandler(_ handler: GlobalRetryHandler) {
+//        sessionManager.setRetryHandler(handler)
+//    }
+//
+//    func retry() {
+//
+//        // Обновляем токен актуальности
+//        currentRequestID = UUID()
+//
+//        // Полный сброс состояния Droplist
+//        dropListDataSource.resetCache()
+//
+//        myTracks = []
+//        isDropListLoaded = false
+//        isRefreshing = false
+//        lastUpdated = nil
+//
+//        // Отменяем все фоновые задачи
+////        currentSelectionTask?.cancel()
+//        currentPaginationTask?.cancel()
+//
+//        viewState = .loading
+//        sessionManager.retry()
+//    }
+//
+//    func resetLastUpdated() {
+//        lastUpdated = nil
+//    }
+//
+//    // MARK: - Initial Load (Strict)
+//
+//    func fetchDataDroplist() async {
+//        print("func fetchDataDroplist() before guard")
+//        guard !isDropListLoaded else { return }
+//        isDropListLoaded = true
+//        print("func fetchDataDroplist() after guard")
+//
+//        let requestID = UUID()
+//        currentRequestID = requestID
+//
+//        let result = await dropListDataSource.loadInitialDropList()
+//
+//        // Проверяем, что запрос всё ещё актуален и нет глобальной ошибки (иначе deadlock)
+//        guard requestID == currentRequestID else { return }
+//        guard !viewState.isError else { return }
+//
+//        switch result {
+//        case .success(let dropData):
+//            lastUpdated = Date()
+//            viewState = .contentList(dropData)
+//
+//        case .failure(let userError):
+//            resetLastUpdated()
+//            viewState = .errorList(userError.message)
+//        }
+//    }
+//
+//    // MARK: - Retry Initial Load
+//
+//    func retryFetchDataDroplist() {
+//        viewState = .loading
+//        isDropListLoaded = false
+//
+//        Task { await fetchDataDroplist() }
+//    }
+//
+//    // MARK: - Soft Refresh (Pull-to-Refresh + Auto Refresh)
+//
+//    func refreshDropList() async {
+//        guard !isRefreshing else { return }
+//        isRefreshing = true
+//        defer { isRefreshing = false }
+//
+//        // Новый токен актуальности для refresh
+//        let requestID = UUID()
+//        currentRequestID = requestID
+//
+//        // Отменяем все фоновые задачи Droplist
+////        currentSelectionTask?.cancel()
+//        currentPaginationTask?.cancel()
+//
+//        // Загружаем новые данные
+//        if let newData = await dropListDataSource.refreshAll() {
+//            guard requestID == currentRequestID else { return }
+//            guard !viewState.isError else { return }
+//
+//            lastUpdated = Date()
+//            print("Soft refresh success — UI changed")
+//            viewState = .contentList(newData)
+//        } else {
+//            print("Soft refresh failed — UI unchanged")
+//        }
+//    }
+//
+//    func checkAndRefreshIfNeeded() async {
+//        if let lastUpdated {
+//            let elapsed = Date().timeIntervalSince(lastUpdated)
+//            if elapsed > autoRefreshThreshold {
+//                await refreshDropList()
+//            }
+//        }
+//        // else: ничего не делаем, потому что initial load уже был
+//    }
+//
+//
+//    // MARK: - loadNextPage
+//
+//func loadNextPage(for item: CarouselItemType) async {
+//    guard case .contentList(let currentDropData) = viewState else { return }
+//    guard currentDropData.initialLowerSection.hasMore else {
+//        return
+//    }
+//
+//    let requestID = UUID()
+//    currentRequestID = requestID
+//
+//    currentPaginationTask?.cancel()
+//
+//    guard requestID == currentRequestID else { return }
+//    guard !viewState.isError else { return }
+//
+//    // Показываем footer spinner
+//    viewState = .contentList(
+//        DropData(
+//            topSection: currentDropData.topSection,
+//            initialLowerSection: currentDropData.initialLowerSection,
+//            footerState: .loading
+//        )
+//    )
+//
+//    currentPaginationTask = Task { @MainActor in
+//        do {
+//            let result = try await dropListDataSource.loadNextPageIfNeeded(for: item)
+//
+//            guard requestID == currentRequestID else { return }
+//            guard case .contentList(let latestDropData) = viewState else { return }
+//            guard !viewState.isError else { return }
+//
+//            switch result {
+//            case .loaded(let mergedPage):
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        initialLowerSection: mergedPage,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .noMore:
+//                let cached = await dropListDataSource.cachedPage(for: item)
+//                    ?? latestDropData.initialLowerSection
+//
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        initialLowerSection: cached,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .invalidState:
+//                viewState = .contentList(
+//                    DropData(
+//                        topSection: latestDropData.topSection,
+//                        initialLowerSection: latestDropData.initialLowerSection,
+//                        footerState: .idle
+//                    )
+//                )
+//            }
+//
+//        } catch {
+//            guard requestID == currentRequestID else { return }
+//            guard case .contentList(let latestDropData) = viewState else { return }
+//            guard !viewState.isError else { return }
+//
+//            viewState = .contentList(
+//                DropData(
+//                    topSection: latestDropData.topSection,
+//                    initialLowerSection: latestDropData.initialLowerSection,
+//                    footerState: .error("Не удалось загрузить данные")
+//                )
+//            )
+//        }
+//    }
+//}
+//
+//    // MARK: - Handle AppSessionManager State
+//
+//    private func handleHomeManagerState(_ state: DropeState) {
+//        switch state {
+//
+//        case .loading:
+//            viewState = .loading
+//
+//        case .error(let message):
+//// можем обновляем токен актуальности - currentRequestID = UUID() вместо проверок case .error в методах
+//            resetLastUpdated()
+//            viewState = .error(message)
+//
+//        case .myTracks(let tracks):
+//            myTracks = tracks
+//            Task { await fetchDataDroplist() }   // ВСЕГДА вызываем, но загрузка выполнится только один раз
+//
+//        case .contentList, .errorList:
+//            break
+//        }
+//    }
+//
+//}
 
 // MARK: - didSelectCarouselItem
 
