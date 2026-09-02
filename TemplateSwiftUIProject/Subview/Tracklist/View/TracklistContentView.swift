@@ -5,6 +5,10 @@
 //  Created by Evgenyi on 27.08.2026.
 //
 
+
+// добавить кнопку addPlaylist (реализовать логику - если есть в корзине то кнопка добавить не доступна) + как отобразить добавление в корзину
+// запустить трек на плеере - fullScreen 
+
 import SwiftUI
 
 struct TracklistContentView: View {

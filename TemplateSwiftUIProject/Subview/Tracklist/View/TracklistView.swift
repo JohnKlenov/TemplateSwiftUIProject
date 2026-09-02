@@ -30,7 +30,7 @@ private extension TracklistView {
    
     @ViewBuilder
     func lowerSectionWithFooter() -> some View {
-        LazyVStack(spacing: 16) {
+        LazyVStack(spacing: 8) {
             ForEach(data.tracks.items) { item in
                 lowerItemCell(item)
             }
@@ -95,12 +95,13 @@ private extension TracklistView {
                     Text(item.title)
                         .font(.headline)
                         .foregroundColor(.primary)
+                        .lineLimit(1)
                     
                     if let subtitle = item.subtitle {
                         Text(subtitle)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                            .lineLimit(2)
+                            .lineLimit(1)
                             .multilineTextAlignment(.leading)          // ← прижимаем строки
                             .frame(maxWidth: .infinity, alignment: .leading) // ← фиксируем выравнивание
                     }

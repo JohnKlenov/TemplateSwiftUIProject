@@ -252,7 +252,7 @@ final class DroplistViewModel: ObservableObject {
 
     // 2 часа.
     private let autoRefreshThreshold: TimeInterval = 2 * 60 * 60
-
+//    private let autoRefreshThreshold: TimeInterval = 15
     // MARK: - Init
 
     init(
@@ -316,15 +316,11 @@ final class DroplistViewModel: ObservableObject {
 
     func fetchDataDroplist() async {
 
-        print("func fetchDataDroplist() before guard")
-
         guard !isDropListLoaded else {
             return
         }
 
         isDropListLoaded = true
-
-        print("func fetchDataDroplist() after guard")
 
         let requestID = UUID()
         currentRequestID = requestID

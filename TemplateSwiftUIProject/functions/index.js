@@ -26,3 +26,6 @@ exports.cleanupUnusedAvatars =
 // 🔹 Playlist cover generator
 exports.generatePlaylistCover =
   require('./generatePlaylistCover').generatePlaylistCover;
+
+exports.processTrackThumbnail =
+  require('./processTrackThumbnail').processTrackThumbnail;

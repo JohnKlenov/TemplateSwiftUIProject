@@ -45,6 +45,10 @@ import Foundation
 //
 
 
+// cache который мы будем remove: cache -  (case: allTracks, gym, party, rnb)
+// cache который мы не будем remove: cachePermanent - (case: droplist, topDropItem) так как эти списки будут неизменны
+//
+
 /// Атомарный кэш страниц через actor — предотвращает race conditions
 actor PagesCache {
     private var cache: [String: LowerSectionPage] = [:]
