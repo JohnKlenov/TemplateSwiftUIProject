@@ -20,6 +20,7 @@
 		5E481D6A3040805000D55309 /* TracklistContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D693040804100D55309 /* TracklistContentView.swift */; };
 		5E481D6C30417EF600D55309 /* TracklistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6B30417EE700D55309 /* TracklistView.swift */; };
 		5E481D6E304487DC00D55309 /* DataRefreshStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */; };
+		5E481D71304D93A500D55309 /* SafariPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D70304D93A300D55309 /* SafariPlayerView.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -211,6 +212,7 @@
 		5E481D693040804100D55309 /* TracklistContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistContentView.swift; sourceTree = "<group>"; };
 		5E481D6B30417EE700D55309 /* TracklistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistView.swift; sourceTree = "<group>"; };
 		5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataRefreshStateStore.swift; sourceTree = "<group>"; };
+		5E481D70304D93A300D55309 /* SafariPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariPlayerView.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -449,6 +451,14 @@
 			path = ViewModel;
 			sourceTree = "<group>";
 		};
+		5E481D6F304D939600D55309 /* SafariPlayerView */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D70304D93A300D55309 /* SafariPlayerView.swift */,
+			);
+			path = SafariPlayerView;
+			sourceTree = "<group>";
+		};
 		5E54660C2F7A5B56009D7210 /* Description */ = {
 			isa = PBXGroup;
 			children = (
@@ -498,6 +508,7 @@
 		5E5466192F7A5EEC009D7210 /* YouTubePlayer */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D6F304D939600D55309 /* SafariPlayerView */,
 				5E5466212F7E823C009D7210 /* FullscreenPlayer */,
 				5E5466202F7E822F009D7210 /* EmbedPlayer */,
 				5E54661A2F7A5F19009D7210 /* PlayerView.swift */,
@@ -1739,6 +1750,7 @@
 				5EBFD5C62E1A868E00A3C74C /* RunLoopSetting.swift in Sources */,
 				5EA2E5FF2DDF35AD00C53E52 /* SignInView.swift in Sources */,
 				5EA2E5F32DDC8A5D00C53E52 /* String+Ext.swift in Sources */,
+				5E481D71304D93A500D55309 /* SafariPlayerView.swift in Sources */,
 				5E8F9CA52D7EC973004036F6 /* GalleryListView(test).swift in Sources */,
 				5E5466182F7A5E80009D7210 /* TrackRow.swift in Sources */,
 				5EC949D02CB526E5003736A9 /* TemplateSwiftUIProjectApp.swift in Sources */,

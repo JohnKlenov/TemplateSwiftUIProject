@@ -53,92 +53,9 @@ struct TracklistContentView: View {
             Task { await viewModel.setupViewModel() }
         }
         .sheet(item: $selectedTrack) { track in
-            PlayerViews(videoId: track.id)
-                    .presentationDetents([.medium, .large])
-//            YouTubePlayerView(videoId: track.id)
-//                .edgesIgnoringSafeArea(.all)
+            SafariPlayerView(videoId: track.id)
+                .presentationDetents([.medium, .large])
         }
-    }
-}
-
-//PlayerViews(videoId: track.id)
-//        .presentationDetents([.medium, .large])
-
-
-//        .fullScreenCover(item: $selectedTrack) { track in
-//            return EmbedPlayer(videoId: track.id)
-//                .frame(height: 280)
-//                .background(Color.black)
-//                .cornerRadius(12)
-//                .padding(.horizontal, 8)
-//
-//        }
-
-// Видео
-//            EmbedPlayer(videoId: track.id)
-//                .frame(height: 280)
-//                .background(Color.black)
-//                .cornerRadius(12)
-//                .padding(.horizontal, 8)
-//            YouTubePlayerView(videoId: track.id)
-//                .edgesIgnoringSafeArea(.all)
-//            PlayerView(videoId: track.id)
-//                .presentationDetents([.medium, .large])
-
-
-//                        if item.isTrack {
-//                                YouTubeAppPlayer.open(videoId: item.id)
-//                            }
-
-struct YouTubeAppPlayer {
-    static func open(videoId: String) {
-        let appURL = URL(string: "youtube://\(videoId)")!
-        let webURL = URL(string: "https://www.youtube.com/watch?v=\(videoId)")!
-
-        if UIApplication.shared.canOpenURL(appURL) {
-            UIApplication.shared.open(appURL)
-        } else {
-            UIApplication.shared.open(webURL)
-        }
-    }
-}
-
-
-import SwiftUI
-import SafariServices
-
-struct SafariPlayerView: UIViewControllerRepresentable {
-    let videoId: String
-
-    func makeUIViewController(context: Context) -> SFSafariViewController {
-        // Обычный watch-вариант — YouTube доверяет ему
-        let url = URL(string: "https://www.youtube.com/watch?v=\(videoId)")!
-
-        let config = SFSafariViewController.Configuration()
-        config.entersReaderIfAvailable = false
-        config.barCollapsingEnabled = true   // красивый эффект схлопывания
-
-        let vc = SFSafariViewController(url: url, configuration: config)
-
-        vc.preferredControlTintColor = .white        // цвет кнопок
-        vc.preferredBarTintColor = .black            // фон навбара
-        vc.dismissButtonStyle = .close               // стиль кнопки закрытия
-
-        return vc
-    }
-
-    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
-}
-
-
-struct PlayerViews: View {
-    let videoId: String
-
-    var body: some View {
-        SafariPlayerView(videoId: videoId)
-            .edgesIgnoringSafeArea(.all)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .shadow(radius: 4)
     }
 }
 

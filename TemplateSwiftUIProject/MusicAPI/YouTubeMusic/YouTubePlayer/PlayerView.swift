@@ -221,11 +221,13 @@
 
 
 
-import SwiftUI
-import WebKit
 
+// MARK: -  ВАРИАНТ 1: UIViewRepresentable (тот самый что работал идеально как плеер на весь экран)
 
-// MARK: -  ВАРИАНТ 1: UIViewRepresentable (простой)
+// стал выбрасывать Sign in to confirm you're not a bot
+
+//YouTubePlayerView(videoId: track.id)
+//    .edgesIgnoringSafeArea(.all)
 
 import SwiftUI
 import WebKit
@@ -266,46 +268,6 @@ struct PlayerView: View {
 
 
 
-//import SwiftUI
-//
-//struct TracksListView: View {
-//    @Environment(\.dismiss) private var dismiss
-//    @StateObject private var vm = TracksViewModel()
-//    @State private var selectedTrack: Track?
-//
-//    var body: some View {
-//        NavigationView {
-//            List(vm.tracks) { track in
-//                TrackRow(track: track) {
-//                    print("Plus tapped for \(track.title)")
-//                }
-//                .onTapGesture {
-//                    print("Plus tapped for \(track.videoId)")
-//                    selectedTrack = track
-//                }
-//            }
-//            .navigationTitle("Мои треки")
-//            .toolbar {
-//                ToolbarItem(placement: .topBarLeading) {
-//                    Button(action: { dismiss() }) {
-//                        Image(systemName: "xmark")
-//                            .font(.title2)
-//                    }
-//                }
-//            }
-//            .onAppear {
-//                vm.loadTracks()
-//            }
-//            .sheet(item: $selectedTrack) { track in
-////                SafariPlayerView(videoId: track.videoId)
-//                PlayerView(videoId: track.videoId)
-//                YouTubePlayerView(videoId: track.videoId)
-//                    .edgesIgnoringSafeArea(.all)
-//            }
-//        }
-//        .navigationBarBackButtonHidden(true)
-//    }
-//}
 
 
 
