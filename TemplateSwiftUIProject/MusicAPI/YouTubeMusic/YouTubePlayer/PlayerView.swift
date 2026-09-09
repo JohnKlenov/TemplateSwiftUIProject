@@ -222,7 +222,7 @@
 
 
 
-// MARK: -  ВАРИАНТ 1: UIViewRepresentable (тот самый что работал идеально как плеер на весь экран)
+// MARK: -  ВАРИАНТ 1: UIViewRepresentable (тот самый что работал идеально как плеер на весь экран но только без VPN )
 
 // стал выбрасывать Sign in to confirm you're not a bot
 
