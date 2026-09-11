@@ -119,9 +119,9 @@ private extension TracklistView {
         WebImageView(
             url: url,
             placeholderColor: AppColors.secondarySystemBackground,
-            displayStyle: .fixedFrame(width: 60, height: 60),
+            displayStyle: .fixedFrame(width: 50, height: 50),
             context: "LowerItemThumbnail_\(item.id)"
         )
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 }

@@ -21,6 +21,7 @@
 		5E481D6C30417EF600D55309 /* TracklistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6B30417EE700D55309 /* TracklistView.swift */; };
 		5E481D6E304487DC00D55309 /* DataRefreshStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */; };
 		5E481D71304D93A500D55309 /* SafariPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D70304D93A300D55309 /* SafariPlayerView.swift */; };
+		5E481D7930542CC500D55309 /* PlaylistUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7830542CC000D55309 /* PlaylistUser.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -213,6 +214,7 @@
 		5E481D6B30417EE700D55309 /* TracklistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracklistView.swift; sourceTree = "<group>"; };
 		5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataRefreshStateStore.swift; sourceTree = "<group>"; };
 		5E481D70304D93A300D55309 /* SafariPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariPlayerView.swift; sourceTree = "<group>"; };
+		5E481D7830542CC000D55309 /* PlaylistUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistUser.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -593,6 +595,7 @@
 		5E5466302F961000009D7210 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D7830542CC000D55309 /* PlaylistUser.swift */,
 				5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */,
 				5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */,
 				5EC94A052CC29770003736A9 /* AuthenticationService.swift */,
@@ -1732,6 +1735,7 @@
 				5EC88ED62DAA8A8500A95224 /* CrashlyticsInfo.swift in Sources */,
 				5EA0829F2ECF401D00E244B8 /* ForgotPasswordViewModel.swift in Sources */,
 				5EC949D22CB526E5003736A9 /* ContentView.swift in Sources */,
+				5E481D7930542CC500D55309 /* PlaylistUser.swift in Sources */,
 				5EC332E32E48D3700051BE5B /* UserInfoEditViewModel.swift in Sources */,
 				5E54661B2F7A5F19009D7210 /* PlayerView.swift in Sources */,
 				5E8F9CA92D7ED71D004036F6 /* GalleryCoordinator.swift in Sources */,
