@@ -40,6 +40,7 @@ struct DroplistContentView: View {
                     Task { await viewModel.loadNextPage(for: itemType) }
                 } onSelectLowerItem: { lowerItem in
                     print("onSelectLowerItem - \(lowerItem)")
+//                    droplistCoordinator.navigateTo(page: .droplistDetails(playlistId: <#T##String#>))
                 } onAllTracks: {
                     print("tap onAllTracks")
                     droplistCoordinator.navigateTo(page: .allTracks)
@@ -64,20 +65,20 @@ struct DroplistContentView: View {
         .background(AppColors.background)
         .navigationTitle("Droplist")
         .navigationBarTitleDisplayMode(.inline)
-                .navigationTitle(Localized.Home.title.localized())
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(Localized.Home.addButton.localized()) {
-                            let sheetContent = AnyView(
-                                AdminView()
-                            )
-                            droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
-                        }
-                        .foregroundStyle(AppColors.activeColor)
-                        .padding()
-                        .disabled(viewModel.viewState.isError)
-                    }
-                }
+        .navigationTitle(Localized.Home.title.localized())
+//        .toolbar {
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button(Localized.Home.addButton.localized()) {
+//                    let sheetContent = AnyView(
+//                        AdminView()
+//                    )
+//                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
+//                }
+//                .foregroundStyle(AppColors.activeColor)
+//                .padding()
+//                .disabled(viewModel.viewState.isError)
+//            }
+//        }
         .onFirstAppear {
             viewModel.setRetryHandler(retryHandler)
             viewModel.setupViewModel()

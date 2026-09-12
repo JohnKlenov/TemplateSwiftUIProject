@@ -185,16 +185,18 @@ class ViewBuilderService: ObservableObject {
             SomeView()
         case .allTracks:
             TracklistViewInjected(dropListDataSource: dropListDataSource, playlistUser: playlistUser, trackType: .allTracks, navigationTitle: "All Tracks")
-//            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: .allTracks, navigationTitle: "All Tracks")
-//            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: CarouselItemType.allTracks)
         case .topDrops:
             SomeView()
         case .droplistDetails(playlistId: _ ):
+//            вызвать TracklistViewInjected для droplistDetails
             SomeView()
         case .topDropDetails(playlistId: _ ):
             SomeView()
         }
     }
+    
+    //            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: .allTracks, navigationTitle: "All Tracks")
+    //            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: CarouselItemType.allTracks)
     
     @ViewBuilder
     func galleryViewBuild(page: GalleryFlow) -> some View {

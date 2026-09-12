@@ -108,6 +108,7 @@ struct DroplistCompositView: View {
                 }
                 .padding(.vertical, 12)
             }
+            .scrollIndicators(.hidden)
             .animation(.easeOut(duration: 0.0), value: screenWidth)
             .refreshable {
                 onRefresh()

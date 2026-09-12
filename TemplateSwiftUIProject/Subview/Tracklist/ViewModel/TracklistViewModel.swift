@@ -186,6 +186,46 @@ final class TracklistViewModel: ObservableObject {
             )
         }
     }
+    
+    // MARK: - Track Actions
+
+    func addToPlaylist(
+        _ item: LowerItem
+    ) async {
+
+        guard item.isTrack else {
+            return
+        }
+
+        print(
+            "Tracklist — add to playlist: \(item.id)"
+        )
+
+        // TODO:
+        // Здесь позже подключим открытие выбора
+        // пользовательского плейлиста.
+    }
+
+    func playInYouTubeMusic(
+        _ item: LowerItem
+    ) {
+
+        guard item.isTrack else {
+            return
+        }
+
+        guard let url = URL(
+            string: "https://music.youtube.com/watch?v=\(item.id)"
+        ) else {
+            return
+        }
+
+        print(
+            "Tracklist — open YouTube Music: \(item.id)"
+        )
+
+        UIApplication.shared.open(url)
+    }
 }
 
 // MARK: - before PlaylistUser
