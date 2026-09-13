@@ -14,81 +14,195 @@
 import SwiftUI
 
 struct DroplistContentView: View {
-    
+
     @ObservedObject var viewModel: DroplistViewModel
-    
+
     @EnvironmentObject var droplistCoordinator: DroplistCoordinator
     @EnvironmentObject var localization: LocalizationService
     @EnvironmentObject var retryHandler: GlobalRetryHandler
-    
+
     var body: some View {
+
         ZStack {
+
             switch viewModel.viewState {
-                
+
             case .loading:
-                ProgressView(Localized.Home.loading.localized())
-                
+
+                ProgressView(
+                    Localized.Home.loading.localized()
+                )
+
             case .myTracks:
-                // На DroplistContentView мы НЕ отображаем треки
-                ProgressView(Localized.Home.loading.localized())
-                
+
+                // На DroplistContentView мы НЕ отображаем треки.
+                ProgressView(
+                    Localized.Home.loading.localized()
+                )
+
             case .contentList(let dropData):
-                DroplistCompositView(data: dropData) {
-                    Task { await viewModel.refreshDropList() }
-                } onLoadNextPage: { itemType in
-                    print("onLoadNextPage - \(itemType)")
-                    Task { await viewModel.loadNextPage(for: itemType) }
-                } onSelectLowerItem: { lowerItem in
-                    print("onSelectLowerItem - \(lowerItem)")
-//                    droplistCoordinator.navigateTo(page: .droplistDetails(playlistId: <#T##String#>))
-                } onAllTracks: {
-                    print("tap onAllTracks")
-                    droplistCoordinator.navigateTo(page: .allTracks)
-                } onTopDrop: {
-                    print("tap onTopDrop")
-                }
-                
-                // При смене viewState (с .contentList на .error) SwiftUI полностью удаляет старый View из иерархии.
-                // Поэтому DroplistCompositView исчезает, и его refresh/pull-to-refresh больше недоступны.
-                // нужно протестировать иначе нужно блокировать вызов func refreshDropList()
+
+                DroplistCompositView(
+                    data: dropData,
+                    onRefresh: {
+                        Task {
+                            await viewModel.refreshDropList()
+                        }
+                    },
+                    onLoadNextPage: { itemType in
+                        Task {
+                            await viewModel.loadNextPage(
+                                for: itemType
+                            )
+                        }
+                    },
+                    onSelectLowerItem: { lowerItem in
+
+                        droplistCoordinator.navigateTo(
+                            page: .droplistDetails(
+                                playlistId: lowerItem.id
+                            )
+                        )
+                    },
+                    onAllTracks: {
+
+                        droplistCoordinator.navigateTo(
+                            page: .allTracks
+                        )
+                    },
+                    onTopDrop: { playlistId in
+
+                        droplistCoordinator.navigateTo(
+                            page: .topDropDetails(
+                                playlistId: playlistId
+                            )
+                        )
+                    }
+                )
+
+                // При смене viewState с .contentList на .error
+                // SwiftUI удаляет DroplistCompositView из иерархии.
+                //
+                // Поэтому pull-to-refresh становится недоступен.
+                // Нужно отдельно протестировать этот сценарий.
+                // При необходимости заблокируем refreshDropList().
+
             case .error(let error):
+
                 ContentErrorView(error: error) {
+
                     viewModel.retry()
                 }
-                
+
             case .errorList(let error):
+
                 ContentErrorView(error: error) {
+
                     viewModel.retryFetchDataDroplist()
                 }
             }
         }
         .background(AppColors.background)
         .navigationTitle("Droplist")
+//        .navigationTitle(
+//            Localized.Home.title.localized()
+//        )
         .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(Localized.Home.title.localized())
-//        .toolbar {
-//            ToolbarItem(placement: .topBarTrailing) {
-//                Button(Localized.Home.addButton.localized()) {
-//                    let sheetContent = AnyView(
-//                        AdminView()
-//                    )
-//                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
-//                }
-//                .foregroundStyle(AppColors.activeColor)
-//                .padding()
-//                .disabled(viewModel.viewState.isError)
-//            }
-//        }
         .onFirstAppear {
-            viewModel.setRetryHandler(retryHandler)
+
+            viewModel.setRetryHandler(
+                retryHandler
+            )
+
             viewModel.setupViewModel()
         }
         .onAppear {
-            Task { await viewModel.checkAndRefreshIfNeeded() }
-        }
 
+            Task {
+                await viewModel.checkAndRefreshIfNeeded()
+            }
+        }
     }
 }
+
+// MARK: - before imlemintation onTopDrop
+
+//import SwiftUI
+//
+//struct DroplistContentView: View {
+//    
+//    @ObservedObject var viewModel: DroplistViewModel
+//    
+//    @EnvironmentObject var droplistCoordinator: DroplistCoordinator
+//    @EnvironmentObject var localization: LocalizationService
+//    @EnvironmentObject var retryHandler: GlobalRetryHandler
+//    
+//    var body: some View {
+//        ZStack {
+//            switch viewModel.viewState {
+//                
+//            case .loading:
+//                ProgressView(Localized.Home.loading.localized())
+//                
+//            case .myTracks:
+//                // На DroplistContentView мы НЕ отображаем треки
+//                ProgressView(Localized.Home.loading.localized())
+//                
+//            case .contentList(let dropData):
+//                DroplistCompositView(data: dropData) {
+//                    Task { await viewModel.refreshDropList() }
+//                } onLoadNextPage: { itemType in
+//                    Task { await viewModel.loadNextPage(for: itemType) }
+//                } onSelectLowerItem: { lowerItem in
+//                    droplistCoordinator.navigateTo(page: .droplistDetails(playlistId: lowerItem.id))
+//                } onAllTracks: {
+//                    droplistCoordinator.navigateTo(page: .allTracks)
+//                } onTopDrop: {
+////                    droplistCoordinator.navigateTo(page: .topDropDetails(playlistId: <#T##String#>))
+//                    print("tap onTopDrop")
+//                }
+//                
+//                // При смене viewState (с .contentList на .error) SwiftUI полностью удаляет старый View из иерархии.
+//                // Поэтому DroplistCompositView исчезает, и его refresh/pull-to-refresh больше недоступны.
+//                // нужно протестировать иначе нужно блокировать вызов func refreshDropList()
+//            case .error(let error):
+//                ContentErrorView(error: error) {
+//                    viewModel.retry()
+//                }
+//                
+//            case .errorList(let error):
+//                ContentErrorView(error: error) {
+//                    viewModel.retryFetchDataDroplist()
+//                }
+//            }
+//        }
+//        .background(AppColors.background)
+//        .navigationTitle("Droplist")
+//        .navigationBarTitleDisplayMode(.inline)
+//        .navigationTitle(Localized.Home.title.localized())
+////        .toolbar {
+////            ToolbarItem(placement: .topBarTrailing) {
+////                Button(Localized.Home.addButton.localized()) {
+////                    let sheetContent = AnyView(
+////                        AdminView()
+////                    )
+////                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
+////                }
+////                .foregroundStyle(AppColors.activeColor)
+////                .padding()
+////                .disabled(viewModel.viewState.isError)
+////            }
+////        }
+//        .onFirstAppear {
+//            viewModel.setRetryHandler(retryHandler)
+//            viewModel.setupViewModel()
+//        }
+//        .onAppear {
+//            Task { await viewModel.checkAndRefreshIfNeeded() }
+//        }
+//
+//    }
+//}
 
 
 

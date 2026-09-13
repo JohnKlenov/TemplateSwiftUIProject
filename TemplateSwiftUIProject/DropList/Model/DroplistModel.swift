@@ -486,12 +486,74 @@ struct LowerSectionPage {
 
 //  5. CarouselItem — элементы средней секции
 
-enum CarouselItemType: String, Codable {
+import Foundation
+
+enum CarouselItemType: Hashable {
+
     case droplist
     case allTracks
     case gym
     case party
     case rnb
+
+    case droplistDetails(playlistId: String)
+    case topDropDetails(playlistId: String)
+
+    // ============================================================
+    // CACHE KEY
+    // ============================================================
+
+    var cacheKey: String {
+
+        switch self {
+
+        case .droplist:
+            return "droplist"
+
+        case .allTracks:
+            return "allTracks"
+
+        case .gym:
+            return "gym"
+
+        case .party:
+            return "party"
+
+        case .rnb:
+            return "rnb"
+
+        case .droplistDetails(let playlistId):
+            return "droplistDetails_\(playlistId)"
+
+        case .topDropDetails(let playlistId):
+            return "topDropDetails_\(playlistId)"
+        }
+    }
+
+    // ============================================================
+    // TAG
+    // ============================================================
+
+    var tag: String? {
+
+        switch self {
+
+        case .droplist,
+             .allTracks,
+             .droplistDetails,
+             .topDropDetails:
+            return nil
+
+        case .gym:
+            return "gym"
+
+        case .party:
+            return "party"
+
+        case .rnb:
+            return "rnb"
+        }
+    }
 }
 
 //  TopSectionModel — верхняя секция
@@ -507,6 +569,181 @@ struct TopItem: Identifiable {
     let title: String
     let imageURL: URL?
 }
+
+
+// MARK: - befor new CarouselItemType (+ case .droplistDetails + case .topDropDetails)
+
+
+//import Foundation
+//import FirebaseFirestore
+//
+//
+//// MARK: - MyTrackCloud (users/{userId}/myTracks/{docId})
+//
+//struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
+//    @DocumentID var id: String?
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let tags: [String]?
+//    let playlists: [String]?
+//    let createdAt: Date
+//}
+//
+//// MARK: - 1. Firestore DTO (Data Transfer Objects)
+//
+////  PlaylistDoc — документ плейлиста (droplist/{playlistId})
+//
+//struct PlaylistDoc: Codable {
+//    let playlistId: String
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    let createdAt: Date?
+//}
+//
+////  PlaylistTrackDoc — документ трека внутри плейлиста (droplist/{playlistId}/tracks/{videoId})
+//
+//struct PlaylistTrackDoc: Codable, Identifiable {
+//    let id: String                 // videoId
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let orderIndex: Int
+//    let createdAt: Date
+//}
+//
+//// TrackDoc — глобальный трек (dropTracks/{videoId})
+//
+//struct TrackDoc: Codable, Identifiable {
+//    let id: String?                 // videoId
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let tags: [String]?
+//    let playlists: [String]?
+//    let createdAt: Date
+//    let searchKeywords: [String]?
+//}
+//
+////  CarouselDoc — документ плейлиста (carouselItems/{docId})
+//
+////struct CarouselDoc: Codable, Identifiable {
+////    let id: String
+////    let title: String
+////    let type: CarouselItemType
+////    let orderIndex: Int
+////    let createdAt: Date?
+////}
+//
+//
+////  TopSectionDoc — документ плейлиста (topSections/{playlistId})
+//
+//struct TopSectionDoc: Codable {
+//    let playlistId: String      // Критично → обязательное
+//    let title: String           // Критично → обязательное
+//    let description: String?    // Не критично → опциональное
+//    let coverImageURL: String?  // Не критично → опциональное
+//    let trackCount: Int         // Критично → обязательное
+//    let createdAt: Date?        // Может отсутствовать → опциональное
+//    let orderIndex: Int         // Критично → обязательное
+//}
+//
+//// TopSectionTrackDoc — трек (topSections/tracks (subcollection)/{videoId})
+//
+//struct TopSectionTrackDoc: Codable, Identifiable {
+//    let id: String
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let orderIndex: Int
+//    let createdAt: Date
+//}
+//
+//
+//
+//
+//
+//// MARK: - 2. Domain Models (UI‑модели)
+//
+//// LowerItem — универсальная модель нижней секции
+//// Адаптирована под реальную структуру Firestore:
+//// - У плейлистов НЕТ sampleThumbnails → удалено
+//// - У треков thumbnail один → thumbnailURL
+//// - durationISO8601 добавлено для треков
+//
+//struct LowerItem: Identifiable, Equatable {
+//    let id: String                     // playlistId или videoId
+//    let title: String
+//    let subtitle: String?              // description (playlist) или artist (track)
+//    let coverImageURL: URL?            // только для плейлистов
+//    let thumbnailURL: URL?             // только для треков
+//    let durationISO8601: String?       // только для треков
+//    let trackCount: Int?               // только для плейлистов
+//    let isTrack: Bool                  // true → трек, false → плейлист
+//}
+//
+//
+//struct DropData {
+//    let topSection: TopSectionModel
+//    let initialLowerSection: LowerSectionPage
+//    let footerState: FooterState
+//}
+//
+//// new model for TracklistView
+//struct Tracklist {
+//    let tracks: LowerSectionPage
+//    let footerState: FooterState
+//}
+//
+//
+//enum FooterState: Equatable {
+//    case idle          // footer виден, но не показывает загрузку
+//    case loading       // footer показывает ProgressView
+//    case error(String) // footer показывает ошибку + кнопку "Повторить"
+//}
+//
+//
+////  4. LowerSectionPage — страница пагинации
+//
+//struct LowerSectionPage {
+//    let items: [LowerItem]
+//    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
+//}
+//
+////  5. CarouselItem — элементы средней секции
+//
+//enum CarouselItemType: String, Codable {
+//    case droplist
+//    case allTracks
+//    case gym
+//    case party
+//    case rnb
+//}
+//
+////  TopSectionModel — верхняя секция
+//
+//struct TopSectionModel: Identifiable {
+//    let id: String
+//    let title: String
+//    let items: [TopItem]
+//}
+//
+//struct TopItem: Identifiable {
+//    let id: String
+//    let title: String
+//    let imageURL: URL?
+//}
 
 
 
