@@ -5,21 +5,23 @@
 //  Created by Evgenyi on 27.08.2026.
 //
 
-
 import SwiftUI
 
 struct TracklistViewInjected: View {
-
     @StateObject private var viewModel: TracklistViewModel
+
     private let navigationTitle: String
+    private let details: [String]
 
     init(
         dropListDataSource: DropListDataSource,
         playlistUser: PlaylistUser,
         trackType: CarouselItemType,
-        navigationTitle: String
+        navigationTitle: String,
+        details: [String] = []
     ) {
         self.navigationTitle = navigationTitle
+        self.details = details
 
         _viewModel = StateObject(
             wrappedValue: TracklistViewModel(
@@ -33,10 +35,46 @@ struct TracklistViewInjected: View {
     var body: some View {
         TracklistContentView(
             viewModel: viewModel,
-            navigationTitle: navigationTitle
+            navigationTitle: navigationTitle,
+            details: details
         )
     }
 }
+
+
+// MARK: - before add PlaylistDetailsView
+
+//import SwiftUI
+//
+//struct TracklistViewInjected: View {
+//
+//    @StateObject private var viewModel: TracklistViewModel
+//    private let navigationTitle: String
+//
+//    init(
+//        dropListDataSource: DropListDataSource,
+//        playlistUser: PlaylistUser,
+//        trackType: CarouselItemType,
+//        navigationTitle: String
+//    ) {
+//        self.navigationTitle = navigationTitle
+//
+//        _viewModel = StateObject(
+//            wrappedValue: TracklistViewModel(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: trackType
+//            )
+//        )
+//    }
+//
+//    var body: some View {
+//        TracklistContentView(
+//            viewModel: viewModel,
+//            navigationTitle: navigationTitle
+//        )
+//    }
+//}
 
 // MARK: - before PlaylistUser
 

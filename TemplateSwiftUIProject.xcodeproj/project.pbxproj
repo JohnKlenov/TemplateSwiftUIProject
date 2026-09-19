@@ -22,6 +22,7 @@
 		5E481D6E304487DC00D55309 /* DataRefreshStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */; };
 		5E481D71304D93A500D55309 /* SafariPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D70304D93A300D55309 /* SafariPlayerView.swift */; };
 		5E481D7930542CC500D55309 /* PlaylistUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7830542CC000D55309 /* PlaylistUser.swift */; };
+		5E481D7B305EBF8000D55309 /* PlaylistDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7A305EBF7D00D55309 /* PlaylistDetailsView.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -215,6 +216,7 @@
 		5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataRefreshStateStore.swift; sourceTree = "<group>"; };
 		5E481D70304D93A300D55309 /* SafariPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariPlayerView.swift; sourceTree = "<group>"; };
 		5E481D7830542CC000D55309 /* PlaylistUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistUser.swift; sourceTree = "<group>"; };
+		5E481D7A305EBF7D00D55309 /* PlaylistDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistDetailsView.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -438,6 +440,7 @@
 		5E481D6230407C9C00D55309 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D7A305EBF7D00D55309 /* PlaylistDetailsView.swift */,
 				5E481D6B30417EE700D55309 /* TracklistView.swift */,
 				5E481D693040804100D55309 /* TracklistContentView.swift */,
 				5E481D6530407D8300D55309 /* TracklistViewInjected.swift */,
@@ -1783,6 +1786,7 @@
 				5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */,
 				5E8F9CAD2D7ED912004036F6 /* GalleryViewModel(test).swift in Sources */,
 				5EAF5B0E2D2FF96000D96FD6 /* FirstAppear.swift in Sources */,
+				5E481D7B305EBF8000D55309 /* PlaylistDetailsView.swift in Sources */,
 				5E481D6630407D8800D55309 /* TracklistViewInjected.swift in Sources */,
 				5EC4B2572F41F0E700F0C2D7 /* FirestoreError.swift in Sources */,
 				5EC94A022CC2954C003736A9 /* GalleryView(test).swift in Sources */,

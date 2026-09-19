@@ -6,8 +6,6 @@
 //
 
 
-// тут нужно все наши call back в DroplistCompositView связать с соответствующими вызовами в DroplistViewModel
-// но перед этим нужно ответить на вопрос как мы будем обрабатывать ошибки которые придут из сети, то есть как будет реагировать UI
 
 
 
@@ -57,10 +55,11 @@ struct DroplistContentView: View {
                         }
                     },
                     onSelectLowerItem: { lowerItem in
-
+                        
                         droplistCoordinator.navigateTo(
                             page: .droplistDetails(
-                                playlistId: lowerItem.id
+                                playlistId: lowerItem.id,
+                                details: lowerItem.details
                             )
                         )
                     },

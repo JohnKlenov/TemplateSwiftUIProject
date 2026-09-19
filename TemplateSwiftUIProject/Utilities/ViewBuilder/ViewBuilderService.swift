@@ -199,15 +199,19 @@ class ViewBuilderService: ObservableObject {
         case .topDrops:
             SomeView()
 
-        case .droplistDetails(let playlistId):
-            TracklistViewInjected(
-                dropListDataSource: dropListDataSource,
-                playlistUser: playlistUser,
-                trackType: .droplistDetails(
-                    playlistId: playlistId
-                ),
-                navigationTitle: "Droplist"
-            )
+        case .droplistDetails(
+               let playlistId,
+               let details
+           ):
+               TracklistViewInjected(
+                   dropListDataSource: dropListDataSource,
+                   playlistUser: playlistUser,
+                   trackType: .droplistDetails(
+                       playlistId: playlistId
+                   ),
+                   navigationTitle: "Droplist",
+                   details: details
+               )
 
         case .topDropDetails(let playlistId):
             TracklistViewInjected(
