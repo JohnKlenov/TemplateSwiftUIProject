@@ -12,33 +12,76 @@ struct PlaylistDetailsView: View {
 
     var body: some View {
         VStack(
-            alignment: .leading,
-            spacing: 8
+            alignment: .center,
+            spacing: 4
         ) {
+//            Text("Albums:")
+//                .font(.headline)
+//                .foregroundColor(.secondary)
+
             ForEach(
-                Array(details.enumerated()),
-                id: \.offset
-            ) { _, detail in
-                Text(detail)
+                details.indices,
+                id: \.self
+            ) { index in
+                Text(details[index])
                     .font(.subheadline)
-                    .foregroundStyle(.primary)
-                    .frame(
-                        maxWidth: .infinity,
-                        alignment: .leading
-                    )
+                    .foregroundColor(.secondary)
+//                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
             }
         }
-        .padding()
-        .background(
-            AppColors.background
+        .frame(
+            maxWidth: .infinity,
+            alignment: .center
         )
+        .padding(16)
+        .background(AppColors.background)
         .cornerRadius(12)
-        .shadow(
-            color: AppColors.primary.opacity(0.15),
-            radius: 8,
-            x: 0,
-            y: 4
-        )
-        .padding(.horizontal)
+//        .shadow(
+//            color: AppColors.primary.opacity(0.15),
+//            radius: 8,
+//            x: 0,
+//            y: 0
+//        )
+//        .padding(.horizontal)
+//        .padding(.vertical)
     }
 }
+
+//import SwiftUI
+//
+//struct PlaylistDetailsView: View {
+//    let details: [String]
+//
+//    var body: some View {
+//        VStack(
+//            alignment: .leading,
+//            spacing: 8
+//        ) {
+//            ForEach(
+//                Array(details.enumerated()),
+//                id: \.offset
+//            ) { _, detail in
+//                Text(detail)
+//                    .font(.subheadline)
+//                    .foregroundStyle(.primary)
+//                    .frame(
+//                        maxWidth: .infinity,
+//                        alignment: .leading
+//                    )
+//            }
+//        }
+//        .padding()
+//        .background(
+//            AppColors.background
+//        )
+//        .cornerRadius(12)
+//        .shadow(
+//            color: AppColors.primary.opacity(0.15),
+//            radius: 8,
+//            x: 0,
+//            y: 4
+//        )
+//        .padding(.horizontal)
+//    }
+//}

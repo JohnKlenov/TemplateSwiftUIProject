@@ -177,7 +177,6 @@ class ViewBuilderService: ObservableObject {
     @ViewBuilder
     func dropViewBuild(page: DroplistFlow) -> some View {
         switch page {
-
         case .droplist:
             DroplistViewInjected(
                 sessionManager: appSessionManager,
@@ -200,53 +199,41 @@ class ViewBuilderService: ObservableObject {
             SomeView()
 
         case .droplistDetails(
-               let playlistId,
-               let details
-           ):
-               TracklistViewInjected(
-                   dropListDataSource: dropListDataSource,
-                   playlistUser: playlistUser,
-                   trackType: .droplistDetails(
-                       playlistId: playlistId
-                   ),
-                   navigationTitle: "Droplist",
-                   details: details
-               )
+            let playlistId,
+            let details,
+            let title,
+            let imageURL
+        ):
+            TracklistViewInjected(
+                dropListDataSource: dropListDataSource,
+                playlistUser: playlistUser,
+                trackType: .droplistDetails(
+                    playlistId: playlistId
+                ),
+                navigationTitle: title,
+                details: details,
+                imageURL: imageURL
+            )
 
-        case .topDropDetails(let playlistId):
+        case .topDropDetails(
+            let playlistId,
+            let title,
+            let imageURL
+        ):
             TracklistViewInjected(
                 dropListDataSource: dropListDataSource,
                 playlistUser: playlistUser,
                 trackType: .topDropDetails(
                     playlistId: playlistId
                 ),
-                navigationTitle: "Top Drop"
+                navigationTitle: title,
+                imageURL: imageURL
             )
         }
     }
+
     
-//    @ViewBuilder
-//    func dropViewBuild(page: DroplistFlow) -> some View {
-//        switch page {
-//        case .droplist:
-//            DroplistViewInjected(sessionManager: appSessionManager, dropListDataSource: dropListDataSource, playlistUser: playlistUser)
-//        case .someDroplistView:
-//            SomeView()
-//        case .allTracks:
-//            TracklistViewInjected(dropListDataSource: dropListDataSource, playlistUser: playlistUser, trackType: .allTracks, navigationTitle: "All Tracks")
-//        case .topDrops:
-//            SomeView()
-//        case .droplistDetails(playlistId: _ ):
-////            вызвать TracklistViewInjected для droplistDetails
-//            SomeView()
-//        case .topDropDetails(playlistId: _ ):
-////            вызвать TracklistViewInjected для droplistDetails
-//            SomeView()
-//        }
-//    }
     
-    //            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: .allTracks, navigationTitle: "All Tracks")
-    //            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: CarouselItemType.allTracks)
     
     @ViewBuilder
     func galleryViewBuild(page: GalleryFlow) -> some View {
@@ -298,6 +285,138 @@ class ViewBuilderService: ObservableObject {
         cover.content
     }
 }
+
+
+// before add let imageURL for case .droplistDetails
+//    @ViewBuilder
+//    func dropViewBuild(page: DroplistFlow) -> some View {
+//        switch page {
+//        case .droplist:
+//            DroplistViewInjected(
+//                sessionManager: appSessionManager,
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser
+//            )
+//
+//        case .someDroplistView:
+//            SomeView()
+//
+//        case .allTracks:
+//            TracklistViewInjected(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: .allTracks,
+//                navigationTitle: "All Tracks"
+//            )
+//
+//        case .topDrops:
+//            SomeView()
+//
+//        case .droplistDetails(
+//            let playlistId,
+//            let details,
+//            let title
+//        ):
+//            TracklistViewInjected(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: .droplistDetails(
+//                    playlistId: playlistId
+//                ),
+//                navigationTitle: title,
+//                details: details
+//            )
+//
+//        case .topDropDetails(
+//            let playlistId,
+//            let title
+//        ):
+//            TracklistViewInjected(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: .topDropDetails(
+//                    playlistId: playlistId
+//                ),
+//                navigationTitle: title
+//            )
+//        }
+//    }
+
+// before add let title for case .droplistDetails
+//    @ViewBuilder
+//    func dropViewBuild(page: DroplistFlow) -> some View {
+//        switch page {
+//
+//        case .droplist:
+//            DroplistViewInjected(
+//                sessionManager: appSessionManager,
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser
+//            )
+//
+//        case .someDroplistView:
+//            SomeView()
+//
+//        case .allTracks:
+//            TracklistViewInjected(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: .allTracks,
+//                navigationTitle: "All Tracks"
+//            )
+//
+//        case .topDrops:
+//            SomeView()
+//
+//        case .droplistDetails(
+//               let playlistId,
+//               let details
+//           ):
+//               TracklistViewInjected(
+//                   dropListDataSource: dropListDataSource,
+//                   playlistUser: playlistUser,
+//                   trackType: .droplistDetails(
+//                       playlistId: playlistId
+//                   ),
+//                   navigationTitle: "Droplist",
+//                   details: details
+//               )
+//
+//        case .topDropDetails(let playlistId):
+//            TracklistViewInjected(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: .topDropDetails(
+//                    playlistId: playlistId
+//                ),
+//                navigationTitle: "Top Drop"
+//            )
+//        }
+//    }
+
+//    @ViewBuilder
+//    func dropViewBuild(page: DroplistFlow) -> some View {
+//        switch page {
+//        case .droplist:
+//            DroplistViewInjected(sessionManager: appSessionManager, dropListDataSource: dropListDataSource, playlistUser: playlistUser)
+//        case .someDroplistView:
+//            SomeView()
+//        case .allTracks:
+//            TracklistViewInjected(dropListDataSource: dropListDataSource, playlistUser: playlistUser, trackType: .allTracks, navigationTitle: "All Tracks")
+//        case .topDrops:
+//            SomeView()
+//        case .droplistDetails(playlistId: _ ):
+////            вызвать TracklistViewInjected для droplistDetails
+//            SomeView()
+//        case .topDropDetails(playlistId: _ ):
+////            вызвать TracklistViewInjected для droplistDetails
+//            SomeView()
+//        }
+//    }
+
+//            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: .allTracks, navigationTitle: "All Tracks")
+//            TracklistViewInjected(dropListDataSource: dropListDataSource, trackType: CarouselItemType.allTracks)
+
 
 
 // MARK: - before PlaylistUser

@@ -55,11 +55,12 @@ struct DroplistContentView: View {
                         }
                     },
                     onSelectLowerItem: { lowerItem in
-                        
                         droplistCoordinator.navigateTo(
                             page: .droplistDetails(
                                 playlistId: lowerItem.id,
-                                details: lowerItem.details
+                                details: lowerItem.details,
+                                title: lowerItem.title,
+                                imageURL: lowerItem.coverImageURL
                             )
                         )
                     },
@@ -69,11 +70,12 @@ struct DroplistContentView: View {
                             page: .allTracks
                         )
                     },
-                    onTopDrop: { playlistId in
-
+                    onTopDrop: { topItem in
                         droplistCoordinator.navigateTo(
                             page: .topDropDetails(
-                                playlistId: playlistId
+                                playlistId: topItem.id,
+                                title: topItem.title,
+                                imageURL: topItem.imageURL
                             )
                         )
                     }

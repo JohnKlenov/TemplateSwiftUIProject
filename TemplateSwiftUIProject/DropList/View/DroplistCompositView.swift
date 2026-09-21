@@ -77,7 +77,7 @@ struct DroplistCompositView: View {
     let onLoadNextPage: (CarouselItemType) -> Void
     let onSelectLowerItem: (LowerItem) -> Void
     let onAllTracks: () -> Void
-    let onTopDrop: (String) -> Void
+    let onTopDrop: (TopItem) -> Void
 
     var body: some View {
 
@@ -190,7 +190,7 @@ private extension DroplistCompositView {
                                 cardHeight: cardHeight,
                                 imageSize: imageSize,
                                 onTap: {
-                                    onTopDrop(item.id)
+                                    onTopDrop(item)
                                 }
                             )
                         }

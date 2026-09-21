@@ -12,6 +12,7 @@ struct TracklistContentView: View {
 
     let navigationTitle: String
     let details: [String]
+    let imageURL: URL?
 
     @EnvironmentObject var localization: LocalizationService
 
@@ -20,7 +21,6 @@ struct TracklistContentView: View {
     var body: some View {
         ZStack {
             switch viewModel.viewState {
-
             case .loading:
                 ProgressView(
                     Localized.Home.loading.localized()
@@ -30,6 +30,7 @@ struct TracklistContentView: View {
                 TracklistView(
                     data: tracklist,
                     details: details,
+                    imageURL: imageURL,
                     onLoadNextTracks: {
                         Task {
                             await viewModel.loadNextPage()
@@ -77,6 +78,79 @@ struct TracklistContentView: View {
         }
     }
 }
+// before add let imageURL for case .droplistDetails
+//import SwiftUI
+//
+//struct TracklistContentView: View {
+//    @ObservedObject var viewModel: TracklistViewModel
+//
+//    let navigationTitle: String
+//    let details: [String]
+//
+//    @EnvironmentObject var localization: LocalizationService
+//
+//    @State private var selectedTrack: LowerItem?
+//
+//    var body: some View {
+//        ZStack {
+//            switch viewModel.viewState {
+//
+//            case .loading:
+//                ProgressView(
+//                    Localized.Home.loading.localized()
+//                )
+//
+//            case .contentList(let tracklist):
+//                TracklistView(
+//                    data: tracklist,
+//                    details: details,
+//                    onLoadNextTracks: {
+//                        Task {
+//                            await viewModel.loadNextPage()
+//                        }
+//                    },
+//                    onSelectTrack: { item in
+//                        if item.isTrack {
+//                            selectedTrack = item
+//                        }
+//                    },
+//                    onAddToPlaylist: { item in
+//                        Task {
+//                            await viewModel.addToPlaylist(item)
+//                        }
+//                    },
+//                    onPlayInYouTubeMusic: { item in
+//                        viewModel.playInYouTubeMusic(item)
+//                    }
+//                )
+//
+//            case .error(let error):
+//                ContentErrorView(error: error) {
+//                    Task {
+//                        await viewModel.retry()
+//                    }
+//                }
+//            }
+//        }
+//        .background(AppColors.background)
+//        .navigationTitle(navigationTitle)
+//        .navigationBarTitleDisplayMode(.inline)
+//        .onFirstAppear {
+//            Task {
+//                await viewModel.setupViewModel()
+//            }
+//        }
+//        .sheet(item: $selectedTrack) { track in
+//            SafariPlayerView(
+//                videoId: track.id
+//            )
+//            .presentationDetents([
+//                .medium,
+//                .large
+//            ])
+//        }
+//    }
+//}
 
 // MARK: - before add PlaylistDetailsView
 

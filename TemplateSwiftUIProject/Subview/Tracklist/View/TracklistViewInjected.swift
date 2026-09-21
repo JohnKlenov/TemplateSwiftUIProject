@@ -5,6 +5,7 @@
 //  Created by Evgenyi on 27.08.2026.
 //
 
+
 import SwiftUI
 
 struct TracklistViewInjected: View {
@@ -12,16 +13,19 @@ struct TracklistViewInjected: View {
 
     private let navigationTitle: String
     private let details: [String]
+    private let imageURL: URL?
 
     init(
         dropListDataSource: DropListDataSource,
         playlistUser: PlaylistUser,
         trackType: CarouselItemType,
         navigationTitle: String,
-        details: [String] = []
+        details: [String] = [],
+        imageURL: URL? = nil
     ) {
         self.navigationTitle = navigationTitle
         self.details = details
+        self.imageURL = imageURL
 
         _viewModel = StateObject(
             wrappedValue: TracklistViewModel(
@@ -36,10 +40,85 @@ struct TracklistViewInjected: View {
         TracklistContentView(
             viewModel: viewModel,
             navigationTitle: navigationTitle,
-            details: details
+            details: details,
+            imageURL: imageURL
         )
     }
 }
+
+// before add let imageURL for case .droplistDetails
+//import SwiftUI
+//
+//struct TracklistViewInjected: View {
+//    @StateObject private var viewModel: TracklistViewModel
+//
+//    private let navigationTitle: String
+//    private let details: [String]
+//
+//    init(
+//        dropListDataSource: DropListDataSource,
+//        playlistUser: PlaylistUser,
+//        trackType: CarouselItemType,
+//        navigationTitle: String,
+//        details: [String] = []
+//    ) {
+//        self.navigationTitle = navigationTitle
+//        self.details = details
+//
+//        _viewModel = StateObject(
+//            wrappedValue: TracklistViewModel(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: trackType
+//            )
+//        )
+//    }
+//
+//    var body: some View {
+//        TracklistContentView(
+//            viewModel: viewModel,
+//            navigationTitle: navigationTitle,
+//            details: details
+//        )
+//    }
+//}
+
+
+// MARK: -  before add let title for case .droplistDetails
+
+//struct TracklistViewInjected: View {
+//    @StateObject private var viewModel: TracklistViewModel
+//
+//    private let navigationTitle: String
+//    private let details: [String]
+//
+//    init(
+//        dropListDataSource: DropListDataSource,
+//        playlistUser: PlaylistUser,
+//        trackType: CarouselItemType,
+//        navigationTitle: String,
+//        details: [String] = []
+//    ) {
+//        self.navigationTitle = navigationTitle
+//        self.details = details
+//
+//        _viewModel = StateObject(
+//            wrappedValue: TracklistViewModel(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: trackType
+//            )
+//        )
+//    }
+//
+//    var body: some View {
+//        TracklistContentView(
+//            viewModel: viewModel,
+//            navigationTitle: navigationTitle,
+//            details: details
+//        )
+//    }
+//}
 
 
 // MARK: - before add PlaylistDetailsView
