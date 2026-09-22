@@ -37,9 +37,7 @@ struct TracklistContentView: View {
                         }
                     },
                     onSelectTrack: { item in
-                        if item.isTrack {
                             selectedTrack = item
-                        }
                     },
                     onAddToPlaylist: { item in
                         Task {
@@ -47,9 +45,33 @@ struct TracklistContentView: View {
                         }
                     },
                     onPlayInYouTubeMusic: { item in
-                        viewModel.playInYouTubeMusic(item)
+                        // TODO
+                    },
+                    isTrackInPlaylist: { item in
+                        viewModel.isTrackInPlaylist(item)
                     }
                 )
+//                TracklistView(
+//                    data: tracklist,
+//                    details: details,
+//                    imageURL: imageURL,
+//                    onLoadNextTracks: {
+//                        Task {
+//                            await viewModel.loadNextPage()
+//                        }
+//                    },
+//                    onSelectTrack: { item in
+//                            selectedTrack = item
+//                    },
+//                    onAddToPlaylist: { item in
+//                        Task {
+//                            await viewModel.addToPlaylist(item)
+//                        }
+//                    },
+//                    onPlayInYouTubeMusic: { item in
+//                        viewModel.playInYouTubeMusic(item)
+//                    }
+//                )
 
             case .error(let error):
                 ContentErrorView(error: error) {

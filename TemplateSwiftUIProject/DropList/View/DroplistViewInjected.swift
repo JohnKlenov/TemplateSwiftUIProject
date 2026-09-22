@@ -8,13 +8,6 @@
 
 // TracklistView
 
-//TracklistContentView
-//
-// Details View
-// только для Droplist (карточка в том же дизайне и что карточка TopDrop на главном экране)
-// на Details View будет информация Artist - Name Album (year relis)
-// как мы будем понимать что нужно отображать этот Details View (у нас будет поле в объекте которое будет содержать эти строки и возможно если это поле не nil мы будем отображать Details View?)
-
 //TracklistViewModel
 //
 // реализовать viewModel.addToPlaylist(item)

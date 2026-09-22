@@ -9,16 +9,13 @@ import SwiftUI
 
 struct PlaylistDetailsView: View {
     let details: [String]
-
+    
     var body: some View {
         VStack(
             alignment: .center,
             spacing: 4
         ) {
-//            Text("Albums:")
-//                .font(.headline)
-//                .foregroundColor(.secondary)
-
+            
             ForEach(
                 details.indices,
                 id: \.self
@@ -26,8 +23,8 @@ struct PlaylistDetailsView: View {
                 Text(details[index])
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-//                    .multilineTextAlignment(.center)
-                    .lineLimit(1)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
             }
         }
         .frame(
@@ -37,16 +34,10 @@ struct PlaylistDetailsView: View {
         .padding(16)
         .background(AppColors.background)
         .cornerRadius(12)
-//        .shadow(
-//            color: AppColors.primary.opacity(0.15),
-//            radius: 8,
-//            x: 0,
-//            y: 0
-//        )
-//        .padding(.horizontal)
-//        .padding(.vertical)
     }
 }
+
+
 
 //import SwiftUI
 //

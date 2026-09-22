@@ -61,17 +61,21 @@ final class DropListDataSource {
 
     private let dataRefreshStateStore = DataRefreshStateStore()
 
+    private let userProvider: CurrentUserProvider
+    
     // MARK: - Init
 
     init(
         firestoreService: DropListFirestoreServiceProtocol,
         errorHandler: ErrorDiagnosticsProtocol,
         alertManager: AlertManager = .shared,
+        userProvider: CurrentUserProvider,
         pageSize: Int = 10
     ) {
         self.firestoreService = firestoreService
         self.errorHandler = errorHandler
         self.alertManager = alertManager
+        self.userProvider = userProvider
         self.pageSize = pageSize
     }
 
@@ -371,6 +375,21 @@ final class DropListDataSource {
                     .rawValue
             )
         }
+    }
+    
+    // MARK: - Playlist
+    
+    func addTrackToPlaylist(
+        _ track: MyTrackCloud
+    ) async throws {
+        guard let userId = userProvider.currentUser()?.uid else {
+            throw AppInternalError.notSignedIn
+        }
+        
+        try await firestoreService.addTrackToPlaylist(
+            userId: userId,
+            track: track
+        )
     }
 }
 

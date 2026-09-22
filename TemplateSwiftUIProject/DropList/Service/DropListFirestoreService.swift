@@ -282,6 +282,11 @@ protocol DropListFirestoreServiceProtocol {
         after lastSnapshot: DocumentSnapshot,
         pageSize: Int
     ) async throws -> LowerSectionPage
+
+    func addTrackToPlaylist(
+        userId: String,
+        track: MyTrackCloud
+    ) async throws
 }
 
 // MARK: - Service
@@ -668,7 +673,6 @@ final class DropListFirestoreService:
                             thumbnailURL: nil,
                             durationISO8601: nil,
                             trackCount: playlist.trackCount,
-                            isTrack: false,
                             details: playlist.details ?? []
                         )
                     }
@@ -891,8 +895,7 @@ final class DropListFirestoreService:
                             coverImageURL: nil,
                             thumbnailURL: thumbnailURL,
                             durationISO8601: track.durationISO8601,
-                            trackCount: nil,
-                            isTrack: true
+                            trackCount: nil
                         )
                     }
 
@@ -1073,8 +1076,7 @@ final class DropListFirestoreService:
                             coverImageURL: nil,
                             thumbnailURL: thumbnailURL,
                             durationISO8601: track.durationISO8601,
-                            trackCount: nil,
-                            isTrack: true
+                            trackCount: nil
                         )
                     }
 
@@ -1091,6 +1093,33 @@ final class DropListFirestoreService:
                     )
                 )
             }
+        }
+    }
+
+    // MARK: - Playlist
+    
+    func addTrackToPlaylist(
+        userId: String,
+        track: MyTrackCloud
+    ) async throws {
+        let document = db
+            .collection("users")
+            .document(userId)
+            .collection("myTracks")
+            .document(track.videoId)
+        
+        do {
+            try document.setData(from: track)
+        } catch {
+            let _ = errorHandler.handle(
+                error: error,
+                context: ErrorContext.DropListFirestoreService_addTrackToPlaylist.rawValue
+            )
+            
+            throw FirestoreGetServiceError(
+                underlying: error,
+                context: .DropListFirestoreService_addTrackToPlaylist
+            )
         }
     }
 }

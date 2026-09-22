@@ -402,10 +402,8 @@ private extension DroplistCompositView {
         for item: LowerItem
     ) -> some View {
 
-        let url = item.isTrack
-            ? item.thumbnailURL
-            : item.coverImageURL
-
+        let url = item.coverImageURL
+        
         WebImageView(
             url: url,
             placeholderColor:

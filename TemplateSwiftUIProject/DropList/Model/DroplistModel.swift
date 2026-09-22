@@ -343,17 +343,46 @@ import FirebaseFirestore
 
 // MARK: - MyTrackCloud (users/{userId}/myTracks/{docId})
 
+// before func addTrackToPlaylist
+//struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
+//    @DocumentID var id: String?
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let tags: [String]?
+//    let playlists: [String]?
+//    let createdAt: Date
+//}
+
 struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
     @DocumentID var id: String?
+
     let videoId: String
     let title: String
     let artist: String?
     let thumbnailURL: String?
-    let durationISO8601: String?
-    let tags: [String]?
-    let playlists: [String]?
     let createdAt: Date
 }
+
+// let track = MyTrackCloud(item: item)
+extension MyTrackCloud {
+
+    init(
+        item: LowerItem
+    ) {
+        self.init(
+            videoId: item.id,
+            title: item.title,
+            artist: item.subtitle,
+            thumbnailURL: item.thumbnailURL?.absoluteString,
+            createdAt: Date()
+        )
+    }
+}
+
+
 
 // MARK: - 1. Firestore DTO (Data Transfer Objects)
 
@@ -456,7 +485,6 @@ struct LowerItem: Identifiable, Hashable {
     let thumbnailURL: URL?                 // только для треков
     let durationISO8601: String?           // только для треков
     let trackCount: Int?                   // только для треков
-    let isTrack: Bool                      // true → трек, false → плейлист
     let details: [String]                  // только для droplist
 
     init(
@@ -467,7 +495,6 @@ struct LowerItem: Identifiable, Hashable {
         thumbnailURL: URL?,
         durationISO8601: String?,
         trackCount: Int?,
-        isTrack: Bool,
         details: [String] = []
     ) {
         self.id = id
@@ -477,7 +504,6 @@ struct LowerItem: Identifiable, Hashable {
         self.thumbnailURL = thumbnailURL
         self.durationISO8601 = durationISO8601
         self.trackCount = trackCount
-        self.isTrack = isTrack
         self.details = details
     }
 }
@@ -599,6 +625,41 @@ struct TopItem: Identifiable {
 
 
 
+
+// MARK: - before LowerItem + let isTrack
+//struct LowerItem: Identifiable, Hashable {
+//    let id: String                         // playlistId или videoId
+//    let title: String
+//    let subtitle: String?                  // description (playlist) или artist (track)
+//    let coverImageURL: URL?                // только для плейлистов
+//    let thumbnailURL: URL?                 // только для треков
+//    let durationISO8601: String?           // только для треков
+//    let trackCount: Int?                   // только для треков
+//    let isTrack: Bool                      // true → трек, false → плейлист
+//    let details: [String]                  // только для droplist
+//
+//    init(
+//        id: String,
+//        title: String,
+//        subtitle: String?,
+//        coverImageURL: URL?,
+//        thumbnailURL: URL?,
+//        durationISO8601: String?,
+//        trackCount: Int?,
+//        isTrack: Bool,
+//        details: [String] = []
+//    ) {
+//        self.id = id
+//        self.title = title
+//        self.subtitle = subtitle
+//        self.coverImageURL = coverImageURL
+//        self.thumbnailURL = thumbnailURL
+//        self.durationISO8601 = durationISO8601
+//        self.trackCount = trackCount
+//        self.isTrack = isTrack
+//        self.details = details
+//    }
+//}
 
 // MARK: - before add PlaylistDetailsView
 

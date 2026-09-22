@@ -5,9 +5,6 @@
 //  Created by Evgenyi on 19.10.25.
 //
 
-import FirebaseAuth
-import Combine
-
 
 
 
@@ -244,37 +241,65 @@ import Combine
 /// - порядок операций полностью детерминирован и гарантирован архитектурой.
 
 
+import Combine
+import FirebaseAuth
+
 struct AuthUser {
     let uid: String
     let isAnonymous: Bool
 }
 
 protocol CurrentUserProvider {
+
     /// Паблишер, который эмитит AuthUser или nil при logout/удалении.
     var currentUserPublisher: AnyPublisher<AuthUser?, Never> { get }
+
+    /// Возвращает текущего пользователя на данный момент.
+    /// nil означает, что пользователь не авторизован.
+    func currentUser() -> AuthUser?
 }
 
-
-
 final class FirebaseAuthUserProvider: CurrentUserProvider {
+
     private let subject: CurrentValueSubject<AuthUser?, Never>
     private var handle: AuthStateDidChangeListenerHandle?
 
     init() {
-        let initialUser = Auth.auth().currentUser.map { AuthUser(uid: $0.uid, isAnonymous: $0.isAnonymous) }
+        let initialUser = Auth.auth().currentUser.map {
+            AuthUser(
+                uid: $0.uid,
+                isAnonymous: $0.isAnonymous
+            )
+        }
+
         subject = CurrentValueSubject<AuthUser?, Never>(initialUser)
-        
+
         handle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            print("FirebaseAuthUserProvider Auth.auth().addStateDidChangeListener { - user:\(String(describing: user)) ")
-            let authUser = user.map { AuthUser(uid: $0.uid, isAnonymous: $0.isAnonymous) }
+            print(
+                "FirebaseAuthUserProvider Auth.auth().addStateDidChangeListener { - user:\(String(describing: user))"
+            )
+
+            let authUser = user.map {
+                AuthUser(
+                    uid: $0.uid,
+                    isAnonymous: $0.isAnonymous
+                )
+            }
+
             self?.subject.send(authUser)
         }
     }
 
     deinit {
-        if let handle = handle {
+        if let handle {
             Auth.auth().removeStateDidChangeListener(handle)
         }
+    }
+
+    // MARK: - Current User
+
+    func currentUser() -> AuthUser? {
+        subject.value
     }
 
     var currentUserPublisher: AnyPublisher<AuthUser?, Never> {
@@ -282,6 +307,46 @@ final class FirebaseAuthUserProvider: CurrentUserProvider {
     }
 }
 
+// MARK: - before func addTrackToPlaylist
+
+//struct AuthUser {
+//    let uid: String
+//    let isAnonymous: Bool
+//}
+//
+//protocol CurrentUserProvider {
+//    /// Паблишер, который эмитит AuthUser или nil при logout/удалении.
+//    var currentUserPublisher: AnyPublisher<AuthUser?, Never> { get }
+//}
+//
+//
+//
+//final class FirebaseAuthUserProvider: CurrentUserProvider {
+//    private let subject: CurrentValueSubject<AuthUser?, Never>
+//    private var handle: AuthStateDidChangeListenerHandle?
+//
+//    init() {
+//        let initialUser = Auth.auth().currentUser.map { AuthUser(uid: $0.uid, isAnonymous: $0.isAnonymous) }
+//        subject = CurrentValueSubject<AuthUser?, Never>(initialUser)
+//        
+//        handle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+//            print("FirebaseAuthUserProvider Auth.auth().addStateDidChangeListener { - user:\(String(describing: user)) ")
+//            let authUser = user.map { AuthUser(uid: $0.uid, isAnonymous: $0.isAnonymous) }
+//            self?.subject.send(authUser)
+//        }
+//    }
+//
+//    deinit {
+//        if let handle = handle {
+//            Auth.auth().removeStateDidChangeListener(handle)
+//        }
+//    }
+//
+//    var currentUserPublisher: AnyPublisher<AuthUser?, Never> {
+//        subject.eraseToAnyPublisher()
+//    }
+//}
+//
 
 
 

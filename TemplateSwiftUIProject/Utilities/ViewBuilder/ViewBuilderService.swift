@@ -152,8 +152,8 @@ class ViewBuilderService: ObservableObject {
 //            errorHandler: ErrorDiagnosticsCenter(),
 //            databaseService: FirestoreDatabaseCRUDService()
 //        )
-
-        self.dropListDataSource = DropListDataSource(firestoreService: DropListFirestoreService(errorHandler: ErrorDiagnosticsCenter()), errorHandler: ErrorDiagnosticsCenter())
+        self.dropListDataSource = DropListDataSource(firestoreService: DropListFirestoreService(errorHandler: ErrorDiagnosticsCenter()), errorHandler: ErrorDiagnosticsCenter(), userProvider: userProvider)
+//        self.dropListDataSource = DropListDataSource(firestoreService: DropListFirestoreService(errorHandler: ErrorDiagnosticsCenter()), errorHandler: ErrorDiagnosticsCenter())
         self.appSessionManager = AppSessionManager(
             authService: authService,
             firestoreService: FirestoreCollectionObserverService(errorHandler: ErrorDiagnosticsCenter()),

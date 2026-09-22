@@ -17,9 +17,11 @@ struct TracklistView: View {
     let onSelectTrack: (LowerItem) -> Void
     let onAddToPlaylist: (LowerItem) -> Void
     let onPlayInYouTubeMusic: (LowerItem) -> Void
+    let isTrackInPlaylist: (LowerItem) -> Bool
 
     var body: some View {
         GeometryReader { geometry in
+            //Сделай изображение шириной 45% экрана, но никогда не увеличивай его больше чем до 320 pt.(для iPad)
             let imageSize = min(
                 geometry.size.width * 0.45,
                 320
@@ -182,6 +184,7 @@ private extension TracklistView {
                     systemImage: "text.badge.plus"
                 )
             }
+            .disabled(isTrackInPlaylist(item))
 
             Button {
                 onPlayInYouTubeMusic(item)
@@ -213,9 +216,8 @@ private extension TracklistView {
     func thumbnail(
         for item: LowerItem
     ) -> some View {
-        let url = item.isTrack
-            ? item.thumbnailURL
-            : item.coverImageURL
+        
+        let url = item.thumbnailURL
 
         WebImageView(
             url: url,
