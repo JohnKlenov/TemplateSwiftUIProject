@@ -122,6 +122,7 @@ enum GoogleSignInErrorCode: Int {
 
 
 
+
 protocol ErrorDiagnosticsProtocol {
     func handle(error: (any Error)?, context: String?) -> String
 }

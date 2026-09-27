@@ -378,12 +378,21 @@ final class DropListDataSource {
     }
     
     // MARK: - Playlist
-    
+
     func addTrackToPlaylist(
         _ track: MyTrackCloud
     ) async throws {
         guard let userId = userProvider.currentUser()?.uid else {
-            throw AppInternalError.notSignedIn
+            let error = AppInternalError.notSignedIn
+            
+            let _ = errorHandler.handle(
+                error: error,
+                context: ErrorContext
+                    .DropListDataSource_addTrackToPlaylist_notSignedIn
+                    .rawValue
+            )
+            
+            throw error
         }
         
         try await firestoreService.addTrackToPlaylist(

@@ -82,6 +82,7 @@ enum ErrorContext: String {
     // MARK: - DropListDataSource
     case DropListDataSource_loadInitialDropList
     case DropListDataSource_loadInitialDropList_DropListFirestoreService
+    case DropListDataSource_addTrackToPlaylist_notSignedIn
     
     // MARK: - StorageProfileService
     case StorageProfileService_deleteImage

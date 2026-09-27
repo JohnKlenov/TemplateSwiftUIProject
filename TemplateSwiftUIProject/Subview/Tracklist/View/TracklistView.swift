@@ -17,7 +17,6 @@ struct TracklistView: View {
     let onSelectTrack: (LowerItem) -> Void
     let onAddToPlaylist: (LowerItem) -> Void
     let onPlayInYouTubeMusic: (LowerItem) -> Void
-    let isTrackInPlaylist: (LowerItem) -> Bool
 
     var body: some View {
         GeometryReader { geometry in
@@ -184,7 +183,6 @@ private extension TracklistView {
                     systemImage: "text.badge.plus"
                 )
             }
-            .disabled(isTrackInPlaylist(item))
 
             Button {
                 onPlayInYouTubeMusic(item)

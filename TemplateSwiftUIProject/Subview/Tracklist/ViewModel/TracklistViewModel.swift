@@ -15,6 +15,11 @@ enum TracklistState {
     case contentList(Tracklist)
 }
 
+enum PlaylistActionResult {
+    case added
+    case alreadyAdded
+}
+
 @MainActor
 final class TracklistViewModel: ObservableObject {
 
@@ -189,56 +194,34 @@ final class TracklistViewModel: ObservableObject {
     
     // MARK: - Track Actions
 
-//    func addToPlaylist(
-//        _ item: LowerItem
-//    ) async {
-//
-//        print(
-//            "Tracklist — add to playlist: \(item.id)"
-//        )
-//
-//        // TODO:
-//        // Здесь позже подключим открытие выбора
-//        // пользовательского плейлиста.
-//    }
-
-    // MARK: - Track Actions
-
-    func addToPlaylist(_ item: LowerItem) async {
-        
+    //        let track = MyTrackCloud(
+    //            videoId: item.id,
+    //            title: item.title,
+    //            artist: item.subtitle,
+    //            thumbnailURL: item.thumbnailURL?.absoluteString,
+    //            createdAt: Date()
+    //        )
+    
+    func addToPlaylist(
+        _ item: LowerItem
+    ) async throws -> PlaylistActionResult {
         guard !playlistUser.contains(videoId: item.id) else {
             print(
                 "⚠️ Tracklist — track already in playlist: \(item.id)"
             )
-            return
+            
+            return .alreadyAdded
         }
         
-//        let track = MyTrackCloud(
-//            videoId: item.id,
-//            title: item.title,
-//            artist: item.subtitle,
-//            thumbnailURL: item.thumbnailURL?.absoluteString,
-//            createdAt: Date()
-//        )
         let track = MyTrackCloud(item: item)
         
-        do {
-            try await dropListDataSource.addTrackToPlaylist(track)
-            
-            playlistUser.add(track)
-            
-            print(
-                "✅ Tracklist — track added: \(item.id)"
-            )
-        } catch {
-            print(
-                "❌ Tracklist — failed to add track: \(error)"
-            )
-        }
-    }
-    
-    func isTrackInPlaylist(_ item: LowerItem) -> Bool {
-        playlistUser.contains(videoId: item.id)
+        try await dropListDataSource.addTrackToPlaylist(track)
+        
+        print(
+            "✅ Tracklist — track added: \(item.id)"
+        )
+        
+        return .added
     }
     
     
@@ -259,6 +242,40 @@ final class TracklistViewModel: ObservableObject {
         UIApplication.shared.open(url)
     }
 }
+
+
+
+
+//    func addToPlaylist(_ item: LowerItem) async {
+//
+//        guard !playlistUser.contains(videoId: item.id) else {
+//            print(
+//                "⚠️ Tracklist — track already in playlist: \(item.id)"
+//            )
+//            return
+//        }
+//
+//
+//        let track = MyTrackCloud(item: item)
+//
+//        do {
+//            try await dropListDataSource.addTrackToPlaylist(track)
+//
+//            playlistUser.add(track)
+//
+//            print(
+//                "✅ Tracklist — track added: \(item.id)"
+//            )
+//        } catch {
+//            print(
+//                "❌ Tracklist — failed to add track: \(error)"
+//            )
+//        }
+//    }
+    
+//    func isTrackInPlaylist(_ item: LowerItem) -> Bool {
+//        playlistUser.contains(videoId: item.id)
+//    }
 
 // MARK: - before PlaylistUser
 
