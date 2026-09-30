@@ -132,6 +132,10 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
     
     private let realtimeDomain = "com.firebase.database"
     private let googleSignInDomain = "com.google.GIDSignIn"
+    
+    private let authDomain = "FIRAuthErrorDomain"
+    private let storageDomain = "FIRStorageErrorDomain"
+    
     private let logger: ErrorLoggingServiceProtocol
     
     init(logger: ErrorLoggingServiceProtocol = CrashlyticsLoggingService.shared) {
@@ -203,8 +207,22 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         
         // 4. Auth
         
-        if let authCode = AuthErrorCode(rawValue: nsError.code) {
-            return handleAuthError(authCode, error: error, context: context)
+        if nsError.domain == authDomain {
+
+            if let authCode = AuthErrorCode(rawValue: nsError.code) {
+                return handleAuthError(
+                    authCode,
+                    error: error,
+                    context: context
+                )
+            }
+
+            logCritical(
+                error: error,
+                context: context ?? "Auth.unknown(\(nsError.code))"
+            )
+
+            return Localized.Auth.generic
         }
         
         // 5. Firestore
@@ -215,8 +233,22 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
         
         // 6. Storage
         
-        if let storageCode = StorageErrorCode(rawValue: nsError.code) {
-            return handleStorageError(storageCode, error: error, context: context)
+        if nsError.domain == storageDomain {
+
+            if let storageCode = StorageErrorCode(rawValue: nsError.code) {
+                return handleStorageError(
+                    storageCode,
+                    error: error,
+                    context: context
+                )
+            }
+
+            logCritical(
+                error: error,
+                context: context ?? "Storage.unknown(\(nsError.code))"
+            )
+
+            return Localized.Storage.generic
         }
         
         // 7. Realtime Database
@@ -588,6 +620,136 @@ final class ErrorDiagnosticsCenter: ErrorDiagnosticsProtocol {
 
 
 
+
+// MARK: -  получение доменов ошибок для тестов -
+
+//TracklistContentView(
+//    viewModel: viewModel,
+//    navigationTitle: navigationTitle,
+//    details: details,
+//    imageURL: imageURL
+//)
+//.task {
+//
+//    #if DEBUG
+//
+//    await FirebaseDomainDebugger.runAll()
+//
+//    #endif
+//}
+
+
+//import Foundation
+//import FirebaseAuth
+//import FirebaseStorage
+//import FirebaseFirestore
+//
+//enum FirebaseDomainDebugger {
+//
+//    static func printNSErrorInfo(_ error: Error, source: String) {
+//        let nsError = error as NSError
+//
+//        print(
+//"""
+//====================================================
+//SOURCE: \(source)
+//
+//DOMAIN: \(nsError.domain)
+//CODE: \(nsError.code)
+//
+//DESCRIPTION:
+//\(nsError.localizedDescription)
+//====================================================
+//"""
+//        )
+//    }
+//
+//    // MARK: - Auth
+//
+//    static func testAuthDomain() async {
+//
+//        do {
+//
+//            try await Auth.auth().signIn(
+//                withEmail: "invalid@test.com",
+//                password: "invalid-password"
+//            )
+//
+//        } catch {
+//
+//            printNSErrorInfo(
+//                error,
+//                source: "Firebase Auth"
+//            )
+//        }
+//    }
+//
+//    // MARK: - Storage
+//
+//    static func testStorageDomain() async {
+//
+//        do {
+//
+//            let ref = Storage.storage()
+//                .reference()
+//                .child("file_that_does_not_exist.jpg")
+//
+//            _ = try await ref.downloadURL()
+//
+//        } catch {
+//
+//            printNSErrorInfo(
+//                error,
+//                source: "Firebase Storage"
+//            )
+//        }
+//    }
+//
+//    // MARK: - Firestore
+//
+//    static func testFirestoreDomain() async {
+//
+//        do {
+//
+//            _ = try await Firestore.firestore()
+//                .collection("collection_that_does_not_exist")
+//                .getDocuments()
+//
+//        } catch {
+//
+//            printNSErrorInfo(
+//                error,
+//                source: "Firebase Firestore"
+//            )
+//        }
+//    }
+//
+//    // MARK: - Run All
+//
+//    static func runAll() async {
+//
+//        await testAuthDomain()
+//
+//        await testStorageDomain()
+//
+//        await testFirestoreDomain()
+//    }
+//}
+
+
+
+// MARK: - не тестировали новую реализацию на реальных ошибках!
+
+// раньше мы не проверяли домайн в этих строках что могло вызвать потенциальную путаницу
+// потому что  nsError.code может иметь число которое пройдет как в AuthErrorCode(rawValue: nsError.code) так и в StorageErrorCode(rawValue: nsError.code)
+
+//        if let authCode = AuthErrorCode(rawValue: nsError.code) {
+//            return handleAuthError(authCode, error: error, context: context)
+//        }
+
+//        if let storageCode = StorageErrorCode(rawValue: nsError.code) {
+//            return handleStorageError(storageCode, error: error, context: context)
+//        }
 
 
 

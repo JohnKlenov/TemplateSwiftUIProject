@@ -55,30 +55,6 @@ struct TracklistContentView: View {
                         // TODO
                     }
                 )
-//                TracklistView(
-//                    data: tracklist,
-//                    details: details,
-//                    imageURL: imageURL,
-//                    onLoadNextTracks: {
-//                        Task {
-//                            await viewModel.loadNextPage()
-//                        }
-//                    },
-//                    onSelectTrack: { item in
-//                            selectedTrack = item
-//                    },
-//                    onAddToPlaylist: { item in
-//                        Task {
-//                            await viewModel.addToPlaylist(item)
-//                        }
-//                    },
-//                    onPlayInYouTubeMusic: { item in
-//                        // TODO
-//                    },
-//                    isTrackInPlaylist: { item in
-//                        viewModel.isTrackInPlaylist(item)
-//                    }
-//                )
             case .error(let error):
                 ContentErrorView(error: error) {
                     Task {
@@ -236,6 +212,32 @@ struct PlaylistToastView: View {
     }
 }
 
+
+
+//                TracklistView(
+//                    data: tracklist,
+//                    details: details,
+//                    imageURL: imageURL,
+//                    onLoadNextTracks: {
+//                        Task {
+//                            await viewModel.loadNextPage()
+//                        }
+//                    },
+//                    onSelectTrack: { item in
+//                            selectedTrack = item
+//                    },
+//                    onAddToPlaylist: { item in
+//                        Task {
+//                            await viewModel.addToPlaylist(item)
+//                        }
+//                    },
+//                    onPlayInYouTubeMusic: { item in
+//                        // TODO
+//                    },
+//                    isTrackInPlaylist: { item in
+//                        viewModel.isTrackInPlaylist(item)
+//                    }
+//                )
 
 //                TracklistView(
 //                    data: tracklist,

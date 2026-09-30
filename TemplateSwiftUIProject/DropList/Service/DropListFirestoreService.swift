@@ -1098,6 +1098,25 @@ final class DropListFirestoreService:
 
     // MARK: - Playlist
     
+    /// Добавляет трек в пользовательский плейлист:
+    /// users/{userId}/myTracks/{videoId}
+    ///
+    /// Особенности реализации:
+    /// • В качестве documentID используется videoId.
+    ///   Это предотвращает создание дубликатов одного и того же трека.
+    /// • setData(from:) кодирует MyTrackCloud и сохраняет документ в Firestore.
+    /// • Callback API Firebase преобразуется в async/await через
+    ///   withCheckedThrowingContinuation.
+    /// • При успешной записи метод завершается без ошибки.
+    /// • При любой ошибке (permission denied, encoding error,
+    ///   network error и т.д.) ошибка логируется через errorHandler
+    ///   и пробрасывается выше.
+    ///
+    /// Важно:
+    /// Firestore сначала обновляет локальный кэш, поэтому listener на
+    /// users/{userId}/myTracks может получить новый snapshot раньше,
+    /// чем данные будут подтверждены сервером.
+    
     func addTrackToPlaylist(
         userId: String,
         track: MyTrackCloud
@@ -1107,15 +1126,29 @@ final class DropListFirestoreService:
             .document(userId)
             .collection("myTracks")
             .document(track.videoId)
-        
+
         do {
-            try document.setData(from: track)
+            try await withCheckedThrowingContinuation { (
+                continuation: CheckedContinuation<Void, Error>
+            ) in
+                do {
+                    try document.setData(from: track) { error in
+                        if let error {
+                            continuation.resume(throwing: error)
+                        } else {
+                            continuation.resume()
+                        }
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
         } catch {
             let _ = errorHandler.handle(
                 error: error,
                 context: ErrorContext.DropListFirestoreService_addTrackToPlaylist.rawValue
             )
-            
+
             throw FirestoreGetServiceError(
                 underlying: error,
                 context: .DropListFirestoreService_addTrackToPlaylist
@@ -1123,6 +1156,33 @@ final class DropListFirestoreService:
         }
     }
 }
+
+
+// тут мы не дожидались ответа от сервера тлько локальные изменения
+//    func addTrackToPlaylist(
+//        userId: String,
+//        track: MyTrackCloud
+//    ) async throws {
+//        let document = db
+//            .collection("users")
+//            .document(userId)
+//            .collection("myTracks")
+//            .document(track.videoId)
+//
+//        do {
+//            try document.setData(from: track)
+//        } catch {
+//            let _ = errorHandler.handle(
+//                error: error,
+//                context: ErrorContext.DropListFirestoreService_addTrackToPlaylist.rawValue
+//            )
+//
+//            throw FirestoreGetServiceError(
+//                underlying: error,
+//                context: .DropListFirestoreService_addTrackToPlaylist
+//            )
+//        }
+//    }
 
 // MARK: - before add PlaylistDetailsView
 

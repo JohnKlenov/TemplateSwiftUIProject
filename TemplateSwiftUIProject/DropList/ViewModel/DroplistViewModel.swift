@@ -278,7 +278,7 @@ final class DroplistViewModel: ObservableObject {
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
-                print("sessionManager.statePublisher - \(state)")
+                print("sessionManager.statePublisher")
                 self?.handleHomeManagerState(state)
             }
             .store(in: &cancellables)
@@ -335,7 +335,7 @@ final class DroplistViewModel: ObservableObject {
     // ============================================================
 
     func fetchDataDroplist() async {
-
+        print("func fetchDataDroplist()")
         guard !isDropListLoaded else {
             return
         }
@@ -612,6 +612,7 @@ final class DroplistViewModel: ObservableObject {
             viewState = .error(message)
 
         case .myTracks(let tracks):
+            print(" case .myTracks(let tracks) - \(tracks.count)")
 
             // ====================================================
             // PlaylistUser — единый источник истины
