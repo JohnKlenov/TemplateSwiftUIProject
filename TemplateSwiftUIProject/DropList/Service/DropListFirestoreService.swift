@@ -415,19 +415,29 @@ final class DropListFirestoreService:
 
                         return
                     }
-
-                    let items: [TopItem] =
-                        docs.map { playlist in
-
-                            TopItem(
-                                id: playlist.id,
-                                title: playlist.data.title,
-                                imageURL:
-                                    playlist.data.coverImageURL.flatMap {
-                                        URL(string: $0)
-                                    }
-                            )
-                        }
+                    
+                    let items: [TopItem] = docs.map { playlist in
+                        TopItem(
+                            id: playlist.id,
+                            title: playlist.data.title,
+                            imageURL: playlist.data.coverImageURL.flatMap {
+                                URL(string: $0)
+                            },
+                            artists: playlist.data.artists
+                        )
+                    }
+//                    let items: [TopItem] =
+//                        docs.map { playlist in
+//
+//                            TopItem(
+//                                id: playlist.id,
+//                                title: playlist.data.title,
+//                                imageURL:
+//                                    playlist.data.coverImageURL.flatMap {
+//                                        URL(string: $0)
+//                                    }
+//                            )
+//                        }
 
                     let sectionModel = TopSectionModel(
                         id: "top_section",

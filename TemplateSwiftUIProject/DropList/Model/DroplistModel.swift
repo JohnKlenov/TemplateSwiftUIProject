@@ -439,6 +439,17 @@ struct TrackDoc: Codable, Identifiable {
 
 //  TopSectionDoc — документ плейлиста (topSections/{playlistId})
 
+
+//struct TopSectionDoc: Codable {
+//    let playlistId: String
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    let createdAt: Date?
+//    let orderIndex: Int
+//}
+
 struct TopSectionDoc: Codable {
     let playlistId: String      // Критично → обязательное
     let title: String           // Критично → обязательное
@@ -446,6 +457,7 @@ struct TopSectionDoc: Codable {
     let coverImageURL: String?  // Не критично → опциональное
     let trackCount: Int         // Критично → обязательное
     let createdAt: Date?        // Может отсутствовать → опциональное
+    let artists: [String]
     let orderIndex: Int         // Критично → обязательное
 }
 
@@ -621,7 +633,14 @@ struct TopItem: Identifiable {
     let id: String
     let title: String
     let imageURL: URL?
+    let artists: [String]
 }
+
+//struct TopItem: Identifiable {
+//    let id: String
+//    let title: String
+//    let imageURL: URL?
+//}
 
 
 

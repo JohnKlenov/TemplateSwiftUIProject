@@ -434,23 +434,23 @@ struct TopSectionItemView: View {
     let imageSize: CGFloat
     let onTap: () -> Void
 
-    let artists: [String] = [
-        "French Montana",
-        "Kodak Black",
-        "Lil Wayne",
-        "Drake",
-        "French Montana + French Montana",
-        "Kodak Black",
-        "Lil Wayne",
-        "Drake",
-        "French Montana",
-        "Kodak Black",
-        "Lil Wayne",
-        "Drake",
-        "Future",
-        "21 Savage",
-        "Travis Scott"
-    ]
+//    let artists: [String] = [
+//        "French Montana",
+//        "Kodak Black",
+//        "Lil Wayne",
+//        "Drake",
+//        "French Montana + French Montana",
+//        "Kodak Black",
+//        "Lil Wayne",
+//        "Drake",
+//        "French Montana",
+//        "Kodak Black",
+//        "Lil Wayne",
+//        "Drake",
+//        "Future",
+//        "21 Savage",
+//        "Travis Scott"
+//    ]
 
     var body: some View {
 
@@ -488,7 +488,7 @@ struct TopSectionItemView: View {
                     spacing: 8
                 ) {
 
-                    Text("TOP 50")
+                    Text(item.title)
                         .font(.headline)
                         .fontWeight(.bold)
                         .foregroundColor(
@@ -503,7 +503,7 @@ struct TopSectionItemView: View {
 
                         ForEach(
                             Array(
-                                artists.enumerated()
+                                item.artists.enumerated()
                             ),
                             id: \.offset
                         ) { _, line in

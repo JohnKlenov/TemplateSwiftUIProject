@@ -98,7 +98,34 @@ final class AdminViewModel: ObservableObject {
     private let api: YouTubeAPIClient
     private let db = Firestore.firestore()
     private let functions = Functions.functions()
+
+// before new savePlaylistToFirestore()
+//    private let playlistId: String
+//
+//    let availableTags: [String] = ["Gym", "Party", "R&B"]
+    
+    
     private let playlistId: String
+
+    // =================================================
+    // TOP SECTION / DROP TOP
+    // =================================================
+
+    // Артисты для карточки верхней карусели.
+    // Заполняются вручную для каждого плейлиста.
+    private let topSectionArtists: [String] = [
+        "French Montana",
+        "Kodak Black",
+        "Lil Wayne",
+        "Drake"
+    ]
+
+    // Категория плейлиста в полном каталоге DropTop.
+    // Возможные значения:
+    // "topYear"
+    // "topDecada"
+    // "artist"
+    private let dropTopTag = "topYear"
 
     let availableTags: [String] = ["Gym", "Party", "R&B"]
 
@@ -539,8 +566,353 @@ final class AdminViewModel: ObservableObject {
 }
 
 
+// =================================================
+// Сохранение плейлиста в TOP SECTION
+// =================================================
+
+//func savePlaylistToTopSection() async {
+//
+//    guard !playlistTitle.isEmpty else {
+//        status = "Ошибка: заголовок пуст"
+//        return
+//    }
+//
+//    guard !playlistImageURL.isEmpty else {
+//        status = "Сначала сгенерируйте coverImage"
+//        return
+//    }
+//
+//    guard !tracks.isEmpty else {
+//        status = "Добавьте хотя бы один трек"
+//        return
+//    }
+//
+//    guard !isGeneratingCover else {
+//        status = "Дождитесь завершения генерации coverImage"
+//        return
+//    }
+//
+//    guard !isProcessingTrackThumbnail else {
+//        status = "Дождитесь обработки thumbnail треков"
+//        return
+//    }
+//
+//    guard !isImportingAllTracks else {
+//        status = "Дождитесь завершения импорта"
+//        return
+//    }
+//
+//    status = "Сохраняем TopSection…"
+//
+//    do {
+//
+//        let topSectionRef = db
+//            .collection("topSection")
+//            .document(playlistId)
+//
+//        try await topSectionRef.setData([
+//            "playlistId": playlistId,
+//            "title": playlistTitle,
+//            "description": playlistDescription,
+//            "coverImageURL": playlistImageURL,
+//            "trackCount": tracks.count,
+//            "orderIndex": 3,
+//            "artists": topSectionArtists,
+//            "createdAt": FieldValue.serverTimestamp()
+//        ], merge: true)
+//
+//        let batch = db.batch()
+//
+//        for track in tracks {
+//
+//            let trackRef = topSectionRef
+//                .collection("tracks")
+//                .document(track.videoId)
+//
+//            batch.setData([
+//                "videoId": track.videoId,
+//                "title": track.title,
+//                "artist": track.artist,
+//                "thumbnailURL": track.thumbnailURL,
+//                "durationISO8601": track.durationISO8601,
+//                "orderIndex": track.orderIndex,
+//                "tags": track.tags,
+//                "createdAt": FieldValue.serverTimestamp()
+//            ], forDocument: trackRef)
+//        }
+//
+//        try await batch.commit()
+//
+//        status = "✅ TopSection и треки сохранены"
+//
+//    } catch {
+//        status = "❌ Ошибка сохранения TopSection: \(error.localizedDescription)"
+//    }
+//}
 
 
+
+
+
+
+// =================================================
+// Сохранение плейлиста в DROP TOP
+// =================================================
+
+//func savePlaylistToDropTop() async {
+//
+//    guard !playlistTitle.isEmpty else {
+//        status = "Ошибка: заголовок пуст"
+//        return
+//    }
+//
+//    guard !playlistImageURL.isEmpty else {
+//        status = "Сначала сгенерируйте coverImage"
+//        return
+//    }
+//
+//    guard !tracks.isEmpty else {
+//        status = "Добавьте хотя бы один трек"
+//        return
+//    }
+//
+//    guard !isGeneratingCover else {
+//        status = "Дождитесь завершения генерации coverImage"
+//        return
+//    }
+//
+//    guard !isProcessingTrackThumbnail else {
+//        status = "Дождитесь обработки thumbnail треков"
+//        return
+//    }
+//
+//    guard !isImportingAllTracks else {
+//        status = "Дождитесь завершения импорта"
+//        return
+//    }
+//
+//    status = "Сохраняем DropTop…"
+//
+//    do {
+//
+//        let dropTopRef = db
+//            .collection("dropTop")
+//            .document(playlistId)
+//
+//        try await dropTopRef.setData([
+//            "playlistId": playlistId,
+//            "title": playlistTitle,
+//            "description": playlistDescription,
+//            "coverImageURL": playlistImageURL,
+//            "trackCount": tracks.count,
+//            "orderIndex": 3,
+//            "tag": dropTopTag,
+//            "createdAt": FieldValue.serverTimestamp()
+//        ], merge: true)
+//
+//        let batch = db.batch()
+//
+//        for track in tracks {
+//
+//            let trackRef = dropTopRef
+//                .collection("tracks")
+//                .document(track.videoId)
+//
+//            batch.setData([
+//                "videoId": track.videoId,
+//                "title": track.title,
+//                "artist": track.artist,
+//                "thumbnailURL": track.thumbnailURL,
+//                "durationISO8601": track.durationISO8601,
+//                "orderIndex": track.orderIndex,
+//                "tags": track.tags,
+//                "createdAt": FieldValue.serverTimestamp()
+//            ], forDocument: trackRef)
+//        }
+//
+//        try await batch.commit()
+//
+//        status = "✅ DropTop и треки сохранены"
+//
+//    } catch {
+//        status = "❌ Ошибка сохранения DropTop: \(error.localizedDescription)"
+//    }
+//}
+
+
+
+// =============================================================
+// DROP TOP — TEST DATA
+// =============================================================
+
+//func savePlaylistToDropTop() async {
+//    guard !playlistTitle.isEmpty else {
+//        status = "Ошибка: заголовок пуст"
+//        return
+//    }
+//
+//    guard !playlistImageURL.isEmpty else {
+//        status = "Сначала сгенерируйте coverImage"
+//        return
+//    }
+//
+//    guard !tracks.isEmpty else {
+//        status = "Добавьте хотя бы один трек"
+//        return
+//    }
+//
+//    guard !isGeneratingCover else {
+//        status = "Дождитесь завершения генерации coverImage"
+//        return
+//    }
+//
+//    guard !isProcessingTrackThumbnail else {
+//        status = "Дождитесь обработки thumbnail треков"
+//        return
+//    }
+//
+//    guard !isImportingAllTracks else {
+//        status = "Дождитесь завершения импорта"
+//        return
+//    }
+//
+//    status = "Создаём тестовый DropTop..."
+//
+//    do {
+//        let startYear = 2026
+//        let endYear = 2036
+//
+//        var batch = db.batch()
+//        var operationCount = 0
+//
+//        // =====================================================
+//        // Создаём 7 плейлистов на каждый год.
+//        // Tracks у всех плейлистов одинаковые.
+//        // =====================================================
+//
+//        for year in startYear...endYear {
+//
+//            let playlists: [(id: String, title: String, tag: String)] = [
+//                (
+//                    id: "topYear_\(year)",
+//                    title: "Top \(year)",
+//                    tag: "topYear"
+//                ),
+//                (
+//                    id: "topDecada_1_\(year)",
+//                    title: "Top 1 Decada \(year)",
+//                    tag: "topDecada"
+//                ),
+//                (
+//                    id: "topDecada_2_\(year)",
+//                    title: "Top 2 Decada \(year)",
+//                    tag: "topDecada"
+//                ),
+//                (
+//                    id: "topDecada_3_\(year)",
+//                    title: "Top 3 Decada \(year)",
+//                    tag: "topDecada"
+//                ),
+//                (
+//                    id: "topDecada_4_\(year)",
+//                    title: "Top 4 Decada \(year)",
+//                    tag: "topDecada"
+//                ),
+//                (
+//                    id: "artist_lilWayne_\(year)",
+//                    title: "Lil Wayne list#1 \(year)",
+//                    tag: "artist"
+//                ),
+//                (
+//                    id: "artist_drake_\(year)",
+//                    title: "Drake list#1 \(year)",
+//                    tag: "artist"
+//                )
+//            ]
+//
+//            for playlist in playlists {
+//
+//                // =================================================
+//                // PLAYLIST DOCUMENT
+//                // =================================================
+//
+//                let playlistRef = db
+//                    .collection("dropTop")
+//                    .document(playlist.id)
+//
+//                batch.setData(
+//                    [
+//                        "playlistId": playlist.id,
+//                        "title": playlist.title,
+//                        "description": playlistDescription,
+//                        "coverImageURL": playlistImageURL,
+//                        "trackCount": tracks.count,
+//                        "tag": playlist.tag,
+//                        "createdAt": FieldValue.serverTimestamp()
+//                    ],
+//                    forDocument: playlistRef,
+//                    merge: true
+//                )
+//
+//                operationCount += 1
+//
+//                // =================================================
+//                // TRACKS
+//                // =================================================
+//
+//                for track in tracks {
+//
+//                    let trackRef = playlistRef
+//                        .collection("tracks")
+//                        .document(track.videoId)
+//
+//                    batch.setData(
+//                        [
+//                            "videoId": track.videoId,
+//                            "title": track.title,
+//                            "artist": track.artist,
+//                            "thumbnailURL": track.thumbnailURL,
+//                            "durationISO8601": track.durationISO8601,
+//                            "orderIndex": track.orderIndex,
+//                            "tags": track.tags,
+//                            "createdAt": FieldValue.serverTimestamp()
+//                        ],
+//                        forDocument: trackRef,
+//                        merge: true
+//                    )
+//
+//                    operationCount += 1
+//
+//                    // Firestore batch имеет лимит 500 операций.
+//                    if operationCount >= 450 {
+//                        try await batch.commit()
+//
+//                        batch = db.batch()
+//                        operationCount = 0
+//                    }
+//                }
+//            }
+//        }
+//
+//        // =====================================================
+//        // Записываем оставшиеся операции.
+//        // =====================================================
+//
+//        if operationCount > 0 {
+//            try await batch.commit()
+//        }
+//
+//        status = "✅ DropTop создан: 11 лет × 7 плейлистов = 77 плейлистов"
+//
+//    } catch {
+//        status = "❌ Ошибка сохранения DropTop: \(error.localizedDescription)"
+//    }
+//}
+
+
+
+
+// это вторая старая версия func savePlaylistToFirestore()
 // save topSection
 
 //func savePlaylistToFirestore() async {
