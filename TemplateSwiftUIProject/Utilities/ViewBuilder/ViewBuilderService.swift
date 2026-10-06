@@ -196,7 +196,9 @@ class ViewBuilderService: ObservableObject {
             )
 
         case .topDrops:
-            SomeView()
+            DropTopViewInjected(
+                dropListDataSource: dropListDataSource
+            )
 
         case .droplistDetails(
             let playlistId,

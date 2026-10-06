@@ -24,6 +24,10 @@
 		5E481D7930542CC500D55309 /* PlaylistUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7830542CC000D55309 /* PlaylistUser.swift */; };
 		5E481D7B305EBF8000D55309 /* PlaylistDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7A305EBF7D00D55309 /* PlaylistDetailsView.swift */; };
 		5E481D7D306FE6DB00D55309 /* PlaylistToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7C306FE6D600D55309 /* PlaylistToastView.swift */; };
+		5E481D7F30752B0C00D55309 /* DropTopPagesCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7E30752B0700D55309 /* DropTopPagesCache.swift */; };
+		5E481D84307531A600D55309 /* DropTopViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D83307531A300D55309 /* DropTopViewModel.swift */; };
+		5E481D863075333100D55309 /* DropTopContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D853075332E00D55309 /* DropTopContentView.swift */; };
+		5E481D883075341A00D55309 /* DropTopViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D873075341700D55309 /* DropTopViewInjected.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -219,6 +223,10 @@
 		5E481D7830542CC000D55309 /* PlaylistUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistUser.swift; sourceTree = "<group>"; };
 		5E481D7A305EBF7D00D55309 /* PlaylistDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistDetailsView.swift; sourceTree = "<group>"; };
 		5E481D7C306FE6D600D55309 /* PlaylistToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistToastView.swift; sourceTree = "<group>"; };
+		5E481D7E30752B0700D55309 /* DropTopPagesCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopPagesCache.swift; sourceTree = "<group>"; };
+		5E481D83307531A300D55309 /* DropTopViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopViewModel.swift; sourceTree = "<group>"; };
+		5E481D853075332E00D55309 /* DropTopContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopContentView.swift; sourceTree = "<group>"; };
+		5E481D873075341700D55309 /* DropTopViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopViewInjected.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -425,6 +433,7 @@
 		5E481D6030407C1F00D55309 /* Subview */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D803075315F00D55309 /* DropTop */,
 				5E481D6130407C3F00D55309 /* Tracklist */,
 			);
 			path = Subview;
@@ -465,6 +474,32 @@
 				5E481D70304D93A300D55309 /* SafariPlayerView.swift */,
 			);
 			path = SafariPlayerView;
+			sourceTree = "<group>";
+		};
+		5E481D803075315F00D55309 /* DropTop */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D823075317500D55309 /* ViewModel */,
+				5E481D813075316C00D55309 /* View */,
+			);
+			path = DropTop;
+			sourceTree = "<group>";
+		};
+		5E481D813075316C00D55309 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D873075341700D55309 /* DropTopViewInjected.swift */,
+				5E481D853075332E00D55309 /* DropTopContentView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5E481D823075317500D55309 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D83307531A300D55309 /* DropTopViewModel.swift */,
+			);
+			path = ViewModel;
 			sourceTree = "<group>";
 		};
 		5E54660C2F7A5B56009D7210 /* Description */ = {
@@ -601,6 +636,7 @@
 		5E5466302F961000009D7210 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D7E30752B0700D55309 /* DropTopPagesCache.swift */,
 				5E481D7830542CC000D55309 /* PlaylistUser.swift */,
 				5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */,
 				5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */,
@@ -1643,6 +1679,7 @@
 				5EA4FE362D21C8D7001CA401 /* HomeContentView.swift in Sources */,
 				5E54661D2F7C0544009D7210 /* B2B_MUSIC_LICENSING_OPTIONS.swift in Sources */,
 				5EA4FE322D09CF87001CA401 /* CRUDSManager.swift in Sources */,
+				5E481D84307531A600D55309 /* DropTopViewModel.swift in Sources */,
 				5E8F9CB12D819EB6004036F6 /* GalleryView.swift in Sources */,
 				5EC94A0D2CC3CA4E003736A9 /* CustomErrorsFB.swift in Sources */,
 				5EC332DC2E3E4AF50051BE5B /* ReauthenticateViewInjected.swift in Sources */,
@@ -1732,6 +1769,7 @@
 				5EA2E6122E03FFBF00C53E52 /* CombineSetting.swift in Sources */,
 				5EA2E5F82DDCB28D00C53E52 /* SignUpViewModel.swift in Sources */,
 				5E8F9CCA2D81AC47004036F6 /* FirestoreGetService.swift in Sources */,
+				5E481D863075333100D55309 /* DropTopContentView.swift in Sources */,
 				5E5466162F7A5E62009D7210 /* TracksViewModel.swift in Sources */,
 				5EC949E52CBA8FC5003736A9 /* OnboardingViewModel.swift in Sources */,
 				5E8F9C712D537AA1004036F6 /* SomeView.swift in Sources */,
@@ -1746,6 +1784,7 @@
 				5EC332E32E48D3700051BE5B /* UserInfoEditViewModel.swift in Sources */,
 				5E54661B2F7A5F19009D7210 /* PlayerView.swift in Sources */,
 				5E8F9CA92D7ED71D004036F6 /* GalleryCoordinator.swift in Sources */,
+				5E481D7F30752B0C00D55309 /* DropTopPagesCache.swift in Sources */,
 				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
 				5EC4B2522F30E06100F0C2D7 /* CrashlyticsLoggingService.swift in Sources */,
 				5E8F9CA32D7CDFCF004036F6 /* GalleryModel.swift in Sources */,
@@ -1788,6 +1827,7 @@
 				5E00EE132F1E354100A521AC /* HomeContentViewInjected.swift in Sources */,
 				5EA4FDB62CCBCABD001CA401 /* SharedErrorHandler.swift in Sources */,
 				5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */,
+				5E481D883075341A00D55309 /* DropTopViewInjected.swift in Sources */,
 				5E8F9CAD2D7ED912004036F6 /* GalleryViewModel(test).swift in Sources */,
 				5EAF5B0E2D2FF96000D96FD6 /* FirstAppear.swift in Sources */,
 				5E481D7B305EBF8000D55309 /* PlaylistDetailsView.swift in Sources */,

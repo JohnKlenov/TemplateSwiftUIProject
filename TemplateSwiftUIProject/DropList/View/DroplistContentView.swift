@@ -65,7 +65,6 @@ struct DroplistContentView: View {
                         )
                     },
                     onAllTracks: {
-
                         droplistCoordinator.navigateTo(
                             page: .allTracks
                         )
@@ -78,8 +77,54 @@ struct DroplistContentView: View {
                                 imageURL: topItem.imageURL
                             )
                         )
+                    }, onTopDropButton: {
+                        
+                        droplistCoordinator.navigateTo(
+                            page: .topDrops
+                        )
+                        
                     }
                 )
+//                DroplistCompositView(
+//                    data: dropData,
+//                    onRefresh: {
+//                        Task {
+//                            await viewModel.refreshDropList()
+//                        }
+//                    },
+//                    onLoadNextPage: { itemType in
+//                        Task {
+//                            await viewModel.loadNextPage(
+//                                for: itemType
+//                            )
+//                        }
+//                    },
+//                    onSelectLowerItem: { lowerItem in
+//                        droplistCoordinator.navigateTo(
+//                            page: .droplistDetails(
+//                                playlistId: lowerItem.id,
+//                                details: lowerItem.details,
+//                                title: lowerItem.title,
+//                                imageURL: lowerItem.coverImageURL
+//                            )
+//                        )
+//                    },
+//                    onAllTracks: {
+//
+//                        droplistCoordinator.navigateTo(
+//                            page: .allTracks
+//                        )
+//                    },
+//                    onTopDrop: { topItem in
+//                        droplistCoordinator.navigateTo(
+//                            page: .topDropDetails(
+//                                playlistId: topItem.id,
+//                                title: topItem.title,
+//                                imageURL: topItem.imageURL
+//                            )
+//                        )
+//                    }
+//                )
 
                 // При смене viewState с .contentList на .error
                 // SwiftUI удаляет DroplistCompositView из иерархии.

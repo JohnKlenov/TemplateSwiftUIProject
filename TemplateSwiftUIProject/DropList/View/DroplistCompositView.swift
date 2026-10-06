@@ -67,6 +67,7 @@
 
 
 
+
 import SwiftUI
 
 struct DroplistCompositView: View {
@@ -78,6 +79,7 @@ struct DroplistCompositView: View {
     let onSelectLowerItem: (LowerItem) -> Void
     let onAllTracks: () -> Void
     let onTopDrop: (TopItem) -> Void
+    let onTopDropButton: () -> Void
 
     var body: some View {
 
@@ -225,6 +227,7 @@ private extension DroplistCompositView {
                 //
                 // Переход в конкретный TopDrop
                 // выполняется через TopSectionItemView.
+                onTopDropButton()
             }
         }
         .padding(.horizontal)

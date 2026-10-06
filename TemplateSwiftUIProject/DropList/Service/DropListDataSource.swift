@@ -32,6 +32,13 @@
 import Foundation
 import FirebaseFirestore
 
+
+enum NextDropTopPageResult {
+    case loaded(page: DropTopPage)
+    case noMore
+    case invalidState
+}
+
 enum NextPageResult {
 
     case loaded(page: LowerSectionPage)
@@ -56,12 +63,16 @@ final class DropListDataSource {
     // MARK: - Cached State
 
     private let pagesCache = PagesCache()
+    
+    private let dropTopPagesCache = DropTopPagesCache()
 
     // MARK: - Data Refresh State
 
     private let dataRefreshStateStore = DataRefreshStateStore()
 
     private let userProvider: CurrentUserProvider
+    
+    private let dropTopPageSize = 30
     
     // MARK: - Init
 
@@ -399,6 +410,188 @@ final class DropListDataSource {
             userId: userId,
             track: track
         )
+    }
+}
+
+extension DropListDataSource {
+    
+    // =========================================================
+    // MARK: DropTop — Cache
+    // =========================================================
+    
+    func cachedDropTopPage(
+        for tag: DropTopTag
+    ) async -> DropTopPage? {
+        
+        await dropTopPagesCache.get(
+            tag.cacheKey
+        )
+    }
+}
+
+extension DropListDataSource {
+    
+    // =========================================================
+    // MARK: DropTop — Initial Fetch
+    // =========================================================
+    
+    func fetchDropTopPage(
+        for tag: DropTopTag
+    ) async throws -> DropTopPage {
+        
+        let page = try await firestoreService
+            .fetchInitialDropTopPage(
+                for: tag,
+                pageSize: dropTopPageSize
+            )
+        
+        await dropTopPagesCache.set(
+            tag.cacheKey,
+            page: page
+        )
+        
+        return page
+    }
+}
+
+extension DropListDataSource {
+    
+    // =========================================================
+    // MARK: DropTop — Pagination
+    // =========================================================
+    
+    func loadNextDropTopPageIfNeeded(
+        for tag: DropTopTag
+    ) async throws -> NextDropTopPageResult {
+        
+        let cacheKey = tag.cacheKey
+        
+        // -----------------------------------------------------
+        // Получаем текущую страницу.
+        // -----------------------------------------------------
+        
+        guard let currentPage =
+            await dropTopPagesCache.get(cacheKey)
+        else {
+            return .invalidState
+        }
+        
+        // -----------------------------------------------------
+        // Больше данных нет.
+        // -----------------------------------------------------
+        
+        guard currentPage.hasMore else {
+            return .noMore
+        }
+        
+        // -----------------------------------------------------
+        // Уже идёт pagination этого tag.
+        //
+        // Это защищает от нескольких onAppear
+        // последнего элемента.
+        // -----------------------------------------------------
+        
+        let canStart =
+            await dropTopPagesCache.beginLoading(
+                cacheKey
+            )
+        
+        guard canStart else {
+            return .invalidState
+        }
+        
+        defer {
+            Task {
+                await dropTopPagesCache.endLoading(
+                    cacheKey
+                )
+            }
+        }
+        
+        // -----------------------------------------------------
+        // Нужен последний snapshot.
+        // -----------------------------------------------------
+        
+        guard let lastSnapshot =
+            currentPage.lastDocumentSnapshot
+        else {
+            return .invalidState
+        }
+        
+        // -----------------------------------------------------
+        // Firestore.
+        // -----------------------------------------------------
+        
+        let nextPage =
+            try await firestoreService
+                .fetchNextDropTopPage(
+                    for: tag,
+                    after: lastSnapshot,
+                    pageSize: dropTopPageSize
+                )
+        
+        // -----------------------------------------------------
+        // Если Firestore вернул пустую страницу,
+        // окончательно закрываем pagination.
+        // -----------------------------------------------------
+        
+        if nextPage.items.isEmpty {
+            
+            let finishedPage =
+                DropTopPage(
+                    items: currentPage.items,
+                    lastDocumentSnapshot:
+                        currentPage.lastDocumentSnapshot,
+                    hasMore: false
+                )
+            
+            await dropTopPagesCache.set(
+                cacheKey,
+                page: finishedPage
+            )
+            
+            return .noMore
+        }
+        
+        // -----------------------------------------------------
+        // Объединяем старую + новую страницу.
+        // -----------------------------------------------------
+        
+        let mergedItems =
+            currentPage.items + nextPage.items
+        
+        let mergedPage =
+            DropTopPage(
+                items: mergedItems,
+                lastDocumentSnapshot:
+                    nextPage.lastDocumentSnapshot,
+                hasMore:
+                    nextPage.hasMore
+            )
+        
+        // -----------------------------------------------------
+        // Сохраняем объединённую страницу в cache.
+        // -----------------------------------------------------
+        
+        await dropTopPagesCache.set(
+            cacheKey,
+            page: mergedPage
+        )
+        
+        return .loaded(
+            page: mergedPage
+        )
+    }
+}
+
+extension DropListDataSource {
+    
+    // =========================================================
+    // MARK: DropTop — Reset Cache
+    // =========================================================
+    
+    func resetDropTopCache() async {
+        await dropTopPagesCache.reset()
     }
 }
 
