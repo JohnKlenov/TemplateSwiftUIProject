@@ -434,24 +434,6 @@ struct TopSectionItemView: View {
     let imageSize: CGFloat
     let onTap: () -> Void
 
-//    let artists: [String] = [
-//        "French Montana",
-//        "Kodak Black",
-//        "Lil Wayne",
-//        "Drake",
-//        "French Montana + French Montana",
-//        "Kodak Black",
-//        "Lil Wayne",
-//        "Drake",
-//        "French Montana",
-//        "Kodak Black",
-//        "Lil Wayne",
-//        "Drake",
-//        "Future",
-//        "21 Savage",
-//        "Travis Scott"
-//    ]
-
     var body: some View {
 
         Button {
@@ -575,6 +557,26 @@ struct TopSectionItemView: View {
         .buttonStyle(.plain)
     }
 }
+
+
+//    let artists: [String] = [
+//        "French Montana",
+//        "Kodak Black",
+//        "Lil Wayne",
+//        "Drake",
+//        "French Montana + French Montana",
+//        "Kodak Black",
+//        "Lil Wayne",
+//        "Drake",
+//        "French Montana",
+//        "Kodak Black",
+//        "Lil Wayne",
+//        "Drake",
+//        "Future",
+//        "21 Savage",
+//        "Travis Scott"
+//    ]
+
 
 // MARK: - before imlemintation onTopDrop
 

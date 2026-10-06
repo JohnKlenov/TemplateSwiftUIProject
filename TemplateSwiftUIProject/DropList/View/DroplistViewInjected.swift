@@ -279,46 +279,9 @@ struct DroplistViewInjected: View {
 
 
 
-
-
-
-//
-//// first DropView
-//
-//import Foundation
-//
-//// =================================================
-//// TOP SECTION DOCUMENT
-//// =================================================
-//
-//struct TopSectionDoc: Codable {
-//    let playlistId: String
-//    let title: String
-//    let description: String?
-//    let coverImageURL: String?
-//    let trackCount: Int
-//    let createdAt: Date?
-//    let orderIndex: Int
-//    let artists: [String]?
-//}
-//
-//// =================================================
-//// TOP SECTION ITEM
-//// =================================================
-//
-//struct TopItem: Identifiable {
-//    let id: String
-//    let title: String
-//    let imageURL: URL?
-//    let artists: [String]
-//}
-//
-//import Foundation
-//import FirebaseFirestore
-//
-//// =================================================
-//// DROP TOP TAG
-//// =================================================
+//// ============================================================
+//// MARK: - DropTop
+//// ============================================================
 //
 //enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
 //    case all
@@ -343,26 +306,23 @@ struct DroplistViewInjected: View {
 //        }
 //    }
 //
-//    // `all` не хранится в Firestore.
-//    // Это отдельный режим запроса всей коллекции.
 //    var firestoreTag: String? {
 //        switch self {
 //        case .all:
 //            return nil
-//        case .topYear, .topDecada, .artist:
-//            return rawValue
+//        case .topYear:
+//            return "topYear"
+//        case .topDecada:
+//            return "topDecada"
+//        case .artist:
+//            return "artist"
 //        }
 //    }
 //
-//    // Отдельный cache key для каждого фильтра.
 //    var cacheKey: String {
 //        "dropTop.\(rawValue)"
 //    }
 //}
-//
-//// =================================================
-//// DROP TOP DOCUMENT
-//// =================================================
 //
 //struct DropTopDoc: Codable {
 //    let playlistId: String
@@ -371,33 +331,21 @@ struct DroplistViewInjected: View {
 //    let coverImageURL: String?
 //    let trackCount: Int
 //    let createdAt: Date?
-//    let orderIndex: Int?
 //    let tag: String
 //}
-//
-//// =================================================
-//// DROP TOP ITEM
-//// =================================================
 //
 //struct DropTopItem: Identifiable, Hashable {
 //    let id: String
 //    let title: String
 //    let imageURL: URL?
+//    let tag: String
 //}
-//
-//// =================================================
-//// DROP TOP PAGE
-//// =================================================
 //
 //struct DropTopPage {
 //    let items: [DropTopItem]
-//    let hasMore: Bool
 //    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
 //}
-//
-//// =================================================
-//// DROP TOP PAGINATION RESULT
-//// =================================================
 //
 //enum NextDropTopPageResult {
 //    case loaded(page: DropTopPage)
@@ -405,50 +353,54 @@ struct DroplistViewInjected: View {
 //    case invalidState
 //}
 //
-//import Foundation
-//
-//// =================================================
-//// DROP TOP CACHE
-//// =================================================
+
+
+
+//// ============================================================
+//// MARK: - DropTop Pages Cache
+//// ============================================================
 //
 //actor DropTopPagesCache {
-//    private var cache: [DropTopTag: DropTopPage] = [:]
+//    private var cache: [String: DropTopPage] = [:]
+//    private var loadingKeys: Set<String> = []
 //
-//    func get(_ tag: DropTopTag) -> DropTopPage? {
-//        cache[tag]
+//    func get(_ key: String) -> DropTopPage? {
+//        cache[key]
 //    }
 //
 //    func set(
-//        _ tag: DropTopTag,
+//        _ key: String,
 //        page: DropTopPage
 //    ) {
-//        cache[tag] = page
+//        cache[key] = page
 //    }
 //
-//    func remove(_ tag: DropTopTag) {
-//        cache.removeValue(forKey: tag)
+//    func remove(_ key: String) {
+//        cache.removeValue(forKey: key)
+//        loadingKeys.remove(key)
 //    }
 //
 //    func reset() {
 //        cache.removeAll()
+//        loadingKeys.removeAll()
 //    }
 //
-//    func contains(_ tag: DropTopTag) -> Bool {
-//        cache[tag] != nil
+//    func beginLoading(_ key: String) -> Bool {
+//        guard !loadingKeys.contains(key) else {
+//            return false
+//        }
+//
+//        loadingKeys.insert(key)
+//        return true
+//    }
+//
+//    func endLoading(_ key: String) {
+//        loadingKeys.remove(key)
 //    }
 //}
-//
+
 //protocol DropListFirestoreServiceProtocol {
-//
-//    // =================================================
-//    // TOP SECTION
-//    // =================================================
-//
 //    func fetchTopSection() async throws -> TopSectionModel
-//
-//    // =================================================
-//    // LOWER SECTION
-//    // =================================================
 //
 //    func fetchInitialLowerPage(
 //        for item: CarouselItemType,
@@ -461,313 +413,364 @@ struct DroplistViewInjected: View {
 //        pageSize: Int
 //    ) async throws -> LowerSectionPage
 //
-//    // =================================================
-//    // PLAYLIST
-//    // =================================================
+//    func fetchInitialDropTopPage(
+//        for tag: DropTopTag,
+//        pageSize: Int
+//    ) async throws -> DropTopPage
+//
+//    func fetchNextDropTopPage(
+//        for tag: DropTopTag,
+//        after lastSnapshot: DocumentSnapshot,
+//        pageSize: Int
+//    ) async throws -> DropTopPage
 //
 //    func addTrackToPlaylist(
 //        userId: String,
 //        track: MyTrackCloud
 //    ) async throws
+//}
+//// ============================================================
+//// MARK: - DropTop
+//// ============================================================
 //
-//    // =================================================
-//    // DROP TOP
-//    // =================================================
+//func fetchInitialDropTopPage(
+//    for tag: DropTopTag,
+//    pageSize: Int
+//) async throws -> DropTopPage {
 //
-//    func fetchInitialDropTopPage(
-//        tag: DropTopTag,
-//        pageSize: Int
-//    ) async throws -> DropTopPage
-//
-//    func fetchNextDropTopPage(
-//        tag: DropTopTag,
-//        after lastSnapshot: DocumentSnapshot,
-//        pageSize: Int
-//    ) async throws -> DropTopPage
+//    try await fetchDropTopPage(
+//        tag: tag,
+//        after: nil,
+//        pageSize: pageSize
+//    )
 //}
 //
-//// =================================================
-//// DROP TOP
-//// =================================================
+//func fetchNextDropTopPage(
+//    for tag: DropTopTag,
+//    after lastSnapshot: DocumentSnapshot,
+//    pageSize: Int
+//) async throws -> DropTopPage {
 //
-//extension DropListFirestoreService {
+//    try await fetchDropTopPage(
+//        tag: tag,
+//        after: lastSnapshot,
+//        pageSize: pageSize
+//    )
+//}
 //
-//    func fetchInitialDropTopPage(
-//        tag: DropTopTag,
-//        pageSize: Int
-//    ) async throws -> DropTopPage {
-//        try await fetchDropTopPage(
-//            tag: tag,
-//            pageSize: pageSize,
-//            after: nil
-//        )
-//    }
+//private func fetchDropTopPage(
+//    tag: DropTopTag,
+//    after lastSnapshot: DocumentSnapshot?,
+//    pageSize: Int
+//) async throws -> DropTopPage {
 //
-//    func fetchNextDropTopPage(
-//        tag: DropTopTag,
-//        after lastSnapshot: DocumentSnapshot,
-//        pageSize: Int
-//    ) async throws -> DropTopPage {
-//        try await fetchDropTopPage(
-//            tag: tag,
-//            pageSize: pageSize,
-//            after: lastSnapshot
-//        )
-//    }
+//    try await withCheckedThrowingContinuation { continuation in
 //
-//    private func fetchDropTopPage(
-//        tag: DropTopTag,
-//        pageSize: Int,
-//        after lastSnapshot: DocumentSnapshot?
-//    ) async throws -> DropTopPage {
+//        var query: Query = db
+//            .collection("dropTop")
 //
-//        try await withCheckedThrowingContinuation { continuation in
+//        // ========================================================
+//        // Для All фильтр не используется.
+//        // Для остальных вкладок фильтруем по tag.
+//        // ========================================================
 //
-//            var query: Query = db
-//                .collection("dropTop")
+//        if let firestoreTag = tag.firestoreTag {
+//            query = query.whereField(
+//                "tag",
+//                isEqualTo: firestoreTag
+//            )
+//        }
 //
-//            // `all` = не добавляем whereField.
-//            if let firestoreTag = tag.firestoreTag {
-//                query = query.whereField(
-//                    "tag",
-//                    isEqualTo: firestoreTag
-//                )
+//        query = query
+//            .order(
+//                by: "createdAt",
+//                descending: true
+//            )
+//            .limit(to: pageSize)
+//
+//        if let lastSnapshot {
+//            query = query.start(
+//                afterDocument: lastSnapshot
+//            )
+//        }
+//
+//        query.getDocuments { [weak self] snapshot, error in
+//            guard let self else {
+//                return
 //            }
 //
-//            query = query
-//                .order(
-//                    by: "orderIndex",
-//                    descending: false
+//            if let error {
+//                continuation.resume(
+//                    throwing: FirestoreGetServiceError(
+//                        underlying: error,
+//                        context: .DropListFirestoreService_fetchTopSection
+//                    )
 //                )
-//                .limit(to: pageSize)
 //
-//            if let lastSnapshot {
-//                query = query.start(
-//                    afterDocument: lastSnapshot
-//                )
+//                return
 //            }
 //
-//            query.getDocuments { [weak self] snapshot, error in
+//            guard let snapshot else {
+//                continuation.resume(
+//                    throwing: FirestoreGetServiceError(
+//                        underlying: AppInternalError.nilSnapshot,
+//                        context: .DropListFirestoreService_fetchTopSection
+//                    )
+//                )
 //
-//                guard let self else {
-//                    return
-//                }
+//                return
+//            }
 //
-//                if let error {
+//            // ====================================================
+//            // Pagination может вернуть пустую страницу.
+//            // Для initial это ошибка.
+//            // Для next page это означает конец списка.
+//            // ====================================================
+//
+//            if snapshot.documents.isEmpty {
+//                if lastSnapshot != nil {
+//                    continuation.resume(
+//                        returning: DropTopPage(
+//                            items: [],
+//                            lastDocumentSnapshot: nil,
+//                            hasMore: false
+//                        )
+//                    )
+//                } else {
 //                    continuation.resume(
 //                        throwing: FirestoreGetServiceError(
-//                            underlying: error,
+//                            underlying: AppInternalError.snapshotIsEmpty,
 //                            context: .DropListFirestoreService_fetchTopSection
 //                        )
 //                    )
-//                    return
 //                }
 //
-//                guard let snapshot else {
-//                    continuation.resume(
-//                        throwing: FirestoreGetServiceError(
-//                            underlying: AppInternalError.nilSnapshot,
-//                            context: .DropListFirestoreService_fetchTopSection
-//                        )
-//                    )
-//                    return
-//                }
+//                return
+//            }
 //
-//                let docs: [
-//                    (
-//                        id: String,
-//                        data: DropTopDoc
-//                    )
-//                ] = snapshot.documents.compactMap { document in
+//            // ====================================================
+//            // Безопасное декодирование документов.
+//            // Повреждённый документ просто пропускаем.
+//            // ====================================================
+//
+//            let docs: [DropTopDoc] =
+//                snapshot.documents.compactMap { doc in
 //
 //                    do {
-//                        let decoded = try document.data(
+//                        let decoded = try doc.data(
 //                            as: DropTopDoc.self
 //                        )
 //
-//                        return (
-//                            id: document.documentID,
-//                            data: decoded
+//                        return DropTopDoc(
+//                            playlistId: decoded.playlistId,
+//                            title: decoded.title,
+//                            description: decoded.description,
+//                            coverImageURL: decoded.coverImageURL,
+//                            trackCount: decoded.trackCount,
+//                            createdAt: decoded.createdAt,
+//                            tag: decoded.tag
 //                        )
 //
 //                    } catch {
-//
 //                        let _ = self.errorHandler.handle(
 //                            error: error,
-//                            context: "fetchDropTopPage | decode \(document.documentID)"
+//                            context:
+//                                "fetchDropTopPage | tag: \(tag.rawValue) | documentID: \(doc.documentID)"
 //                        )
 //
 //                        return nil
 //                    }
 //                }
 //
-//                let items = docs.map { document in
+//            if docs.isEmpty {
+//                continuation.resume(
+//                    throwing: FirestoreGetServiceError(
+//                        underlying: AppInternalError.docsIsEmpty,
+//                        context: .DropListFirestoreService_fetchTopSection
+//                    )
+//                )
+//
+//                return
+//            }
+//
+//            let items: [DropTopItem] =
+//                docs.map { playlist in
+//
 //                    DropTopItem(
-//                        id: document.id,
-//                        title: document.data.title,
-//                        imageURL: document.data.coverImageURL.flatMap {
+//                        id: playlist.playlistId,
+//                        title: playlist.title,
+//                        imageURL: playlist.coverImageURL.flatMap {
 //                            URL(string: $0)
-//                        }
+//                        },
+//                        tag: playlist.tag
 //                    )
 //                }
 //
-//                let page = DropTopPage(
-//                    items: items,
-//                    hasMore: snapshot.documents.count == pageSize,
-//                    lastDocumentSnapshot: snapshot.documents.last
-//                )
+//            let last = snapshot.documents.last
 //
-//                continuation.resume(
-//                    returning: page
+//            let hasMore =
+//                snapshot.documents.count == pageSize
+//
+//            continuation.resume(
+//                returning: DropTopPage(
+//                    items: items,
+//                    lastDocumentSnapshot: last,
+//                    hasMore: hasMore
 //                )
-//            }
+//            )
 //        }
 //    }
 //}
+
+
+// MARK: - Cached State
+
+//private let pagesCache = PagesCache()
 //
+//private let dropTopPagesCache = DropTopPagesCache()
+//private let dropTopPageSize = 20
+
+//// ============================================================
+//// MARK: - DropTop
+//// ============================================================
 //
-//// =================================================
-//// DROP TOP
-//// =================================================
+//func cachedDropTopPage(
+//    for tag: DropTopTag
+//) async -> DropTopPage? {
 //
-//extension DropListDataSource {
+//    await dropTopPagesCache.get(
+//        tag.cacheKey
+//    )
+//}
 //
-//    func cachedDropTopPage(
-//        for tag: DropTopTag
-//    ) async -> DropTopPage? {
-//        await dropTopPagesCache.get(tag)
+//func fetchDropTopPage(
+//    for tag: DropTopTag
+//) async throws -> DropTopPage {
+//
+//    let page = try await firestoreService.fetchInitialDropTopPage(
+//        for: tag,
+//        pageSize: dropTopPageSize
+//    )
+//
+//    await dropTopPagesCache.set(
+//        tag.cacheKey,
+//        page: page
+//    )
+//
+//    return page
+//}
+//
+//func loadNextDropTopPageIfNeeded(
+//    for tag: DropTopTag
+//) async throws -> NextDropTopPageResult {
+//
+//    let cacheKey = tag.cacheKey
+//
+//    guard let currentPage =
+//        await dropTopPagesCache.get(cacheKey)
+//    else {
+//        return .invalidState
 //    }
 //
-//    func fetchDropTopPage(
-//        for tag: DropTopTag
-//    ) async throws -> DropTopPage {
-//
-//        let page = try await firestoreService.fetchInitialDropTopPage(
-//            tag: tag,
-//            pageSize: dropTopPageSize
-//        )
-//
-//        await dropTopPagesCache.set(
-//            tag,
-//            page: page
-//        )
-//
-//        return page
+//    guard currentPage.hasMore else {
+//        return .noMore
 //    }
 //
-//    func loadNextDropTopPageIfNeeded(
-//        for tag: DropTopTag
-//    ) async -> NextDropTopPageResult {
+//    let canStart =
+//        await dropTopPagesCache.beginLoading(cacheKey)
 //
-//        guard let cachedPage = await dropTopPagesCache.get(tag) else {
-//            print("⚠️ DropTop pagination — cache is empty: \(tag.rawValue)")
-//            return .invalidState
-//        }
+//    guard canStart else {
+//        return .invalidState
+//    }
 //
-//        guard cachedPage.hasMore else {
-//            return .noMore
-//        }
+//    guard let lastSnapshot =
+//        currentPage.lastDocumentSnapshot
+//    else {
+//        await dropTopPagesCache.endLoading(cacheKey)
+//        return .invalidState
+//    }
 //
-//        guard let lastSnapshot = cachedPage.lastDocumentSnapshot else {
-//            print("⚠️ DropTop pagination — hasMore=true but lastSnapshot=nil")
-//            await dropTopPagesCache.set(
-//                tag,
-//                page: DropTopPage(
-//                    items: cachedPage.items,
-//                    hasMore: false,
-//                    lastDocumentSnapshot: cachedPage.lastDocumentSnapshot
-//                )
-//            )
-//            return .invalidState
-//        }
-//
-//        do {
-//            let nextPage = try await firestoreService.fetchNextDropTopPage(
-//                tag: tag,
+//    do {
+//        let nextPage =
+//            try await firestoreService.fetchNextDropTopPage(
+//                for: tag,
 //                after: lastSnapshot,
 //                pageSize: dropTopPageSize
 //            )
 //
-//            guard !nextPage.items.isEmpty else {
-//                print("⚠️ DropTop pagination — empty page, stopping pagination")
-//
-//                await dropTopPagesCache.set(
-//                    tag,
-//                    page: DropTopPage(
-//                        items: cachedPage.items,
-//                        hasMore: false,
-//                        lastDocumentSnapshot: cachedPage.lastDocumentSnapshot
-//                    )
-//                )
-//
-//                return .noMore
-//            }
-//
-//            let mergedPage = DropTopPage(
-//                items: cachedPage.items + nextPage.items,
-//                hasMore: nextPage.hasMore,
-//                lastDocumentSnapshot: nextPage.lastDocumentSnapshot
+//        if nextPage.items.isEmpty {
+//            let finishedPage = DropTopPage(
+//                items: currentPage.items,
+//                lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+//                hasMore: false
 //            )
 //
 //            await dropTopPagesCache.set(
-//                tag,
-//                page: mergedPage
+//                cacheKey,
+//                page: finishedPage
 //            )
 //
-//            return .loaded(
-//                page: mergedPage
-//            )
+//            await dropTopPagesCache.endLoading(cacheKey)
 //
-//        } catch {
-//            print(
-//                "❌ DropTop pagination error: \(error.localizedDescription)"
-//            )
-//
-//            return .invalidState
+//            return .noMore
 //        }
-//    }
 //
-//    func resetDropTopCache() async {
-//        await dropTopPagesCache.reset()
-//    }
+//        let mergedPage = DropTopPage(
+//            items: currentPage.items + nextPage.items,
+//            lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+//            hasMore: nextPage.hasMore
+//        )
 //
-//    func resetDropTopCache(
-//        for tag: DropTopTag
-//    ) async {
-//        await dropTopPagesCache.remove(tag)
+//        await dropTopPagesCache.set(
+//            cacheKey,
+//            page: mergedPage
+//        )
+//
+//        await dropTopPagesCache.endLoading(cacheKey)
+//
+//        return .loaded(
+//            page: mergedPage
+//        )
+//
+//    } catch {
+//        await dropTopPagesCache.endLoading(cacheKey)
+//        throw error
 //    }
 //}
 //
-//
-//private let dropTopPageSize = 30
-//private let dropTopPagesCache = DropTopPagesCache()
-//
+//func resetDropTopCache() async {
+//    await dropTopPagesCache.reset()
+//}
+
+
 //import SwiftUI
-//
-//// =================================================
-//// DROP TOP STATE
-//// =================================================
-//
-//enum DropTopState {
-//    case loading
-//    case content([DropTopItem])
-//    case error(String)
-//}
-//
-//// =================================================
-//// DROP TOP VIEW MODEL
-//// =================================================
 //
 //@MainActor
 //final class DropTopViewModel: ObservableObject {
 //
-//    @Published private(set) var viewState: DropTopState = .loading
+//    // =========================================================
+//    // MARK: Published
+//    // =========================================================
+//
+//    @Published private(set) var viewState: DropTopContentState = .loading
 //    @Published private(set) var selectedTag: DropTopTag = .all
-//    @Published private(set) var isLoadingNextPage = false
+//
+//    // =========================================================
+//    // MARK: Dependencies
+//    // =========================================================
 //
 //    private let dropListDataSource: DropListDataSource
 //
-//    private var loadedTags: Set<DropTopTag> = []
+//    // =========================================================
+//    // MARK: Request control
+//    // =========================================================
+//
+//    private var currentRequestID = UUID()
+//    private var currentPaginationTask: Task<Void, Never>?
+//
+//    // =========================================================
+//    // MARK: Init
+//    // =========================================================
 //
 //    init(
 //        dropListDataSource: DropListDataSource
@@ -775,125 +778,390 @@ struct DroplistViewInjected: View {
 //        self.dropListDataSource = dropListDataSource
 //    }
 //
-//    // =================================================
-//    // INITIAL SETUP
-//    // =================================================
+//    // =========================================================
+//    // MARK: Setup
+//    // =========================================================
 //
 //    func setupViewModel() async {
 //        await load(tag: .all)
 //    }
 //
-//    // =================================================
-//    // TAG
-//    // =================================================
+//    // =========================================================
+//    // MARK: Tag selection
+//    // =========================================================
 //
-//    func selectTag(
-//        _ tag: DropTopTag
-//    ) async {
-//        guard tag != selectedTag else {
+//    func selectTag(_ tag: DropTopTag) async {
+//        guard selectedTag != tag else {
 //            return
 //        }
 //
+//        currentRequestID = UUID()
+//        currentPaginationTask?.cancel()
+//
 //        selectedTag = tag
 //
-//        await load(
-//            tag: tag
-//        )
+//        await load(tag: tag)
 //    }
 //
-//    // =================================================
-//    // LOAD
-//    // =================================================
+//    // =========================================================
+//    // MARK: Initial / cached page
+//    // =========================================================
 //
-//    private func load(
-//        tag: DropTopTag
-//    ) async {
+//    private func load(tag: DropTopTag) async {
+//        viewState = .loading
+//
+//        let requestID = UUID()
+//        currentRequestID = requestID
+//
+//        // -----------------------------------------------------
+//        // Сначала пытаемся получить данные из cache.
+//        // -----------------------------------------------------
 //
 //        if let cachedPage = await dropListDataSource.cachedDropTopPage(
 //            for: tag
 //        ) {
-//            viewState = .content(
-//                cachedPage.items
-//            )
+//            guard requestID == currentRequestID else {
+//                return
+//            }
 //
-//            loadedTags.insert(tag)
+//            viewState = .contentList(cachedPage)
 //            return
 //        }
 //
-//        viewState = .loading
+//        // -----------------------------------------------------
+//        // Cache отсутствует → идём в Firestore.
+//        // -----------------------------------------------------
 //
 //        do {
 //            let page = try await dropListDataSource.fetchDropTopPage(
 //                for: tag
 //            )
 //
-//            viewState = .content(
-//                page.items
-//            )
+//            guard requestID == currentRequestID else {
+//                return
+//            }
 //
-//            loadedTags.insert(tag)
+//            viewState = .contentList(page)
 //
 //        } catch {
-//            viewState = .error(
-//                error.localizedDescription
-//            )
+//            guard requestID == currentRequestID else {
+//                return
+//            }
+//
+//            let userError = dropListDataSource.handleError(error)
+//
+//            viewState = .error(userError.message)
 //        }
 //    }
 //
-//    // =================================================
-//    // PAGINATION
-//    // =================================================
+//    // =========================================================
+//    // MARK: Pagination
+//    // =========================================================
 //
-//    func loadNextPage() async {
-//
-//        guard !isLoadingNextPage else {
+//    func loadNextPage() {
+//        guard case .contentList(let currentPage) = viewState else {
 //            return
 //        }
 //
-//        guard case .content = viewState else {
+//        guard currentPage.hasMore else {
 //            return
 //        }
 //
-//        isLoadingNextPage = true
+//        currentPaginationTask?.cancel()
 //
-//        defer {
-//            isLoadingNextPage = false
-//        }
+//        let requestID = UUID()
+//        currentRequestID = requestID
 //
-//        let result = await dropListDataSource.loadNextDropTopPageIfNeeded(
-//            for: selectedTag
+//        viewState = .contentList(
+//            DropTopPage(
+//                items: currentPage.items,
+//                lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+//                hasMore: true
+//            )
 //        )
 //
-//        switch result {
+//        currentPaginationTask = Task { @MainActor in
 //
-//        case .loaded(let page):
-//            viewState = .content(
-//                page.items
-//            )
+//            do {
+//                let result =
+//                    try await dropListDataSource
+//                        .loadNextDropTopPageIfNeeded(
+//                            for: selectedTag
+//                        )
 //
-//        case .noMore:
-//            break
+//                guard requestID == currentRequestID else {
+//                    return
+//                }
 //
-//        case .invalidState:
-//            break
+//                guard case .contentList(let latestPage) = viewState else {
+//                    return
+//                }
+//
+//                switch result {
+//
+//                case .loaded(let page):
+//                    viewState = .contentList(page)
+//
+//                case .noMore:
+//                    let cached =
+//                        await dropListDataSource
+//                            .cachedDropTopPage(
+//                                for: selectedTag
+//                            )
+//                        ?? latestPage
+//
+//                    viewState = .contentList(cached)
+//
+//                case .invalidState:
+//                    viewState = .contentList(latestPage)
+//                }
+//
+//            } catch {
+//
+//                guard requestID == currentRequestID else {
+//                    return
+//                }
+//
+//                guard case .contentList(let latestPage) = viewState else {
+//                    return
+//                }
+//
+//                let userError = dropListDataSource.handleError(error)
+//
+//                viewState = .contentList(
+//                    DropTopPage(
+//                        items: latestPage.items,
+//                        lastDocumentSnapshot: latestPage.lastDocumentSnapshot,
+//                        hasMore: latestPage.hasMore
+//                    )
+//                )
+//
+//                print(
+//                    "❌ DropTop pagination error: \(userError.message)"
+//                )
+//            }
 //        }
 //    }
 //
-//    // =================================================
-//    // RETRY
-//    // =================================================
+//    // =========================================================
+//    // MARK: Retry
+//    // =========================================================
 //
 //    func retry() async {
-//        await dropListDataSource.resetDropTopCache(
-//            for: selectedTag
-//        )
+//        currentRequestID = UUID()
+//        currentPaginationTask?.cancel()
 //
-//        await load(
-//            tag: selectedTag
-//        )
+//        viewState = .loading
+//
+//        await dropListDataSource.resetDropTopCache()
+//
+//        await load(tag: selectedTag)
+//    }
+//
+//    // =========================================================
+//    // MARK: Select playlist
+//    // =========================================================
+//
+//    func didSelectPlaylist(_ item: DropTopItem) {
+//        // Навигация выполняется в DropTopContentView.
+//        // ViewModel только хранит данные экрана.
+//    }
+//
+//    deinit {
+//        currentPaginationTask?.cancel()
+//        print("deinit DropTopViewModel")
 //    }
 //}
 //
+//import SwiftUI
+//
+//struct DropTopContentView: View {
+//
+//    @ObservedObject var viewModel: DropTopViewModel
+//
+//    @EnvironmentObject var droplistCoordinator: DroplistCoordinator
+//
+//    var body: some View {
+//        VStack(spacing: 0) {
+//
+//            tagSelector
+//
+//            Divider()
+//
+//            content
+//        }
+//        .background(AppColors.background)
+//        .navigationTitle("DropTop")
+//        .navigationBarTitleDisplayMode(.inline)
+//        .onFirstAppear {
+//            Task {
+//                await viewModel.setupViewModel()
+//            }
+//        }
+//    }
+//}
+//
+//private extension DropTopContentView {
+//
+//    var tagSelector: some View {
+//        ScrollView(.horizontal, showsIndicators: false) {
+//            HStack(spacing: 8) {
+//
+//                ForEach(DropTopTag.allCases) { tag in
+//
+//                    Button {
+//                        Task {
+//                            await viewModel.selectTag(tag)
+//                        }
+//                    } label: {
+//                        Text(tag.title)
+//                            .font(
+//                                .subheadline.weight(
+//                                    .medium
+//                                )
+//                            )
+//                            .foregroundColor(
+//                                viewModel.selectedTag == tag
+//                                    ? .white
+//                                    : .primary
+//                            )
+//                            .padding(.horizontal, 14)
+//                            .padding(.vertical, 8)
+//                            .background {
+//                                Capsule()
+//                                    .fill(
+//                                        viewModel.selectedTag == tag
+//                                            ? Color.accentColor
+//                                            : Color.secondary.opacity(0.12)
+//                                    )
+//                            }
+//                    }
+//                    .buttonStyle(.plain)
+//                }
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 10)
+//        }
+//    }
+//}
+//
+//private extension DropTopContentView {
+//
+//    @ViewBuilder
+//    var content: some View {
+//        switch viewModel.viewState {
+//
+//        case .loading:
+//            ProgressView()
+//
+//        case .error(let error):
+//            ContentErrorView(error: error) {
+//                Task {
+//                    await viewModel.retry()
+//                }
+//            }
+//
+//        case .contentList(let page):
+//            dropTopList(page)
+//        }
+//    }
+//}
+//
+//
+//private extension DropTopContentView {
+//
+//    func dropTopList(
+//        _ page: DropTopPage
+//    ) -> some View {
+//
+//        ScrollView {
+//            LazyVStack(
+//                spacing: 0
+//            ) {
+//                ForEach(page.items) { item in
+//
+//                    dropTopRow(item)
+//
+//                        .onAppear {
+//                            guard item.id == page.items.last?.id else {
+//                                return
+//                            }
+//
+//                            viewModel.loadNextPage()
+//                        }
+//                }
+//
+//                if page.hasMore {
+//                    ProgressView()
+//                        .padding(.vertical, 20)
+//                }
+//            }
+//        }
+//        .refreshable {
+//            await viewModel.retry()
+//        }
+//    }
+//}
+//
+//private extension DropTopContentView {
+//
+//    func dropTopRow(
+//        _ item: DropTopItem
+//    ) -> some View {
+//
+//        Button {
+//            openPlaylist(item)
+//        } label: {
+//
+//            HStack(spacing: 12) {
+//
+//                WebImageView(
+//                    url: item.imageURL,
+//                    placeholderColor:
+//                        AppColors.secondarySystemBackground,
+//                    displayStyle:
+//                        .fixedFrame(
+//                            width: 60,
+//                            height: 60
+//                        ),
+//                    context:
+//                        "DropTop_\(item.id)"
+//                )
+//                .clipShape(
+//                    RoundedRectangle(
+//                        cornerRadius: 8
+//                    )
+//                )
+//
+//                Text(item.title)
+//                    .font(.headline)
+//                    .foregroundColor(.primary)
+//                    .lineLimit(2)
+//                    .multilineTextAlignment(.leading)
+//
+//                Spacer()
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 8)
+//        }
+//        .buttonStyle(.plain)
+//    }
+//}
+//
+//private extension DropTopContentView {
+//
+//    func openPlaylist(
+//        _ item: DropTopItem
+//    ) {
+//        droplistCoordinator.navigate(
+//            to: .topDropDetails(
+//                playlistId: item.id,
+//                title: item.title,
+//                imageURL: item.imageURL
+//            )
+//        )
+//    }
+//}
 //import SwiftUI
 //
 //struct DropTopViewInjected: View {
@@ -913,469 +1181,6 @@ struct DroplistViewInjected: View {
 //    var body: some View {
 //        DropTopContentView(
 //            viewModel: viewModel
-//        )
-//    }
-//}
-//
-//import SwiftUI
-//
-//struct DropTopContentView: View {
-//
-//    @ObservedObject var viewModel: DropTopViewModel
-//
-//    @EnvironmentObject var localization: LocalizationService
-//
-//    @State private var selectedPlaylist: DropTopItem?
-//
-//    var body: some View {
-//        ZStack {
-//
-//            switch viewModel.viewState {
-//
-//            case .loading:
-//                ProgressView(
-//                    Localized.Home.loading.localized()
-//                )
-//
-//            case .content(let items):
-//                contentList(
-//                    items: items
-//                )
-//
-//            case .error(let message):
-//                ContentErrorView(
-//                    error: message
-//                ) {
-//                    Task {
-//                        await viewModel.retry()
-//                    }
-//                }
-//            }
-//        }
-//        .background(AppColors.background)
-//        .navigationTitle("DropTop")
-//        .navigationBarTitleDisplayMode(.inline)
-//        .onFirstAppear {
-//            Task {
-//                await viewModel.setupViewModel()
-//            }
-//        }
-//        .sheet(item: $selectedPlaylist) { item in
-//            // Этот вариант НЕ используется для основной навигации.
-//            // Основная навигация выполняется через NavigationLink ниже.
-//            EmptyView()
-//        }
-//    }
-//}
-//
-//// =================================================
-//// CONTENT
-//// =================================================
-//
-//private extension DropTopContentView {
-//
-//    func contentList(
-//        items: [DropTopItem]
-//    ) -> some View {
-//
-//        ScrollView {
-//            LazyVStack(
-//                spacing: 0
-//            ) {
-//
-//                tagSelector
-//
-//                ForEach(items) { item in
-//                    row(item)
-//                        .onAppear {
-//                            loadNextPageIfNeeded(
-//                                item: item,
-//                                items: items
-//                            )
-//                        }
-//                }
-//
-//                if viewModel.isLoadingNextPage {
-//                    ProgressView()
-//                        .padding(.vertical, 20)
-//                }
-//            }
-//        }
-//        .scrollIndicators(.hidden)
-//    }
-//
-//    // =================================================
-//    // TAG SELECTOR
-//    // =================================================
-//
-//    var tagSelector: some View {
-//
-//        ScrollView(
-//            .horizontal,
-//            showsIndicators: false
-//        ) {
-//
-//            HStack(spacing: 8) {
-//
-//                ForEach(
-//                    DropTopTag.allCases
-//                ) { tag in
-//
-//                    Button {
-//                        Task {
-//                            await viewModel.selectTag(
-//                                tag
-//                            )
-//                        }
-//                    } label: {
-//                        Text(tag.title)
-//                            .font(
-//                                .subheadline.weight(
-//                                    .medium
-//                                )
-//                            )
-//                            .foregroundStyle(
-//                                tag == viewModel.selectedTag
-//                                    ? .primary
-//                                    : .secondary
-//                            )
-//                            .padding(.horizontal, 14)
-//                            .padding(.vertical, 8)
-//                            .background(
-//                                Capsule()
-//                                    .fill(
-//                                        tag == viewModel.selectedTag
-//                                            ? AppColors.activeColor.opacity(0.18)
-//                                            : Color.secondary.opacity(0.10)
-//                                    )
-//                            )
-//                    }
-//                    .buttonStyle(.plain)
-//                }
-//            }
-//            .padding(.horizontal)
-//            .padding(.vertical, 12)
-//        }
-//    }
-//
-//    // =================================================
-//    // ROW
-//    // =================================================
-//
-//    func row(
-//        _ item: DropTopItem
-//    ) -> some View {
-//
-//        NavigationLink {
-//            TracklistViewInjected(
-//                dropListDataSource: dropListDataSource,
-//                playlistUser: playlistUser,
-//                trackType: .topDropDetails(
-//                    playlistId: item.id
-//                ),
-//                navigationTitle: item.title,
-//                imageURL: item.imageURL
-//            )
-//        } label: {
-//
-//            HStack(spacing: 12) {
-//
-//                WebImageView(
-//                    url: item.imageURL,
-//                    placeholderColor:
-//                        AppColors.secondarySystemBackground,
-//                    displayStyle:
-//                        .fixedFrame(
-//                            width: 60,
-//                            height: 60
-//                        ),
-//                    context:
-//                        "DropTopItemThumbnail_\(item.id)"
-//                )
-//                .clipShape(
-//                    RoundedRectangle(
-//                        cornerRadius: 8
-//                    )
-//                )
-//
-//                Text(item.title)
-//                    .font(.headline)
-//                    .foregroundStyle(.primary)
-//                    .lineLimit(2)
-//                    .multilineTextAlignment(.leading)
-//
-//                Spacer()
-//            }
-//            .padding(.horizontal)
-//            .padding(.vertical, 8)
-//        }
-//        .buttonStyle(.plain)
-//    }
-//
-//    // =================================================
-//    // PAGINATION TRIGGER
-//    // =================================================
-//
-//    func loadNextPageIfNeeded(
-//        item: DropTopItem,
-//        items: [DropTopItem]
-//    ) {
-//
-//        guard let index = items.firstIndex(
-//            where: {
-//                $0.id == item.id
-//            }
-//        ) else {
-//            return
-//        }
-//
-//        // Загружаем следующую страницу,
-//        // когда пользователь подходит к последним 5 элементам.
-//        guard index >= items.count - 5 else {
-//            return
-//        }
-//
-//        Task {
-//            await viewModel.loadNextPage()
-//        }
-//    }
-//}
-//
-//import SwiftUI
-//
-//struct DropTopContentView: View {
-//
-//    @ObservedObject var viewModel: DropTopViewModel
-//
-//    let onOpenPlaylist: (DropTopItem) -> Void
-//
-//    @EnvironmentObject var localization: LocalizationService
-//
-//    var body: some View {
-//        ZStack {
-//
-//            switch viewModel.viewState {
-//
-//            case .loading:
-//                ProgressView(
-//                    Localized.Home.loading.localized()
-//                )
-//
-//            case .content(let items):
-//                contentList(
-//                    items: items
-//                )
-//
-//            case .error(let message):
-//                ContentErrorView(
-//                    error: message
-//                ) {
-//                    Task {
-//                        await viewModel.retry()
-//                    }
-//                }
-//            }
-//        }
-//        .background(AppColors.background)
-//        .navigationTitle("DropTop")
-//        .navigationBarTitleDisplayMode(.inline)
-//        .onFirstAppear {
-//            Task {
-//                await viewModel.setupViewModel()
-//            }
-//        }
-//    }
-//}
-//
-//// =================================================
-//// CONTENT
-//// =================================================
-//
-//private extension DropTopContentView {
-//
-//    func contentList(
-//        items: [DropTopItem]
-//    ) -> some View {
-//
-//        ScrollView {
-//            LazyVStack(
-//                spacing: 0
-//            ) {
-//
-//                tagSelector
-//
-//                ForEach(items) { item in
-//
-//                    row(item)
-//                        .onAppear {
-//                            loadNextPageIfNeeded(
-//                                item: item,
-//                                items: items
-//                            )
-//                        }
-//                }
-//
-//                if viewModel.isLoadingNextPage {
-//                    ProgressView()
-//                        .padding(.vertical, 20)
-//                }
-//            }
-//        }
-//        .scrollIndicators(.hidden)
-//    }
-//
-//    // =================================================
-//    // TAG SELECTOR
-//    // =================================================
-//
-//    var tagSelector: some View {
-//
-//        ScrollView(
-//            .horizontal,
-//            showsIndicators: false
-//        ) {
-//
-//            HStack(spacing: 8) {
-//
-//                ForEach(
-//                    DropTopTag.allCases
-//                ) { tag in
-//
-//                    Button {
-//                        Task {
-//                            await viewModel.selectTag(
-//                                tag
-//                            )
-//                        }
-//                    } label: {
-//                        Text(tag.title)
-//                            .font(
-//                                .subheadline.weight(
-//                                    .medium
-//                                )
-//                            )
-//                            .foregroundStyle(
-//                                tag == viewModel.selectedTag
-//                                    ? .primary
-//                                    : .secondary
-//                            )
-//                            .padding(.horizontal, 14)
-//                            .padding(.vertical, 8)
-//                            .background(
-//                                Capsule()
-//                                    .fill(
-//                                        tag == viewModel.selectedTag
-//                                            ? AppColors.activeColor.opacity(0.18)
-//                                            : Color.secondary.opacity(0.10)
-//                                    )
-//                            )
-//                    }
-//                    .buttonStyle(.plain)
-//                }
-//            }
-//            .padding(.horizontal)
-//            .padding(.vertical, 12)
-//        }
-//    }
-//
-//    // =================================================
-//    // ROW
-//    // =================================================
-//
-//    func row(
-//        _ item: DropTopItem
-//    ) -> some View {
-//
-//        Button {
-//            onOpenPlaylist(item)
-//        } label: {
-//
-//            HStack(spacing: 12) {
-//
-//                WebImageView(
-//                    url: item.imageURL,
-//                    placeholderColor:
-//                        AppColors.secondarySystemBackground,
-//                    displayStyle:
-//                        .fixedFrame(
-//                            width: 60,
-//                            height: 60
-//                        ),
-//                    context:
-//                        "DropTopItemThumbnail_\(item.id)"
-//                )
-//                .clipShape(
-//                    RoundedRectangle(
-//                        cornerRadius: 8
-//                    )
-//                )
-//
-//                Text(item.title)
-//                    .font(.headline)
-//                    .foregroundStyle(.primary)
-//                    .lineLimit(2)
-//                    .multilineTextAlignment(.leading)
-//
-//                Spacer()
-//            }
-//            .padding(.horizontal)
-//            .padding(.vertical, 8)
-//        }
-//        .buttonStyle(.plain)
-//    }
-//
-//    // =================================================
-//    // PAGINATION
-//    // =================================================
-//
-//    func loadNextPageIfNeeded(
-//        item: DropTopItem,
-//        items: [DropTopItem]
-//    ) {
-//
-//        guard let index = items.firstIndex(
-//            where: {
-//                $0.id == item.id
-//            }
-//        ) else {
-//            return
-//        }
-//
-//        guard index >= items.count - 5 else {
-//            return
-//        }
-//
-//        Task {
-//            await viewModel.loadNextPage()
-//        }
-//    }
-//}
-//
-//import SwiftUI
-//
-//struct DropTopViewInjected: View {
-//
-//    @StateObject private var viewModel: DropTopViewModel
-//
-//    let onOpenPlaylist: (DropTopItem) -> Void
-//
-//    init(
-//        dropListDataSource: DropListDataSource,
-//        onOpenPlaylist: @escaping (DropTopItem) -> Void
-//    ) {
-//        self.onOpenPlaylist = onOpenPlaylist
-//
-//        _viewModel = StateObject(
-//            wrappedValue: DropTopViewModel(
-//                dropListDataSource: dropListDataSource
-//            )
-//        )
-//    }
-//
-//    var body: some View {
-//        DropTopContentView(
-//            viewModel: viewModel,
-//            onOpenPlaylist: onOpenPlaylist
 //        )
 //    }
 //}
@@ -1406,15 +1211,9 @@ struct DroplistViewInjected: View {
 //        )
 //
 //    case .topDrops:
-//
 //        DropTopViewInjected(
 //            dropListDataSource: dropListDataSource
-//        ) { [weak self] item in
-//
-//            self?.topDropItemSelected(
-//                item
-//            )
-//        }
+//        )
 //
 //    case .droplistDetails(
 //        let playlistId,
@@ -1449,15 +1248,3 @@ struct DroplistViewInjected: View {
 //        )
 //    }
 //}
-//
-//private extension ViewBuilderService {
-//
-//    func topDropItemSelected(
-//        _ item: DropTopItem
-//    ) {
-//        // Этот callback должен передавать navigation
-//        // через твой существующий DroplistCoordinator.
-//    }
-//}
-
-

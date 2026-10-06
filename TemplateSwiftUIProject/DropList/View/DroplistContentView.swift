@@ -109,6 +109,19 @@ struct DroplistContentView: View {
 //            Localized.Home.title.localized()
 //        )
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(Localized.Home.addButton.localized()) {
+                    let sheetContent = AnyView(
+                        AdminView()
+                    )
+                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
+                }
+                .foregroundStyle(AppColors.activeColor)
+                .padding()
+                .disabled(viewModel.viewState.isError)
+            }
+        }
         .onFirstAppear {
 
             viewModel.setRetryHandler(
@@ -181,19 +194,19 @@ struct DroplistContentView: View {
 //        .navigationTitle("Droplist")
 //        .navigationBarTitleDisplayMode(.inline)
 //        .navigationTitle(Localized.Home.title.localized())
-////        .toolbar {
-////            ToolbarItem(placement: .topBarTrailing) {
-////                Button(Localized.Home.addButton.localized()) {
-////                    let sheetContent = AnyView(
-////                        AdminView()
-////                    )
-////                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
-////                }
-////                .foregroundStyle(AppColors.activeColor)
-////                .padding()
-////                .disabled(viewModel.viewState.isError)
-////            }
-////        }
+//        .toolbar {
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button(Localized.Home.addButton.localized()) {
+//                    let sheetContent = AnyView(
+//                        AdminView()
+//                    )
+//                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
+//                }
+//                .foregroundStyle(AppColors.activeColor)
+//                .padding()
+//                .disabled(viewModel.viewState.isError)
+//            }
+//        }
 //        .onFirstAppear {
 //            viewModel.setRetryHandler(retryHandler)
 //            viewModel.setupViewModel()
