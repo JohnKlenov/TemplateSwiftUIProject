@@ -88,7 +88,7 @@ final class DropTopViewModel: ObservableObject {
     // =========================================================
 
     private func load(tag: DropTopTag) async {
-        viewState = .loading
+//        viewState = .loading
 
         let requestID = UUID()
         currentRequestID = requestID
@@ -112,6 +112,8 @@ final class DropTopViewModel: ObservableObject {
         // Cache отсутствует → идём в Firestore.
         // -----------------------------------------------------
 
+        viewState = .loading
+        
         do {
             let page = try await dropListDataSource.fetchDropTopPage(
                 for: tag
