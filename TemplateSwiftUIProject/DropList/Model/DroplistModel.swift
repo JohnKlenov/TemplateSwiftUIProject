@@ -704,6 +704,49 @@ enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
 }
 
 
+//enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
+//    case all
+//    case topYear
+//    case topQuarter
+//    case artist
+//
+//    var id: String {
+//        rawValue
+//    }
+//
+//    var title: String {
+//        switch self {
+//        case .all:
+//            return "All"
+//        case .topYear:
+//            return "Top Year"
+//        case .topQuarter:
+//            return "Top Quarter"
+//        case .artist:
+//            return "Artist"
+//        }
+//    }
+//
+//    /// nil = получить всю коллекцию DropTop.
+//    var firestoreTag: String? {
+//        switch self {
+//        case .all:
+//            return nil
+//        case .topYear:
+//            return "topYear"
+//        case .topQuarter:
+//            return "topQuarter"
+//        case .artist:
+//            return "artist"
+//        }
+//    }
+//
+//    /// Отдельный ключ кэша для каждого фильтра.
+//    var cacheKey: String {
+//        "dropTop.\(rawValue)"
+//    }
+//}
+
 
 
 

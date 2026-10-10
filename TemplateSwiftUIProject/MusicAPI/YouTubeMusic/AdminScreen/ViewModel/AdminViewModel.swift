@@ -741,11 +741,179 @@ final class AdminViewModel: ObservableObject {
 //}
 
 
+// =====================================================
+// DROP TOP — TEST DATA 2
+// =====================================================
+
+// из этой реализации можно убрать var orderIndex = 0 потому что в нашем DropTopDoc нет поля orderIndex !!!
+
+
+//func savePlaylistToDropTop() async {
+//    guard !playlistTitle.isEmpty else {
+//        status = "Ошибка: заголовок пуст"
+//        return
+//    }
+//
+//    guard !playlistImageURL.isEmpty else {
+//        status = "Сначала сгенерируйте coverImage"
+//        return
+//    }
+//
+//    guard !tracks.isEmpty else {
+//        status = "Добавьте хотя бы один трек"
+//        return
+//    }
+//
+//    guard !isGeneratingCover else {
+//        status = "Дождитесь завершения генерации coverImage"
+//        return
+//    }
+//
+//    guard !isProcessingTrackThumbnail else {
+//        status = "Дождитесь обработки thumbnail треков"
+//        return
+//    }
+//
+//    guard !isImportingAllTracks else {
+//        status = "Дождитесь завершения импорта"
+//        return
+//    }
+//
+//    status = "Создаём тестовый DropTop..."
+//
+//    do {
+//        let startYear = 2026
+//        let endYear = 2036
+//
+//        let quarters = [
+//            "First Quarter",
+//            "Second Quarter",
+//            "Third Quarter",
+//            "Fourth Quarter"
+//        ]
+//
+//        var batch = db.batch()
+//        var operationCount = 0
+//        var orderIndex = 0
+//
+//        // =====================================================
+//        // Создаём плейлисты последовательно по годам:
+//        // Top Year → 4 Quarters → Drake → Lil Wayne.
+//        // =====================================================
+//
+//        for year in startYear...endYear {
+//            let playlists: [(id: String, title: String, tag: String)] = [
+//                (
+//                    id: "topYear_\(year)",
+//                    title: "Top Tracks \(year)",
+//                    tag: "topYear"
+//                )
+//            ] + quarters.enumerated().map { index, quarter in
+//                (
+//                    id: "topQuarter_\(index + 1)_\(year)",
+//                    title: "Top Tracks \(year) | \(quarter)",
+//                    tag: "topQuarter"
+//                )
+//            } + [
+//                (
+//                    id: "artist_drake_\(year)",
+//                    title: "This Is Drake | Vol. 1 \(year)",
+//                    tag: "artist"
+//                ),
+//                (
+//                    id: "artist_lilWayne_\(year)",
+//                    title: "This Is Lil Wayne | Vol. 1 \(year)",
+//                    tag: "artist"
+//                )
+//            ]
+//
+//            for playlist in playlists {
+//                let playlistRef = db
+//                    .collection("dropTop")
+//                    .document(playlist.id)
+//
+//                batch.setData(
+//                    [
+//                        "playlistId": playlist.id,
+//                        "title": playlist.title,
+//                        "description": playlistDescription,
+//                        "coverImageURL": playlistImageURL,
+//                        "trackCount": tracks.count,
+//                        "tag": playlist.tag,
+//                        "createdAt": FieldValue.serverTimestamp(),
+//
+//                        // TEST DATA:
+//                        // Индекс отражает порядок плейлистов в цикле.
+//                        // В продакшене можно использовать orderIndex
+//                        // для гарантированного порядка отображения,
+//                        // если сортировки по createdAt недостаточно.
+//                        "orderIndex": orderIndex
+//                    ],
+//                    forDocument: playlistRef,
+//                    merge: true
+//                )
+//
+//                orderIndex += 1
+//                operationCount += 1
+//
+//                // =================================================
+//                // TRACKS
+//                // =================================================
+//
+//                for track in tracks {
+//                    let trackRef = playlistRef
+//                        .collection("tracks")
+//                        .document(track.videoId)
+//
+//                    batch.setData(
+//                        [
+//                            "videoId": track.videoId,
+//                            "title": track.title,
+//                            "artist": track.artist,
+//                            "thumbnailURL": track.thumbnailURL,
+//                            "durationISO8601": track.durationISO8601,
+//                            "orderIndex": track.orderIndex,
+//                            "tags": track.tags,
+//                            "createdAt": FieldValue.serverTimestamp()
+//                        ],
+//                        forDocument: trackRef,
+//                        merge: true
+//                    )
+//
+//                    operationCount += 1
+//
+//                    // Firestore batch имеет лимит 500 операций.
+//                    if operationCount >= 450 {
+//                        try await batch.commit()
+//
+//                        batch = db.batch()
+//                        operationCount = 0
+//                    }
+//                }
+//            }
+//        }
+//
+//        // =====================================================
+//        // Записываем оставшиеся операции.
+//        // =====================================================
+//
+//        if operationCount > 0 {
+//            try await batch.commit()
+//        }
+//
+//        status = "✅ DropTop создан: 11 лет × 7 плейлистов = 77 плейлистов"
+//
+//    } catch {
+//        status = "❌ Ошибка сохранения DropTop: \(error.localizedDescription)"
+//    }
+//}
+
+
 
 // =============================================================
-// DROP TOP — TEST DATA
+// DROP TOP — TEST DATA 1
 // =============================================================
-
+//
 //func savePlaylistToDropTop() async {
 //    guard !playlistTitle.isEmpty else {
 //        status = "Ошибка: заголовок пуст"
