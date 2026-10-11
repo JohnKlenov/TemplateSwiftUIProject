@@ -644,12 +644,21 @@ struct TopItem: Identifiable {
 
 // DropTopItem - модель для DropTopView
 
+
 struct DropTopItem: Identifiable, Hashable {
     let id: String
     let title: String
+    let description: String
     let imageURL: URL?
     let tag: String
 }
+
+//struct DropTopItem: Identifiable, Hashable {
+//    let id: String
+//    let title: String
+//    let imageURL: URL?
+//    let tag: String
+//}
 
 
 struct DropTopPage {
@@ -659,93 +668,93 @@ struct DropTopPage {
 }
 
 
-enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
-    
-    case all
-    case topYear
-    case topDecada
-    case artist
-    
-    var id: String {
-        rawValue
-    }
-    
-    var title: String {
-        switch self {
-        case .all:
-            return "All"
-        case .topYear:
-            return "Top Year"
-        case .topDecada:
-            return "Top Decada"
-        case .artist:
-            return "Artist"
-        }
-    }
-    
-    /// nil = получить всю коллекцию DropTop
-    var firestoreTag: String? {
-        switch self {
-        case .all:
-            return nil
-        case .topYear:
-            return "topYear"
-        case .topDecada:
-            return "topDecada"
-        case .artist:
-            return "artist"
-        }
-    }
-    
-    /// Отдельный ключ для каждого фильтра.
-    var cacheKey: String {
-        "dropTop.\(rawValue)"
-    }
-}
-
-
 //enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
+//    
 //    case all
 //    case topYear
-//    case topQuarter
+//    case topDecada
 //    case artist
-//
+//    
 //    var id: String {
 //        rawValue
 //    }
-//
+//    
 //    var title: String {
 //        switch self {
 //        case .all:
 //            return "All"
 //        case .topYear:
 //            return "Top Year"
-//        case .topQuarter:
-//            return "Top Quarter"
+//        case .topDecada:
+//            return "Top Decada"
 //        case .artist:
 //            return "Artist"
 //        }
 //    }
-//
-//    /// nil = получить всю коллекцию DropTop.
+//    
+//    /// nil = получить всю коллекцию DropTop
 //    var firestoreTag: String? {
 //        switch self {
 //        case .all:
 //            return nil
 //        case .topYear:
 //            return "topYear"
-//        case .topQuarter:
-//            return "topQuarter"
+//        case .topDecada:
+//            return "topDecada"
 //        case .artist:
 //            return "artist"
 //        }
 //    }
-//
-//    /// Отдельный ключ кэша для каждого фильтра.
+//    
+//    /// Отдельный ключ для каждого фильтра.
 //    var cacheKey: String {
 //        "dropTop.\(rawValue)"
 //    }
 //}
+
+
+enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
+    case all
+    case topYear
+    case topQuarter
+    case artist
+
+    var id: String {
+        rawValue
+    }
+
+    var title: String {
+        switch self {
+        case .all:
+            return "All"
+        case .topYear:
+            return "Top Year"
+        case .topQuarter:
+            return "Top Quarter"
+        case .artist:
+            return "Artist"
+        }
+    }
+
+    /// nil = получить всю коллекцию DropTop.
+    var firestoreTag: String? {
+        switch self {
+        case .all:
+            return nil
+        case .topYear:
+            return "topYear"
+        case .topQuarter:
+            return "topQuarter"
+        case .artist:
+            return "artist"
+        }
+    }
+
+    /// Отдельный ключ кэша для каждого фильтра.
+    var cacheKey: String {
+        "dropTop.\(rawValue)"
+    }
+}
 
 
 

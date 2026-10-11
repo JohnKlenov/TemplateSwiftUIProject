@@ -227,7 +227,7 @@ struct AdminView: View {
                 Section("Сохранение") {
                     Button("Сохранить плейлист в Firestore (droplist + dropTracks)") {
                         Task {
-                            await vm.savePlaylistToFirestore()
+                            await vm.savePlaylistToDropTop()
                         }
                     }
                     .disabled(

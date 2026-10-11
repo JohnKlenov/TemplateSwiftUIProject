@@ -1337,36 +1337,65 @@ extension DropListFirestoreService {
                     // Безопасное декодирование документов.
                     // -------------------------------------------------
                     
+                    
                     let items: [DropTopItem] =
                         snapshot.documents.compactMap { document in
-                            
                             do {
-                                let decoded =
-                                    try document.data(
-                                        as: DropTopDoc.self
-                                    )
-                                
+                                let decoded = try document.data(
+                                    as: DropTopDoc.self
+                                )
+
                                 return DropTopItem(
                                     id: decoded.playlistId,
                                     title: decoded.title,
-                                    imageURL:
-                                        decoded.coverImageURL.flatMap {
-                                            URL(string: $0)
-                                        },
+                                    description: decoded.description ?? "",
+                                    imageURL: decoded.coverImageURL.flatMap {
+                                        URL(string: $0)
+                                    },
                                     tag: decoded.tag
                                 )
-                                
+
                             } catch {
-                                
                                 let _ = self.errorHandler.handle(
                                     error: error,
                                     context:
                                         "fetchDropTopPage | decode \(document.documentID)"
                                 )
-                                
+
                                 return nil
                             }
                         }
+
+//                    let items: [DropTopItem] =
+//                        snapshot.documents.compactMap { document in
+//                            
+//                            do {
+//                                let decoded =
+//                                    try document.data(
+//                                        as: DropTopDoc.self
+//                                    )
+//                                
+//                                return DropTopItem(
+//                                    id: decoded.playlistId,
+//                                    title: decoded.title,
+//                                    imageURL:
+//                                        decoded.coverImageURL.flatMap {
+//                                            URL(string: $0)
+//                                        },
+//                                    tag: decoded.tag
+//                                )
+//                                
+//                            } catch {
+//                                
+//                                let _ = self.errorHandler.handle(
+//                                    error: error,
+//                                    context:
+//                                        "fetchDropTopPage | decode \(document.documentID)"
+//                                )
+//                                
+//                                return nil
+//                            }
+//                        }
                     
                     // -------------------------------------------------
                     // Если все документы страницы оказались

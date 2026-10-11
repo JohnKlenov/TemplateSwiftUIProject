@@ -85,6 +85,66 @@ struct DroplistContentView: View {
                         
                     }
                 )
+                // При смене viewState с .contentList на .error
+                // SwiftUI удаляет DroplistCompositView из иерархии.
+                //
+                // Поэтому pull-to-refresh становится недоступен.
+                // Нужно отдельно протестировать этот сценарий.
+                // При необходимости заблокируем refreshDropList().
+
+            case .error(let error):
+
+                ContentErrorView(error: error) {
+
+                    viewModel.retry()
+                }
+
+            case .errorList(let error):
+
+                ContentErrorView(error: error) {
+
+                    viewModel.retryFetchDataDroplist()
+                }
+            }
+        }
+        .background(AppColors.background)
+        .navigationTitle("Droplist")
+//        .navigationTitle(
+//            Localized.Home.title.localized()
+//        )
+        .navigationBarTitleDisplayMode(.inline)
+//        .toolbar {
+//            ToolbarItem(placement: .topBarTrailing) {
+//                Button(Localized.Home.addButton.localized()) {
+//                    let sheetContent = AnyView(
+//                        AdminView()
+//                    )
+//                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
+//                }
+//                .foregroundStyle(AppColors.activeColor)
+//                .padding()
+//                .disabled(viewModel.viewState.isError)
+//            }
+//        }
+        .onFirstAppear {
+
+            viewModel.setRetryHandler(
+                retryHandler
+            )
+
+            viewModel.setupViewModel()
+        }
+        .onAppear {
+
+            Task {
+                await viewModel.checkAndRefreshIfNeeded()
+            }
+        }
+    }
+}
+
+
+
 //                DroplistCompositView(
 //                    data: dropData,
 //                    onRefresh: {
@@ -126,63 +186,8 @@ struct DroplistContentView: View {
 //                    }
 //                )
 
-                // При смене viewState с .contentList на .error
-                // SwiftUI удаляет DroplistCompositView из иерархии.
-                //
-                // Поэтому pull-to-refresh становится недоступен.
-                // Нужно отдельно протестировать этот сценарий.
-                // При необходимости заблокируем refreshDropList().
 
-            case .error(let error):
 
-                ContentErrorView(error: error) {
-
-                    viewModel.retry()
-                }
-
-            case .errorList(let error):
-
-                ContentErrorView(error: error) {
-
-                    viewModel.retryFetchDataDroplist()
-                }
-            }
-        }
-        .background(AppColors.background)
-        .navigationTitle("Droplist")
-//        .navigationTitle(
-//            Localized.Home.title.localized()
-//        )
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(Localized.Home.addButton.localized()) {
-                    let sheetContent = AnyView(
-                        AdminView()
-                    )
-                    droplistCoordinator.presentSheet(SheetItem(content: sheetContent))
-                }
-                .foregroundStyle(AppColors.activeColor)
-                .padding()
-                .disabled(viewModel.viewState.isError)
-            }
-        }
-        .onFirstAppear {
-
-            viewModel.setRetryHandler(
-                retryHandler
-            )
-
-            viewModel.setupViewModel()
-        }
-        .onAppear {
-
-            Task {
-                await viewModel.checkAndRefreshIfNeeded()
-            }
-        }
-    }
-}
 
 // MARK: - before imlemintation onTopDrop
 

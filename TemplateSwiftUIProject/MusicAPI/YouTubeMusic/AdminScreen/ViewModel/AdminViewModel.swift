@@ -488,82 +488,419 @@ final class AdminViewModel: ObservableObject {
 
     // MARK: - Сохранение в Firestore
 
-    func savePlaylistToFirestore() async {
-        guard !playlistTitle.isEmpty else {
-            status = "Ошибка: заголовок пуст"
-            return
-        }
-
-        guard !playlistImageURL.isEmpty else {
-            status = "Сначала сгенерируйте coverImage"
-            return
-        }
-
-        guard !tracks.isEmpty else {
-            status = "Нет треков для сохранения"
-            return
-        }
-
-        guard tracks.allSatisfy({ !$0.thumbnailURL.isEmpty }) else {
-            status = "Не все thumbnail треков обработаны"
-            return
-        }
-
-        status = "Сохраняем плейлист и треки…"
-
-        do {
-            let droplistRef = db.collection("droplist").document(playlistId)
-
-            try await droplistRef.setData([
-                "playlistId": playlistId,
-                "title": playlistTitle,
-                "description": playlistDescription,
-                "coverImageURL": playlistImageURL,
-                "trackCount": tracks.count,
-                "createdAt": FieldValue.serverTimestamp()
-            ], merge: true)
-
-            let batch = db.batch()
-
-            for track in tracks {
-                let subRef = droplistRef
-                    .collection("tracks")
-                    .document(track.videoId)
-
-                batch.setData([
-                    "videoId": track.videoId,
-                    "title": track.title,
-                    "artist": track.artist,
-                    "thumbnailURL": track.thumbnailURL,
-                    "durationISO8601": track.durationISO8601,
-                    "orderIndex": track.orderIndex,
-                    "createdAt": FieldValue.serverTimestamp()
-                ], forDocument: subRef)
-
-                let globalRef = db
-                    .collection("dropTracks")
-                    .document(track.videoId)
-
-                batch.setData([
-                    "videoId": track.videoId,
-                    "title": track.title,
-                    "artist": track.artist,
-                    "thumbnailURL": track.thumbnailURL,
-                    "durationISO8601": track.durationISO8601,
-                    "playlists": FieldValue.arrayUnion([playlistId]),
-                    "tags": track.tags,
-                    "createdAt": FieldValue.serverTimestamp()
-                ], forDocument: globalRef)
-            }
-
-            try await batch.commit()
-
-            status = "Плейлист и треки сохранены"
-        } catch {
-            status = "Ошибка сохранения: \(error.localizedDescription)"
-        }
-    }
+//    func savePlaylistToFirestore() async {
+//        guard !playlistTitle.isEmpty else {
+//            status = "Ошибка: заголовок пуст"
+//            return
+//        }
+//
+//        guard !playlistImageURL.isEmpty else {
+//            status = "Сначала сгенерируйте coverImage"
+//            return
+//        }
+//
+//        guard !tracks.isEmpty else {
+//            status = "Нет треков для сохранения"
+//            return
+//        }
+//
+//        guard tracks.allSatisfy({ !$0.thumbnailURL.isEmpty }) else {
+//            status = "Не все thumbnail треков обработаны"
+//            return
+//        }
+//
+//        status = "Сохраняем плейлист и треки…"
+//
+//        do {
+//            let droplistRef = db.collection("droplist").document(playlistId)
+//
+//            try await droplistRef.setData([
+//                "playlistId": playlistId,
+//                "title": playlistTitle,
+//                "description": playlistDescription,
+//                "coverImageURL": playlistImageURL,
+//                "trackCount": tracks.count,
+//                "createdAt": FieldValue.serverTimestamp()
+//            ], merge: true)
+//
+//            let batch = db.batch()
+//
+//            for track in tracks {
+//                let subRef = droplistRef
+//                    .collection("tracks")
+//                    .document(track.videoId)
+//
+//                batch.setData([
+//                    "videoId": track.videoId,
+//                    "title": track.title,
+//                    "artist": track.artist,
+//                    "thumbnailURL": track.thumbnailURL,
+//                    "durationISO8601": track.durationISO8601,
+//                    "orderIndex": track.orderIndex,
+//                    "createdAt": FieldValue.serverTimestamp()
+//                ], forDocument: subRef)
+//
+//                let globalRef = db
+//                    .collection("dropTracks")
+//                    .document(track.videoId)
+//
+//                batch.setData([
+//                    "videoId": track.videoId,
+//                    "title": track.title,
+//                    "artist": track.artist,
+//                    "thumbnailURL": track.thumbnailURL,
+//                    "durationISO8601": track.durationISO8601,
+//                    "playlists": FieldValue.arrayUnion([playlistId]),
+//                    "tags": track.tags,
+//                    "createdAt": FieldValue.serverTimestamp()
+//                ], forDocument: globalRef)
+//            }
+//
+//            try await batch.commit()
+//
+//            status = "Плейлист и треки сохранены"
+//        } catch {
+//            status = "Ошибка сохранения: \(error.localizedDescription)"
+//        }
+//    }
+//
     
+    
+    // =====================================================
+    // DROP TOP — TEST DATA
+    // =====================================================
+
+   func savePlaylistToDropTop() async {
+       guard !playlistTitle.isEmpty else {
+           status = "Ошибка: заголовок пуст"
+           return
+       }
+
+       guard !playlistImageURL.isEmpty else {
+           status = "Сначала сгенерируйте coverImage"
+           return
+       }
+
+       guard !tracks.isEmpty else {
+           status = "Добавьте хотя бы один трек"
+           return
+       }
+
+       guard !isGeneratingCover else {
+           status = "Дождитесь завершения генерации coverImage"
+           return
+       }
+
+       guard !isProcessingTrackThumbnail else {
+           status = "Дождитесь обработки thumbnail треков"
+           return
+       }
+
+       guard !isImportingAllTracks else {
+           status = "Дождитесь завершения импорта"
+           return
+       }
+
+       status = "Создаём тестовый DropTop..."
+
+       do {
+           let startYear = 2026
+           let endYear = 2036
+
+           // =====================================================
+           // Сохраняем в обратном порядке, поскольку список
+           // сортируется по createdAt в порядке убывания.
+           // =====================================================
+
+           for year in (startYear...endYear).reversed() {
+               let playlists: [
+                   (id: String, title: String, description: String, tag: String)
+               ] = [
+                   (
+                       id: "artist_lilWayne_\(year)",
+                       title: "This Is Lil Wayne",
+                       description: "Vol. 1 \(year)",
+                       tag: "artist"
+                   ),
+                   (
+                       id: "artist_drake_\(year)",
+                       title: "This Is Drake",
+                       description: "Vol. 1 \(year)",
+                       tag: "artist"
+                   ),
+                   (
+                       id: "topQuarter_4_\(year)",
+                       title: "Top Tracks \(year)",
+                       description: "Fourth Quarter",
+                       tag: "topQuarter"
+                   ),
+                   (
+                       id: "topQuarter_3_\(year)",
+                       title: "Top Tracks \(year)",
+                       description: "Third Quarter",
+                       tag: "topQuarter"
+                   ),
+                   (
+                       id: "topQuarter_2_\(year)",
+                       title: "Top Tracks \(year)",
+                       description: "Second Quarter",
+                       tag: "topQuarter"
+                   ),
+                   (
+                       id: "topQuarter_1_\(year)",
+                       title: "Top Tracks \(year)",
+                       description: "First Quarter",
+                       tag: "topQuarter"
+                   ),
+                   (
+                       id: "topYear_\(year)",
+                       title: "Top Tracks \(year)",
+                       description: "\(year)",
+                       tag: "topYear"
+                   )
+               ]
+
+               for playlist in playlists {
+                   let playlistRef = db
+                       .collection("dropTop")
+                       .document(playlist.id)
+
+                   // Сохраняем плейлист отдельно, чтобы createdAt
+                   // формировался для каждой записи независимо.
+                   try await playlistRef.setData(
+                       [
+                           "playlistId": playlist.id,
+                           "title": playlist.title,
+                           "description": playlist.description,
+                           "coverImageURL": playlistImageURL,
+                           "trackCount": tracks.count,
+                           "tag": playlist.tag,
+                           "createdAt": FieldValue.serverTimestamp()
+                       ],
+                       merge: true
+                   )
+
+                   // Сохраняем треки пакетами с запасом до лимита
+                   // Firestore в 500 операций на один batch.
+                   var batch = db.batch()
+                   var operationCount = 0
+
+                   for track in tracks {
+                       let trackRef = playlistRef
+                           .collection("tracks")
+                           .document(track.videoId)
+
+                       batch.setData(
+                           [
+                               "videoId": track.videoId,
+                               "title": track.title,
+                               "artist": track.artist,
+                               "thumbnailURL": track.thumbnailURL,
+                               "durationISO8601": track.durationISO8601,
+                               "orderIndex": track.orderIndex,
+                               "tags": track.tags,
+                               "createdAt": FieldValue.serverTimestamp()
+                           ],
+                           forDocument: trackRef,
+                           merge: true
+                       )
+
+                       operationCount += 1
+
+                       if operationCount >= 450 {
+                           try await batch.commit()
+
+                           batch = db.batch()
+                           operationCount = 0
+                       }
+                   }
+
+                   if operationCount > 0 {
+                       try await batch.commit()
+                   }
+
+                   // Пауза между плейлистами для тестирования порядка.
+                   try await Task.sleep(
+                       nanoseconds: 1_000_000_000
+                   )
+               }
+           }
+
+           status = """
+           ✅ DropTop создан:
+           11 лет × 7 плейлистов = 77 плейлистов
+           """
+
+       } catch {
+           status = """
+           ❌ Ошибка сохранения DropTop:
+           \(error.localizedDescription)
+           """
+       }
+   }
+
+//   func savePlaylistToDropTop() async {
+//       guard !playlistTitle.isEmpty else {
+//           status = "Ошибка: заголовок пуст"
+//           return
+//       }
+//
+//       guard !playlistImageURL.isEmpty else {
+//           status = "Сначала сгенерируйте coverImage"
+//           return
+//       }
+//
+//       guard !tracks.isEmpty else {
+//           status = "Добавьте хотя бы один трек"
+//           return
+//       }
+//
+//       guard !isGeneratingCover else {
+//           status = "Дождитесь завершения генерации coverImage"
+//           return
+//       }
+//
+//       guard !isProcessingTrackThumbnail else {
+//           status = "Дождитесь обработки thumbnail треков"
+//           return
+//       }
+//
+//       guard !isImportingAllTracks else {
+//           status = "Дождитесь завершения импорта"
+//           return
+//       }
+//
+//       status = "Создаём тестовый DropTop..."
+//
+//       do {
+//           let startYear = 2026
+//           let endYear = 2036
+//
+//           // =====================================================
+//           // При сортировке createdAt по убыванию сохраняем
+//           // плейлисты в обратном порядке.
+//           // =====================================================
+//
+//           for year in (startYear...endYear).reversed() {
+//               let playlists: [
+//                   (id: String, title: String, tag: String)
+//               ] = [
+//                   (
+//                       id: "artist_lilWayne_\(year)",
+//                       title: "This Is Lil Wayne | Vol. 1 \(year)",
+//                       tag: "artist"
+//                   ),
+//                   (
+//                       id: "artist_drake_\(year)",
+//                       title: "This Is Drake | Vol. 1 \(year)",
+//                       tag: "artist"
+//                   ),
+//                   (
+//                       id: "topQuarter_4_\(year)",
+//                       title: "Top Tracks \(year) | Fourth Quarter",
+//                       tag: "topQuarter"
+//                   ),
+//                   (
+//                       id: "topQuarter_3_\(year)",
+//                       title: "Top Tracks \(year) | Third Quarter",
+//                       tag: "topQuarter"
+//                   ),
+//                   (
+//                       id: "topQuarter_2_\(year)",
+//                       title: "Top Tracks \(year) | Second Quarter",
+//                       tag: "topQuarter"
+//                   ),
+//                   (
+//                       id: "topQuarter_1_\(year)",
+//                       title: "Top Tracks \(year) | First Quarter",
+//                       tag: "topQuarter"
+//                   ),
+//                   (
+//                       id: "topYear_\(year)",
+//                       title: "Top Tracks \(year)",
+//                       tag: "topYear"
+//                   )
+//               ]
+//
+//               for playlist in playlists {
+//                   let playlistRef = db
+//                       .collection("dropTop")
+//                       .document(playlist.id)
+//
+//                   // Сохраняем плейлист отдельно,
+//                   // чтобы получить собственный serverTimestamp.
+//                   try await playlistRef.setData(
+//                       [
+//                           "playlistId": playlist.id,
+//                           "title": playlist.title,
+//                           "description": playlistDescription,
+//                           "coverImageURL": playlistImageURL,
+//                           "trackCount": tracks.count,
+//                           "tag": playlist.tag,
+//                           "createdAt": FieldValue.serverTimestamp()
+//                       ],
+//                       merge: true
+//                   )
+//
+//                   // Сохраняем треки пакетами, не превышая лимит
+//                   // Firestore в 500 операций на один batch.
+//                   var batch = db.batch()
+//                   var operationCount = 0
+//
+//                   for track in tracks {
+//                       let trackRef = playlistRef
+//                           .collection("tracks")
+//                           .document(track.videoId)
+//
+//                       batch.setData(
+//                           [
+//                               "videoId": track.videoId,
+//                               "title": track.title,
+//                               "artist": track.artist,
+//                               "thumbnailURL": track.thumbnailURL,
+//                               "durationISO8601": track.durationISO8601,
+//                               "orderIndex": track.orderIndex,
+//                               "tags": track.tags,
+//                               "createdAt": FieldValue.serverTimestamp()
+//                           ],
+//                           forDocument: trackRef,
+//                           merge: true
+//                       )
+//
+//                       operationCount += 1
+//
+//                       if operationCount >= 450 {
+//                           try await batch.commit()
+//
+//                           batch = db.batch()
+//                           operationCount = 0
+//                       }
+//                   }
+//
+//                   if operationCount > 0 {
+//                       try await batch.commit()
+//                   }
+//
+//                   // Пауза между сохранениями плейлистов.
+//                   try await Task.sleep(
+//                       nanoseconds: 1_000_000_000
+//                   )
+//               }
+//           }
+//
+//           status = """
+//           ✅ DropTop создан:
+//           11 лет × 7 плейлистов = 77 плейлистов
+//           """
+//
+//       } catch {
+//           status = """
+//           ❌ Ошибка сохранения DropTop:
+//           \(error.localizedDescription)
+//           """
+//       }
+//   }
+
 }
 
 
@@ -908,6 +1245,163 @@ final class AdminViewModel: ObservableObject {
 //    }
 //}
 
+
+//// =====================================================
+//// DROP TOP — TEST DATA 3
+//// =====================================================
+//
+//func savePlaylistToDropTop() async {
+//    guard !playlistTitle.isEmpty else {
+//        status = "Ошибка: заголовок пуст"
+//        return
+//    }
+//
+//    guard !playlistImageURL.isEmpty else {
+//        status = "Сначала сгенерируйте coverImage"
+//        return
+//    }
+//
+//    guard !tracks.isEmpty else {
+//        status = "Добавьте хотя бы один трек"
+//        return
+//    }
+//
+//    guard !isGeneratingCover else {
+//        status = "Дождитесь завершения генерации coverImage"
+//        return
+//    }
+//
+//    guard !isProcessingTrackThumbnail else {
+//        status = "Дождитесь обработки thumbnail треков"
+//        return
+//    }
+//
+//    guard !isImportingAllTracks else {
+//        status = "Дождитесь завершения импорта"
+//        return
+//    }
+//
+//    status = "Создаём тестовый DropTop..."
+//
+//    do {
+//        let startYear = 2026
+//        let endYear = 2036
+//
+//        let quarters = [
+//            "First Quarter",
+//            "Second Quarter",
+//            "Third Quarter",
+//            "Fourth Quarter"
+//        ]
+//
+//        var batch = db.batch()
+//        var operationCount = 0
+//
+//        // =====================================================
+//        // Создаём плейлисты по годам:
+//        // Top Year → 4 Quarters → Drake → Lil Wayne.
+//        //
+//        // Для теста сортируем по createdAt.
+//        // При необходимости можно добавить orderIndex,
+//        // чтобы гарантировать заданный порядок отображения.
+//        // =====================================================
+//
+//        for year in startYear...endYear {
+//            let playlists: [
+//                (id: String, title: String, tag: String)
+//            ] = [
+//                (
+//                    id: "topYear_\(year)",
+//                    title: "Top Tracks \(year)",
+//                    tag: "topYear"
+//                )
+//            ] + quarters.enumerated().map { index, quarter in
+//                (
+//                    id: "topQuarter_\(index + 1)_\(year)",
+//                    title: "Top Tracks \(year) | \(quarter)",
+//                    tag: "topQuarter"
+//                )
+//            } + [
+//                (
+//                    id: "artist_drake_\(year)",
+//                    title: "This Is Drake | Vol. 1 \(year)",
+//                    tag: "artist"
+//                ),
+//                (
+//                    id: "artist_lilWayne_\(year)",
+//                    title: "This Is Lil Wayne | Vol. 1 \(year)",
+//                    tag: "artist"
+//                )
+//            ]
+//
+//            for playlist in playlists {
+//                let playlistRef = db
+//                    .collection("dropTop")
+//                    .document(playlist.id)
+//
+//                batch.setData(
+//                    [
+//                        "playlistId": playlist.id,
+//                        "title": playlist.title,
+//                        "description": playlistDescription,
+//                        "coverImageURL": playlistImageURL,
+//                        "trackCount": tracks.count,
+//                        "tag": playlist.tag,
+//                        "createdAt": FieldValue.serverTimestamp()
+//                    ],
+//                    forDocument: playlistRef,
+//                    merge: true
+//                )
+//
+//                operationCount += 1
+//
+//                for track in tracks {
+//                    let trackRef = playlistRef
+//                        .collection("tracks")
+//                        .document(track.videoId)
+//
+//                    batch.setData(
+//                        [
+//                            "videoId": track.videoId,
+//                            "title": track.title,
+//                            "artist": track.artist,
+//                            "thumbnailURL": track.thumbnailURL,
+//                            "durationISO8601": track.durationISO8601,
+//                            "orderIndex": track.orderIndex,
+//                            "tags": track.tags,
+//                            "createdAt": FieldValue.serverTimestamp()
+//                        ],
+//                        forDocument: trackRef,
+//                        merge: true
+//                    )
+//
+//                    operationCount += 1
+//
+//                    // Firestore batch допускает максимум 500 записей.
+//                    // Коммитим заранее, чтобы не превысить лимит.
+//                    if operationCount >= 450 {
+//                        try await batch.commit()
+//
+//                        batch = db.batch()
+//                        operationCount = 0
+//                    }
+//                }
+//            }
+//        }
+//
+//        if operationCount > 0 {
+//            try await batch.commit()
+//        }
+//
+//        status = "✅ DropTop создан: 11 лет × 7 плейлистов = 77 плейлистов"
+//
+//    } catch {
+//        status = """
+//        ❌ Ошибка сохранения DropTop: \
+//        \(error.localizedDescription)
+//        """
+//    }
+//}
 
 
 // =============================================================

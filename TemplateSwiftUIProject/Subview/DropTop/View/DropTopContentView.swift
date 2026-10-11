@@ -155,6 +155,7 @@ private extension DropTopContentView {
 // MARK: - ROW
 // =================================================
 
+
 private extension DropTopContentView {
 
     func dropTopRow(
@@ -182,11 +183,20 @@ private extension DropTopContentView {
                     )
                 )
 
-                Text(item.title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
+                VStack(
+                    alignment: .leading,
+                    spacing: 4
+                ) {
+                    Text(item.title)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .lineLimit(2)
+
+                    Text(item.description)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
 
                 Spacer()
             }
@@ -196,6 +206,48 @@ private extension DropTopContentView {
         .buttonStyle(.plain)
     }
 }
+
+//private extension DropTopContentView {
+//
+//    func dropTopRow(
+//        _ item: DropTopItem
+//    ) -> some View {
+//        Button {
+//            openPlaylist(item)
+//        } label: {
+//            HStack(spacing: 12) {
+//                WebImageView(
+//                    url: item.imageURL,
+//                    placeholderColor:
+//                        AppColors.secondarySystemBackground,
+//                    displayStyle:
+//                        .fixedFrame(
+//                            width: 60,
+//                            height: 60
+//                        ),
+//                    context:
+//                        "DropTop_\(item.id)"
+//                )
+//                .clipShape(
+//                    RoundedRectangle(
+//                        cornerRadius: 8
+//                    )
+//                )
+//
+//                Text(item.title)
+//                    .font(.headline)
+//                    .foregroundColor(.primary)
+//                    .lineLimit(2)
+//                    .multilineTextAlignment(.leading)
+//
+//                Spacer()
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 8)
+//        }
+//        .buttonStyle(.plain)
+//    }
+//}
 
 // =================================================
 // MARK: - NAVIGATION
