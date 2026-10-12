@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+// =========================================================
+// MARK: - CONTENT STATE
+// =========================================================
 
 enum DropTopContentState {
     case loading
@@ -15,42 +18,52 @@ enum DropTopContentState {
 }
 
 extension DropTopContentState {
+
     var isError: Bool {
-        switch self {
-        case .error:
+        if case .error = self {
             return true
-        default:
-            return false
         }
+
+        return false
     }
 }
+
+// =========================================================
+// MARK: - VIEW MODEL
+// =========================================================
 
 @MainActor
 final class DropTopViewModel: ObservableObject {
 
-    // =========================================================
+    // =====================================================
     // MARK: Published
-    // =========================================================
+    // =====================================================
 
     @Published private(set) var viewState: DropTopContentState = .loading
+
     @Published private(set) var selectedTag: DropTopTag = .all
 
-    // =========================================================
+    // Тег, данные которого сейчас отображаются в списке.
+    // Используется View для восстановления позиции скролла.
+    @Published private(set) var displayedTag: DropTopTag?
+
+    // =====================================================
     // MARK: Dependencies
-    // =========================================================
+    // =====================================================
 
     private let dropListDataSource: DropListDataSource
 
-    // =========================================================
-    // MARK: Request control
-    // =========================================================
+    // =====================================================
+    // MARK: Request Control
+    // =====================================================
 
     private var currentRequestID = UUID()
+
     private var currentPaginationTask: Task<Void, Never>?
 
-    // =========================================================
+    // =====================================================
     // MARK: Init
-    // =========================================================
+    // =====================================================
 
     init(
         dropListDataSource: DropListDataSource
@@ -58,19 +71,21 @@ final class DropTopViewModel: ObservableObject {
         self.dropListDataSource = dropListDataSource
     }
 
-    // =========================================================
+    // =====================================================
     // MARK: Setup
-    // =========================================================
+    // =====================================================
 
     func setupViewModel() async {
         await load(tag: .all)
     }
 
-    // =========================================================
-    // MARK: Tag selection
-    // =========================================================
+    // =====================================================
+    // MARK: Tag Selection
+    // =====================================================
 
-    func selectTag(_ tag: DropTopTag) async {
+    func selectTag(
+        _ tag: DropTopTag
+    ) async {
         guard selectedTag != tag else {
             return
         }
@@ -83,47 +98,49 @@ final class DropTopViewModel: ObservableObject {
         await load(tag: tag)
     }
 
-    // =========================================================
-    // MARK: Initial / cached page
-    // =========================================================
+    // =====================================================
+    // MARK: Initial / Cached Page
+    // =====================================================
 
-    private func load(tag: DropTopTag) async {
-//        viewState = .loading
-
+    private func load(
+        tag: DropTopTag
+    ) async {
         let requestID = UUID()
         currentRequestID = requestID
 
-        // -----------------------------------------------------
-        // Сначала пытаемся получить данные из cache.
-        // -----------------------------------------------------
+        // -------------------------------------------------
+        // Сначала проверяем кеш.
+        // -------------------------------------------------
 
-        if let cachedPage = await dropListDataSource.cachedDropTopPage(
-            for: tag
-        ) {
+        if let cachedPage = await dropListDataSource
+            .cachedDropTopPage(for: tag) {
+
             guard requestID == currentRequestID else {
                 return
             }
 
             viewState = .contentList(cachedPage)
+            displayedTag = tag
+
             return
         }
 
-        // -----------------------------------------------------
-        // Cache отсутствует → идём в Firestore.
-        // -----------------------------------------------------
+        // -------------------------------------------------
+        // Кеша нет — показываем загрузку.
+        // -------------------------------------------------
 
         viewState = .loading
-        
+
         do {
-            let page = try await dropListDataSource.fetchDropTopPage(
-                for: tag
-            )
+            let page = try await dropListDataSource
+                .fetchDropTopPage(for: tag)
 
             guard requestID == currentRequestID else {
                 return
             }
 
             viewState = .contentList(page)
+            displayedTag = tag
 
         } catch {
             guard requestID == currentRequestID else {
@@ -136,9 +153,9 @@ final class DropTopViewModel: ObservableObject {
         }
     }
 
-    // =========================================================
+    // =====================================================
     // MARK: Pagination
-    // =========================================================
+    // =====================================================
 
     func loadNextPage() {
         guard case .contentList(let currentPage) = viewState else {
@@ -152,24 +169,25 @@ final class DropTopViewModel: ObservableObject {
         currentPaginationTask?.cancel()
 
         let requestID = UUID()
+        let requestedTag = selectedTag
+
         currentRequestID = requestID
 
         viewState = .contentList(
             DropTopPage(
                 items: currentPage.items,
-                lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+                lastDocumentSnapshot:
+                    currentPage.lastDocumentSnapshot,
                 hasMore: true
             )
         )
 
         currentPaginationTask = Task { @MainActor in
-
             do {
-                let result =
-                    try await dropListDataSource
-                        .loadNextDropTopPageIfNeeded(
-                            for: selectedTag
-                        )
+                let result = try await dropListDataSource
+                    .loadNextDropTopPageIfNeeded(
+                        for: requestedTag
+                    )
 
                 guard requestID == currentRequestID else {
                     return
@@ -185,21 +203,17 @@ final class DropTopViewModel: ObservableObject {
                     viewState = .contentList(page)
 
                 case .noMore:
-                    let cached =
-                        await dropListDataSource
-                            .cachedDropTopPage(
-                                for: selectedTag
-                            )
+                    let cachedPage = await dropListDataSource
+                        .cachedDropTopPage(for: requestedTag)
                         ?? latestPage
 
-                    viewState = .contentList(cached)
+                    viewState = .contentList(cachedPage)
 
                 case .invalidState:
                     viewState = .contentList(latestPage)
                 }
 
             } catch {
-
                 guard requestID == currentRequestID else {
                     return
                 }
@@ -213,7 +227,8 @@ final class DropTopViewModel: ObservableObject {
                 viewState = .contentList(
                     DropTopPage(
                         items: latestPage.items,
-                        lastDocumentSnapshot: latestPage.lastDocumentSnapshot,
+                        lastDocumentSnapshot:
+                            latestPage.lastDocumentSnapshot,
                         hasMore: latestPage.hasMore
                     )
                 )
@@ -225,9 +240,9 @@ final class DropTopViewModel: ObservableObject {
         }
     }
 
-    // =========================================================
+    // =====================================================
     // MARK: Retry
-    // =========================================================
+    // =====================================================
 
     func retry() async {
         currentRequestID = UUID()
@@ -240,17 +255,278 @@ final class DropTopViewModel: ObservableObject {
         await load(tag: selectedTag)
     }
 
-    // =========================================================
-    // MARK: Select playlist
-    // =========================================================
+    // =====================================================
+    // MARK: Select Playlist
+    // =====================================================
 
-    func didSelectPlaylist(_ item: DropTopItem) {
+    func didSelectPlaylist(
+        _ item: DropTopItem
+    ) {
         // Навигация выполняется в DropTopContentView.
-        // ViewModel только хранит данные экрана.
+        // ViewModel хранит состояние данных экрана.
     }
+
+    // =====================================================
+    // MARK: Deinit
+    // =====================================================
 
     deinit {
         currentPaginationTask?.cancel()
         print("deinit DropTopViewModel")
     }
 }
+
+
+// MARK: - before savedScrollPositions
+
+
+//import SwiftUI
+//
+//
+//enum DropTopContentState {
+//    case loading
+//    case contentList(DropTopPage)
+//    case error(String)
+//}
+//
+//extension DropTopContentState {
+//    var isError: Bool {
+//        switch self {
+//        case .error:
+//            return true
+//        default:
+//            return false
+//        }
+//    }
+//}
+
+
+//@MainActor
+//final class DropTopViewModel: ObservableObject {
+//
+//    // =========================================================
+//    // MARK: Published
+//    // =========================================================
+//
+//    @Published private(set) var viewState: DropTopContentState = .loading
+//    @Published private(set) var selectedTag: DropTopTag = .all
+//
+//    // =========================================================
+//    // MARK: Dependencies
+//    // =========================================================
+//
+//    private let dropListDataSource: DropListDataSource
+//
+//    // =========================================================
+//    // MARK: Request control
+//    // =========================================================
+//
+//    private var currentRequestID = UUID()
+//    private var currentPaginationTask: Task<Void, Never>?
+//
+//    // =========================================================
+//    // MARK: Init
+//    // =========================================================
+//
+//    init(
+//        dropListDataSource: DropListDataSource
+//    ) {
+//        self.dropListDataSource = dropListDataSource
+//    }
+//
+//    // =========================================================
+//    // MARK: Setup
+//    // =========================================================
+//
+//    func setupViewModel() async {
+//        await load(tag: .all)
+//    }
+//
+//    // =========================================================
+//    // MARK: Tag selection
+//    // =========================================================
+//
+//    func selectTag(_ tag: DropTopTag) async {
+//        guard selectedTag != tag else {
+//            return
+//        }
+//
+//        currentRequestID = UUID()
+//        currentPaginationTask?.cancel()
+//
+//        selectedTag = tag
+//
+//        await load(tag: tag)
+//    }
+//
+//    // =========================================================
+//    // MARK: Initial / cached page
+//    // =========================================================
+//
+//    private func load(tag: DropTopTag) async {
+////        viewState = .loading
+//
+//        let requestID = UUID()
+//        currentRequestID = requestID
+//
+//        // -----------------------------------------------------
+//        // Сначала пытаемся получить данные из cache.
+//        // -----------------------------------------------------
+//
+//        if let cachedPage = await dropListDataSource.cachedDropTopPage(
+//            for: tag
+//        ) {
+//            guard requestID == currentRequestID else {
+//                return
+//            }
+//
+//            viewState = .contentList(cachedPage)
+//            return
+//        }
+//
+//        // -----------------------------------------------------
+//        // Cache отсутствует → идём в Firestore.
+//        // -----------------------------------------------------
+//
+//        viewState = .loading
+//        
+//        do {
+//            let page = try await dropListDataSource.fetchDropTopPage(
+//                for: tag
+//            )
+//
+//            guard requestID == currentRequestID else {
+//                return
+//            }
+//
+//            viewState = .contentList(page)
+//
+//        } catch {
+//            guard requestID == currentRequestID else {
+//                return
+//            }
+//
+//            let userError = dropListDataSource.handleError(error)
+//
+//            viewState = .error(userError)
+//        }
+//    }
+//
+//    // =========================================================
+//    // MARK: Pagination
+//    // =========================================================
+//
+//    func loadNextPage() {
+//        guard case .contentList(let currentPage) = viewState else {
+//            return
+//        }
+//
+//        guard currentPage.hasMore else {
+//            return
+//        }
+//
+//        currentPaginationTask?.cancel()
+//
+//        let requestID = UUID()
+//        currentRequestID = requestID
+//
+//        viewState = .contentList(
+//            DropTopPage(
+//                items: currentPage.items,
+//                lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+//                hasMore: true
+//            )
+//        )
+//
+//        currentPaginationTask = Task { @MainActor in
+//
+//            do {
+//                let result =
+//                    try await dropListDataSource
+//                        .loadNextDropTopPageIfNeeded(
+//                            for: selectedTag
+//                        )
+//
+//                guard requestID == currentRequestID else {
+//                    return
+//                }
+//
+//                guard case .contentList(let latestPage) = viewState else {
+//                    return
+//                }
+//
+//                switch result {
+//
+//                case .loaded(let page):
+//                    viewState = .contentList(page)
+//
+//                case .noMore:
+//                    let cached =
+//                        await dropListDataSource
+//                            .cachedDropTopPage(
+//                                for: selectedTag
+//                            )
+//                        ?? latestPage
+//
+//                    viewState = .contentList(cached)
+//
+//                case .invalidState:
+//                    viewState = .contentList(latestPage)
+//                }
+//
+//            } catch {
+//
+//                guard requestID == currentRequestID else {
+//                    return
+//                }
+//
+//                guard case .contentList(let latestPage) = viewState else {
+//                    return
+//                }
+//
+//                let userError = dropListDataSource.handleError(error)
+//
+//                viewState = .contentList(
+//                    DropTopPage(
+//                        items: latestPage.items,
+//                        lastDocumentSnapshot: latestPage.lastDocumentSnapshot,
+//                        hasMore: latestPage.hasMore
+//                    )
+//                )
+//
+//                print(
+//                    "❌ DropTop pagination error: \(userError)"
+//                )
+//            }
+//        }
+//    }
+//
+//    // =========================================================
+//    // MARK: Retry
+//    // =========================================================
+//
+//    func retry() async {
+//        currentRequestID = UUID()
+//        currentPaginationTask?.cancel()
+//
+//        viewState = .loading
+//
+//        await dropListDataSource.resetDropTopCache()
+//
+//        await load(tag: selectedTag)
+//    }
+//
+//    // =========================================================
+//    // MARK: Select playlist
+//    // =========================================================
+//
+//    func didSelectPlaylist(_ item: DropTopItem) {
+//        // Навигация выполняется в DropTopContentView.
+//        // ViewModel только хранит данные экрана.
+//    }
+//
+//    deinit {
+//        currentPaginationTask?.cancel()
+//        print("deinit DropTopViewModel")
+//    }
+//}
