@@ -53,6 +53,8 @@ struct TracklistContentView: View {
                     },
                     onPlayInYouTubeMusic: { item in
                         // TODO
+                        viewModel.playInYouTubeMusic(item)
+                        print("onPlayInYouTubeMusic")
                     }
                 )
             case .error(let error):
