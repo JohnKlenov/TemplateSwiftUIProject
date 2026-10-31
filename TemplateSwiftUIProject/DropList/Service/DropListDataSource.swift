@@ -597,6 +597,11 @@ extension DropListDataSource {
 }
 
 
+
+
+
+
+
 // MARK: - befor new CarouselItemType (+ case .droplistDetails + case .topDropDetails)
 
 

@@ -25,7 +25,7 @@ struct ContentErrorView: View {
             Spacer()
             ContentUnavailableView(
                 label: {
-                    Label(Localized.Home.ContentErrorView.title.localized(), systemImage: AppIcons.ContentErrorView.warning)
+                    Text(Localized.Home.ContentErrorView.title.localized())
                 },
                 description: {
                     Text(Localized.Home.ContentErrorView.description.localized())
@@ -44,3 +44,20 @@ struct ContentErrorView: View {
 }
 
 
+
+
+// с изображением картинки AppIcons.ContentErrorView.warning
+
+//            ContentUnavailableView(
+//                label: {
+//                    Label(Localized.Home.ContentErrorView.title.localized(), systemImage: AppIcons.ContentErrorView.warning)
+//                },
+//                description: {
+//                    Text(Localized.Home.ContentErrorView.description.localized())
+//                },
+//                actions: {
+//                    Button(Localized.Home.ContentErrorView.refreshButton.localized()) {
+//                        retryAction()
+//                    }
+//                }
+//            )
