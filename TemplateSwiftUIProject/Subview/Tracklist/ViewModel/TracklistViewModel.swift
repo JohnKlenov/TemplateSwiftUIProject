@@ -59,7 +59,7 @@ final class TracklistViewModel: ObservableObject {
         let needsRefresh = await dropListDataSource.needsDataRefresh(
             for: trackType
         )
-
+        // так как при обновлении данных на главном экране(руками или автоматически) мы удалям весь dropListDataSource.cachedPage при повторном переходе на TracklistView needsRefresh == false а cached = nil
         // Если экран уже видел текущую revision —
         // используем существующий cache.
         if !needsRefresh,

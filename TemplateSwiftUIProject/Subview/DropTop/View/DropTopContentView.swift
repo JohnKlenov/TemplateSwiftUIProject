@@ -290,9 +290,9 @@ private extension DropTopContentView {
             id: $currentScrollID,
             anchor: .top
         )
-        .refreshable {
-            await viewModel.retry()
-        }
+//        .refreshable {
+//            await viewModel.retry()
+//        }
     }
 
     // -------------------------------------------------

@@ -6,6 +6,17 @@
 //
 
 
+
+// TracklistViewInjected мы используем в (AllTrack + Droplist + TopDropItem верх секц гл экр + TopDropItem в TopDrop + все вкладки в будущем каталоге (включая фильтры по тегам Gym .. ))
+// сейчас когда мы делаем первый старт и он успешный то происходит установка таймера на 2 часа await dropListDataSource.markDataUpdated()
+// и когда мы заходим на главный экран в любой раз в жизненом цикле апп происходит func checkAndRefreshIfNeeded() где идет проверка прошло ли 2 часа с момента последней успешной подгрузки данных и если да то снова делаем await refreshDropList() и обновляем dropListDataSource.markDataUpdated() при успешном обновлении что бы снова включить таймер на 2 часа
+// то есть данные обновляются когда пользователь заходит на главный экран спустя 2 часа или больше после успешной загрузки или при рефрешь с главного экрана в любой момент времени!
+// сейчас если мы делаем рефреш на главном экране мы при переходе на любой экран TracklistViewInjected идем в сеть за данными потому что мы в func refreshDropList()  делаем await dropListDataSource.refreshAll() а в await dropListDataSource.refreshAll() делаем await pagesCache.reset() то есть удаляем кэшь для всех наших (AllTrack + Droplist + TopDropItem верх секц гл экр + TopDropItem в TopDrop + все вкладки в будущем каталоге (включая фильтры по тегам Gym .. ))
+// и когда мы при загрузки TracklistViewInjected 
+// а нам нет необходимости удалять кэш для Droplist + TopDropItem верх секц гл экр так как они навсегда будут неизменны ???
+
+
+
 import SwiftUI
 
 struct TracklistViewInjected: View {
