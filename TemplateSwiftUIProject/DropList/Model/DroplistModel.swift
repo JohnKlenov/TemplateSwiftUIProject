@@ -559,6 +559,18 @@ struct LowerSectionPage {
 //  5. CarouselItem — элементы средней секции
 
 
+// нужно разделить кэш в PagesCache на два типа (временный и постоянный)
+// то есть на тот кэшь который мы удаляем и который не удаляемый после обновления главного экрана
+// временный - droplist, allTracks, gym, party, rnb
+// постоянный droplistDetails + topDropDetails
+// то есть в PagesCache мы должны иметь два словаря (временный и постоянный)
+// когда делаем рефреш на главном экарне чистим временный кэш а постоянный оставляем
+
+// как вариант можно иметь общий кэш в одном словаре но пробегатьца в цикле и удалять вот эти ключи droplist, allTracks, gym, party, rnb а постоянные оставлять
+
+// когда мы будем использовать этот CarouselItemType для перехода из Droptops нужно будет добавить новые теги сюда(квартал + артист + год)
+
+
 enum CarouselItemType: Hashable {
 
     case droplist
@@ -570,14 +582,12 @@ enum CarouselItemType: Hashable {
     case droplistDetails(playlistId: String)
     case topDropDetails(playlistId: String)
 
-    // ============================================================
-    // CACHE KEY
-    // ============================================================
+    // =================================================
+    // MARK: Cache Key
+    // =================================================
 
     var cacheKey: String {
-
         switch self {
-
         case .droplist:
             return "droplist"
 
@@ -601,14 +611,12 @@ enum CarouselItemType: Hashable {
         }
     }
 
-    // ============================================================
-    // TAG
-    // ============================================================
+    // =================================================
+    // MARK: Tag
+    // =================================================
 
     var tag: String? {
-
         switch self {
-
         case .droplist,
              .allTracks,
              .droplistDetails,
@@ -625,7 +633,97 @@ enum CarouselItemType: Hashable {
             return "rnb"
         }
     }
+
+    // =================================================
+    // MARK: Cache Lifetime
+    // =================================================
+
+    var isPermanentCache: Bool {
+        switch self {
+        case .droplistDetails,
+             .topDropDetails:
+            return true
+
+        case .droplist,
+             .allTracks,
+             .gym,
+             .party,
+             .rnb:
+            return false
+        }
+    }
 }
+
+
+
+// MARK: -  before removing versioning DataRefreshStateStore.
+//enum CarouselItemType: Hashable {
+//
+//    case droplist
+//    case allTracks
+//    case gym
+//    case party
+//    case rnb
+//
+//    case droplistDetails(playlistId: String)
+//    case topDropDetails(playlistId: String)
+//
+//    // ============================================================
+//    // CACHE KEY
+//    // ============================================================
+//
+//    var cacheKey: String {
+//
+//        switch self {
+//
+//        case .droplist:
+//            return "droplist"
+//
+//        case .allTracks:
+//            return "allTracks"
+//
+//        case .gym:
+//            return "gym"
+//
+//        case .party:
+//            return "party"
+//
+//        case .rnb:
+//            return "rnb"
+//
+//        case .droplistDetails(let playlistId):
+//            return "droplistDetails_\(playlistId)"
+//
+//        case .topDropDetails(let playlistId):
+//            return "topDropDetails_\(playlistId)"
+//        }
+//    }
+//
+//    // ============================================================
+//    // TAG
+//    // ============================================================
+//
+//    var tag: String? {
+//
+//        switch self {
+//
+//        case .droplist,
+//             .allTracks,
+//             .droplistDetails,
+//             .topDropDetails:
+//            return nil
+//
+//        case .gym:
+//            return "gym"
+//
+//        case .party:
+//            return "party"
+//
+//        case .rnb:
+//            return "rnb"
+//        }
+//    }
+//}
 
 //  TopSectionModel — верхняя секция
 
@@ -645,6 +743,7 @@ struct TopItem: Identifiable {
 // DropTopItem - модель для DropTopView
 
 
+// в будущем можем заменить DropTopItem на LowerItem
 struct DropTopItem: Identifiable, Hashable {
     let id: String
     let title: String
@@ -653,64 +752,14 @@ struct DropTopItem: Identifiable, Hashable {
     let tag: String
 }
 
-//struct DropTopItem: Identifiable, Hashable {
-//    let id: String
-//    let title: String
-//    let imageURL: URL?
-//    let tag: String
-//}
 
-
+// в будущем можем заменить DropTopPage на LowerSectionPage
+// и переместить логику DropTopPagesCache в PagesCache
 struct DropTopPage {
     let items: [DropTopItem]
     let lastDocumentSnapshot: DocumentSnapshot?
     let hasMore: Bool
 }
-
-
-//enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
-//    
-//    case all
-//    case topYear
-//    case topDecada
-//    case artist
-//    
-//    var id: String {
-//        rawValue
-//    }
-//    
-//    var title: String {
-//        switch self {
-//        case .all:
-//            return "All"
-//        case .topYear:
-//            return "Top Year"
-//        case .topDecada:
-//            return "Top Decada"
-//        case .artist:
-//            return "Artist"
-//        }
-//    }
-//    
-//    /// nil = получить всю коллекцию DropTop
-//    var firestoreTag: String? {
-//        switch self {
-//        case .all:
-//            return nil
-//        case .topYear:
-//            return "topYear"
-//        case .topDecada:
-//            return "topDecada"
-//        case .artist:
-//            return "artist"
-//        }
-//    }
-//    
-//    /// Отдельный ключ для каждого фильтра.
-//    var cacheKey: String {
-//        "dropTop.\(rawValue)"
-//    }
-//}
 
 
 enum DropTopTag: String, CaseIterable, Identifiable, Hashable {

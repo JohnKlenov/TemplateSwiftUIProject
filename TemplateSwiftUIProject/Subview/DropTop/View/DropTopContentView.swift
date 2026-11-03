@@ -262,6 +262,7 @@ private extension DropTopContentView {
 // MARK: - LIST
 // =================================================
 
+// как выглядит paginationFooter для droplist? нужно сделать однотипный ui
 private extension DropTopContentView {
 
     func dropTopList(

@@ -207,6 +207,19 @@
 // для версии 2.0  нужно оставить так же стратегию использования AppleMusic - то есть интерфейс будет все тот же но дата сорс уже будет тругой
 
 
+
+// что делаем:
+// сохраняем все копии сущностей в которых произойдут изменения (DropListDataSource + DataRefreshStateStore + PagesCache + TracklistViewModel) markName - before removing versioning DataRefreshStateStore.
+// меняем логику DataRefreshStateStore (убираем версионность)
+// добавляем в PagesCache логику удаления временного кэша(либо из отдельного словаря либо из общего в цикле по ключам)
+
+// меняем локигу для allRefresh Droptopview (выборочное удаление кэша)
+// меняем логику для логики TrackView (если кэш пустой идем в сеть - проверку на версионность убираем)
+
+// изучаем как работает DropTopContentView с взаимодействием с DropTopPagesCache
+// у нас вместо LowerSectionPage для DropTop struct DropTopPage и отдельный DropTopPagesCache
+// может можно интегрировать его в PagesCache
+
 import SwiftUI
 
 struct DroplistViewInjected: View {
