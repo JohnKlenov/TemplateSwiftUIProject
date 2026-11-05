@@ -360,40 +360,71 @@
 
 // смотри в данной реализации DataRefreshStateStore мы всегда при обновлении домашнего экрана меняем revision
 // что позволяет на TracklistView даже если кэш уже был получен сравнивать видел ли TracklistView новую версию и если нет то делать запрос в сеть заново
-// но мы всегда после успешного обновления данных на главном экране удаляем кэш 
+// но мы всегда после успешного обновления данных на главном экране удаляем кэш
+// поэтому в DataRefreshStateStore можно оставить только работу с  lastUpdated = Date()
+
+
 
 import Foundation
 
 actor DataRefreshStateStore {
 
     private var lastUpdated: Date?
-    private var revision: Int = 0
-    private var lastSeenRevision: [String: Int] = [:]
+
+    // =================================================
+    // MARK: Update
+    // =================================================
 
     func markUpdated() {
-        revision += 1
         lastUpdated = Date()
     }
 
     func reset() {
         lastUpdated = nil
-        revision += 1
-        lastSeenRevision.removeAll()
     }
 
-    func needsRefresh(for key: String) -> Bool {
-        lastSeenRevision[key] != revision
-    }
-
-    func markSeen(for key: String) {
-        lastSeenRevision[key] = revision
-    }
+    // =================================================
+    // MARK: Last Updated
+    // =================================================
 
     func currentLastUpdated() -> Date? {
         lastUpdated
     }
-
-    func currentRevision() -> Int {
-        revision
-    }
 }
+// MARK: -  before removing versioning DataRefreshStateStore.
+
+//import Foundation
+//
+//actor DataRefreshStateStore {
+//
+//    private var lastUpdated: Date?
+//    private var revision: Int = 0
+//    private var lastSeenRevision: [String: Int] = [:]
+//
+//    func markUpdated() {
+//        revision += 1
+//        lastUpdated = Date()
+//    }
+//
+//    func reset() {
+//        lastUpdated = nil
+//        revision += 1
+//        lastSeenRevision.removeAll()
+//    }
+//
+//    func needsRefresh(for key: String) -> Bool {
+//        lastSeenRevision[key] != revision
+//    }
+//
+//    func markSeen(for key: String) {
+//        lastSeenRevision[key] = revision
+//    }
+//
+//    func currentLastUpdated() -> Date? {
+//        lastUpdated
+//    }
+//
+//    func currentRevision() -> Int {
+//        revision
+//    }
+//}

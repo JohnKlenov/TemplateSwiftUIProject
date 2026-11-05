@@ -82,84 +82,84 @@ import Foundation
 
 
 /// Атомарный кэш страниц через actor — предотвращает race conditions
-//actor PagesCache {
-//
-//    // Временный кэш — очищается при обновлении главного экрана.
-//    private var temporaryCache: [String: LowerSectionPage] = [:]
-//
-//    // Постоянный кэш — сохраняется при обновлении главного экрана.
-//    private var permanentCache: [String: LowerSectionPage] = [:]
-//
-//    // =================================================
-//    // MARK: Cache
-//    // =================================================
-//
-//    func get(
-//        _ item: CarouselItemType
-//    ) -> LowerSectionPage? {
-//
-//        let key = item.cacheKey
-//
-//        return item.isPermanentCache
-//            ? permanentCache[key]
-//            : temporaryCache[key]
-//    }
-//
-//    func set(
-//        _ item: CarouselItemType,
-//        page: LowerSectionPage
-//    ) {
-//
-//        let key = item.cacheKey
-//
-//        if item.isPermanentCache {
-//            permanentCache[key] = page
-//        } else {
-//            temporaryCache[key] = page
-//        }
-//    }
-//
-//    func remove(_ item: CarouselItemType) {
-//        let key = item.cacheKey
-//
-//        temporaryCache.removeValue(forKey: key)
-//        permanentCache.removeValue(forKey: key)
-//    }
-//
-//    // =================================================
-//    // MARK: Reset
-//    // =================================================
-//
-//    /// Очищает временный кэш, сохраняя страницы деталей.
-//    func reset() {
-//        temporaryCache.removeAll()
-//    }
-//
-//    /// Полностью очищает оба кэша.
-//    func resetAll() {
-//        temporaryCache.removeAll()
-//        permanentCache.removeAll()
-//    }
-//
-//    func contains(_ item: CarouselItemType) -> Bool {
-//        let key = item.cacheKey
-//
-//        return item.isPermanentCache
-//            ? permanentCache[key] != nil
-//            : temporaryCache[key] != nil
-//    }
-//}
-//
+actor PagesCache {
+
+    // Временный кэш — очищается при обновлении главного экрана.
+    private var temporaryCache: [String: LowerSectionPage] = [:]
+
+    // Постоянный кэш — сохраняется при обновлении главного экрана.
+    private var permanentCache: [String: LowerSectionPage] = [:]
+
+    // =================================================
+    // MARK: Cache
+    // =================================================
+
+    func get(
+        _ item: CarouselItemType
+    ) -> LowerSectionPage? {
+
+        let key = item.cacheKey
+
+        return item.isPermanentCache
+            ? permanentCache[key]
+            : temporaryCache[key]
+    }
+
+    func set(
+        _ item: CarouselItemType,
+        page: LowerSectionPage
+    ) {
+
+        let key = item.cacheKey
+
+        if item.isPermanentCache {
+            permanentCache[key] = page
+        } else {
+            temporaryCache[key] = page
+        }
+    }
+
+    func remove(_ item: CarouselItemType) {
+        let key = item.cacheKey
+
+        temporaryCache.removeValue(forKey: key)
+        permanentCache.removeValue(forKey: key)
+    }
+
+    // =================================================
+    // MARK: Reset
+    // =================================================
+
+    /// Очищает временный кэш, сохраняя страницы деталей.
+    func reset() {
+        temporaryCache.removeAll()
+    }
+
+    /// Полностью очищает оба кэша.
+    func resetAll() {
+        temporaryCache.removeAll()
+        permanentCache.removeAll()
+    }
+
+    func contains(_ item: CarouselItemType) -> Bool {
+        let key = item.cacheKey
+
+        return item.isPermanentCache
+            ? permanentCache[key] != nil
+            : temporaryCache[key] != nil
+    }
+}
+
 
 // MARK: -  before removing versioning DataRefreshStateStore.
 
-actor PagesCache {
-    private var cache: [String: LowerSectionPage] = [:]
-
-    func get(_ id: String) -> LowerSectionPage? { cache[id] }
-    func set(_ id: String, page: LowerSectionPage) { cache[id] = page }
-    func remove(_ id: String) { cache.removeValue(forKey: id) }
-    func reset() { cache.removeAll() }
-    func contains(_ id: String) -> Bool { cache[id] != nil }
-}
+//actor PagesCache {
+//    private var cache: [String: LowerSectionPage] = [:]
+//
+//    func get(_ id: String) -> LowerSectionPage? { cache[id] }
+//    func set(_ id: String, page: LowerSectionPage) { cache[id] = page }
+//    func remove(_ id: String) { cache.removeValue(forKey: id) }
+//    func reset() { cache.removeAll() }
+//    func contains(_ id: String) -> Bool { cache[id] != nil }
+//}
 

@@ -7,6 +7,10 @@
 
 // c DataRefreshState работает с allTrack + gym .. + в будущем со списком DropTop! (playlist + dropTopItem не меняется никогда поэтому их мы не отслеживаем для обновления)
 
+
+
+
+
 import SwiftUI
 
 enum TracklistState {
@@ -56,14 +60,7 @@ final class TracklistViewModel: ObservableObject {
     func fetchData() async {
         viewState = .loading
 
-        let needsRefresh = await dropListDataSource.needsDataRefresh(
-            for: trackType
-        )
-        // так как при обновлении данных на главном экране(руками или автоматически) мы удалям весь dropListDataSource.cachedPage при повторном переходе на TracklistView needsRefresh == false а cached = nil
-        // Если экран уже видел текущую revision —
-        // используем существующий cache.
-        if !needsRefresh,
-           let cached = await dropListDataSource.cachedPage(
+        if let cached = await dropListDataSource.cachedPage(
                for: trackType
            ) {
             print("Tracklist — cached")
@@ -93,12 +90,7 @@ final class TracklistViewModel: ObservableObject {
                     footerState: .idle
                 )
             )
-
-            // Этот экран теперь видел текущую revision.
-            await dropListDataSource.markDataSeen(
-                for: trackType
-            )
-
+            
         } catch {
             print("Tracklist — catch")
 
@@ -242,6 +234,247 @@ final class TracklistViewModel: ObservableObject {
         UIApplication.shared.open(url)
     }
 }
+
+
+
+// MARK: -  before removing versioning DataRefreshStateStore.
+
+
+//import SwiftUI
+//
+//enum TracklistState {
+//    case loading
+//    case error(String)
+//    case contentList(Tracklist)
+//}
+//
+//enum PlaylistActionResult {
+//    case added
+//    case alreadyAdded
+//}
+//
+//@MainActor
+//final class TracklistViewModel: ObservableObject {
+//
+//    @Published var viewState: TracklistState = .loading
+//
+//    private let dropListDataSource: DropListDataSource
+//    private let playlistUser: PlaylistUser
+//    private let trackType: CarouselItemType
+//
+//    private var isLoadingNextPage = false
+//
+//    init(
+//        dropListDataSource: DropListDataSource,
+//        playlistUser: PlaylistUser,
+//        trackType: CarouselItemType
+//    ) {
+//        self.dropListDataSource = dropListDataSource
+//        self.playlistUser = playlistUser
+//        self.trackType = trackType
+//    }
+//
+//    // MARK: - Setup
+//
+//    func setupViewModel() async {
+//        await fetchData()
+//    }
+//
+//    func retry() async {
+//        await fetchData()
+//    }
+//
+//    // MARK: - Fetch Data
+//
+//    func fetchData() async {
+//        viewState = .loading
+//
+//        let needsRefresh = await dropListDataSource.needsDataRefresh(
+//            for: trackType
+//        )
+//        // так как при обновлении данных на главном экране(руками или автоматически) мы удалям весь dropListDataSource.cachedPage при повторном переходе на TracklistView needsRefresh == false а cached = nil
+//        // Если экран уже видел текущую revision —
+//        // используем существующий cache.
+//        if !needsRefresh,
+//           let cached = await dropListDataSource.cachedPage(
+//               for: trackType
+//           ) {
+//            print("Tracklist — cached")
+//
+//            viewState = .contentList(
+//                Tracklist(
+//                    tracks: cached,
+//                    footerState: .idle
+//                )
+//            )
+//
+//            return
+//        }
+//
+//        // Cache отсутствует или revision изменилась —
+//        // обязательно идём в сеть.
+//        do {
+//            let page = try await dropListDataSource.fetchTracksForTag(
+//                trackType
+//            )
+//
+//            print("Tracklist — network")
+//
+//            viewState = .contentList(
+//                Tracklist(
+//                    tracks: page,
+//                    footerState: .idle
+//                )
+//            )
+//
+//            // Этот экран теперь видел текущую revision.
+//            await dropListDataSource.markDataSeen(
+//                for: trackType
+//            )
+//
+//        } catch {
+//            print("Tracklist — catch")
+//
+//            viewState = .error(
+//                dropListDataSource.handleError(error)
+//            )
+//        }
+//    }
+//
+//    // MARK: - Pagination
+//
+//    func loadNextPage() async {
+//        guard !isLoadingNextPage else {
+//            return
+//        }
+//
+//        guard case .contentList(let currentTracklist) = viewState else {
+//            return
+//        }
+//
+//        guard currentTracklist.tracks.hasMore else {
+//            return
+//        }
+//
+//        isLoadingNextPage = true
+//
+//        defer {
+//            isLoadingNextPage = false
+//        }
+//
+//        viewState = .contentList(
+//            Tracklist(
+//                tracks: currentTracklist.tracks,
+//                footerState: .loading
+//            )
+//        )
+//
+//        do {
+//            let result = try await dropListDataSource.loadNextPageIfNeeded(
+//                for: trackType
+//            )
+//
+//            guard case .contentList(let latestTracklist) = viewState else {
+//                return
+//            }
+//
+//            switch result {
+//
+//            case .loaded(let mergedPage):
+//                viewState = .contentList(
+//                    Tracklist(
+//                        tracks: mergedPage,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .noMore:
+//                let cached = await dropListDataSource.cachedPage(
+//                    for: trackType
+//                ) ?? latestTracklist.tracks
+//
+//                viewState = .contentList(
+//                    Tracklist(
+//                        tracks: cached,
+//                        footerState: .idle
+//                    )
+//                )
+//
+//            case .invalidState:
+//                viewState = .contentList(
+//                    Tracklist(
+//                        tracks: latestTracklist.tracks,
+//                        footerState: .idle
+//                    )
+//                )
+//            }
+//
+//        } catch {
+//            guard case .contentList(let latestTracklist) = viewState else {
+//                return
+//            }
+//
+//            viewState = .contentList(
+//                Tracklist(
+//                    tracks: latestTracklist.tracks,
+//                    footerState: .error(
+//                        "Не удалось загрузить данные"
+//                    )
+//                )
+//            )
+//        }
+//    }
+//    
+//    // MARK: - Track Actions
+//
+//    //        let track = MyTrackCloud(
+//    //            videoId: item.id,
+//    //            title: item.title,
+//    //            artist: item.subtitle,
+//    //            thumbnailURL: item.thumbnailURL?.absoluteString,
+//    //            createdAt: Date()
+//    //        )
+//    
+//    func addToPlaylist(
+//        _ item: LowerItem
+//    ) async throws -> PlaylistActionResult {
+//        guard !playlistUser.contains(videoId: item.id) else {
+//            print(
+//                "⚠️ Tracklist — track already in playlist: \(item.id)"
+//            )
+//            
+//            return .alreadyAdded
+//        }
+//        
+//        let track = MyTrackCloud(item: item)
+//        
+//        try await dropListDataSource.addTrackToPlaylist(track)
+//        
+//        print(
+//            "✅ Tracklist — track added: \(item.id)"
+//        )
+//        
+//        return .added
+//    }
+//    
+//    
+//    func playInYouTubeMusic(
+//        _ item: LowerItem
+//    ) {
+//
+//        guard let url = URL(
+//            string: "https://music.youtube.com/watch?v=\(item.id)"
+//        ) else {
+//            return
+//        }
+//
+//        print(
+//            "Tracklist — open YouTube Music: \(item.id)"
+//        )
+//
+//        UIApplication.shared.open(url)
+//    }
+//}
 
 
 
