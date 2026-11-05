@@ -343,19 +343,6 @@ import FirebaseFirestore
 
 // MARK: - MyTrackCloud (users/{userId}/myTracks/{docId})
 
-// before func addTrackToPlaylist
-//struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
-//    @DocumentID var id: String?
-//    let videoId: String
-//    let title: String
-//    let artist: String?
-//    let thumbnailURL: String?
-//    let durationISO8601: String?
-//    let tags: [String]?
-//    let playlists: [String]?
-//    let createdAt: Date
-//}
-
 struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
     @DocumentID var id: String?
 
@@ -496,7 +483,47 @@ struct DropTopDoc: Codable {
 // - durationISO8601 добавлено для треков
 
 
+//struct LowerItem: Identifiable, Hashable {
+//    let id: String                         // playlistId или videoId
+//    let title: String
+//    let subtitle: String?                  // description (playlist) или artist (track)
+//    let coverImageURL: URL?                // только для плейлистов
+//    let thumbnailURL: URL?                 // только для треков
+//    let durationISO8601: String?           // только для треков
+//    let trackCount: Int?                   // только для треков
+//    let details: [String]                  // только для droplist
+//
+//    init(
+//        id: String,
+//        title: String,
+//        subtitle: String?,
+//        coverImageURL: URL?,
+//        thumbnailURL: URL?,
+//        durationISO8601: String?,
+//        trackCount: Int?,
+//        details: [String] = []
+//    ) {
+//        self.id = id
+//        self.title = title
+//        self.subtitle = subtitle
+//        self.coverImageURL = coverImageURL
+//        self.thumbnailURL = thumbnailURL
+//        self.durationISO8601 = durationISO8601
+//        self.trackCount = trackCount
+//        self.details = details
+//    }
+//}
+
+
+protocol PageCacheKey {
+
+    var cacheKey: String { get }
+    var isPermanentCache: Bool { get }
+}
+
+
 struct LowerItem: Identifiable, Hashable {
+
     let id: String                         // playlistId или videoId
     let title: String
     let subtitle: String?                  // description (playlist) или artist (track)
@@ -505,16 +532,18 @@ struct LowerItem: Identifiable, Hashable {
     let durationISO8601: String?           // только для треков
     let trackCount: Int?                   // только для треков
     let details: [String]                  // только для droplist
+    let tag: String?
 
     init(
         id: String,
         title: String,
-        subtitle: String?,
-        coverImageURL: URL?,
-        thumbnailURL: URL?,
-        durationISO8601: String?,
-        trackCount: Int?,
-        details: [String] = []
+        subtitle: String? = nil,
+        coverImageURL: URL? = nil,
+        thumbnailURL: URL? = nil,
+        durationISO8601: String? = nil,
+        trackCount: Int? = nil,
+        details: [String] = [],
+        tag: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -524,9 +553,9 @@ struct LowerItem: Identifiable, Hashable {
         self.durationISO8601 = durationISO8601
         self.trackCount = trackCount
         self.details = details
+        self.tag = tag
     }
 }
-
 
 struct DropData {
     let topSection: TopSectionModel
@@ -557,19 +586,6 @@ struct LowerSectionPage {
 }
 
 //  5. CarouselItem — элементы средней секции
-
-
-// нужно разделить кэш в PagesCache на два типа (временный и постоянный)
-// то есть на тот кэшь который мы удаляем и который не удаляемый после обновления главного экрана
-// временный - droplist, allTracks, gym, party, rnb
-// постоянный droplistDetails + topDropDetails
-// то есть в PagesCache мы должны иметь два словаря (временный и постоянный)
-// когда делаем рефреш на главном экарне чистим временный кэш а постоянный оставляем
-
-// как вариант можно иметь общий кэш в одном словаре но пробегатьца в цикле и удалять вот эти ключи droplist, allTracks, gym, party, rnb а постоянные оставлять
-
-// когда мы будем использовать этот CarouselItemType для перехода из Droptops нужно будет добавить новые теги сюда(квартал + артист + год)
-
 
 enum CarouselItemType: Hashable {
 
@@ -638,21 +654,613 @@ enum CarouselItemType: Hashable {
     // MARK: Cache Lifetime
     // =================================================
 
+//    var isPermanentCache: Bool {
+//        switch self {
+//        case .droplistDetails,
+//             .topDropDetails:
+//            return true
+//
+//        case .droplist,
+//             .allTracks,
+//             .gym,
+//             .party,
+//             .rnb:
+//            return false
+//        }
+//    }
+}
+
+extension CarouselItemType: PageCacheKey {
+
     var isPermanentCache: Bool {
         switch self {
-        case .droplistDetails,
-             .topDropDetails:
+        case .droplistDetails, .topDropDetails:
             return true
 
-        case .droplist,
-             .allTracks,
-             .gym,
-             .party,
-             .rnb:
+        default:
             return false
         }
     }
 }
+
+
+
+
+//  TopSectionModel — верхняя секция
+
+struct TopSectionModel: Identifiable {
+    let id: String
+    let title: String
+    let items: [TopItem]
+}
+
+struct TopItem: Identifiable {
+    let id: String
+    let title: String
+    let imageURL: URL?
+    let artists: [String]
+}
+
+// DropTopItem - модель для DropTopView
+
+
+// в будущем можем заменить DropTopItem на LowerItem
+struct DropTopItem: Identifiable, Hashable {
+    let id: String
+    let title: String
+    let description: String
+    let imageURL: URL?
+    let tag: String
+}
+
+
+// в будущем можем заменить DropTopPage на LowerSectionPage
+// и переместить логику DropTopPagesCache в PagesCache
+struct DropTopPage {
+    let items: [DropTopItem]
+    let lastDocumentSnapshot: DocumentSnapshot?
+    let hasMore: Bool
+}
+
+// it's Lil Wayne / Lil Wayne day
+
+import Foundation
+
+enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
+
+    case all
+    case topYear
+    case topQuarter
+    case artist
+
+    var id: String {
+        rawValue
+    }
+
+    var title: String {
+        switch self {
+        case .all:
+            return "All"
+
+        case .topYear:
+            return "Top Year"
+
+        case .topQuarter:
+            return "Top Quarter"
+
+        case .artist:
+            return "Artist"
+        }
+    }
+
+    var firestoreTag: String? {
+        switch self {
+        case .all:
+            return nil
+
+        case .topYear:
+            return "topYear"
+
+        case .topQuarter:
+            return "topQuarter"
+
+        case .artist:
+            return "artist"
+        }
+    }
+
+    var cacheKey: String {
+        "dropTop.\(rawValue)"
+    }
+}
+
+extension DropTopTag: PageCacheKey {
+
+    var isPermanentCache: Bool {
+        false
+    }
+}
+
+
+// MARK: - Instead of `DropTopPage`, use a generic `LowerSectionPage`, and merge `DropTopPagesCache` with `PagesCache`.
+
+//import Foundation
+//import FirebaseFirestore
+//
+//
+//// MARK: - MyTrackCloud (users/{userId}/myTracks/{docId})
+//
+//// before func addTrackToPlaylist
+////struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
+////    @DocumentID var id: String?
+////    let videoId: String
+////    let title: String
+////    let artist: String?
+////    let thumbnailURL: String?
+////    let durationISO8601: String?
+////    let tags: [String]?
+////    let playlists: [String]?
+////    let createdAt: Date
+////}
+//
+//struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
+//    @DocumentID var id: String?
+//
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let createdAt: Date
+//}
+//
+//// let track = MyTrackCloud(item: item)
+//extension MyTrackCloud {
+//
+//    init(
+//        item: LowerItem
+//    ) {
+//        self.init(
+//            videoId: item.id,
+//            title: item.title,
+//            artist: item.subtitle,
+//            thumbnailURL: item.thumbnailURL?.absoluteString,
+//            createdAt: Date()
+//        )
+//    }
+//}
+//
+//
+//
+//// MARK: - 1. Firestore DTO (Data Transfer Objects)
+//
+////  PlaylistDoc — документ плейлиста (droplist/{playlistId})
+//
+//struct PlaylistDoc: Codable, Hashable {
+//    let playlistId: String
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    let createdAt: Date
+//    let details: [String]?
+//}
+//
+////  PlaylistTrackDoc — документ трека внутри плейлиста (droplist/{playlistId}/tracks/{videoId})
+//
+//struct PlaylistTrackDoc: Codable, Identifiable {
+//    let id: String                 // videoId
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let orderIndex: Int
+//    let createdAt: Date
+//}
+//
+//// TrackDoc — глобальный трек (dropTracks/{videoId})
+//
+//struct TrackDoc: Codable, Identifiable {
+//    let id: String?                 // videoId
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let tags: [String]?
+//    let playlists: [String]?
+//    let createdAt: Date
+//    let searchKeywords: [String]?
+//}
+//
+////  CarouselDoc — документ плейлиста (carouselItems/{docId})
+//
+////struct CarouselDoc: Codable, Identifiable {
+////    let id: String
+////    let title: String
+////    let type: CarouselItemType
+////    let orderIndex: Int
+////    let createdAt: Date?
+////}
+//
+//
+////  TopSectionDoc — документ плейлиста (topSections/{playlistId})
+//
+//
+////struct TopSectionDoc: Codable {
+////    let playlistId: String
+////    let title: String
+////    let description: String?
+////    let coverImageURL: String?
+////    let trackCount: Int
+////    let createdAt: Date?
+////    let orderIndex: Int
+////}
+//
+//struct TopSectionDoc: Codable {
+//    let playlistId: String      // Критично → обязательное
+//    let title: String           // Критично → обязательное
+//    let description: String?    // Не критично → опциональное
+//    let coverImageURL: String?  // Не критично → опциональное
+//    let trackCount: Int         // Критично → обязательное
+//    let createdAt: Date?        // Может отсутствовать → опциональное
+//    let artists: [String]
+//    let orderIndex: Int         // Критично → обязательное
+//}
+//
+//// TopSectionTrackDoc — трек (topSections/tracks (subcollection)/{videoId})
+//
+//struct TopSectionTrackDoc: Codable, Identifiable {
+//    let id: String
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let orderIndex: Int
+//    let createdAt: Date
+//}
+//
+//struct DropTopDoc: Codable {
+//    let playlistId: String
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    let createdAt: Date?
+//    let tag: String
+//}
+//
+//
+//
+//
+//// MARK: - 2. Domain Models (UI‑модели)
+//
+//// LowerItem — универсальная модель нижней секции
+//// Адаптирована под реальную структуру Firestore:
+//// - У плейлистов НЕТ sampleThumbnails → удалено
+//// - У треков thumbnail один → thumbnailURL
+//// - durationISO8601 добавлено для треков
+//
+//
+//struct LowerItem: Identifiable, Hashable {
+//    let id: String                         // playlistId или videoId
+//    let title: String
+//    let subtitle: String?                  // description (playlist) или artist (track)
+//    let coverImageURL: URL?                // только для плейлистов
+//    let thumbnailURL: URL?                 // только для треков
+//    let durationISO8601: String?           // только для треков
+//    let trackCount: Int?                   // только для треков
+//    let details: [String]                  // только для droplist
+//
+//    init(
+//        id: String,
+//        title: String,
+//        subtitle: String?,
+//        coverImageURL: URL?,
+//        thumbnailURL: URL?,
+//        durationISO8601: String?,
+//        trackCount: Int?,
+//        details: [String] = []
+//    ) {
+//        self.id = id
+//        self.title = title
+//        self.subtitle = subtitle
+//        self.coverImageURL = coverImageURL
+//        self.thumbnailURL = thumbnailURL
+//        self.durationISO8601 = durationISO8601
+//        self.trackCount = trackCount
+//        self.details = details
+//    }
+//}
+//
+//
+//struct DropData {
+//    let topSection: TopSectionModel
+//    let initialLowerSection: LowerSectionPage
+//    let footerState: FooterState
+//}
+//
+//// new model for TracklistView
+//struct Tracklist {
+//    let tracks: LowerSectionPage
+//    let footerState: FooterState
+//}
+//
+//
+//enum FooterState: Equatable {
+//    case idle          // footer виден, но не показывает загрузку
+//    case loading       // footer показывает ProgressView
+//    case error(String) // footer показывает ошибку + кнопку "Повторить"
+//}
+//
+//
+////  4. LowerSectionPage — страница пагинации
+//
+//struct LowerSectionPage {
+//    let items: [LowerItem]
+//    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
+//}
+//
+////  5. CarouselItem — элементы средней секции
+//
+//
+//// нужно разделить кэш в PagesCache на два типа (временный и постоянный)
+//// то есть на тот кэшь который мы удаляем и который не удаляемый после обновления главного экрана
+//// временный - droplist, allTracks, gym, party, rnb
+//// постоянный droplistDetails + topDropDetails
+//// то есть в PagesCache мы должны иметь два словаря (временный и постоянный)
+//// когда делаем рефреш на главном экарне чистим временный кэш а постоянный оставляем
+//
+//// как вариант можно иметь общий кэш в одном словаре но пробегатьца в цикле и удалять вот эти ключи droplist, allTracks, gym, party, rnb а постоянные оставлять
+//
+//// когда мы будем использовать этот CarouselItemType для перехода из Droptops нужно будет добавить новые теги сюда(квартал + артист + год)
+//
+//
+//enum CarouselItemType: Hashable {
+//
+//    case droplist
+//    case allTracks
+//    case gym
+//    case party
+//    case rnb
+//
+//    case droplistDetails(playlistId: String)
+//    case topDropDetails(playlistId: String)
+//
+//    // =================================================
+//    // MARK: Cache Key
+//    // =================================================
+//
+//    var cacheKey: String {
+//        switch self {
+//        case .droplist:
+//            return "droplist"
+//
+//        case .allTracks:
+//            return "allTracks"
+//
+//        case .gym:
+//            return "gym"
+//
+//        case .party:
+//            return "party"
+//
+//        case .rnb:
+//            return "rnb"
+//
+//        case .droplistDetails(let playlistId):
+//            return "droplistDetails_\(playlistId)"
+//
+//        case .topDropDetails(let playlistId):
+//            return "topDropDetails_\(playlistId)"
+//        }
+//    }
+//
+//    // =================================================
+//    // MARK: Tag
+//    // =================================================
+//
+//    var tag: String? {
+//        switch self {
+//        case .droplist,
+//             .allTracks,
+//             .droplistDetails,
+//             .topDropDetails:
+//            return nil
+//
+//        case .gym:
+//            return "gym"
+//
+//        case .party:
+//            return "party"
+//
+//        case .rnb:
+//            return "rnb"
+//        }
+//    }
+//
+//    // =================================================
+//    // MARK: Cache Lifetime
+//    // =================================================
+//
+//    var isPermanentCache: Bool {
+//        switch self {
+//        case .droplistDetails,
+//             .topDropDetails:
+//            return true
+//
+//        case .droplist,
+//             .allTracks,
+//             .gym,
+//             .party,
+//             .rnb:
+//            return false
+//        }
+//    }
+//}
+//
+//
+//
+//// MARK: -  before removing versioning DataRefreshStateStore.
+////enum CarouselItemType: Hashable {
+////
+////    case droplist
+////    case allTracks
+////    case gym
+////    case party
+////    case rnb
+////
+////    case droplistDetails(playlistId: String)
+////    case topDropDetails(playlistId: String)
+////
+////    // ============================================================
+////    // CACHE KEY
+////    // ============================================================
+////
+////    var cacheKey: String {
+////
+////        switch self {
+////
+////        case .droplist:
+////            return "droplist"
+////
+////        case .allTracks:
+////            return "allTracks"
+////
+////        case .gym:
+////            return "gym"
+////
+////        case .party:
+////            return "party"
+////
+////        case .rnb:
+////            return "rnb"
+////
+////        case .droplistDetails(let playlistId):
+////            return "droplistDetails_\(playlistId)"
+////
+////        case .topDropDetails(let playlistId):
+////            return "topDropDetails_\(playlistId)"
+////        }
+////    }
+////
+////    // ============================================================
+////    // TAG
+////    // ============================================================
+////
+////    var tag: String? {
+////
+////        switch self {
+////
+////        case .droplist,
+////             .allTracks,
+////             .droplistDetails,
+////             .topDropDetails:
+////            return nil
+////
+////        case .gym:
+////            return "gym"
+////
+////        case .party:
+////            return "party"
+////
+////        case .rnb:
+////            return "rnb"
+////        }
+////    }
+////}
+//
+////  TopSectionModel — верхняя секция
+//
+//struct TopSectionModel: Identifiable {
+//    let id: String
+//    let title: String
+//    let items: [TopItem]
+//}
+//
+//struct TopItem: Identifiable {
+//    let id: String
+//    let title: String
+//    let imageURL: URL?
+//    let artists: [String]
+//}
+//
+//// DropTopItem - модель для DropTopView
+//
+//
+//// в будущем можем заменить DropTopItem на LowerItem
+//struct DropTopItem: Identifiable, Hashable {
+//    let id: String
+//    let title: String
+//    let description: String
+//    let imageURL: URL?
+//    let tag: String
+//}
+//
+//
+//// в будущем можем заменить DropTopPage на LowerSectionPage
+//// и переместить логику DropTopPagesCache в PagesCache
+//struct DropTopPage {
+//    let items: [DropTopItem]
+//    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
+//}
+//
+//// it's Lil Wayne / Lil Wayne day
+//
+//enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
+//    case all
+//    case topYear
+//    case topQuarter
+//    case artist
+//
+//    var id: String {
+//        rawValue
+//    }
+//
+//    var title: String {
+//        switch self {
+//        case .all:
+//            return "All"
+//        case .topYear:
+//            return "Top Year"
+//        case .topQuarter:
+//            return "Top Quarter"
+//        case .artist:
+//            return "Artist"
+//        }
+//    }
+//
+//    /// nil = получить всю коллекцию DropTop.
+//    var firestoreTag: String? {
+//        switch self {
+//        case .all:
+//            return nil
+//        case .topYear:
+//            return "topYear"
+//        case .topQuarter:
+//            return "topQuarter"
+//        case .artist:
+//            return "artist"
+//        }
+//    }
+//
+//    /// Отдельный ключ кэша для каждого фильтра.
+//    var cacheKey: String {
+//        "dropTop.\(rawValue)"
+//    }
+//}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -724,87 +1332,6 @@ enum CarouselItemType: Hashable {
 //        }
 //    }
 //}
-
-//  TopSectionModel — верхняя секция
-
-struct TopSectionModel: Identifiable {
-    let id: String
-    let title: String
-    let items: [TopItem]
-}
-
-struct TopItem: Identifiable {
-    let id: String
-    let title: String
-    let imageURL: URL?
-    let artists: [String]
-}
-
-// DropTopItem - модель для DropTopView
-
-
-// в будущем можем заменить DropTopItem на LowerItem
-struct DropTopItem: Identifiable, Hashable {
-    let id: String
-    let title: String
-    let description: String
-    let imageURL: URL?
-    let tag: String
-}
-
-
-// в будущем можем заменить DropTopPage на LowerSectionPage
-// и переместить логику DropTopPagesCache в PagesCache
-struct DropTopPage {
-    let items: [DropTopItem]
-    let lastDocumentSnapshot: DocumentSnapshot?
-    let hasMore: Bool
-}
-
-// it's Lil Wayne / Lil Wayne day
-
-enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
-    case all
-    case topYear
-    case topQuarter
-    case artist
-
-    var id: String {
-        rawValue
-    }
-
-    var title: String {
-        switch self {
-        case .all:
-            return "All"
-        case .topYear:
-            return "Top Year"
-        case .topQuarter:
-            return "Top Quarter"
-        case .artist:
-            return "Artist"
-        }
-    }
-
-    /// nil = получить всю коллекцию DropTop.
-    var firestoreTag: String? {
-        switch self {
-        case .all:
-            return nil
-        case .topYear:
-            return "topYear"
-        case .topQuarter:
-            return "topQuarter"
-        case .artist:
-            return "artist"
-        }
-    }
-
-    /// Отдельный ключ кэша для каждого фильтра.
-    var cacheKey: String {
-        "dropTop.\(rawValue)"
-    }
-}
 
 
 

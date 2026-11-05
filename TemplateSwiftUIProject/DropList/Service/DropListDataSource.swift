@@ -34,12 +34,6 @@ import Foundation
 import FirebaseFirestore
 
 
-enum NextDropTopPageResult {
-    case loaded(page: DropTopPage)
-    case noMore
-    case invalidState
-}
-
 enum NextPageResult {
 
     case loaded(page: LowerSectionPage)
@@ -383,187 +377,118 @@ final class DropListDataSource {
     }
 }
 
+
+// =================================================
+// MARK: - DropTop — Cache
+// =================================================
+
 extension DropListDataSource {
-    
-    // =========================================================
-    // MARK: DropTop — Cache
-    // =========================================================
-    
+
     func cachedDropTopPage(
         for tag: DropTopTag
-    ) async -> DropTopPage? {
-        
-        await dropTopPagesCache.get(
-            tag.cacheKey
-        )
+    ) async -> LowerSectionPage? {
+        await pagesCache.get(tag)
     }
 }
 
+// =================================================
+// MARK: - DropTop — Initial Fetch
+// =================================================
+
 extension DropListDataSource {
-    
-    // =========================================================
-    // MARK: DropTop — Initial Fetch
-    // =========================================================
-    
+
     func fetchDropTopPage(
         for tag: DropTopTag
-    ) async throws -> DropTopPage {
-        
-        let page = try await firestoreService
-            .fetchInitialDropTopPage(
-                for: tag,
-                pageSize: dropTopPageSize
-            )
-        
-        await dropTopPagesCache.set(
-            tag.cacheKey,
+    ) async throws -> LowerSectionPage {
+        let page = try await firestoreService.fetchInitialDropTopPage(
+            for: tag,
+            pageSize: dropTopPageSize
+        )
+
+        // DropTop сохраняется во временный кэш.
+        await pagesCache.set(
+            tag,
             page: page
         )
-        
+
         return page
     }
 }
 
+// =================================================
+// MARK: - DropTop — Pagination
+// =================================================
+
 extension DropListDataSource {
-    
-    // =========================================================
-    // MARK: DropTop — Pagination
-    // =========================================================
-    
+
     func loadNextDropTopPageIfNeeded(
         for tag: DropTopTag
-    ) async throws -> NextDropTopPageResult {
-        
-        let cacheKey = tag.cacheKey
-        
-        // -----------------------------------------------------
-        // Получаем текущую страницу.
-        // -----------------------------------------------------
-        
-        guard let currentPage =
-            await dropTopPagesCache.get(cacheKey)
-        else {
+    ) async throws -> NextPageResult {
+        // Получаем текущую страницу из общего кэша.
+        guard let currentPage = await pagesCache.get(tag) else {
             return .invalidState
         }
-        
-        // -----------------------------------------------------
-        // Больше данных нет.
-        // -----------------------------------------------------
-        
+
+        // Если данные закончились, запрос не нужен.
         guard currentPage.hasMore else {
             return .noMore
         }
-        
-        // -----------------------------------------------------
-        // Уже идёт pagination этого tag.
-        //
-        // Это защищает от нескольких onAppear
-        // последнего элемента.
-        // -----------------------------------------------------
-        
-        // может это уже избыточно?
-        // мы и так в func loadNextPage() проверяем что бы несколько раз не вызвать loadNextDropTopPageIfNeeded для одного тега?
-        let canStart =
-            await dropTopPagesCache.beginLoading(
-                cacheKey
-            )
-        
+
+        // Для следующей страницы нужен последний snapshot.
+        guard let lastSnapshot = currentPage.lastDocumentSnapshot else {
+            return .invalidState
+        }
+
+        // Не допускаем параллельную загрузку одного тега.
+        let canStart = await pagesCache.beginLoading(tag)
+
         guard canStart else {
             return .invalidState
         }
-        
-        defer {
-            Task {
-                await dropTopPagesCache.endLoading(
-                    cacheKey
-                )
-            }
-        }
-        
-        // -----------------------------------------------------
-        // Нужен последний snapshot.
-        // -----------------------------------------------------
-        
-        guard let lastSnapshot =
-            currentPage.lastDocumentSnapshot
-        else {
-            return .invalidState
-        }
-        
-        // -----------------------------------------------------
-        // Firestore.
-        // -----------------------------------------------------
-        
-        let nextPage =
-            try await firestoreService
-                .fetchNextDropTopPage(
-                    for: tag,
-                    after: lastSnapshot,
-                    pageSize: dropTopPageSize
-                )
-        
-        // -----------------------------------------------------
-        // Если Firestore вернул пустую страницу,
-        // окончательно закрываем pagination.
-        // -----------------------------------------------------
-        
-        if nextPage.items.isEmpty {
-            
-            let finishedPage =
-                DropTopPage(
+
+        do {
+            let nextPage = try await firestoreService.fetchNextDropTopPage(
+                for: tag,
+                after: lastSnapshot,
+                pageSize: dropTopPageSize
+            )
+
+            let mergedPage: LowerSectionPage
+
+            // Пустая страница означает конец списка.
+            if nextPage.items.isEmpty {
+                mergedPage = LowerSectionPage(
                     items: currentPage.items,
-                    lastDocumentSnapshot:
-                        currentPage.lastDocumentSnapshot,
+                    lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
                     hasMore: false
                 )
-            
-            await dropTopPagesCache.set(
-                cacheKey,
-                page: finishedPage
+            } else {
+                // Объединяем старые и новые элементы.
+                mergedPage = LowerSectionPage(
+                    items: currentPage.items + nextPage.items,
+                    lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+                    hasMore: nextPage.hasMore
+                )
+            }
+
+            await pagesCache.set(
+                tag,
+                page: mergedPage
             )
-            
-            return .noMore
+
+            await pagesCache.endLoading(tag)
+
+            if nextPage.items.isEmpty {
+                return .noMore
+            }
+
+            return .loaded(page: mergedPage)
+
+        } catch {
+            // Освобождаем блокировку даже при ошибке Firestore.
+            await pagesCache.endLoading(tag)
+            throw error
         }
-        
-        // -----------------------------------------------------
-        // Объединяем старую + новую страницу.
-        // -----------------------------------------------------
-        
-        let mergedItems =
-            currentPage.items + nextPage.items
-        
-        let mergedPage =
-            DropTopPage(
-                items: mergedItems,
-                lastDocumentSnapshot:
-                    nextPage.lastDocumentSnapshot,
-                hasMore:
-                    nextPage.hasMore
-            )
-        
-        // -----------------------------------------------------
-        // Сохраняем объединённую страницу в cache.
-        // -----------------------------------------------------
-        
-        await dropTopPagesCache.set(
-            cacheKey,
-            page: mergedPage
-        )
-        
-        return .loaded(
-            page: mergedPage
-        )
-    }
-}
-
-extension DropListDataSource {
-    
-    // =========================================================
-    // MARK: DropTop — Reset Cache
-    // =========================================================
-    
-    func resetDropTopCache() async {
-        await dropTopPagesCache.reset()
     }
 }
 
@@ -572,6 +497,554 @@ extension DropListDataSource {
 
 
 
+// MARK: - Instead of `DropTopPage`, use a generic `LowerSectionPage`, and merge `DropTopPagesCache` with `PagesCache`.
+
+
+
+//// MARK: - DropListDataSource
+//
+//import Foundation
+//import FirebaseFirestore
+//
+//
+//enum NextDropTopPageResult {
+//    case loaded(page: DropTopPage)
+//    case noMore
+//    case invalidState
+//}
+//
+//enum NextPageResult {
+//
+//    case loaded(page: LowerSectionPage)
+//    case noMore
+//    case invalidState
+//}
+//
+//struct DropListUserFacingError: Error {
+//
+//    let message: String
+//}
+//
+//final class DropListDataSource {
+//
+//    // MARK: - Dependencies
+//
+//    private let firestoreService: DropListFirestoreServiceProtocol
+//    private let errorHandler: ErrorDiagnosticsProtocol
+//    private let alertManager: AlertManager
+//    private let pageSize: Int
+//
+//    // MARK: - Cached State
+//
+//    private let pagesCache = PagesCache()
+//    
+//    private let dropTopPagesCache = DropTopPagesCache()
+//
+//    // MARK: - Data Refresh State
+//
+//    private let dataRefreshStateStore = DataRefreshStateStore()
+//
+//    private let userProvider: CurrentUserProvider
+//    
+//    private let dropTopPageSize = 30
+//    
+//    // MARK: - Init
+//
+//    init(
+//        firestoreService: DropListFirestoreServiceProtocol,
+//        errorHandler: ErrorDiagnosticsProtocol,
+//        alertManager: AlertManager = .shared,
+//        userProvider: CurrentUserProvider,
+//        pageSize: Int = 10
+//    ) {
+//        self.firestoreService = firestoreService
+//        self.errorHandler = errorHandler
+//        self.alertManager = alertManager
+//        self.userProvider = userProvider
+//        self.pageSize = pageSize
+//    }
+//
+//    // MARK: - Cache
+//
+//    func resetCache() {
+//        Task {
+//            await pagesCache.reset()
+//        }
+//    }
+//
+//    func resetCacheAsync() async {
+//        await pagesCache.reset()
+//        //            resetDropTopCache() ?
+//    }
+//
+//    func cachedPage(
+//        for item: CarouselItemType
+//    ) async -> LowerSectionPage? {
+//
+//        await pagesCache.get(item)
+//    }
+//
+//    // MARK: - Data Refresh State
+//
+//    /// Вызывается после успешного initial load / refresh.
+//    /// записывает lastUpdated.
+//    func markDataUpdated() async {
+//
+//        await dataRefreshStateStore.markUpdated()
+//    }
+//
+//    /// Сбрасывает lastUpdated
+//    /// Используется при ошибке / полном retry.
+//    func resetDataRefreshState() async {
+//
+//        await dataRefreshStateStore.reset()
+//    }
+//
+//    func lastUpdated() async -> Date? {
+//
+//        await dataRefreshStateStore.currentLastUpdated()
+//    }
+//
+//    // MARK: - Initial Load
+//
+//    func loadInitialDropList(
+//        defaultSelectedIndex: Int = 0
+//    ) async -> Result<DropData, DropListUserFacingError> {
+//
+//        do {
+//
+//            async let topTask: TopSectionModel =
+//                firestoreService.fetchTopSection()
+//
+//            let topSection = try await topTask
+//
+//            let firstPage =
+//                try await firestoreService.fetchInitialLowerPage(
+//                    for: .droplist,
+//                    pageSize: pageSize
+//                )
+//
+//            await pagesCache.set(
+//                CarouselItemType.droplist,
+//                page: firstPage
+//            )
+//
+//            let dropData = DropData(
+//                topSection: topSection,
+//                initialLowerSection: firstPage,
+//                footerState: .idle
+//            )
+//
+//            return .success(dropData)
+//
+//        } catch {
+//
+//            let message = handleError(error)
+//
+//            return .failure(
+//                DropListUserFacingError(
+//                    message: message
+//                )
+//            )
+//        }
+//    }
+//
+//    // MARK: - Tracklist Initial Load
+//
+//    func fetchTracksForTag(
+//        _ item: CarouselItemType
+//    ) async throws -> LowerSectionPage {
+//
+//        let firstPage =
+//            try await firestoreService.fetchInitialLowerPage(
+//                for: item,
+//                pageSize: pageSize
+//            )
+//
+//        await pagesCache.set(
+//            item,
+//            page: firstPage
+//        )
+//
+//        return firstPage
+//    }
+//
+//    // MARK: - Pagination
+//
+//    func loadNextPageIfNeeded(
+//        for item: CarouselItemType
+//    ) async throws -> NextPageResult {
+//
+//        // ============================================================
+//        // Получаем текущее состояние конкретного списка.
+//        //
+//        // Для droplistDetails / topDropDetails cacheKey содержит
+//        // playlistId, поэтому каждый playlist имеет свой cache.
+//        // ============================================================
+//
+//        guard let currentPage =
+//                await pagesCache.get(item)
+//        else {
+//
+//            return .invalidState
+//        }
+//
+//        // ============================================================
+//        // Если больше страниц нет — сразу завершаем pagination.
+//        // ============================================================
+//
+//        guard currentPage.hasMore,
+//              let lastSnapshot = currentPage.lastDocumentSnapshot
+//        else {
+//
+//            return .noMore
+//        }
+//
+//        // ============================================================
+//        // Получаем следующую страницу.
+//        //
+//        // Сам DropListFirestoreService определяет,
+//        // откуда брать данные в зависимости от item.
+//        // ============================================================
+//
+//        let nextPage =
+//            try await firestoreService.fetchNextLowerPage(
+//                for: item,
+//                after: lastSnapshot,
+//                pageSize: pageSize
+//            )
+//
+//        // ============================================================
+//        // Пустая страница = конец списка.
+//        // ============================================================
+//
+//        if nextPage.items.isEmpty {
+//
+//            let mergedPage = LowerSectionPage(
+//                items: currentPage.items,
+//                lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+//                hasMore: false
+//            )
+//
+//            await pagesCache.set(
+//                item,
+//                page: mergedPage
+//            )
+//
+//            return .noMore
+//        }
+//
+//        // ============================================================
+//        // Нормальная страница.
+//        // ============================================================
+//
+//        let mergedItems =
+//            currentPage.items + nextPage.items
+//
+//        let mergedPage = LowerSectionPage(
+//            items: mergedItems,
+//            lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+//            hasMore: nextPage.hasMore
+//        )
+//
+//        await pagesCache.set(
+//            item,
+//            page: mergedPage
+//        )
+//
+//        return .loaded(
+//            page: mergedPage
+//        )
+//    }
+//
+//    // MARK: - Soft Refresh
+//
+//    func refreshAll() async -> DropData? {
+//
+//        do {
+//
+//            async let topTask: TopSectionModel =
+//                firestoreService.fetchTopSection()
+//
+//            let topSection = try await topTask
+//
+//            let firstPage =
+//                try await firestoreService.fetchInitialLowerPage(
+//                    for: .droplist,
+//                    pageSize: pageSize
+//                )
+//
+//            await resetCacheAsync()
+//
+//            await pagesCache.set(
+//                CarouselItemType.droplist,
+//                page: firstPage
+//            )
+//
+//            return DropData(
+//                topSection: topSection,
+//                initialLowerSection: firstPage,
+//                footerState: .idle
+//            )
+//
+//        } catch {
+//
+//            let _ = errorHandler.handle(
+//                error: error,
+//                context:
+//                    ErrorContext
+//                    .DropListDataSource_loadInitialDropList_DropListFirestoreService
+//                    .rawValue
+//            )
+//
+//            return nil
+//        }
+//    }
+//
+//    // MARK: - Error Handling
+//
+//    func handleError(
+//        _ error: Error
+//    ) -> String {
+//
+//        if let serviceError =
+//            error as? FirestoreGetServiceError {
+//
+//            let combinedContext =
+//                "\(serviceError.context.rawValue) | " +
+//                "\(ErrorContext.DropListDataSource_loadInitialDropList_DropListFirestoreService.rawValue)"
+//
+//            return errorHandler.handle(
+//                error: serviceError.underlying,
+//                context: combinedContext
+//            )
+//
+//        } else {
+//
+//            return errorHandler.handle(
+//                error: error,
+//                context:
+//                    ErrorContext
+//                    .DropListDataSource_loadInitialDropList_DropListFirestoreService
+//                    .rawValue
+//            )
+//        }
+//    }
+//    
+//    // MARK: - Playlist
+//
+//    func addTrackToPlaylist(
+//        _ track: MyTrackCloud
+//    ) async throws {
+//        guard let userId = userProvider.currentUser()?.uid else {
+//            let error = AppInternalError.notSignedIn
+//            
+//            let _ = errorHandler.handle(
+//                error: error,
+//                context: ErrorContext
+//                    .DropListDataSource_addTrackToPlaylist_notSignedIn
+//                    .rawValue
+//            )
+//            
+//            throw error
+//        }
+//        
+//        try await firestoreService.addTrackToPlaylist(
+//            userId: userId,
+//            track: track
+//        )
+//    }
+//}
+//
+//extension DropListDataSource {
+//    
+//    // =========================================================
+//    // MARK: DropTop — Cache
+//    // =========================================================
+//    
+//    func cachedDropTopPage(
+//        for tag: DropTopTag
+//    ) async -> DropTopPage? {
+//        
+//        await dropTopPagesCache.get(
+//            tag.cacheKey
+//        )
+//    }
+//}
+//
+//extension DropListDataSource {
+//    
+//    // =========================================================
+//    // MARK: DropTop — Initial Fetch
+//    // =========================================================
+//    
+//    func fetchDropTopPage(
+//        for tag: DropTopTag
+//    ) async throws -> DropTopPage {
+//        
+//        let page = try await firestoreService
+//            .fetchInitialDropTopPage(
+//                for: tag,
+//                pageSize: dropTopPageSize
+//            )
+//        
+//        await dropTopPagesCache.set(
+//            tag.cacheKey,
+//            page: page
+//        )
+//        
+//        return page
+//    }
+//}
+//
+//extension DropListDataSource {
+//    
+//    // =========================================================
+//    // MARK: DropTop — Pagination
+//    // =========================================================
+//    
+//    func loadNextDropTopPageIfNeeded(
+//        for tag: DropTopTag
+//    ) async throws -> NextDropTopPageResult {
+//        
+//        let cacheKey = tag.cacheKey
+//        
+//        // -----------------------------------------------------
+//        // Получаем текущую страницу.
+//        // -----------------------------------------------------
+//        
+//        guard let currentPage =
+//            await dropTopPagesCache.get(cacheKey)
+//        else {
+//            return .invalidState
+//        }
+//        
+//        // -----------------------------------------------------
+//        // Больше данных нет.
+//        // -----------------------------------------------------
+//        
+//        guard currentPage.hasMore else {
+//            return .noMore
+//        }
+//        
+//        // -----------------------------------------------------
+//        // Уже идёт pagination этого tag.
+//        //
+//        // Это защищает от нескольких onAppear
+//        // последнего элемента.
+//        // -----------------------------------------------------
+//        
+//        // может это уже избыточно?
+//        // мы и так в func loadNextPage() проверяем что бы несколько раз не вызвать loadNextDropTopPageIfNeeded для одного тега?
+//        let canStart =
+//            await dropTopPagesCache.beginLoading(
+//                cacheKey
+//            )
+//        
+//        guard canStart else {
+//            return .invalidState
+//        }
+//        
+//        defer {
+//            Task {
+//                await dropTopPagesCache.endLoading(
+//                    cacheKey
+//                )
+//            }
+//        }
+//        
+//        // -----------------------------------------------------
+//        // Нужен последний snapshot.
+//        // -----------------------------------------------------
+//        
+//        guard let lastSnapshot =
+//            currentPage.lastDocumentSnapshot
+//        else {
+//            return .invalidState
+//        }
+//        
+//        // -----------------------------------------------------
+//        // Firestore.
+//        // -----------------------------------------------------
+//        
+//        let nextPage =
+//            try await firestoreService
+//                .fetchNextDropTopPage(
+//                    for: tag,
+//                    after: lastSnapshot,
+//                    pageSize: dropTopPageSize
+//                )
+//        
+//        // -----------------------------------------------------
+//        // Если Firestore вернул пустую страницу,
+//        // окончательно закрываем pagination.
+//        // -----------------------------------------------------
+//        
+//        if nextPage.items.isEmpty {
+//            
+//            let finishedPage =
+//                DropTopPage(
+//                    items: currentPage.items,
+//                    lastDocumentSnapshot:
+//                        currentPage.lastDocumentSnapshot,
+//                    hasMore: false
+//                )
+//            
+//            await dropTopPagesCache.set(
+//                cacheKey,
+//                page: finishedPage
+//            )
+//            
+//            return .noMore
+//        }
+//        
+//        // -----------------------------------------------------
+//        // Объединяем старую + новую страницу.
+//        // -----------------------------------------------------
+//        
+//        let mergedItems =
+//            currentPage.items + nextPage.items
+//        
+//        let mergedPage =
+//            DropTopPage(
+//                items: mergedItems,
+//                lastDocumentSnapshot:
+//                    nextPage.lastDocumentSnapshot,
+//                hasMore:
+//                    nextPage.hasMore
+//            )
+//        
+//        // -----------------------------------------------------
+//        // Сохраняем объединённую страницу в cache.
+//        // -----------------------------------------------------
+//        
+//        await dropTopPagesCache.set(
+//            cacheKey,
+//            page: mergedPage
+//        )
+//        
+//        return .loaded(
+//            page: mergedPage
+//        )
+//    }
+//}
+//
+//extension DropListDataSource {
+//    
+//    // =========================================================
+//    // MARK: DropTop — Reset Cache
+//    // =========================================================
+//    
+//    func resetDropTopCache() async {
+//        await dropTopPagesCache.reset()
+//    }
+//}
+//
+//
+//
+//
+//
+//
 
 
 

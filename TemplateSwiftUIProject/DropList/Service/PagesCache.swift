@@ -1,5 +1,4 @@
 // PagesCache.swift
-import Foundation
 
 // MARK: - PagesCache (Атомарный кэш через actor)
 //
@@ -56,19 +55,6 @@ import Foundation
 // MARK: - Важно что бы id для все кэшей были уникальными это важно для верхней секции где могут меняться ячейки
 
 
-// тут у нас храняться данные как (ячейки droplist главного экрана так и списки треков для (allTracks, gym, party, rnb + droplist + topDropItem ))
-// потому что они все LowerSectionPage и в нем поле let items: [LowerItem] может быть как массив ячеек для droplist или как массив треков
-
-// при обновлении данных наи главном экране мы вызываем pagesCache.reset() и удаляем весь кэш!
-// по идее мы можем отказаться от концепции actor DataRefreshStateStore с revision оставив там только lastUpdated
-// так как если кэша нет (то мы либо еще не заходили на этот экран либо был рефреш на главном экране и нам нужно идти в сеть за данными)
-// а если мы обновили экран и кэш для каких то экранов не удалился значит мы при переходе на него всегда в одном жизненном цикле апп будем читать данные из кэша.
-
-// в реальности нам при обновлении нужно удалять не весь кэш!
-// что не нужно удалять - список треков для droplist (case .droplistDetails) потому что он не будет меняться никогда (то есть мы добавили треки текущего дня и больше его менять не будем)
-// что не нужно удалять - список треков для topDropItem (case .topDropDetails) это список треков как для главного экрана верхней секции так и для TopDrop (год + квартал + артист ) они тоже никогда уже не будут меняться
-// если в каталоге будет какой то список треков которые не относятся к droplist их тоже не нужно будет обновлять - не изданное в droplist например
-
 // что нужно удалять из кэша при обновлении главного экрана!
 //список всех треков allTracks + ячейки droplist + ячейки DropTop + списки треков из фильтрова gym, party, rnb, оп артистам из allTracks и так далее.
 
@@ -81,74 +67,172 @@ import Foundation
 // или оставить как есть и при этом удалять его кэш при обновлении главного экрана
 
 
-/// Атомарный кэш страниц через actor — предотвращает race conditions
+
+import Foundation
+
 actor PagesCache {
 
-    // Временный кэш — очищается при обновлении главного экрана.
     private var temporaryCache: [String: LowerSectionPage] = [:]
-
-    // Постоянный кэш — сохраняется при обновлении главного экрана.
     private var permanentCache: [String: LowerSectionPage] = [:]
 
-    // =================================================
-    // MARK: Cache
-    // =================================================
+    // Защита от параллельной пагинации одного списка.
+    private var loadingKeys: Set<String> = []
+
+    // MARK: - Get
 
     func get(
-        _ item: CarouselItemType
+        _ key: some PageCacheKey
     ) -> LowerSectionPage? {
+        if key.isPermanentCache {
+            return permanentCache[key.cacheKey]
+        }
 
-        let key = item.cacheKey
-
-        return item.isPermanentCache
-            ? permanentCache[key]
-            : temporaryCache[key]
+        return temporaryCache[key.cacheKey]
     }
 
+    // MARK: - Set
+
     func set(
-        _ item: CarouselItemType,
+        _ key: some PageCacheKey,
         page: LowerSectionPage
     ) {
-
-        let key = item.cacheKey
-
-        if item.isPermanentCache {
-            permanentCache[key] = page
+        if key.isPermanentCache {
+            permanentCache[key.cacheKey] = page
         } else {
-            temporaryCache[key] = page
+            temporaryCache[key.cacheKey] = page
         }
     }
 
-    func remove(_ item: CarouselItemType) {
-        let key = item.cacheKey
+    // MARK: - Remove
 
-        temporaryCache.removeValue(forKey: key)
-        permanentCache.removeValue(forKey: key)
+    func remove(
+        _ key: some PageCacheKey
+    ) {
+        temporaryCache.removeValue(forKey: key.cacheKey)
+        permanentCache.removeValue(forKey: key.cacheKey)
     }
 
-    // =================================================
-    // MARK: Reset
-    // =================================================
+    // MARK: - Reset
 
-    /// Очищает временный кэш, сохраняя страницы деталей.
+    /// Очищает временный кэш.
+    /// Постоянный кэш экранов деталей сохраняется.
     func reset() {
         temporaryCache.removeAll()
     }
 
-    /// Полностью очищает оба кэша.
+    /// Полностью очищает оба хранилища.
     func resetAll() {
         temporaryCache.removeAll()
         permanentCache.removeAll()
+        loadingKeys.removeAll()
     }
 
-    func contains(_ item: CarouselItemType) -> Bool {
-        let key = item.cacheKey
+    // MARK: - Contains
 
-        return item.isPermanentCache
-            ? permanentCache[key] != nil
-            : temporaryCache[key] != nil
+    func contains(
+        _ key: some PageCacheKey
+    ) -> Bool {
+        if key.isPermanentCache {
+            return permanentCache[key.cacheKey] != nil
+        }
+
+        return temporaryCache[key.cacheKey] != nil
+    }
+
+    // MARK: - Pagination Lock
+
+    func beginLoading(
+        _ key: some PageCacheKey
+    ) -> Bool {
+        guard !loadingKeys.contains(key.cacheKey) else {
+            return false
+        }
+
+        loadingKeys.insert(key.cacheKey)
+        return true
+    }
+
+    func endLoading(
+        _ key: some PageCacheKey
+    ) {
+        loadingKeys.remove(key.cacheKey)
     }
 }
+
+
+
+
+
+// MARK: - Instead of `DropTopPage`, use a generic `LowerSectionPage`, and merge `DropTopPagesCache` with `PagesCache`.
+
+/// Атомарный кэш страниц через actor — предотвращает race conditions
+//actor PagesCache {
+//
+//    // Временный кэш — очищается при обновлении главного экрана.
+//    private var temporaryCache: [String: LowerSectionPage] = [:]
+//
+//    // Постоянный кэш — сохраняется при обновлении главного экрана.
+//    private var permanentCache: [String: LowerSectionPage] = [:]
+//
+//    // =================================================
+//    // MARK: Cache
+//    // =================================================
+//
+//    func get(
+//        _ item: CarouselItemType
+//    ) -> LowerSectionPage? {
+//
+//        let key = item.cacheKey
+//
+//        return item.isPermanentCache
+//            ? permanentCache[key]
+//            : temporaryCache[key]
+//    }
+//
+//    func set(
+//        _ item: CarouselItemType,
+//        page: LowerSectionPage
+//    ) {
+//
+//        let key = item.cacheKey
+//
+//        if item.isPermanentCache {
+//            permanentCache[key] = page
+//        } else {
+//            temporaryCache[key] = page
+//        }
+//    }
+//
+//    func remove(_ item: CarouselItemType) {
+//        let key = item.cacheKey
+//
+//        temporaryCache.removeValue(forKey: key)
+//        permanentCache.removeValue(forKey: key)
+//    }
+//
+//    // =================================================
+//    // MARK: Reset
+//    // =================================================
+//
+//    /// Очищает временный кэш, сохраняя страницы деталей.
+//    func reset() {
+//        temporaryCache.removeAll()
+//    }
+//
+//    /// Полностью очищает оба кэша.
+//    func resetAll() {
+//        temporaryCache.removeAll()
+//        permanentCache.removeAll()
+//    }
+//
+//    func contains(_ item: CarouselItemType) -> Bool {
+//        let key = item.cacheKey
+//
+//        return item.isPermanentCache
+//            ? permanentCache[key] != nil
+//            : temporaryCache[key] != nil
+//    }
+//}
 
 
 // MARK: -  before removing versioning DataRefreshStateStore.

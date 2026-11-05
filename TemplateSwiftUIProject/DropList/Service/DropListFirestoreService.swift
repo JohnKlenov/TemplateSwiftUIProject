@@ -293,16 +293,18 @@ protocol DropListFirestoreServiceProtocol {
     // MARK: DropTop
     // =========================================================
     
+
     func fetchInitialDropTopPage(
         for tag: DropTopTag,
         pageSize: Int
-    ) async throws -> DropTopPage
-    
+    ) async throws -> LowerSectionPage
+
     func fetchNextDropTopPage(
         for tag: DropTopTag,
         after lastSnapshot: DocumentSnapshot,
         pageSize: Int
-    ) async throws -> DropTopPage
+    ) async throws -> LowerSectionPage
+    
 }
 
 // MARK: - Service
@@ -1183,17 +1185,17 @@ final class DropListFirestoreService:
     }
 }
 
+
+// =================================================
+// MARK: - DropTop — Initial Page
+// =================================================
+
 extension DropListFirestoreService {
-    
-    // =========================================================
-    // MARK: DropTop — Initial Page
-    // =========================================================
-    
+
     func fetchInitialDropTopPage(
         for tag: DropTopTag,
         pageSize: Int
-    ) async throws -> DropTopPage {
-        
+    ) async throws -> LowerSectionPage {
         try await fetchDropTopPage(
             for: tag,
             after: nil,
@@ -1202,18 +1204,17 @@ extension DropListFirestoreService {
     }
 }
 
+// =================================================
+// MARK: - DropTop — Next Page
+// =================================================
+
 extension DropListFirestoreService {
-    
-    // =========================================================
-    // MARK: DropTop — Next Page
-    // =========================================================
-    
+
     func fetchNextDropTopPage(
         for tag: DropTopTag,
         after lastSnapshot: DocumentSnapshot,
         pageSize: Int
-    ) async throws -> DropTopPage {
-        
+    ) async throws -> LowerSectionPage {
         try await fetchDropTopPage(
             for: tag,
             after: lastSnapshot,
@@ -1222,219 +1223,424 @@ extension DropListFirestoreService {
     }
 }
 
-extension DropListFirestoreService {
-    
-    // =========================================================
-    // MARK: DropTop — Firestore Query
-    // =========================================================
-    
-    private func fetchDropTopPage(
+// =================================================
+// MARK: - DropTop — Firestore Query
+// =================================================
+
+private extension DropListFirestoreService {
+
+    func fetchDropTopPage(
         for tag: DropTopTag,
         after lastSnapshot: DocumentSnapshot?,
         pageSize: Int
-    ) async throws -> DropTopPage {
-        
+    ) async throws -> LowerSectionPage {
         try await withCheckedThrowingContinuation {
             (
                 continuation: CheckedContinuation<
-                    DropTopPage,
+                    LowerSectionPage,
                     Error
                 >
             ) in
-                
-                var query: Query = db
-                    .collection("dropTop")
-                
-                // -------------------------------------------------
-                // ALL
-                // -------------------------------------------------
-                
-                if let firestoreTag = tag.firestoreTag {
-                    query = query.whereField(
-                        "tag",
-                        isEqualTo: firestoreTag
-                    )
+
+            var query: Query = db.collection("dropTop")
+
+            // Для .all фильтр по тегу не применяется.
+            if let firestoreTag = tag.firestoreTag {
+                query = query.whereField(
+                    "tag",
+                    isEqualTo: firestoreTag
+                )
+            }
+
+            // Новые DropTop playlists сначала.
+            query = query
+                .order(
+                    by: "createdAt",
+                    descending: true
+                )
+                .limit(to: pageSize)
+
+            // Pagination.
+            if let lastSnapshot {
+                query = query.start(
+                    afterDocument: lastSnapshot
+                )
+            }
+
+            query.getDocuments { [weak self] snapshot, error in
+                guard let self else {
+                    return
                 }
-                
-                // -------------------------------------------------
-                // Сортировка.
-                //
-                // Новые DropTop playlists сначала.
-                // -------------------------------------------------
-                
-                query = query
-                    .order(
-                        by: "createdAt",
-                        descending: true
-                    )
-                    .limit(
-                        to: pageSize
-                    )
-                
-                // -------------------------------------------------
-                // Pagination.
-                // -------------------------------------------------
-                
-                if let lastSnapshot {
-                    query = query.start(
-                        afterDocument: lastSnapshot
-                    )
-                }
-                
-                query.getDocuments { [weak self] snapshot, error in
-                    
-                    guard let self else {
-                        return
-                    }
-                    
-                    if let error {
-                        let wrappedError =
-                            FirestoreGetServiceError(
-                                underlying: error,
-                                context: .DropListFirestoreService_fetchDropTopPage
-                            )
-                        
-                        continuation.resume(
-                            throwing: wrappedError
+
+                if let error {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: error,
+                            context: .DropListFirestoreService_fetchDropTopPage
                         )
-                        
-                        return
-                    }
-                    
-                    guard let snapshot else {
-                        continuation.resume(
-                            throwing: FirestoreGetServiceError(
-                                underlying:
-                                    AppInternalError.nilSnapshot,
+                    )
+                    return
+                }
+
+                guard let snapshot else {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.nilSnapshot,
+                            context: .DropListFirestoreService_fetchDropTopPage
+                        )
+                    )
+                    return
+                }
+
+                // Пустая страница при пагинации — конец списка.
+                if snapshot.documents.isEmpty {
+                    continuation.resume(
+                        returning: LowerSectionPage(
+                            items: [],
+                            lastDocumentSnapshot: nil,
+                            hasMore: false
+                        )
+                    )
+                    return
+                }
+
+                // Безопасное декодирование документов.
+                let docs: [DropTopDoc] =
+                    snapshot.documents.compactMap { document in
+                        do {
+                            return try document.data(
+                                as: DropTopDoc.self
+                            )
+
+                        } catch {
+                            let _ = self.errorHandler.handle(
+                                error: error,
                                 context:
-                                    .DropListFirestoreService_fetchDropTopPage
+                                    "fetchDropTopPage | decode \(document.documentID)"
                             )
-                        )
-                        
-                        return
-                    }
-                    
-                    // -------------------------------------------------
-                    // Empty page.
-                    //
-                    // Это не ошибка.
-                    // Это означает, что данных больше нет.
-                    // -------------------------------------------------
-                    
-                    if snapshot.documents.isEmpty {
-                        continuation.resume(
-                            returning: DropTopPage(
-                                items: [],
-                                lastDocumentSnapshot: nil,
-                                hasMore: false
-                            )
-                        )
-                        
-                        return
-                    }
-                    
-                    // -------------------------------------------------
-                    // Безопасное декодирование документов.
-                    // -------------------------------------------------
-                    
-                    
-                    let items: [DropTopItem] =
-                        snapshot.documents.compactMap { document in
-                            do {
-                                let decoded = try document.data(
-                                    as: DropTopDoc.self
-                                )
 
-                                return DropTopItem(
-                                    id: decoded.playlistId,
-                                    title: decoded.title,
-                                    description: decoded.description ?? "",
-                                    imageURL: decoded.coverImageURL.flatMap {
-                                        URL(string: $0)
-                                    },
-                                    tag: decoded.tag
-                                )
-
-                            } catch {
-                                let _ = self.errorHandler.handle(
-                                    error: error,
-                                    context:
-                                        "fetchDropTopPage | decode \(document.documentID)"
-                                )
-
-                                return nil
-                            }
+                            return nil
                         }
+                    }
 
+                // Все документы страницы оказались повреждены.
+                if docs.isEmpty {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.docsIsEmpty,
+                            context: .DropListFirestoreService_fetchDropTopPage
+                        )
+                    )
+                    return
+                }
+
+                // DropTopDoc → LowerItem.
+                let items: [LowerItem] = docs.map { playlist in
+                    LowerItem(
+                        id: playlist.playlistId,
+                        title: playlist.title,
+                        subtitle: playlist.description,
+                        coverImageURL: playlist.coverImageURL.flatMap {
+                            URL(string: $0)
+                        },
+                        thumbnailURL: nil,
+                        durationISO8601: nil,
+                        trackCount: playlist.trackCount,
+                        details: [],
+                        tag: playlist.tag
+                    )
+                }
+
+                let lastDocument = snapshot.documents.last
+
+                let hasMore = snapshot.documents.count >= pageSize
+
+                continuation.resume(
+                    returning: LowerSectionPage(
+                        items: items,
+                        lastDocumentSnapshot: lastDocument,
+                        hasMore: hasMore
+                    )
+                )
+            }
+        }
+    }
+}
+
+// MARK: - Instead of `DropTopPage`, use a generic `LowerSectionPage`, and merge `DropTopPagesCache` with `PagesCache`.
+
+
+// protocol
+
+//    func fetchInitialDropTopPage(
+//        for tag: DropTopTag,
+//        pageSize: Int
+//    ) async throws -> DropTopPage
+//
+//    func fetchNextDropTopPage(
+//        for tag: DropTopTag,
+//        after lastSnapshot: DocumentSnapshot,
+//        pageSize: Int
+//    ) async throws -> DropTopPage
+
+
+
+
+//extension DropListFirestoreService {
+//    
+//    // =========================================================
+//    // MARK: DropTop — Initial Page
+//    // =========================================================
+//    
+//    func fetchInitialDropTopPage(
+//        for tag: DropTopTag,
+//        pageSize: Int
+//    ) async throws -> DropTopPage {
+//        
+//        try await fetchDropTopPage(
+//            for: tag,
+//            after: nil,
+//            pageSize: pageSize
+//        )
+//    }
+//}
+//
+//extension DropListFirestoreService {
+//    
+//    // =========================================================
+//    // MARK: DropTop — Next Page
+//    // =========================================================
+//    
+//    func fetchNextDropTopPage(
+//        for tag: DropTopTag,
+//        after lastSnapshot: DocumentSnapshot,
+//        pageSize: Int
+//    ) async throws -> DropTopPage {
+//        
+//        try await fetchDropTopPage(
+//            for: tag,
+//            after: lastSnapshot,
+//            pageSize: pageSize
+//        )
+//    }
+//}
+//
+//extension DropListFirestoreService {
+//    
+//    // =========================================================
+//    // MARK: DropTop — Firestore Query
+//    // =========================================================
+//    
+//    private func fetchDropTopPage(
+//        for tag: DropTopTag,
+//        after lastSnapshot: DocumentSnapshot?,
+//        pageSize: Int
+//    ) async throws -> DropTopPage {
+//        
+//        try await withCheckedThrowingContinuation {
+//            (
+//                continuation: CheckedContinuation<
+//                    DropTopPage,
+//                    Error
+//                >
+//            ) in
+//                
+//                var query: Query = db
+//                    .collection("dropTop")
+//                
+//                // -------------------------------------------------
+//                // ALL
+//                // -------------------------------------------------
+//                
+//                if let firestoreTag = tag.firestoreTag {
+//                    query = query.whereField(
+//                        "tag",
+//                        isEqualTo: firestoreTag
+//                    )
+//                }
+//                
+//                // -------------------------------------------------
+//                // Сортировка.
+//                //
+//                // Новые DropTop playlists сначала.
+//                // -------------------------------------------------
+//                
+//                query = query
+//                    .order(
+//                        by: "createdAt",
+//                        descending: true
+//                    )
+//                    .limit(
+//                        to: pageSize
+//                    )
+//                
+//                // -------------------------------------------------
+//                // Pagination.
+//                // -------------------------------------------------
+//                
+//                if let lastSnapshot {
+//                    query = query.start(
+//                        afterDocument: lastSnapshot
+//                    )
+//                }
+//                
+//                query.getDocuments { [weak self] snapshot, error in
+//                    
+//                    guard let self else {
+//                        return
+//                    }
+//                    
+//                    if let error {
+//                        let wrappedError =
+//                            FirestoreGetServiceError(
+//                                underlying: error,
+//                                context: .DropListFirestoreService_fetchDropTopPage
+//                            )
+//                        
+//                        continuation.resume(
+//                            throwing: wrappedError
+//                        )
+//                        
+//                        return
+//                    }
+//                    
+//                    guard let snapshot else {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying:
+//                                    AppInternalError.nilSnapshot,
+//                                context:
+//                                    .DropListFirestoreService_fetchDropTopPage
+//                            )
+//                        )
+//                        
+//                        return
+//                    }
+//                    
+//                    // -------------------------------------------------
+//                    // Empty page.
+//                    //
+//                    // Это не ошибка.
+//                    // Это означает, что данных больше нет.
+//                    // -------------------------------------------------
+//                    
+//                    if snapshot.documents.isEmpty {
+//                        continuation.resume(
+//                            returning: DropTopPage(
+//                                items: [],
+//                                lastDocumentSnapshot: nil,
+//                                hasMore: false
+//                            )
+//                        )
+//                        
+//                        return
+//                    }
+//                    
+//                    // -------------------------------------------------
+//                    // Безопасное декодирование документов.
+//                    // -------------------------------------------------
+//                    
+//                    
 //                    let items: [DropTopItem] =
 //                        snapshot.documents.compactMap { document in
-//                            
 //                            do {
-//                                let decoded =
-//                                    try document.data(
-//                                        as: DropTopDoc.self
-//                                    )
-//                                
+//                                let decoded = try document.data(
+//                                    as: DropTopDoc.self
+//                                )
+//
 //                                return DropTopItem(
 //                                    id: decoded.playlistId,
 //                                    title: decoded.title,
-//                                    imageURL:
-//                                        decoded.coverImageURL.flatMap {
-//                                            URL(string: $0)
-//                                        },
+//                                    description: decoded.description ?? "",
+//                                    imageURL: decoded.coverImageURL.flatMap {
+//                                        URL(string: $0)
+//                                    },
 //                                    tag: decoded.tag
 //                                )
-//                                
+//
 //                            } catch {
-//                                
 //                                let _ = self.errorHandler.handle(
 //                                    error: error,
 //                                    context:
 //                                        "fetchDropTopPage | decode \(document.documentID)"
 //                                )
-//                                
+//
 //                                return nil
 //                            }
 //                        }
-                    
-                    // -------------------------------------------------
-                    // Если все документы страницы оказались
-                    // повреждены — считаем это ошибкой данных.
-                    // -------------------------------------------------
-                    
-                    if items.isEmpty {
-                        continuation.resume(
-                            throwing: FirestoreGetServiceError(
-                                underlying:
-                                    AppInternalError.docsIsEmpty,
-                                context:
-                                    .DropListFirestoreService_fetchDropTopPage
-                            )
-                        )
-                        
-                        return
-                    }
-                    
-                    // -------------------------------------------------
-                    // Если получили меньше pageSize —
-                    // дальше данных уже нет.
-                    // -------------------------------------------------
-                    
-                    let hasMore =
-                        snapshot.documents.count >= pageSize
-                    
-                    continuation.resume(
-                        returning: DropTopPage(
-                            items: items,
-                            lastDocumentSnapshot:
-                                snapshot.documents.last,
-                            hasMore: hasMore
-                        )
-                    )
-                }
-            }
-    }
-}
+//
+////                    let items: [DropTopItem] =
+////                        snapshot.documents.compactMap { document in
+////                            
+////                            do {
+////                                let decoded =
+////                                    try document.data(
+////                                        as: DropTopDoc.self
+////                                    )
+////                                
+////                                return DropTopItem(
+////                                    id: decoded.playlistId,
+////                                    title: decoded.title,
+////                                    imageURL:
+////                                        decoded.coverImageURL.flatMap {
+////                                            URL(string: $0)
+////                                        },
+////                                    tag: decoded.tag
+////                                )
+////                                
+////                            } catch {
+////                                
+////                                let _ = self.errorHandler.handle(
+////                                    error: error,
+////                                    context:
+////                                        "fetchDropTopPage | decode \(document.documentID)"
+////                                )
+////                                
+////                                return nil
+////                            }
+////                        }
+//                    
+//                    // -------------------------------------------------
+//                    // Если все документы страницы оказались
+//                    // повреждены — считаем это ошибкой данных.
+//                    // -------------------------------------------------
+//                    
+//                    if items.isEmpty {
+//                        continuation.resume(
+//                            throwing: FirestoreGetServiceError(
+//                                underlying:
+//                                    AppInternalError.docsIsEmpty,
+//                                context:
+//                                    .DropListFirestoreService_fetchDropTopPage
+//                            )
+//                        )
+//                        
+//                        return
+//                    }
+//                    
+//                    // -------------------------------------------------
+//                    // Если получили меньше pageSize —
+//                    // дальше данных уже нет.
+//                    // -------------------------------------------------
+//                    
+//                    let hasMore =
+//                        snapshot.documents.count >= pageSize
+//                    
+//                    continuation.resume(
+//                        returning: DropTopPage(
+//                            items: items,
+//                            lastDocumentSnapshot:
+//                                snapshot.documents.last,
+//                            hasMore: hasMore
+//                        )
+//                    )
+//                }
+//            }
+//    }
+//}
+
+
+
 
 
 
