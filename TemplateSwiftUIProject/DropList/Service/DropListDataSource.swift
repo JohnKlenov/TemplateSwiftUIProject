@@ -59,7 +59,6 @@ final class DropListDataSource {
 
     private let pagesCache = PagesCache()
     
-    private let dropTopPagesCache = DropTopPagesCache()
 
     // MARK: - Data Refresh State
 
@@ -95,7 +94,6 @@ final class DropListDataSource {
 
     func resetCacheAsync() async {
         await pagesCache.reset()
-        //            resetDropTopCache() ?
     }
 
     func cachedPage(

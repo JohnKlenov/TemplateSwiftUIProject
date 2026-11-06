@@ -289,7 +289,7 @@ private extension DropTopContentView {
         .refreshable {
             // Повторно загружаем только текущий тег.
             // а если ты обновил тэг артистов потом перешол на алл а там еще нет новых данных так как есть кэш?
-//            await viewModel.retry()
+//            await viewModel.refresh()
         }
     }
 

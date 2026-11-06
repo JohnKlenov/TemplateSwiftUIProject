@@ -649,25 +649,6 @@ enum CarouselItemType: Hashable {
             return "rnb"
         }
     }
-
-    // =================================================
-    // MARK: Cache Lifetime
-    // =================================================
-
-//    var isPermanentCache: Bool {
-//        switch self {
-//        case .droplistDetails,
-//             .topDropDetails:
-//            return true
-//
-//        case .droplist,
-//             .allTracks,
-//             .gym,
-//             .party,
-//             .rnb:
-//            return false
-//        }
-//    }
 }
 
 extension CarouselItemType: PageCacheKey {
@@ -704,28 +685,25 @@ struct TopItem: Identifiable {
 // DropTopItem - модель для DropTopView
 
 
-// в будущем можем заменить DropTopItem на LowerItem
-struct DropTopItem: Identifiable, Hashable {
-    let id: String
-    let title: String
-    let description: String
-    let imageURL: URL?
-    let tag: String
-}
-
-
-// в будущем можем заменить DropTopPage на LowerSectionPage
-// и переместить логику DropTopPagesCache в PagesCache
-struct DropTopPage {
-    let items: [DropTopItem]
-    let lastDocumentSnapshot: DocumentSnapshot?
-    let hasMore: Bool
-}
+//// в будущем можем заменить DropTopItem на LowerItem
+//struct DropTopItem: Identifiable, Hashable {
+//    let id: String
+//    let title: String
+//    let description: String
+//    let imageURL: URL?
+//    let tag: String
+//}
+//
+//
+//// в будущем можем заменить DropTopPage на LowerSectionPage
+//// и переместить логику DropTopPagesCache в PagesCache
+//struct DropTopPage {
+//    let items: [DropTopItem]
+//    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
+//}
 
 // it's Lil Wayne / Lil Wayne day
-
-import Foundation
-
 enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
 
     case all
@@ -780,6 +758,10 @@ extension DropTopTag: PageCacheKey {
         false
     }
 }
+
+
+
+
 
 
 // MARK: - Instead of `DropTopPage`, use a generic `LowerSectionPage`, and merge `DropTopPagesCache` with `PagesCache`.

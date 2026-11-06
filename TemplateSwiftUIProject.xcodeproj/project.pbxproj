@@ -24,7 +24,6 @@
 		5E481D7930542CC500D55309 /* PlaylistUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7830542CC000D55309 /* PlaylistUser.swift */; };
 		5E481D7B305EBF8000D55309 /* PlaylistDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7A305EBF7D00D55309 /* PlaylistDetailsView.swift */; };
 		5E481D7D306FE6DB00D55309 /* PlaylistToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7C306FE6D600D55309 /* PlaylistToastView.swift */; };
-		5E481D7F30752B0C00D55309 /* DropTopPagesCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D7E30752B0700D55309 /* DropTopPagesCache.swift */; };
 		5E481D84307531A600D55309 /* DropTopViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D83307531A300D55309 /* DropTopViewModel.swift */; };
 		5E481D863075333100D55309 /* DropTopContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D853075332E00D55309 /* DropTopContentView.swift */; };
 		5E481D883075341A00D55309 /* DropTopViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D873075341700D55309 /* DropTopViewInjected.swift */; };
@@ -224,7 +223,6 @@
 		5E481D7830542CC000D55309 /* PlaylistUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistUser.swift; sourceTree = "<group>"; };
 		5E481D7A305EBF7D00D55309 /* PlaylistDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistDetailsView.swift; sourceTree = "<group>"; };
 		5E481D7C306FE6D600D55309 /* PlaylistToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistToastView.swift; sourceTree = "<group>"; };
-		5E481D7E30752B0700D55309 /* DropTopPagesCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopPagesCache.swift; sourceTree = "<group>"; };
 		5E481D83307531A300D55309 /* DropTopViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopViewModel.swift; sourceTree = "<group>"; };
 		5E481D853075332E00D55309 /* DropTopContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopContentView.swift; sourceTree = "<group>"; };
 		5E481D873075341700D55309 /* DropTopViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopViewInjected.swift; sourceTree = "<group>"; };
@@ -639,7 +637,6 @@
 		5E5466302F961000009D7210 /* Service */ = {
 			isa = PBXGroup;
 			children = (
-				5E481D7E30752B0700D55309 /* DropTopPagesCache.swift */,
 				5E481D7830542CC000D55309 /* PlaylistUser.swift */,
 				5E481D6D304487D900D55309 /* DataRefreshStateStore.swift */,
 				5EC332F62E8C01A10051BE5B /* AnonAccountTrackerService.swift */,
@@ -1788,7 +1785,6 @@
 				5EC332E32E48D3700051BE5B /* UserInfoEditViewModel.swift in Sources */,
 				5E54661B2F7A5F19009D7210 /* PlayerView.swift in Sources */,
 				5E8F9CA92D7ED71D004036F6 /* GalleryCoordinator.swift in Sources */,
-				5E481D7F30752B0C00D55309 /* DropTopPagesCache.swift in Sources */,
 				5EC94A042CC29607003736A9 /* HomeView.swift in Sources */,
 				5EC4B2522F30E06100F0C2D7 /* CrashlyticsLoggingService.swift in Sources */,
 				5E8F9CA32D7CDFCF004036F6 /* GalleryModel.swift in Sources */,

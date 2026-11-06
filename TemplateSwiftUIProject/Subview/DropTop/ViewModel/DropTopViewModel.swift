@@ -60,8 +60,7 @@ final class DropTopViewModel: ObservableObject {
 
     func setupViewModel() async {
         await load(
-            tag: .all,
-            useCache: true
+            tag: .all
         )
     }
 
@@ -79,8 +78,7 @@ final class DropTopViewModel: ObservableObject {
         selectedTag = tag
 
         await load(
-            tag: tag,
-            useCache: true
+            tag: tag
         )
     }
 
@@ -88,9 +86,15 @@ final class DropTopViewModel: ObservableObject {
     // MARK: - Loading
     // =================================================
 
+    //Ты правильно понимаешь назначение useCache: он позволяет управлять тем, использовать ли уже загруженную страницу из кэша или принудительно обратиться к Firestore.
+    // в данном коде используем для retry
+    // ошибка в load может возникнуть только при первом запуске а у нас при первом запуске тэга кэш всегда пуст и так!
+    // следовательно нужен только для принудительного обновления тэга когда кэш уже есть
+    // мы пока решили вообще отключить принудительное обновление
+    // поэтому можем убрать useCache
+    // и создать отдельный метод
     private func load(
-        tag: DropTopTag,
-        useCache: Bool
+        tag: DropTopTag
     ) async {
         let requestID = UUID()
         currentRequestID = requestID
@@ -101,8 +105,7 @@ final class DropTopViewModel: ObservableObject {
         paginationError = nil
 
         // Сначала проверяем временный кэш выбранного тега.
-        if useCache,
-           let cachedPage = await dropListDataSource.cachedDropTopPage(
+        if let cachedPage = await dropListDataSource.cachedDropTopPage(
                 for: tag
            ) {
             guard requestID == currentRequestID else {
@@ -111,6 +114,7 @@ final class DropTopViewModel: ObservableObject {
 
             viewState = .contentList(cachedPage)
             displayedTag = tag
+            print("DropTopView — cached")
             return
         }
 
@@ -131,7 +135,7 @@ final class DropTopViewModel: ObservableObject {
 
             viewState = .contentList(page)
             displayedTag = tag
-
+            print("DropTopView — network")
         } catch {
             guard requestID == currentRequestID else {
                 return
@@ -148,8 +152,7 @@ final class DropTopViewModel: ObservableObject {
 
     func retry() async {
         await load(
-            tag: selectedTag,
-            useCache: false
+            tag: selectedTag
         )
     }
 
@@ -247,10 +250,45 @@ final class DropTopViewModel: ObservableObject {
             }
         }
     }
+    
+    // MARK: - Refresh
 
-    // =================================================
+    func refresh() async {
+        let requestID = UUID()
+        currentRequestID = requestID
+
+        // Отменяем текущую пагинацию.
+        currentPaginationTask?.cancel()
+        currentPaginationTask = nil
+
+        paginationError = nil
+        viewState = .loading
+
+        do {
+            // Принудительно запрашиваем первую страницу из Firestore.
+            // DataSource самостоятельно заменит страницу в кэше.
+            let page = try await dropListDataSource
+                .fetchDropTopPage(for: selectedTag)
+
+            guard requestID == currentRequestID else {
+                return
+            }
+
+            viewState = .contentList(page)
+            displayedTag = selectedTag
+
+        } catch {
+            guard requestID == currentRequestID else {
+                return
+            }
+
+            let userError = dropListDataSource.handleError(error)
+
+            viewState = .error(userError)
+        }
+    }
+
     // MARK: - Playlist Selection
-    // =================================================
 
     func didSelectPlaylist(
         _ item: LowerItem
