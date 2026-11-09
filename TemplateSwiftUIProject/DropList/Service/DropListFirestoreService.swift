@@ -480,14 +480,12 @@ final class DropListFirestoreService:
         switch item {
 
         case .droplist:
-
             return try await fetchPlaylistsPage(
                 after: nil,
                 pageSize: pageSize
             )
 
         case .allTracks:
-
             return try await fetchTracksPage(
                 tag: nil,
                 pageSize: pageSize,
@@ -497,7 +495,6 @@ final class DropListFirestoreService:
         case .gym,
              .party,
              .rnb:
-
             return try await fetchTracksPage(
                 tag: item.tag,
                 pageSize: pageSize,
@@ -505,7 +502,6 @@ final class DropListFirestoreService:
             )
 
         case .droplistDetails(let playlistId):
-
             return try await fetchDroplistTracksPage(
                 playlistId: playlistId,
                 after: nil,
@@ -513,14 +509,70 @@ final class DropListFirestoreService:
             )
 
         case .topDropDetails(let playlistId):
-
             return try await fetchTopDroplistTracksPage(
+                playlistId: playlistId,
+                after: nil,
+                pageSize: pageSize
+            )
+
+        case .dropTopDetails(let playlistId):
+            return try await fetchDropTopTracksPage(
                 playlistId: playlistId,
                 after: nil,
                 pageSize: pageSize
             )
         }
     }
+    // MARK: - before case .dropTopDetails
+//    func fetchInitialLowerPage(
+//        for item: CarouselItemType,
+//        pageSize: Int
+//    ) async throws -> LowerSectionPage {
+//
+//        switch item {
+//
+//        case .droplist:
+//
+//            return try await fetchPlaylistsPage(
+//                after: nil,
+//                pageSize: pageSize
+//            )
+//
+//        case .allTracks:
+//
+//            return try await fetchTracksPage(
+//                tag: nil,
+//                pageSize: pageSize,
+//                after: nil
+//            )
+//
+//        case .gym,
+//             .party,
+//             .rnb:
+//
+//            return try await fetchTracksPage(
+//                tag: item.tag,
+//                pageSize: pageSize,
+//                after: nil
+//            )
+//
+//        case .droplistDetails(let playlistId):
+//
+//            return try await fetchDroplistTracksPage(
+//                playlistId: playlistId,
+//                after: nil,
+//                pageSize: pageSize
+//            )
+//
+//        case .topDropDetails(let playlistId):
+//
+//            return try await fetchTopDroplistTracksPage(
+//                playlistId: playlistId,
+//                after: nil,
+//                pageSize: pageSize
+//            )
+//        }
+//    }
 
     // MARK: - Lower Section (Next Page)
 
@@ -533,14 +585,12 @@ final class DropListFirestoreService:
         switch item {
 
         case .droplist:
-
             return try await fetchPlaylistsPage(
                 after: lastSnapshot,
                 pageSize: pageSize
             )
 
         case .allTracks:
-
             return try await fetchTracksPage(
                 tag: nil,
                 pageSize: pageSize,
@@ -550,7 +600,6 @@ final class DropListFirestoreService:
         case .gym,
              .party,
              .rnb:
-
             return try await fetchTracksPage(
                 tag: item.tag,
                 pageSize: pageSize,
@@ -558,7 +607,6 @@ final class DropListFirestoreService:
             )
 
         case .droplistDetails(let playlistId):
-
             return try await fetchDroplistTracksPage(
                 playlistId: playlistId,
                 after: lastSnapshot,
@@ -566,14 +614,72 @@ final class DropListFirestoreService:
             )
 
         case .topDropDetails(let playlistId):
-
             return try await fetchTopDroplistTracksPage(
+                playlistId: playlistId,
+                after: lastSnapshot,
+                pageSize: pageSize
+            )
+
+        case .dropTopDetails(let playlistId):
+            return try await fetchDropTopTracksPage(
                 playlistId: playlistId,
                 after: lastSnapshot,
                 pageSize: pageSize
             )
         }
     }
+    
+    // MARK: - before case .dropTopDetails
+//    func fetchNextLowerPage(
+//        for item: CarouselItemType,
+//        after lastSnapshot: DocumentSnapshot,
+//        pageSize: Int
+//    ) async throws -> LowerSectionPage {
+//
+//        switch item {
+//
+//        case .droplist:
+//
+//            return try await fetchPlaylistsPage(
+//                after: lastSnapshot,
+//                pageSize: pageSize
+//            )
+//
+//        case .allTracks:
+//
+//            return try await fetchTracksPage(
+//                tag: nil,
+//                pageSize: pageSize,
+//                after: lastSnapshot
+//            )
+//
+//        case .gym,
+//             .party,
+//             .rnb:
+//
+//            return try await fetchTracksPage(
+//                tag: item.tag,
+//                pageSize: pageSize,
+//                after: lastSnapshot
+//            )
+//
+//        case .droplistDetails(let playlistId):
+//
+//            return try await fetchDroplistTracksPage(
+//                playlistId: playlistId,
+//                after: lastSnapshot,
+//                pageSize: pageSize
+//            )
+//
+//        case .topDropDetails(let playlistId):
+//
+//            return try await fetchTopDroplistTracksPage(
+//                playlistId: playlistId,
+//                after: lastSnapshot,
+//                pageSize: pageSize
+//            )
+//        }
+//    }
 
     // MARK: - Private: Playlists Page (droplist)
 
@@ -760,6 +866,28 @@ final class DropListFirestoreService:
             after: lastSnapshot,
             pageSize: pageSize,
             context: .DropListFirestoreService_fetchTopDroplistTracksPage
+        )
+    }
+    
+    
+    // MARK: - Private: DropTop Details Tracks
+
+    private func fetchDropTopTracksPage(
+        playlistId: String,
+        after lastSnapshot: DocumentSnapshot?,
+        pageSize: Int
+    ) async throws -> LowerSectionPage {
+
+        let collection = db
+            .collection("dropTop")
+            .document(playlistId)
+            .collection("tracks")
+
+        return try await fetchPlaylistTracksPage(
+            collection: collection,
+            after: lastSnapshot,
+            pageSize: pageSize,
+            context: .DropListFirestoreService_fetchDropTopTracksPage
         )
     }
 
@@ -1253,6 +1381,13 @@ private extension DropListFirestoreService {
             }
 
             // Новые DropTop playlists сначала.
+            // Это означает сортировку по createdAt от самой поздней даты к самой ранней.
+            // Playlist C — последний созданный объект (вверху).
+            // Playlist A — самый первый созданный объект (внизу).
+            // в нашем случае мы создавали объекты сначала 2036 и самый последний 2026
+            // поэтому не правильное отображение
+            // descending: true - true означает, что новые плейлисты будут находиться вверху списка.
+            // false — сначала самые старые даты (createdAt).
             query = query
                 .order(
                     by: "createdAt",

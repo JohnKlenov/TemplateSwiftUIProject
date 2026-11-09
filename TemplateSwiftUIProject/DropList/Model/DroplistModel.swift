@@ -483,38 +483,6 @@ struct DropTopDoc: Codable {
 // - durationISO8601 добавлено для треков
 
 
-//struct LowerItem: Identifiable, Hashable {
-//    let id: String                         // playlistId или videoId
-//    let title: String
-//    let subtitle: String?                  // description (playlist) или artist (track)
-//    let coverImageURL: URL?                // только для плейлистов
-//    let thumbnailURL: URL?                 // только для треков
-//    let durationISO8601: String?           // только для треков
-//    let trackCount: Int?                   // только для треков
-//    let details: [String]                  // только для droplist
-//
-//    init(
-//        id: String,
-//        title: String,
-//        subtitle: String?,
-//        coverImageURL: URL?,
-//        thumbnailURL: URL?,
-//        durationISO8601: String?,
-//        trackCount: Int?,
-//        details: [String] = []
-//    ) {
-//        self.id = id
-//        self.title = title
-//        self.subtitle = subtitle
-//        self.coverImageURL = coverImageURL
-//        self.thumbnailURL = thumbnailURL
-//        self.durationISO8601 = durationISO8601
-//        self.trackCount = trackCount
-//        self.details = details
-//    }
-//}
-
-
 protocol PageCacheKey {
 
     var cacheKey: String { get }
@@ -585,6 +553,7 @@ struct LowerSectionPage {
     let hasMore: Bool
 }
 
+
 //  5. CarouselItem — элементы средней секции
 
 enum CarouselItemType: Hashable {
@@ -597,38 +566,35 @@ enum CarouselItemType: Hashable {
 
     case droplistDetails(playlistId: String)
     case topDropDetails(playlistId: String)
+    case dropTopDetails(playlistId: String)
 
     // =================================================
-    // MARK: Cache Key
+    // MARK: - Cache Key
     // =================================================
 
     var cacheKey: String {
         switch self {
         case .droplist:
             return "droplist"
-
         case .allTracks:
             return "allTracks"
-
         case .gym:
             return "gym"
-
         case .party:
             return "party"
-
         case .rnb:
             return "rnb"
-
         case .droplistDetails(let playlistId):
             return "droplistDetails_\(playlistId)"
-
         case .topDropDetails(let playlistId):
             return "topDropDetails_\(playlistId)"
+        case .dropTopDetails(let playlistId):
+            return "dropTopDetails_\(playlistId)"
         }
     }
 
     // =================================================
-    // MARK: Tag
+    // MARK: - Tag
     // =================================================
 
     var tag: String? {
@@ -636,33 +602,118 @@ enum CarouselItemType: Hashable {
         case .droplist,
              .allTracks,
              .droplistDetails,
-             .topDropDetails:
+             .topDropDetails,
+             .dropTopDetails:
             return nil
 
         case .gym:
             return "gym"
-
         case .party:
             return "party"
-
         case .rnb:
             return "rnb"
         }
     }
 }
 
+// =================================================
+// MARK: - PageCacheKey
+// =================================================
+
 extension CarouselItemType: PageCacheKey {
 
     var isPermanentCache: Bool {
         switch self {
-        case .droplistDetails, .topDropDetails:
+        case .droplistDetails,
+             .topDropDetails,
+             .dropTopDetails:
             return true
-
         default:
             return false
         }
     }
 }
+
+
+
+
+// MARK: - before case .dropTopDetails
+//enum CarouselItemType: Hashable {
+//
+//    case droplist
+//    case allTracks
+//    case gym
+//    case party
+//    case rnb
+//
+//    case droplistDetails(playlistId: String)
+//    case topDropDetails(playlistId: String)
+//
+//    // =================================================
+//    // MARK: Cache Key
+//    // =================================================
+//
+//    var cacheKey: String {
+//        switch self {
+//        case .droplist:
+//            return "droplist"
+//
+//        case .allTracks:
+//            return "allTracks"
+//
+//        case .gym:
+//            return "gym"
+//
+//        case .party:
+//            return "party"
+//
+//        case .rnb:
+//            return "rnb"
+//
+//        case .droplistDetails(let playlistId):
+//            return "droplistDetails_\(playlistId)"
+//
+//        case .topDropDetails(let playlistId):
+//            return "topDropDetails_\(playlistId)"
+//        }
+//    }
+//
+//    // =================================================
+//    // MARK: Tag
+//    // =================================================
+//
+//    var tag: String? {
+//        switch self {
+//        case .droplist,
+//             .allTracks,
+//             .droplistDetails,
+//             .topDropDetails:
+//            return nil
+//
+//        case .gym:
+//            return "gym"
+//
+//        case .party:
+//            return "party"
+//
+//        case .rnb:
+//            return "rnb"
+//        }
+//    }
+//}
+//
+//extension CarouselItemType: PageCacheKey {
+//
+//    var isPermanentCache: Bool {
+//        switch self {
+//        case .droplistDetails, .topDropDetails:
+//            return true
+//
+//        default:
+//            return false
+//        }
+//    }
+//}
 
 
 
@@ -682,28 +733,8 @@ struct TopItem: Identifiable {
     let artists: [String]
 }
 
-// DropTopItem - модель для DropTopView
-
-
-//// в будущем можем заменить DropTopItem на LowerItem
-//struct DropTopItem: Identifiable, Hashable {
-//    let id: String
-//    let title: String
-//    let description: String
-//    let imageURL: URL?
-//    let tag: String
-//}
-//
-//
-//// в будущем можем заменить DropTopPage на LowerSectionPage
-//// и переместить логику DropTopPagesCache в PagesCache
-//struct DropTopPage {
-//    let items: [DropTopItem]
-//    let lastDocumentSnapshot: DocumentSnapshot?
-//    let hasMore: Bool
-//}
-
-// it's Lil Wayne / Lil Wayne day
+// DropTopTag - это выжимка лучших треков из наших списков Droplist
+// по Top Year (за год) + Top Quarter(в году 4 квартала по 3 месяца в каждом и возможно не все треки из 4 квартолов попудут в Top Year) + Artist (список всех артистов попавших в Top Drop и каждый раз при выходе нового Top Year или Top Quarter мы будем пополнять их треками   -   тут нужно будет продумать как мы будем сортировать список потому что по дате будет не корректно нужны будут индексы)
 enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
 
     case all

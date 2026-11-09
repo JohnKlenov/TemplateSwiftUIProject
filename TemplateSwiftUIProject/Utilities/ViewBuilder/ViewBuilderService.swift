@@ -74,6 +74,7 @@
 
 
 
+
 /// Почему в логах почти всегда сначала срабатывает FirebaseAuthUserProvider, а затем AuthenticationService
 ///
 /// В текущей архитектуре это выглядит как закономерность, но важно понимать,
@@ -174,9 +175,12 @@ class ViewBuilderService: ObservableObject {
         print("deinit ViewBuilderService")
     }
     
+    
     @ViewBuilder
     func dropViewBuild(page: DroplistFlow) -> some View {
+
         switch page {
+
         case .droplist:
             DroplistViewInjected(
                 sessionManager: appSessionManager,
@@ -231,8 +235,85 @@ class ViewBuilderService: ObservableObject {
                 navigationTitle: title,
                 imageURL: imageURL
             )
+
+        case .dropTopDetails(
+            let playlistId,
+            let title,
+            let imageURL
+        ):
+            TracklistViewInjected(
+                dropListDataSource: dropListDataSource,
+                playlistUser: playlistUser,
+                trackType: .dropTopDetails(
+                    playlistId: playlistId
+                ),
+                navigationTitle: title,
+                imageURL: imageURL
+            )
         }
     }
+    
+    
+    // MARK: - before case .dropTopDetails
+//    @ViewBuilder
+//    func dropViewBuild(page: DroplistFlow) -> some View {
+//        switch page {
+//        case .droplist:
+//            DroplistViewInjected(
+//                sessionManager: appSessionManager,
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser
+//            )
+//
+//        case .someDroplistView:
+//            SomeView()
+//
+//        case .allTracks:
+//            TracklistViewInjected(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: .allTracks,
+//                navigationTitle: "All Tracks"
+//            )
+//
+//        case .topDrops:
+//            DropTopViewInjected(
+//                dropListDataSource: dropListDataSource
+//            )
+//
+//        case .droplistDetails(
+//            let playlistId,
+//            let details,
+//            let title,
+//            let imageURL
+//        ):
+//            TracklistViewInjected(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: .droplistDetails(
+//                    playlistId: playlistId
+//                ),
+//                navigationTitle: title,
+//                details: details,
+//                imageURL: imageURL
+//            )
+//
+//        case .topDropDetails(
+//            let playlistId,
+//            let title,
+//            let imageURL
+//        ):
+//            TracklistViewInjected(
+//                dropListDataSource: dropListDataSource,
+//                playlistUser: playlistUser,
+//                trackType: .topDropDetails(
+//                    playlistId: playlistId
+//                ),
+//                navigationTitle: title,
+//                imageURL: imageURL
+//            )
+//        }
+//    }
 
     
     
