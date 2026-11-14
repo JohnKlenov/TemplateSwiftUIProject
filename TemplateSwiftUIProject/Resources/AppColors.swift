@@ -54,6 +54,7 @@
 // .listRowBackground(Color.yellow) - Устанавливает фон для отдельной строки в List.
 
 
+
 import SwiftUI
 import UIKit
 
@@ -65,6 +66,7 @@ struct AppColors {
     static let tertiarySystemBackground = Color(.tertiarySystemBackground) // Второстепенный цвет фона
     static let systemGroupedBackground = Color(.systemGroupedBackground)
     static let activeColor = Color(UIColor.systemPurple)
+    static let white = Color(.white)
     static let orange = Color(.systemOrange)
     static let red = Color(.systemRed)
     static let clear = Color(.clear)

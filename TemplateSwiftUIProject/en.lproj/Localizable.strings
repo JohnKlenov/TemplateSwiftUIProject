@@ -6,6 +6,11 @@
   
 */
 
+
+
+
+
+
 /* NetworkStatusBanner */
 "network_status_banner.no_internet_connection" = "No internet connection";
 
@@ -16,41 +21,32 @@
 
 
 
-/* Home Navigation Stack */
-
-/* Home View */
-"home.title" = "Home";
-"home.add_button" = "Add";
-"home.loading" = "Loading...";
-"home.bookRowView.swipeActions_delete" = "delete";
-"home.contentErrorView.title" = "Ups :(";
-"home.contentErrorView.description" = "Try again! Something went wrong!";
-"home.contentErrorView.refresh_button" = "Refresh";
-"empty_state_view.title" = "Empty. Add new records!";
+/* Droplist Navigation Stack */
 
 
+/* Droplist View */
+"droplist.title" = "Droplist";
+"droplist.loading" = "Loading...";
+/*СontentErrorView View */
+"droplist.contentErrorView.title" = "Ups :(";
+"droplist.contentErrorView.description" = "Try again! Something went wrong!";
+"droplist.contentErrorView.refresh_button" = "Refresh";
+/* Droplist Composite View */
+"droplist.compositView.allTracks" = "All Tracks";
+"droplist.compositView.dropTop" = "DropTop";
+"droplist.compositView.retry" = "Retry";
+"droplist.compositView.failedToLoadData" = "Failed to load data";
+/* DropTop Content View */
+"dropTopContentView.title" = "DropTop";
+"dropTopContentView.tag.all" = "All";
+"dropTopContentView.tag.topYear" = "Top Year";
+"dropTopContentView.tag.topQuarter" = "Top Quarter";
+"dropTopContentView.tag.artist" = "Artist";
 
-/* BookDetailsView */
-"book_details.title" = "Title";
-"book_details.description" = "Description";
-"book_details.author" = "Author";
-"book_details.go_to_some_view_button" = "Go To Some View";
-"book_details.navigation_title" = "Book Details";
-"book_details.edit_button" = "Edit";
+"dropTopContentView.paginationError" = "Something went wrong!";
+"dropTopContentView.loadMore" = "Load more";
 
-/* BookEditView */
-"book_edit.cancel" = "Cancel";
-"book_edit.done" = "Done";
-"book_edit.save" = "Save";
-"book_edit.new_book" = "New book";
-"book_edit.book_section" = "Book";
-"book_edit.title" = "Title";
-"book_edit.description" = "Description";
-"book_edit.path_image" = "PathImage";
-"book_edit.author_section" = "Author";
-"book_edit.author" = "Author";
-"book_edit.delete_book" = "Delete book";
-"book_edit.confirmation_dialog" = "Are you sure?";
+
 
 
 
@@ -101,6 +97,13 @@
 "profile.userInfoEditView.take_photo" = "Take Photo";
 "profile.userInfoEditView.delete_photo" = "Delete Photo";
 "profile.userInfoEditView.camera_placeholder" = "Camera View Placeholder";
+
+
+
+
+
+
+
 
 
 /* Auth View */
@@ -420,4 +423,60 @@
 "signup.password_no_digit" = "Password must contain at least one number.";
 "signup.password_no_lowercase" = "Password must contain at least one lowercase letter.";
 "signup.password_no_uppercase" = "Password must contain at least one uppercase letter.";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// тут нужно зобрать contentErrorView
+// это локализация для Home которого больше нет
+
+
+
+
+/* legacy Home Navigation Stack */
+
+/* Home View */
+"home.title" = "Home";
+"home.add_button" = "Add";
+"home.loading" = "Loading...";
+"home.bookRowView.swipeActions_delete" = "delete";
+"home.contentErrorView.title" = "Ups :(";
+"home.contentErrorView.description" = "Try again! Something went wrong!";
+"home.contentErrorView.refresh_button" = "Refresh";
+"empty_state_view.title" = "Empty. Add new records!";
+
+
+
+/* BookDetailsView */
+"book_details.title" = "Title";
+"book_details.description" = "Description";
+"book_details.author" = "Author";
+"book_details.go_to_some_view_button" = "Go To Some View";
+"book_details.navigation_title" = "Book Details";
+"book_details.edit_button" = "Edit";
+
+/* BookEditView */
+"book_edit.cancel" = "Cancel";
+"book_edit.done" = "Done";
+"book_edit.save" = "Save";
+"book_edit.new_book" = "New book";
+"book_edit.book_section" = "Book";
+"book_edit.title" = "Title";
+"book_edit.description" = "Description";
+"book_edit.path_image" = "PathImage";
+"book_edit.author_section" = "Author";
+"book_edit.author" = "Author";
+"book_edit.delete_book" = "Delete book";
+"book_edit.confirmation_dialog" = "Are you sure?";
 

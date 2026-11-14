@@ -415,7 +415,7 @@ final class DropListFirestoreService:
                             let _ = self.errorHandler.handle(
                                 error: error,
                                 context:
-                                    "fetchTopSection | decode \(doc.documentID)"
+                                    "\(ErrorContext.DropListFirestoreService_fetchTopSection_decodeDocument.rawValue) | \(doc.documentID)"
                             )
 
                             return nil
@@ -457,6 +457,7 @@ final class DropListFirestoreService:
 //                            )
 //                        }
 
+                    // уже не используем заголовок для верхней секции title: "TopDrop"
                     let sectionModel = TopSectionModel(
                         id: "top_section",
                         title: "TopDrop",
@@ -1451,7 +1452,7 @@ private extension DropListFirestoreService {
                             let _ = self.errorHandler.handle(
                                 error: error,
                                 context:
-                                    "fetchDropTopPage | decode \(document.documentID)"
+                                    "\(ErrorContext.DropListFirestoreService_fetchDropTopPage_decodeDocument.rawValue) | \(document.documentID)"
                             )
 
                             return nil

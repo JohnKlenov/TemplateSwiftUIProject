@@ -80,6 +80,8 @@ enum ErrorContext: String {
     case DropListFirestoreService_addTrackToPlaylist
     case DropListFirestoreService_fetchDropTopPage
     case DropListFirestoreService_fetchDropTopTracksPage
+    case DropListFirestoreService_fetchTopSection_decodeDocument
+    case DropListFirestoreService_fetchDropTopPage_decodeDocument
     
     // MARK: - DropListDataSource
     case DropListDataSource_loadInitialDropList
@@ -117,7 +119,23 @@ enum ErrorContext: String {
     // MARK: - Views
     
     
-    // MARK: - WebImageView Contexts
+    
+    // MARK: - Droplist Views
+
+    case DroplistCompositView_thumbnail_webImage_loadImage
+    case TopSectionItemView_webImage_loadImage
+    case DropTopContentView_webImage_loadImage
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    // MARK: - Legacy WebImageView Contexts
 
     //тут нужно по хорошему передавать id модели что бы идентифицироавть битый URL
     case ProductCell_webImage_loadImage
@@ -129,3 +147,8 @@ enum ErrorContext: String {
     case BookDetailsView_webImage_loadImage
 
 }
+
+
+
+
+

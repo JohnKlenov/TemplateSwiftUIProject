@@ -75,13 +75,10 @@
 
 import SwiftUI
 
-
-
 struct DropTopContentView: View {
-
     @ObservedObject var viewModel: DropTopViewModel
-
     @EnvironmentObject var droplistCoordinator: DroplistCoordinator
+    @EnvironmentObject var localization: LocalizationService
 
     // MARK: - Scroll Position
 
@@ -104,7 +101,7 @@ struct DropTopContentView: View {
                 )
         }
         .background(AppColors.background)
-        .navigationTitle("DropTop")
+        .navigationTitle(Localized.DropTopContentView.title.localized())
         .navigationBarTitleDisplayMode(.inline)
         .onFirstAppear {
             Task {
@@ -144,21 +141,23 @@ private extension DropTopContentView {
                             await viewModel.selectTag(tag)
                         }
                     } label: {
-                        Text(tag.title)
+                        let isSelected = viewModel.selectedTag == tag
+
+                        Text(tag.title.localized())
                             .font(.subheadline.weight(.medium))
-                            .foregroundColor(
-                                viewModel.selectedTag == tag
-                                    ? .white
-                                    : .primary
+                            .foregroundStyle(
+                                isSelected
+                                    ? AppColors.white
+                                    : AppColors.primary
                             )
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
                             .background {
                                 Capsule()
                                     .fill(
-                                        viewModel.selectedTag == tag
-                                            ? Color.accentColor
-                                            : Color.secondary.opacity(0.12)
+                                        isSelected
+                                            ? AppColors.activeColor
+                                            : AppColors.secondary.opacity(0.12)
                                     )
                             }
                     }
@@ -180,7 +179,6 @@ private extension DropTopContentView {
     @ViewBuilder
     var content: some View {
         switch viewModel.viewState {
-
         case .loading:
             ProgressView()
 
@@ -230,9 +228,8 @@ private extension DropTopContentView {
             anchor: .top
         )
         .refreshable {
-            // Повторно загружаем только текущий тег.
-            // а если ты обновил тэг артистов потом перешол на алл а там еще нет новых данных так как есть кэш?
-//            await viewModel.refresh()
+            // Здесь будет обновление текущего тега.
+            // await viewModel.refresh()
         }
     }
 
@@ -242,21 +239,26 @@ private extension DropTopContentView {
     var paginationFooter: some View {
         if viewModel.paginationError != nil {
             VStack(spacing: 8) {
-                Text("Что-то пошло не так!")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+                Text(
+                    Localized.DropTopContentView
+                        .paginationError.localized()
+                )
+                .font(.subheadline)
+                .foregroundStyle(AppColors.secondary)
+                .multilineTextAlignment(.center)
 
                 Button {
                     viewModel.loadNextPage()
                 } label: {
                     Label(
-                        "Загрузить ещё",
+                        Localized.DropTopContentView
+                            .loadMore.localized(),
                         systemImage: "arrow.clockwise"
                     )
                     .font(.subheadline.weight(.medium))
                 }
                 .buttonStyle(.plain)
+                .tint(AppColors.activeColor)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
@@ -322,12 +324,14 @@ private extension DropTopContentView {
             HStack(spacing: 12) {
                 WebImageView(
                     url: item.coverImageURL,
-                    placeholderColor: AppColors.secondarySystemBackground,
+                    placeholderColor:
+                        AppColors.secondarySystemBackground,
                     displayStyle: .fixedFrame(
                         width: 60,
                         height: 60
                     ),
-                    context: "DropTop_\(item.id)"
+                    context:
+                        "\(ErrorContext.DropTopContentView_webImage_loadImage.rawValue) | \(item.id)"
                 )
                 .clipShape(
                     RoundedRectangle(cornerRadius: 8)
@@ -336,12 +340,12 @@ private extension DropTopContentView {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title)
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(AppColors.primary)
                         .lineLimit(2)
 
                     Text(item.subtitle ?? "")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(AppColors.secondary)
                         .lineLimit(1)
                 }
 
@@ -360,12 +364,12 @@ private extension DropTopContentView {
 // =================================================
 
 private extension DropTopContentView {
-    
+
     func openPlaylist(
         _ item: LowerItem
     ) {
         viewModel.didSelectPlaylist(item)
-        
+
         droplistCoordinator.navigateTo(
             page: .dropTopDetails(
                 playlistId: item.id,
@@ -375,6 +379,329 @@ private extension DropTopContentView {
         )
     }
 }
+
+
+
+
+
+// MARK: - before localized() + AppColor + ErrorContext
+
+
+//import SwiftUI
+//
+//
+//
+//struct DropTopContentView: View {
+//
+//    @ObservedObject var viewModel: DropTopViewModel
+//
+//    @EnvironmentObject var droplistCoordinator: DroplistCoordinator
+//    @EnvironmentObject var localization: LocalizationService
+//
+//    // MARK: - Scroll Position
+//
+//    // SwiftUI автоматически обновляет ID при прокрутке.
+//    @State private var currentScrollID: String?
+//
+//    // Сохраняем отдельную позицию для каждого тега.
+//    @State private var savedScrollPositions: [DropTopTag: String] = [:]
+//
+//    var body: some View {
+//        VStack(spacing: 0) {
+//            tagSelector
+//
+//            Divider()
+//
+//            content
+//                .frame(
+//                    maxWidth: .infinity,
+//                    maxHeight: .infinity
+//                )
+//        }
+//        .background(AppColors.background)
+//        .navigationTitle("DropTop")
+//        .navigationBarTitleDisplayMode(.inline)
+//        .onFirstAppear {
+//            Task {
+//                await viewModel.setupViewModel()
+//            }
+//        }
+//        .onChange(of: viewModel.selectedTag) { oldTag, _ in
+//            saveScrollPosition(for: oldTag)
+//            currentScrollID = nil
+//        }
+//        .onChange(of: viewModel.displayedTag) { _, newTag in
+//            guard let tag = newTag else {
+//                return
+//            }
+//
+//            guard tag == viewModel.selectedTag else {
+//                return
+//            }
+//
+//            restoreScrollPosition(for: tag)
+//        }
+//    }
+//}
+//
+//// =================================================
+//// MARK: - TAG SELECTOR
+//// =================================================
+//
+//private extension DropTopContentView {
+//
+//    var tagSelector: some View {
+//        ScrollView(.horizontal, showsIndicators: false) {
+//            HStack(spacing: 8) {
+//                ForEach(DropTopTag.allCases) { tag in
+//                    Button {
+//                        Task {
+//                            await viewModel.selectTag(tag)
+//                        }
+//                    } label: {
+//                        Text(tag.title)
+//                            .font(.subheadline.weight(.medium))
+//                            .foregroundColor(
+//                                viewModel.selectedTag == tag
+//                                    ? .white
+//                                    : .primary
+//                            )
+//                            .padding(.horizontal, 14)
+//                            .padding(.vertical, 8)
+//                            .background {
+//                                Capsule()
+//                                    .fill(
+//                                        viewModel.selectedTag == tag
+//                                            ? Color.accentColor
+//                                            : Color.secondary.opacity(0.12)
+//                                    )
+//                            }
+//                    }
+//                    .buttonStyle(.plain)
+//                }
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 10)
+//        }
+//    }
+//}
+//
+//// =================================================
+//// MARK: - CONTENT
+//// =================================================
+//
+//private extension DropTopContentView {
+//
+//    @ViewBuilder
+//    var content: some View {
+//        switch viewModel.viewState {
+//
+//        case .loading:
+//            ProgressView()
+//
+//        case .error(let error):
+//            ContentErrorView(error: error) {
+//                Task {
+//                    await viewModel.retry()
+//                }
+//            }
+//
+//        case .contentList(let page):
+//            dropTopList(page)
+//        }
+//    }
+//}
+//
+//// =================================================
+//// MARK: - LIST
+//// =================================================
+//
+//private extension DropTopContentView {
+//
+//    func dropTopList(
+//        _ page: LowerSectionPage
+//    ) -> some View {
+//        ScrollView {
+//            LazyVStack(spacing: 0) {
+//                ForEach(page.items) { item in
+//                    dropTopRow(item)
+//                        .onAppear {
+//                            guard item.id == page.items.last?.id else {
+//                                return
+//                            }
+//
+//                            viewModel.loadNextPage()
+//                        }
+//                }
+//
+//                if page.hasMore {
+//                    paginationFooter
+//                }
+//            }
+//            .scrollTargetLayout()
+//        }
+//        .scrollPosition(
+//            id: $currentScrollID,
+//            anchor: .top
+//        )
+//        .refreshable {
+//            // Повторно загружаем только текущий тег.
+//            // а если ты обновил тэг артистов потом перешол на алл а там еще нет новых данных так как есть кэш?
+////            await viewModel.refresh()
+//        }
+//    }
+//
+//    // MARK: - Pagination Footer
+//
+//    @ViewBuilder
+//    var paginationFooter: some View {
+//        if viewModel.paginationError != nil {
+//            VStack(spacing: 8) {
+//                Text("Что-то пошло не так!")
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                    .multilineTextAlignment(.center)
+//
+//                Button {
+//                    viewModel.loadNextPage()
+//                } label: {
+//                    Label(
+//                        "Загрузить ещё",
+//                        systemImage: "arrow.clockwise"
+//                    )
+//                    .font(.subheadline.weight(.medium))
+//                }
+//                .buttonStyle(.plain)
+//            }
+//            .frame(maxWidth: .infinity)
+//            .padding(.vertical, 20)
+//
+//        } else {
+//            ProgressView()
+//                .padding(.vertical, 20)
+//        }
+//    }
+//}
+//
+//// =================================================
+//// MARK: - SCROLL POSITION
+//// =================================================
+//
+//private extension DropTopContentView {
+//
+//    func saveScrollPosition(
+//        for tag: DropTopTag
+//    ) {
+//        guard let currentScrollID else {
+//            return
+//        }
+//
+//        savedScrollPositions[tag] = currentScrollID
+//    }
+//
+//    func restoreScrollPosition(
+//        for tag: DropTopTag
+//    ) {
+//        guard case .contentList(let page) = viewModel.viewState else {
+//            return
+//        }
+//
+//        guard
+//            let savedID = savedScrollPositions[tag],
+//            page.items.contains(where: { $0.id == savedID })
+//        else {
+//            currentScrollID = nil
+//            return
+//        }
+//
+//        // Ждём обновления списка перед восстановлением позиции.
+//        Task { @MainActor in
+//            await Task.yield()
+//            currentScrollID = savedID
+//        }
+//    }
+//}
+//
+//// =================================================
+//// MARK: - ROW
+//// =================================================
+//
+//private extension DropTopContentView {
+//
+//    func dropTopRow(
+//        _ item: LowerItem
+//    ) -> some View {
+//        Button {
+//            openPlaylist(item)
+//        } label: {
+//            HStack(spacing: 12) {
+//                WebImageView(
+//                    url: item.coverImageURL,
+//                    placeholderColor: AppColors.secondarySystemBackground,
+//                    displayStyle: .fixedFrame(
+//                        width: 60,
+//                        height: 60
+//                    ),
+//                    context: "DropTop_\(item.id)"
+//                )
+//                .clipShape(
+//                    RoundedRectangle(cornerRadius: 8)
+//                )
+//
+//                VStack(alignment: .leading, spacing: 4) {
+//                    Text(item.title)
+//                        .font(.headline)
+//                        .foregroundColor(.primary)
+//                        .lineLimit(2)
+//
+//                    Text(item.subtitle ?? "")
+//                        .font(.subheadline)
+//                        .foregroundColor(.secondary)
+//                        .lineLimit(1)
+//                }
+//
+//                Spacer()
+//            }
+//            .padding(.horizontal, 16)
+//            .padding(.vertical, 8)
+//            .contentShape(Rectangle())
+//        }
+//        .buttonStyle(.plain)
+//    }
+//}
+//
+//// =================================================
+//// MARK: - NAVIGATION
+//// =================================================
+//
+//private extension DropTopContentView {
+//    
+//    func openPlaylist(
+//        _ item: LowerItem
+//    ) {
+//        viewModel.didSelectPlaylist(item)
+//        
+//        droplistCoordinator.navigateTo(
+//            page: .dropTopDetails(
+//                playlistId: item.id,
+//                title: item.title,
+//                imageURL: item.coverImageURL
+//            )
+//        )
+//    }
+//}
+
+
+
+
+
+
+
+
+
+
+
+
 
 // MARK: - Instead of `DropTopPage`, use a generic `LowerSectionPage`, and merge `DropTopPagesCache` with `PagesCache`.
 

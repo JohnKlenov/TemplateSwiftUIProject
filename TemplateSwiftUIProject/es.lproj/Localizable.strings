@@ -15,40 +15,35 @@
 "tab.gallery" = "Galería";
 "tab.profile" = "Perfil";
 
-/* Home Navigation Stack */
-
-/* Home View */
-"home.title" = "Inicio";
-"home.add_button" = "Agregar";
-"home.loading" = "Cargando...";
-"home.bookRowView.swipeActions_delete" = "eliminar";
-"home.contentErrorView.title" = "Ups :(";
-"home.contentErrorView.description" = "¡Inténtalo de nuevo! ¡Algo salió mal!";
-"home.contentErrorView.refresh_button" = "Actualizar";
-"empty_state_view.title" = "Vacío. ¡Agrega nuevos registros!";
 
 
-/* BookDetailsView */
-"book_details.title" = "Título";
-"book_details.description" = "Descripción";
-"book_details.author" = "Autor";
-"book_details.go_to_some_view_button" = "Ir a alguna vista";
-"book_details.navigation_title" = "Detalles del libro";
-"book_details.edit_button" = "Editar";
+/* Droplist Navigation Stack */
 
-/* BookEditView */
-"book_edit.cancel" = "Cancelar";
-"book_edit.done" = "Hecho";
-"book_edit.save" = "Guardar";
-"book_edit.new_book" = "Nuevo libro";
-"book_edit.book_section" = "Libro";
-"book_edit.title" = "Título";
-"book_edit.description" = "Descripción";
-"book_edit.path_image" = "Ruta de la imagen";
-"book_edit.author_section" = "Autor";
-"book_edit.author" = "Autor";
-"book_edit.delete_book" = "Eliminar libro";
-"book_edit.confirmation_dialog" = "¿Estás seguro?";
+
+/* Droplist View */
+"droplist.title" = "Droplist";
+"droplist.loading" = "Cargando...";
+/*СontentErrorView View */
+"droplist.contentErrorView.title" = "Ups :(";
+"droplist.contentErrorView.description" = "¡Inténtalo de nuevo! ¡Algo salió mal!";
+"droplist.contentErrorView.refresh_button" = "Actualizar";
+/* Droplist Composite View */
+"droplist.compositView.allTracks" = "Todas las canciones";
+"droplist.compositView.dropTop" = "DropTop";
+"droplist.compositView.retry" = "Reintentar";
+"droplist.compositView.failedToLoadData" = "No se pudieron cargar los datos";
+/* DropTop Content View */
+"dropTopContentView.title" = "DropTop";
+"dropTopContentView.tag.all" = "Todos";
+"dropTopContentView.tag.topYear" = "Top del año";
+"dropTopContentView.tag.topQuarter" = "Top del trimestre";
+"dropTopContentView.tag.artist" = "Artistas";
+
+"dropTopContentView.paginationError" = "¡Algo salió mal!";
+"dropTopContentView.loadMore" = "Cargar más";
+
+
+
 
 
 
@@ -412,3 +407,44 @@
 "signup.password_no_lowercase" = "La contraseña debe contener al menos una letra minúscula.";
 "signup.password_no_uppercase" = "La contraseña debe contener al menos una letra mayúscula.";
 
+
+
+
+
+
+
+
+/* Legacy Home Navigation Stack */
+
+/* Home View */
+"home.title" = "Inicio";
+"home.add_button" = "Agregar";
+"home.loading" = "Cargando...";
+"home.bookRowView.swipeActions_delete" = "eliminar";
+"home.contentErrorView.title" = "Ups :(";
+"home.contentErrorView.description" = "¡Inténtalo de nuevo! ¡Algo salió mal!";
+"home.contentErrorView.refresh_button" = "Actualizar";
+"empty_state_view.title" = "Vacío. ¡Agrega nuevos registros!";
+
+
+/* BookDetailsView */
+"book_details.title" = "Título";
+"book_details.description" = "Descripción";
+"book_details.author" = "Autor";
+"book_details.go_to_some_view_button" = "Ir a alguna vista";
+"book_details.navigation_title" = "Detalles del libro";
+"book_details.edit_button" = "Editar";
+
+/* BookEditView */
+"book_edit.cancel" = "Cancelar";
+"book_edit.done" = "Hecho";
+"book_edit.save" = "Guardar";
+"book_edit.new_book" = "Nuevo libro";
+"book_edit.book_section" = "Libro";
+"book_edit.title" = "Título";
+"book_edit.description" = "Descripción";
+"book_edit.path_image" = "Ruta de la imagen";
+"book_edit.author_section" = "Autor";
+"book_edit.author" = "Autor";
+"book_edit.delete_book" = "Eliminar libro";
+"book_edit.confirmation_dialog" = "¿Estás seguro?";

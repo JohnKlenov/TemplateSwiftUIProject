@@ -616,7 +616,7 @@ final class DroplistViewModel: ObservableObject {
                     DropData(
                         topSection: latestDropData.topSection,
                         initialLowerSection: latestDropData.initialLowerSection,
-                        footerState: .error("Не удалось загрузить данные")
+                        footerState: .error(Localized.Droplist.CompositView.failedToLoadData)
                     )
                 )
             }

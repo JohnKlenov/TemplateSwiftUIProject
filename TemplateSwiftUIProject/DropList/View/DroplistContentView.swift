@@ -28,14 +28,14 @@ struct DroplistContentView: View {
             case .loading:
 
                 ProgressView(
-                    Localized.Home.loading.localized()
+                    Localized.Droplist.loading.localized()
                 )
 
             case .myTracks:
 
                 // На DroplistContentView мы НЕ отображаем треки.
                 ProgressView(
-                    Localized.Home.loading.localized()
+                    Localized.Droplist.loading.localized()
                 )
 
             case .contentList(let dropData):
@@ -108,7 +108,7 @@ struct DroplistContentView: View {
             }
         }
         .background(AppColors.background)
-        .navigationTitle("Droplist")
+        .navigationTitle(Localized.Droplist.title.localized())
 //        .navigationTitle(
 //            Localized.Home.title.localized()
 //        )
@@ -142,6 +142,14 @@ struct DroplistContentView: View {
         }
     }
 }
+
+
+
+
+
+
+
+
 
 
 

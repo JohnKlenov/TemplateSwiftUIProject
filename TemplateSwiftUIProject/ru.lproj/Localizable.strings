@@ -22,45 +22,30 @@
 
 
 
+/* Droplist Navigation Stack */
 
+/* Droplist View */
+"droplist.title" = "Droplist";
+"droplist.loading" = "Загрузка...";
+/*СontentErrorView View */
+"droplist.contentErrorView.title" = "Упс :(";
+"droplist.contentErrorView.description" = "Попробуйте еще раз! Что-то пошло не так!";
+"droplist.contentErrorView.refresh_button" = "Обновить";
+/* Droplist Composite View */
+"droplist.compositView.allTracks" = "Все треки";
+"droplist.compositView.dropTop" = "DropTop";
+"droplist.compositView.retry" = "Повторить";
+"droplist.compositView.failedToLoadData" = "Не удалось загрузить данные";
+/* DropTop Content View */
+"dropTopContentView.title" = "DropTop";
+"dropTopContentView.tag.all" = "Все";
+"dropTopContentView.tag.topYear" = "Топ за год";
+"dropTopContentView.tag.topQuarter" = "Топ за квартал";
+"dropTopContentView.tag.artist" = "Артисты";
 
+"dropTopContentView.paginationError" = "Что-то пошло не так!";
+"dropTopContentView.loadMore" = "Загрузить ещё";
 
-
-
-/* Home Navigation Stack */
-
-/* Home View */
-"home.title" = "Главная";
-"home.add_button" = "Добавить";
-"home.loading" = "Загрузка...";
-"home.bookRowView.swipeActions_delete" = "удалить";
-"home.contentErrorView.title" = "Упс :(";
-"home.contentErrorView.description" = "Попробуйте еще раз! Что-то пошло не так!";
-"home.contentErrorView.refresh_button" = "Обновить";
-"empty_state_view.title" = "Пусто. Добавьте новые записи!";
-
-
-/* BookDetailsView */
-"book_details.title" = "Название";
-"book_details.description" = "Описание";
-"book_details.author" = "Автор";
-"book_details.go_to_some_view_button" = "Перейти к другому виду";
-"book_details.navigation_title" = "Детали книги";
-"book_details.edit_button" = "Редактировать";
-
-/* BookEditView */
-"book_edit.cancel" = "Отмена";
-"book_edit.done" = "Готово";
-"book_edit.save" = "Сохранить";
-"book_edit.new_book" = "Новая книга";
-"book_edit.book_section" = "Книга";
-"book_edit.title" = "Название";
-"book_edit.description" = "Описание";
-"book_edit.path_image" = "Путь к изображению";
-"book_edit.author_section" = "Автор";
-"book_edit.author" = "Автор";
-"book_edit.delete_book" = "Удалить книгу";
-"book_edit.confirmation_dialog" = "Вы уверены?";
 
 
 
@@ -439,3 +424,54 @@
 "signup.password_no_lowercase" = "Пароль должен содержать хотя бы одну строчную букву.";
 "signup.password_no_uppercase" = "Пароль должен содержать хотя бы одну заглавную букву.";
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Legacy Home Navigation Stack */
+
+/* Home View */
+"home.title" = "Главная";
+"home.add_button" = "Добавить";
+"home.loading" = "Загрузка...";
+"home.bookRowView.swipeActions_delete" = "удалить";
+"home.contentErrorView.title" = "Упс :(";
+"home.contentErrorView.description" = "Попробуйте еще раз! Что-то пошло не так!";
+"home.contentErrorView.refresh_button" = "Обновить";
+"empty_state_view.title" = "Пусто. Добавьте новые записи!";
+
+
+/* BookDetailsView */
+"book_details.title" = "Название";
+"book_details.description" = "Описание";
+"book_details.author" = "Автор";
+"book_details.go_to_some_view_button" = "Перейти к другому виду";
+"book_details.navigation_title" = "Детали книги";
+"book_details.edit_button" = "Редактировать";
+
+/* BookEditView */
+"book_edit.cancel" = "Отмена";
+"book_edit.done" = "Готово";
+"book_edit.save" = "Сохранить";
+"book_edit.new_book" = "Новая книга";
+"book_edit.book_section" = "Книга";
+"book_edit.title" = "Название";
+"book_edit.description" = "Описание";
+"book_edit.path_image" = "Путь к изображению";
+"book_edit.author_section" = "Автор";
+"book_edit.author" = "Автор";
+"book_edit.delete_book" = "Удалить книгу";
+"book_edit.confirmation_dialog" = "Вы уверены?";

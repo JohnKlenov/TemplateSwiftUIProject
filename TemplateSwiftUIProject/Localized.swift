@@ -39,54 +39,55 @@ enum Localized {
         static let profile = "tab.profile"
     }
     
-    // MARK: - Home View Navigation Stack
     
-    // Home view
-    enum Home {
-        static let title = "home.title"
-        static let addButton = "home.add_button"
-        static let loading = "home.loading"
+    // MARK: - Droplist View Navigation Stack
+    
+    
+    // Droplist view
+    enum Droplist {
+        static let title = "droplist.title"
+        static let loading = "droplist.loading"
         
-        enum BookRowView {
-            static let swipeActionsDelete = "home.bookRowView.swipeActions_delete"
+        enum CompositView {
+            static let allTracks = "droplist.compositView.allTracks"
+            static let dropTop = "droplist.compositView.dropTop"
+            static let retry = "droplist.compositView.retry"
+            static let failedToLoadData = "droplist.compositView.failedToLoadData"
         }
         
         enum ContentErrorView {
-            static let title = "home.contentErrorView.title"
-            static let description = "home.contentErrorView.description"
-            static let refreshButton = "home.contentErrorView.refresh_button"
-        }
-        
-        enum EmptyStateView {
-            static let title = "empty_state_view.title"
+            static let title = "droplist.contentErrorView.title"
+            static let description = "droplist.contentErrorView.description"
+            static let refreshButton = "droplist.contentErrorView.refresh_button"
         }
     }
     
-    // BookDetailsView
-    enum BookDetailsView {
-        static let title = "book_details.title"
-        static let description = "book_details.description"
-        static let author = "book_details.author"
-        static let goToSomeViewButton = "book_details.go_to_some_view_button"
-        static let navigationTitle = "book_details.navigation_title"
-        static let editButton = "book_details.edit_button"
+
+    enum DropTopContentView {
+        static let title =
+            "dropTopContentView.title"
+
+        static let paginationError =
+            "dropTopContentView.paginationError"
+
+        static let loadMore =
+            "dropTopContentView.loadMore"
+
+        enum Tag {
+            static let all =
+                "dropTopContentView.tag.all"
+
+            static let topYear =
+                "dropTopContentView.tag.topYear"
+
+            static let topQuarter =
+                "dropTopContentView.tag.topQuarter"
+
+            static let artist =
+                "dropTopContentView.tag.artist"
+        }
     }
     
-    // BookEditView
-    enum BookEditView {
-        static let cancel = "book_edit.cancel"
-        static let done = "book_edit.done"
-        static let save = "book_edit.save"
-        static let newBook = "book_edit.new_book"
-        static let bookSection = "book_edit.book_section"
-        static let title = "book_edit.title"
-        static let description = "book_edit.description"
-        static let pathImage = "book_edit.path_image"
-        static let authorSection = "book_edit.author_section"
-        static let author = "book_edit.author"
-        static let deleteBook = "book_edit.delete_book"
-        static let confirmationDialog = "book_edit.confirmation_dialog"
-    }
     
     // MARK: - Profile Navigation Stack
     
@@ -478,6 +479,68 @@ enum Localized {
         static let passwordNoLowercase = "signup.password_no_lowercase"
         static let passwordNoUppercase = "signup.password_no_uppercase"
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // MARK: - legacy Home View Navigation Stack
+    
+    
+    // Home view
+    enum Home {
+        static let title = "home.title"
+        static let addButton = "home.add_button"
+        static let loading = "home.loading"
+        
+        enum BookRowView {
+            static let swipeActionsDelete = "home.bookRowView.swipeActions_delete"
+        }
+        
+        enum ContentErrorView {
+            static let title = "home.contentErrorView.title"
+            static let description = "home.contentErrorView.description"
+            static let refreshButton = "home.contentErrorView.refresh_button"
+        }
+        
+        enum EmptyStateView {
+            static let title = "empty_state_view.title"
+        }
+    }
+    
+    // BookDetailsView
+    enum BookDetailsView {
+        static let title = "book_details.title"
+        static let description = "book_details.description"
+        static let author = "book_details.author"
+        static let goToSomeViewButton = "book_details.go_to_some_view_button"
+        static let navigationTitle = "book_details.navigation_title"
+        static let editButton = "book_details.edit_button"
+    }
+    
+    // BookEditView
+    enum BookEditView {
+        static let cancel = "book_edit.cancel"
+        static let done = "book_edit.done"
+        static let save = "book_edit.save"
+        static let newBook = "book_edit.new_book"
+        static let bookSection = "book_edit.book_section"
+        static let title = "book_edit.title"
+        static let description = "book_edit.description"
+        static let pathImage = "book_edit.path_image"
+        static let authorSection = "book_edit.author_section"
+        static let author = "book_edit.author"
+        static let deleteBook = "book_edit.delete_book"
+        static let confirmationDialog = "book_edit.confirmation_dialog"
+    }
+    
 }
 //
 //enum Localized {

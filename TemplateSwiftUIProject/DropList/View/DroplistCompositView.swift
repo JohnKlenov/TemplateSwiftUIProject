@@ -72,6 +72,8 @@ import SwiftUI
 
 struct DroplistCompositView: View {
 
+    @EnvironmentObject var localization: LocalizationService
+    
     let data: DropData
 
     let onRefresh: () -> Void
@@ -166,9 +168,9 @@ private extension DroplistCompositView {
             spacing: 0
         ) {
 
-            Text(data.topSection.title)
-                .font(.headline)
-                .padding(.horizontal)
+//            Text(data.topSection.title)
+//                .font(.headline)
+//                .padding(.horizontal)
 
             VStack(
                 alignment: .leading,
@@ -215,12 +217,12 @@ private extension DroplistCompositView {
 
             Spacer()
 
-            navButton(title: "All Tracks") {
+            navButton(title: Localized.Droplist.CompositView.allTracks.localized()) {
 
                 onAllTracks()
             }
 
-            navButton(title: "TopDrop") {
+            navButton(title: Localized.Droplist.CompositView.dropTop.localized()) {
 
                 // Эта кнопка пока не связана
                 // с конкретным TopItem.
@@ -231,7 +233,7 @@ private extension DroplistCompositView {
             }
         }
         .padding(.horizontal)
-        .background(Color.clear)
+        .background(AppColors.clear)
     }
 
     func navButton(
@@ -298,7 +300,7 @@ private extension DroplistCompositView {
 
                 Spacer()
 
-                Color.clear
+                AppColors.clear
                     .frame(height: 44)
                     .onAppear {
 
@@ -335,10 +337,10 @@ private extension DroplistCompositView {
 
                 VStack(spacing: 6) {
 
-                    Text(message)
-                        .foregroundColor(.secondary)
+                    Text(message.localized())
+                        .foregroundStyle(AppColors.secondary)
 
-                    Button("Повторить") {
+                    Button(Localized.Droplist.CompositView.retry.localized()) {
 
                         onLoadNextPage(
                             CarouselItemType.droplist
@@ -379,13 +381,13 @@ private extension DroplistCompositView {
 
                     Text(item.title)
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(AppColors.primary)
 
                     if let subtitle = item.subtitle {
 
                         Text(subtitle)
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(AppColors.secondary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                             .frame(
@@ -417,7 +419,7 @@ private extension DroplistCompositView {
                     height: 60
                 ),
             context:
-                "LowerItemThumbnail_\(item.id)"
+                "\(ErrorContext.DroplistCompositView_thumbnail_webImage_loadImage.rawValue)_\(item.id)"
         )
         .clipShape(
             RoundedRectangle(
@@ -460,7 +462,7 @@ struct TopSectionItemView: View {
                             height: imageSize
                         ),
                     context:
-                        "TopSectionCard_\(item.id)"
+                        "\(ErrorContext.TopSectionItemView_webImage_loadImage.rawValue)_\(item.id)"
                 )
                 .clipShape(
                     RoundedRectangle(

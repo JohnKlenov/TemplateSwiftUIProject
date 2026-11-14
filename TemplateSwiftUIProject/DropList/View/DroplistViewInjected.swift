@@ -6,202 +6,52 @@
 //
 
 
-// DropTop
-//
-// DropTop уже имеет путь и метод фетч
-// нужно добавить в объект tag или поле по которому мы будем фетч данные только для секции TopDrop на главном экране.
-// будет список который будет иметь следующие категории (Top year + Top decada (четыре декады для каждого года) + Artist List#1 и тд + прочии категории типа ечеринка или Рождество и в таком духе)
-// каждая категория будет иметь свой tag (All + TopYear + Decada + Artist и так далее)
-// то есть мы как и на главном экране в секции TopDrop будем получать весь список и иметь возможность фильтровать по тегам(в новых версиях может сделаем экран фильтр с более сложной настройкой)
-// как будет выглядеть ячейка image + Title + ears (Top 2026 or Lil Wayne - List#2 2026 or Top decade 1/2 2026 or Christmas 2020 ) размер как на droplist
+// Tabs DropTop
+
+// нужно локализовать все текста + картинки
+// // одинаковый ли у нас errorView для paginationFooter (главнфй экран дроплист и дроптоп)???
+
+// DropTopView - это выжимка лучших треков из наших списков Droplist
+// по Top Year (за год) + Top Quarter(в году 4 квартала по 3 месяца в каждом и возможно не все треки из 4 квартолов попудут в Top Year) + Artist (список всех артистов попавших в Top Drop и каждый раз при выходе нового Top Year или Top Quarter мы будем пополнять их треками   -   тут нужно будет продумать как мы будем сортировать список потому что по дате будет не корректно нужны будут индексы)
 
 
-// смотри сейчас мы через AdminView в частности через AdminViewModel в первой версии func savePlaylistToFirestore() добавляем треки в droplistRef.collection("tracks") и в db.collection("dropTracks") а во второй версии func savePlaylistToFirestore() добавляем треки в db
-//            .collection("topSection")
-// и именно тут на сколько я понимаю нам нужно добавить наши два новых поля artists [String] + tags ! поле tags наверно может быть просто String потому что в этом поле у нас не может быть два значения, разве что значение all ! не уверен может all это будет первый запрос по которому мы получаем все данные из коллекции а потом каждый новый запрос по tags будет отдельным запросом! тут я бы хотел что бы ты сделал это так как реализуют в проде в боевых прложениях!
-// нужно будет посмотреть наверно нужно будет сделать изменения в методах фетч на топ сектион из за того что измениться модель!
-// наверно нужно -
-// //  TopSectionDoc — документ плейлиста (topSections/{playlistId})
-//
-//struct TopSectionDoc: Codable {
-//    let playlistId: String      // Критично → обязательное
-//    let title: String           // Критично → обязательное
-//    let description: String?    // Не критично → опциональное
-//    let coverImageURL: String?  // Не критично → опциональное
-//    let trackCount: Int         // Критично → обязательное
-//    let createdAt: Date?        // Может отсутствовать → опциональное
-//    let orderIndex: Int         // Критично → обязательное
-//}
-//
-//func fetchTopSection() async throws -> TopSectionModel {
-//
-//    try await withCheckedThrowingContinuation { continuation in
-//
-//        db.collection("topSection")
-//            .order(
-//                by: "orderIndex",
-//                descending: false
-//            )
-//            .getDocuments { [weak self] snapshot, error in
-//
-//                guard let self else {
-//                    return
-//                }
-//
-//                if let error {
-//
-//                    continuation.resume(
-//                        throwing: FirestoreGetServiceError(
-//                            underlying: error,
-//                            context: .DropListFirestoreService_fetchTopSection
-//                        )
-//                    )
-//
-//                    return
-//                }
-//
-//                guard let snapshot else {
-//
-//                    continuation.resume(
-//                        throwing: FirestoreGetServiceError(
-//                            underlying: AppInternalError.nilSnapshot,
-//                            context: .DropListFirestoreService_fetchTopSection
-//                        )
-//                    )
-//
-//                    return
-//                }
-//
-//                if snapshot.documents.isEmpty {
-//
-//                    continuation.resume(
-//                        throwing: FirestoreGetServiceError(
-//                            underlying: AppInternalError.snapshotIsEmpty,
-//                            context: .DropListFirestoreService_fetchTopSection
-//                        )
-//                    )
-//
-//                    return
-//                }
-//
-//                // Безопасное декодирование Firestore
-//                // ========================================================
-//                // 🔐 do-catch + compactMap + errorHandler.handle = 100% защита от крашей
-//                //
-//                // ЧТО ЛОВИТ catch (ошибка → логируем → пропускаем документ):
-//                // • Поле имеет другой тип (String вместо Int)
-//                // • Отсутствует обязательное поле (не Optional)
-//                // • Обязательное поле = null
-//                // • Все поля другие/повреждённые данные
-//                //
-//                // ЧТО НЕ ВЫЗЫВАЕТ ОШИБОК:
-//                // • Лишние поля в Firestore → игнорируются
-//                // • Отсутствует Optional поле → получает nil
-//                // • Optional поле = null → получает nil
-//                //
-//                // ℹ️ Optional защищает только от ОТСУТСТВИЯ поля, но НЕ от неправильного типа!
-//                //    String? при Int значении → catch, документ пропущен
-//                let docs: [
-//                    (id: String, data: TopSectionDoc)
-//                ] = snapshot.documents.compactMap { doc in
-//
-//                    do {
-//
-//                        let decoded =
-//                            try doc.data(
-//                                as: TopSectionDoc.self
-//                            )
-//
-//                        return (
-//                            doc.documentID,
-//                            decoded
-//                        )
-//
-//                    } catch {
-//
-//                        let _ = self.errorHandler.handle(
-//                            error: error,
-//                            context:
-//                                "fetchTopSection | decode \(doc.documentID)"
-//                        )
-//
-//                        return nil
-//                    }
-//                }
-//
-//                if docs.isEmpty {
-//
-//                    continuation.resume(
-//                        throwing: FirestoreGetServiceError(
-//                            underlying: AppInternalError.docsIsEmpty,
-//                            context: .DropListFirestoreService_fetchTopSection
-//                        )
-//                    )
-//
-//                    return
-//                }
-//
-//                let items: [TopItem] =
-//                    docs.map { playlist in
-//
-//                        TopItem(
-//                            id: playlist.id,
-//                            title: playlist.data.title,
-//                            imageURL:
-//                                playlist.data.coverImageURL.flatMap {
-//                                    URL(string: $0)
-//                                }
-//                        )
-//                    }
-//
-//                let sectionModel = TopSectionModel(
-//                    id: "top_section",
-//                    title: "TopDrop",
-//                    items: items
-//                )
-//
-//                continuation.resume(
-//                    returning: sectionModel
-//                )
-//            }
-//    }
-//}
-//
-//struct TopItem: Identifiable {
-//    let id: String
-//    let title: String
-//    let imageURL: URL?
-//}
-//
-// в TopItem нужно добавить поле artists мы будем его заполнять из поля объекта TopSectionDoc!
-//
-//
-// мы решили что у нас будет два пути: /topSection/ с документами как на скрин шоте + /dropTop/ - это две коллекции которые будут иметь однотимные документы как на скриншоте
-// только  /dropTop/ будет содержать полный список топовых сборников треков (по фиксированным категориям Top year + Top decada + Artist) а /topSection/ будут содежать дублирующие данные из dropTop для карусели в верхней секции главного экрана Droplist - там будет наверно не более 5 карточек в этой карусели !
-// я решил все таки разделить дата сорс для карусели в верхней секции и отдельного экрана dropTop по разным причинам (я смогу менять порядок отображения карточек в карусели через orderIndex + возможно у нас будет какая то рекламная интеграция которая потребует данных которые не будут дублироваться в  dropTop и т.д)
-// 
-// в каждый документ коллекции /topSection/PLQcuPcwlJLVB97DdyKtV2E-STKQydRPeR нужно добавить при записи из админки поле artists [String] мы просто будем руками прописывать его в коде аминке для каждого сохранения документа /topSection/PLQcuPcwlJLVB97DdyKtV2E-STKQydRPeR ! также нужно добавить поле tags (topYear, topDecada, artist - пока будет три! как на скрин шоте) по которому мы будем из экрана DropTop фильтровать список с DropTop то есть если выбрали из списка только topDecada то на экране отображаються только документы содержащие в поле tags: topDecada! если выбрали из списка all то получаем весь список документов из коллекции DropTop
-//
-// что такое категории topYear, topDecada, artist ! По мере того как мы будем в наши текущие плэйлисты на главном экране добавлять лучшие треки из последних альбомов разных исполнителей мы будем из всего этого списка за текущий год в конце каждого года создавать Top year 2026 затем Top year 2027 и так далее! кроме этого в течении года мы раз в три месяца будем создавать топ треков по итогу декады (первых трех месяцев года - за год будет 4 декады это и будет категория topDecada)! так же мы можем добавлять в список плэйлистов DropTop другие категории например artist - то есть мы к примеру захотмим в какой то момент собрать плэйлист с подборкой треков для Lil Wayne к примеру и выложить его в DropTop! возможно в будущем появиться новая категория для плэйлистов в DropTop и мы добавим ее к нашим тегам!
-//
-// смотри что я хочу иметь в итоге!
-// нам нужно добавить в AdminViewModel в версии func savePlaylistToFirestore() (во второй версии где мы будем добавлять плейлисты в  db
-// .collection("topSection")) новые поля для добавления нового плэйлиста (поле artists [String] + tag: String ) в artists я буду руками в AdminViewModel прописывать массив ортистов и поле tag я буду тоже прописывать руками к примеру topYear! вторую версию func savePlaylistToFirestore() мы будем использовать так же для добавления плейлистов с треками для корневого католога топовых плейлиство и будем менять только пути на .collection("dropTop")!
-// то есть на главном экране Droplist в верхней карусели мы будем использовать данные из источника .collection("topSection")
-// а для кнопки DropTop по которой мы будем переходить на экран DropTop вот тут наш дата сорс будет  .collection("dropTop") !
-// Как будет выглядеть экран DropTop - это по сути обычный список с ячейками которые имеют вид ячейки image + Title  (image будет небольшая картинка 60 на 60 , Title будет строка к примеру Top 2026 или Top 1/2 decada 2026 или Lil Wayne - List#1 2026)
-// при переходе на ячейку мы переходим непосредственно на плейлист с трками на наш TracklistView!
-// на экране DropTop нам нужно иметь способ переключаться по нашим тегам(topYear, topDecada, artist) то есть при переходе на DropTop мы сразу фетчим данные из .collection("dropTop") допустим первые 30 или 20 так что бы список заполнил весь экран с запасом за экран! а затем если пользователь прокручивает ленту ниже то мы подтягиваем новую порцию плейлистов! Дак вот пользователь должен иметь возможность переключаться по тегам на экране то есть фильтровать весь список допустим только по тегу topDecada и на эране мы увидем спсико с первыми допустим 20 плейлистами только по topDecada ! если пользователь захочет вернуться на весь список он должен выбрать из списка на экране DropTop tag all!
-// экран DropTop мы делаем по принципу экрана TracklistView то есть он будет иметь DropTopViewInjected + DropTopContentView + DropTopViewModel!
-// смотри цепочка получения данных для DropTopViewInjected та же что и раньше ! мы в ViewBuilderService инициализируем DropTopViewInjected через func dropViewBuild(page: DroplistFlow) -> some View далее передаем туда dropListDataSource и получается из DropTopViewModel обращаемся к dropListDataSource как и раньше а базовый фетч лежит в DropListFirestoreService! 
+
+
 
 // Tabs Category
-//
-// Верхняя секция список Alltracks + DropTop
-// Нижняя секция список - все оттенки gym + pathy ...
+
+// Это список который имеет четкую структуру
+
+// Верхняя секция
+// Alltracks + DropTop
+
+// Средняя секция
+// фильтры для Alltracks (gym + chill + party + triller) - делаем запрос с фильтром по тегу для Alltracks.
+// фильтры для Alltracks (young money(>30) + old money((<30))) то есть молодые исполнители и уже уходящие в закат
+// фильтры для Alltracks Artists - список артистов при переходе по которым мы можем увидеть все треки из Alltracks с их участием (ставим тег artistTag: и как нибудь коротко .wayne если трек с двумя артистами то [.wayne, .drake]) то есть при переходе на артиста мы делаем запрос с фильтром по тегу для Alltracks.
+// фильтры для Alltracks musical genre (RNB HipHop Rock ...) ???
+
+// Нижняя секция
+// Unpublished(то что пропустили с 2015 и не попало в Droplist) + Все что за гранью начала мониторинга Droplist (то есть если старт 2015 то треки из 2014 уже тут)
+// все это списком треков
+// как вариант можно такие треки из Unpublished добавлять в Droplist которые подходят по дате уже ранее опубликованные но тогда придется так же добовлять эти треки и в DropTop
+// или иметь список Unpublished + но из него по годам добавлять треки в DropTop даже после публикации (Top Year (за год) + Top Quarter) ???
 
 
-// MyPlaylist
+
+// когда мы на Tabs Category на Alltracks
+// затем перешли на Tabs DropTop обновили контент и перешли назад на Tabs Category / Alltracks
+// нам поидее нужно на onAppier проверять обновился ли на DropTop если да то делать фетч из сети и удалять кэш???
+
+// фича с зеленым кружочкам над ячейкой трека это зачит мы его включали один раз уже (то есть мы должны иметь отдельный MyPlaylistListened то есть если включали и люьой треклист который мы открывапем должен сверяться с этим массивом и там где нужно простовлять маленький кружочек или точку )
+
+
+
+
+
+
+
+// Tabs MyPlaylist
 
 
 // для версии 2.0  нужно оставить так же стратегию использования AppleMusic - то есть интерфейс будет все тот же но дата сорс уже будет тругой

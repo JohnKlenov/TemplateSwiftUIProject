@@ -622,6 +622,10 @@ enum CarouselItemType: Hashable {
 
 extension CarouselItemType: PageCacheKey {
 
+    // мы решили что dropTopDetails это кэш который никогда не измениться
+    // но на самом деле если появится новый dropTop по декадам или годам то тут же обновяться некоторые dropTopDetails
+    // по артистам поэтому по хорошему мы должны убрать dropTopDetails из isPermanentCache
+    
     var isPermanentCache: Bool {
         switch self {
         case .droplistDetails,
@@ -736,7 +740,6 @@ struct TopItem: Identifiable {
 // DropTopTag - это выжимка лучших треков из наших списков Droplist
 // по Top Year (за год) + Top Quarter(в году 4 квартала по 3 месяца в каждом и возможно не все треки из 4 квартолов попудут в Top Year) + Artist (список всех артистов попавших в Top Drop и каждый раз при выходе нового Top Year или Top Quarter мы будем пополнять их треками   -   тут нужно будет продумать как мы будем сортировать список потому что по дате будет не корректно нужны будут индексы)
 enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
-
     case all
     case topYear
     case topQuarter
@@ -749,16 +752,16 @@ enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
     var title: String {
         switch self {
         case .all:
-            return "All"
+            return Localized.DropTopContentView.Tag.all
 
         case .topYear:
-            return "Top Year"
+            return Localized.DropTopContentView.Tag.topYear
 
         case .topQuarter:
-            return "Top Quarter"
+            return Localized.DropTopContentView.Tag.topQuarter
 
         case .artist:
-            return "Artist"
+            return Localized.DropTopContentView.Tag.artist
         }
     }
 
@@ -789,6 +792,64 @@ extension DropTopTag: PageCacheKey {
         false
     }
 }
+
+
+
+// before localized()
+//enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
+//
+//    case all
+//    case topYear
+//    case topQuarter
+//    case artist
+//
+//    var id: String {
+//        rawValue
+//    }
+//
+//    var title: String {
+//        switch self {
+//        case .all:
+//            return "All"
+//
+//        case .topYear:
+//            return "Top Year"
+//
+//        case .topQuarter:
+//            return "Top Quarter"
+//
+//        case .artist:
+//            return "Artist"
+//        }
+//    }
+//
+//    var firestoreTag: String? {
+//        switch self {
+//        case .all:
+//            return nil
+//
+//        case .topYear:
+//            return "topYear"
+//
+//        case .topQuarter:
+//            return "topQuarter"
+//
+//        case .artist:
+//            return "artist"
+//        }
+//    }
+//
+//    var cacheKey: String {
+//        "dropTop.\(rawValue)"
+//    }
+//}
+//
+//extension DropTopTag: PageCacheKey {
+//
+//    var isPermanentCache: Bool {
+//        false
+//    }
+//}
 
 
 

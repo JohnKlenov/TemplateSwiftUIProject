@@ -25,13 +25,13 @@ struct ContentErrorView: View {
             Spacer()
             ContentUnavailableView(
                 label: {
-                    Text(Localized.Home.ContentErrorView.title.localized())
+                    Text(Localized.Droplist.ContentErrorView.title.localized())
                 },
                 description: {
-                    Text(Localized.Home.ContentErrorView.description.localized())
+                    Text(Localized.Droplist.ContentErrorView.description.localized())
                 },
                 actions: {
-                    Button(Localized.Home.ContentErrorView.refreshButton.localized()) {
+                    Button(Localized.Droplist.ContentErrorView.refreshButton.localized()) {
                         retryAction()
                     }
                 }
