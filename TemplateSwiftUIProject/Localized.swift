@@ -41,9 +41,6 @@ enum Localized {
     
     
     // MARK: - Droplist View Navigation Stack
-    
-    
-    // Droplist view
     enum Droplist {
         static let title = "droplist.title"
         static let loading = "droplist.loading"
@@ -61,7 +58,6 @@ enum Localized {
             static let refreshButton = "droplist.contentErrorView.refresh_button"
         }
     }
-    
 
     enum DropTopContentView {
         static let title =
@@ -85,6 +81,23 @@ enum Localized {
 
             static let artist =
                 "dropTopContentView.tag.artist"
+        }
+    }
+
+    enum TracklistView {
+        static let loading = "tracklistView.loading"
+        static let failedToLoadData = "tracklistView.failedToLoadData"
+        static let retry = "tracklistView.retry"
+
+        enum Toast {
+            static let addedToPlaylist = "tracklistView.toast.addedToPlaylist"
+            static let trackAlreadyAdded = "tracklistView.toast.trackAlreadyAdded"
+            static let failedToAddTrack = "tracklistView.toast.failedToAddTrack"
+        }
+
+        enum Menu {
+            static let addToPlaylist = "tracklistView.menu.addToPlaylist"
+            static let openInYouTubeMusic = "tracklistView.menu.openInYouTubeMusic"
         }
     }
     

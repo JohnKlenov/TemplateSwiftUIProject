@@ -892,6 +892,7 @@
 		5EA4FDB92CD51013001CA401 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				5EB96B572F0A9E8900C7CDBC /* AppIcons.swift */,
 				5EA4FDBA2CD51037001CA401 /* AppColors.swift */,
 			);
 			path = Resources;
@@ -1353,7 +1354,6 @@
 				5EC949F42CBBF5F7003736A9 /* AppDelegate.swift */,
 				5E8F9C942D65F4F2004036F6 /* Localizable.strings */,
 				5E8F9C992D65F573004036F6 /* Localized.swift */,
-				5EB96B572F0A9E8900C7CDBC /* AppIcons.swift */,
 			);
 			path = TemplateSwiftUIProject;
 			sourceTree = "<group>";

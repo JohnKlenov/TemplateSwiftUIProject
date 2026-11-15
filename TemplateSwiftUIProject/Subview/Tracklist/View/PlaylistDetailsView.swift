@@ -8,21 +8,21 @@
 import SwiftUI
 
 struct PlaylistDetailsView: View {
+
     let details: [String]
-    
+
     var body: some View {
         VStack(
             alignment: .center,
             spacing: 4
         ) {
-            
             ForEach(
                 details.indices,
                 id: \.self
             ) { index in
                 Text(details[index])
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(AppColors.secondary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
             }
@@ -33,9 +33,46 @@ struct PlaylistDetailsView: View {
         )
         .padding(16)
         .background(AppColors.background)
-        .cornerRadius(12)
+        .clipShape(
+            RoundedRectangle(cornerRadius: 12)
+        )
     }
 }
+
+
+// MARK: - before локализация на три языка + адаптация к AppIcons + адаптация к AppColors + добавление новых кейсова для ErrorContext
+
+//import SwiftUI
+//
+//struct PlaylistDetailsView: View {
+//    let details: [String]
+//    
+//    var body: some View {
+//        VStack(
+//            alignment: .center,
+//            spacing: 4
+//        ) {
+//            
+//            ForEach(
+//                details.indices,
+//                id: \.self
+//            ) { index in
+//                Text(details[index])
+//                    .font(.subheadline)
+//                    .foregroundColor(.secondary)
+//                    .multilineTextAlignment(.center)
+//                    .lineLimit(2)
+//            }
+//        }
+//        .frame(
+//            maxWidth: .infinity,
+//            alignment: .center
+//        )
+//        .padding(16)
+//        .background(AppColors.background)
+//        .cornerRadius(12)
+//    }
+//}
 
 
 

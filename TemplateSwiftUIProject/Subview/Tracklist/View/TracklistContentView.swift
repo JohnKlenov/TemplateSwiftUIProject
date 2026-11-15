@@ -14,6 +14,7 @@ enum PlaylistToast: Equatable {
 }
 
 struct TracklistContentView: View {
+
     @ObservedObject var viewModel: TracklistViewModel
 
     let navigationTitle: String
@@ -28,9 +29,10 @@ struct TracklistContentView: View {
     var body: some View {
         ZStack {
             switch viewModel.viewState {
+
             case .loading:
                 ProgressView(
-                    Localized.Home.loading.localized()
+                    Localized.TracklistView.loading.localized()
                 )
 
             case .contentList(let tracklist):
@@ -52,11 +54,10 @@ struct TracklistContentView: View {
                         }
                     },
                     onPlayInYouTubeMusic: { item in
-                        // TODO
                         viewModel.playInYouTubeMusic(item)
-                        print("onPlayInYouTubeMusic")
                     }
                 )
+
             case .error(let error):
                 ContentErrorView(error: error) {
                     Task {
@@ -70,15 +71,13 @@ struct TracklistContentView: View {
         .navigationBarTitleDisplayMode(.inline)
         .overlay(alignment: .bottom) {
             if let playlistToast {
-                PlaylistToastView(
-                    toast: playlistToast
-                )
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
-                .transition(
-                    .move(edge: .bottom)
-                    .combined(with: .opacity)
-                )
+                PlaylistToastView(toast: playlistToast)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 24)
+                    .transition(
+                        .move(edge: .bottom)
+                            .combined(with: .opacity)
+                    )
             }
         }
         .animation(
@@ -91,16 +90,16 @@ struct TracklistContentView: View {
             }
         }
         .sheet(item: $selectedTrack) { track in
-            SafariPlayerView(
-                videoId: track.id
-            )
-            .presentationDetents([
-                .medium,
-                .large
-            ])
+            SafariPlayerView(videoId: track.id)
+                .presentationDetents([
+                    .medium,
+                    .large
+                ])
         }
     }
 }
+
+// MARK: - Playlist Actions
 
 private extension TracklistContentView {
 
@@ -111,21 +110,26 @@ private extension TracklistContentView {
             let result = try await viewModel.addToPlaylist(item)
 
             switch result {
-
             case .added:
                 showPlaylistToast(
-                    .success("Added to Playlist")
+                    .success(
+                        Localized.TracklistView.Toast.addedToPlaylist
+                    )
                 )
 
             case .alreadyAdded:
                 showPlaylistToast(
-                    .info("Track already added")
+                    .info(
+                        Localized.TracklistView.Toast.trackAlreadyAdded
+                    )
                 )
             }
 
         } catch {
             showPlaylistToast(
-                .error("Failed to add track")
+                .error(
+                    Localized.TracklistView.Toast.failedToAddTrack
+                )
             )
         }
     }
@@ -150,6 +154,155 @@ private extension TracklistContentView {
         }
     }
 }
+
+
+// MARK: - before локализация на три языка + адаптация к AppIcons + адаптация к AppColors + добавление новых кейсова для ErrorContext
+
+//import SwiftUI
+//
+//enum PlaylistToast: Equatable {
+//    case success(String)
+//    case info(String)
+//    case error(String)
+//}
+//
+//struct TracklistContentView: View {
+//    @ObservedObject var viewModel: TracklistViewModel
+//
+//    let navigationTitle: String
+//    let details: [String]
+//    let imageURL: URL?
+//
+//    @EnvironmentObject var localization: LocalizationService
+//
+//    @State private var selectedTrack: LowerItem?
+//    @State private var playlistToast: PlaylistToast?
+//
+//    var body: some View {
+//        ZStack {
+//            switch viewModel.viewState {
+//            case .loading:
+//                ProgressView(
+//                    Localized.Home.loading.localized()
+//                )
+//
+//            case .contentList(let tracklist):
+//                TracklistView(
+//                    data: tracklist,
+//                    details: details,
+//                    imageURL: imageURL,
+//                    onLoadNextTracks: {
+//                        Task {
+//                            await viewModel.loadNextPage()
+//                        }
+//                    },
+//                    onSelectTrack: { item in
+//                        selectedTrack = item
+//                    },
+//                    onAddToPlaylist: { item in
+//                        Task {
+//                            await handleAddToPlaylist(item)
+//                        }
+//                    },
+//                    onPlayInYouTubeMusic: { item in
+//                        // TODO
+//                        viewModel.playInYouTubeMusic(item)
+//                        print("onPlayInYouTubeMusic")
+//                    }
+//                )
+//            case .error(let error):
+//                ContentErrorView(error: error) {
+//                    Task {
+//                        await viewModel.retry()
+//                    }
+//                }
+//            }
+//        }
+//        .background(AppColors.background)
+//        .navigationTitle(navigationTitle)
+//        .navigationBarTitleDisplayMode(.inline)
+//        .overlay(alignment: .bottom) {
+//            if let playlistToast {
+//                PlaylistToastView(
+//                    toast: playlistToast
+//                )
+//                .padding(.horizontal, 16)
+//                .padding(.bottom, 24)
+//                .transition(
+//                    .move(edge: .bottom)
+//                    .combined(with: .opacity)
+//                )
+//            }
+//        }
+//        .animation(
+//            .easeInOut(duration: 0.3),
+//            value: playlistToast
+//        )
+//        .onFirstAppear {
+//            Task {
+//                await viewModel.setupViewModel()
+//            }
+//        }
+//        .sheet(item: $selectedTrack) { track in
+//            SafariPlayerView(
+//                videoId: track.id
+//            )
+//            .presentationDetents([
+//                .medium,
+//                .large
+//            ])
+//        }
+//    }
+//}
+//
+//private extension TracklistContentView {
+//
+//    func handleAddToPlaylist(
+//        _ item: LowerItem
+//    ) async {
+//        do {
+//            let result = try await viewModel.addToPlaylist(item)
+//
+//            switch result {
+//
+//            case .added:
+//                showPlaylistToast(
+//                    .success("Added to Playlist")
+//                )
+//
+//            case .alreadyAdded:
+//                showPlaylistToast(
+//                    .info("Track already added")
+//                )
+//            }
+//
+//        } catch {
+//            showPlaylistToast(
+//                .error("Failed to add track")
+//            )
+//        }
+//    }
+//
+//    func showPlaylistToast(
+//        _ toast: PlaylistToast
+//    ) {
+//        withAnimation {
+//            playlistToast = toast
+//        }
+//
+//        Task {
+//            try? await Task.sleep(
+//                for: .seconds(2)
+//            )
+//
+//            await MainActor.run {
+//                withAnimation {
+//                    playlistToast = nil
+//                }
+//            }
+//        }
+//    }
+//}
 
 
 

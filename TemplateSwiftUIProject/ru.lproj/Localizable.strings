@@ -45,7 +45,17 @@
 
 "dropTopContentView.paginationError" = "Что-то пошло не так!";
 "dropTopContentView.loadMore" = "Загрузить ещё";
+/* TracklistView */
+"tracklistView.loading" = "Загрузка...";
+"tracklistView.failedToLoadData" = "Не удалось загрузить данные";
+"tracklistView.retry" = "Повторить";
 
+"tracklistView.toast.addedToPlaylist" = "Добавлено в плейлист";
+"tracklistView.toast.trackAlreadyAdded" = "Трек уже добавлен";
+"tracklistView.toast.failedToAddTrack" = "Не удалось добавить трек";
+
+"tracklistView.menu.addToPlaylist" = "Добавить в плейлист";
+"tracklistView.menu.openInYouTubeMusic" = "Открыть в YouTube Music";
 
 
 

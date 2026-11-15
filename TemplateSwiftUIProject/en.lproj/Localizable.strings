@@ -45,7 +45,17 @@
 
 "dropTopContentView.paginationError" = "Something went wrong!";
 "dropTopContentView.loadMore" = "Load more";
+/* TracklistView */
+"tracklistView.loading" = "Loading...";
+"tracklistView.failedToLoadData" = "Failed to load data";
+"tracklistView.retry" = "Retry";
 
+"tracklistView.toast.addedToPlaylist" = "Added to Playlist";
+"tracklistView.toast.trackAlreadyAdded" = "Track already added";
+"tracklistView.toast.failedToAddTrack" = "Failed to add track";
+
+"tracklistView.menu.addToPlaylist" = "Add to Playlist";
+"tracklistView.menu.openInYouTubeMusic" = "Open in YouTube Music";
 
 
 

@@ -5,10 +5,12 @@
 //  Created by Evgenyi on 28.08.2026.
 //
 
-
 import SwiftUI
 
 struct TracklistView: View {
+
+    @EnvironmentObject var localization: LocalizationService
+
     let data: Tracklist
     let details: [String]
     let imageURL: URL?
@@ -20,7 +22,9 @@ struct TracklistView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            //Сделай изображение шириной 45% экрана, но никогда не увеличивай его больше чем до 320 pt.(для iPad)
+
+            // Изображение занимает 45% ширины экрана,
+            // но не увеличивается больше 320 pt на iPad.
             let imageSize = min(
                 geometry.size.width * 0.45,
                 320
@@ -28,6 +32,7 @@ struct TracklistView: View {
 
             ScrollView {
                 VStack(spacing: 12) {
+
                     if let imageURL {
                         WebImageView(
                             url: imageURL,
@@ -39,12 +44,10 @@ struct TracklistView: View {
                                     height: imageSize
                                 ),
                             context:
-                                "TracklistDetailsImage"
+                                "\(ErrorContext.TracklistView_webImage_loadImage.rawValue) | details"
                         )
                         .clipShape(
-                            RoundedRectangle(
-                                cornerRadius: 12
-                            )
+                            RoundedRectangle(cornerRadius: 12)
                         )
                     }
 
@@ -66,7 +69,7 @@ struct TracklistView: View {
     }
 }
 
-// MARK: - Lower Section + Footer Loader
+// MARK: - Lower Section + Footer
 
 private extension TracklistView {
 
@@ -87,14 +90,14 @@ private extension TracklistView {
     @ViewBuilder
     var footerView: some View {
         switch data.footerState {
+
         case .idle:
             HStack {
                 Spacer()
 
-                Color.clear
+                AppColors.clear
                     .frame(height: 44)
                     .onAppear {
-                        print("footerView case .idle")
                         onLoadNextTracks()
                     }
 
@@ -115,12 +118,15 @@ private extension TracklistView {
                 Spacer()
 
                 VStack(spacing: 6) {
-                    Text(message)
-                        .foregroundColor(.secondary)
+                    Text(message.localized())
+                        .foregroundStyle(AppColors.secondary)
 
-                    Button("Повторить") {
+                    Button(
+                        Localized.TracklistView.retry.localized()
+                    ) {
                         onLoadNextTracks()
                     }
+                    .tint(AppColors.activeColor)
                 }
 
                 Spacer()
@@ -128,6 +134,8 @@ private extension TracklistView {
             .padding(.vertical, 12)
         }
     }
+
+    // MARK: - Track Cell
 
     func lowerItemCell(
         _ item: LowerItem
@@ -145,13 +153,13 @@ private extension TracklistView {
                     ) {
                         Text(item.title)
                             .font(.headline)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(AppColors.primary)
                             .lineLimit(1)
 
                         if let subtitle = item.subtitle {
                             Text(subtitle)
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(AppColors.secondary)
                                 .lineLimit(1)
                                 .multilineTextAlignment(.leading)
                                 .frame(
@@ -170,6 +178,8 @@ private extension TracklistView {
         }
     }
 
+    // MARK: - Track Actions Menu
+
     @ViewBuilder
     func trackActionsMenu(
         for item: LowerItem
@@ -179,8 +189,9 @@ private extension TracklistView {
                 onAddToPlaylist(item)
             } label: {
                 Label(
-                    "Add to Playlist",
-                    systemImage: "text.badge.plus"
+                    Localized.TracklistView.Menu
+                        .addToPlaylist.localized(),
+                    systemImage: AppIcons.Tracklist.addToPlaylist
                 )
             }
 
@@ -188,19 +199,21 @@ private extension TracklistView {
                 onPlayInYouTubeMusic(item)
             } label: {
                 Label(
-                    "Open in YouTube Music",
-                    systemImage: "play.circle"
+                    Localized.TracklistView.Menu
+                        .openInYouTubeMusic.localized(),
+                    systemImage: AppIcons.Tracklist.youtubeMusic
                 )
             }
+
         } label: {
-            Image(systemName: "ellipsis")
+            Image(systemName: AppIcons.Tracklist.more)
                 .font(
                     .system(
                         size: 17,
                         weight: .bold
                     )
                 )
-                .foregroundColor(.primary)
+                .foregroundStyle(AppColors.primary)
                 .frame(
                     width: 40,
                     height: 40
@@ -210,15 +223,14 @@ private extension TracklistView {
         .buttonStyle(.plain)
     }
 
+    // MARK: - Thumbnail
+
     @ViewBuilder
     func thumbnail(
         for item: LowerItem
     ) -> some View {
-        
-        let url = item.thumbnailURL
-
         WebImageView(
-            url: url,
+            url: item.thumbnailURL,
             placeholderColor:
                 AppColors.secondarySystemBackground,
             displayStyle:
@@ -227,13 +239,251 @@ private extension TracklistView {
                     height: 50
                 ),
             context:
-                "LowerItemThumbnail_\(item.id)"
+                "\(ErrorContext.TracklistView_webImage_loadImage.rawValue) | \(item.id)"
         )
         .clipShape(
             RoundedRectangle(cornerRadius: 6)
         )
     }
 }
+// MARK: - before локализация на три языка + адаптация к AppIcons + адаптация к AppColors + добавление новых кейсова для ErrorContext
+
+//import SwiftUI
+//
+//struct TracklistView: View {
+//    
+//    @EnvironmentObject var localization: LocalizationService
+//    
+//    let data: Tracklist
+//    let details: [String]
+//    let imageURL: URL?
+//
+//    let onLoadNextTracks: () -> Void
+//    let onSelectTrack: (LowerItem) -> Void
+//    let onAddToPlaylist: (LowerItem) -> Void
+//    let onPlayInYouTubeMusic: (LowerItem) -> Void
+//
+//    var body: some View {
+//        GeometryReader { geometry in
+//            //Сделай изображение шириной 45% экрана, но никогда не увеличивай его больше чем до 320 pt.(для iPad)
+//            let imageSize = min(
+//                geometry.size.width * 0.45,
+//                320
+//            )
+//
+//            ScrollView {
+//                VStack(spacing: 12) {
+//                    if let imageURL {
+//                        WebImageView(
+//                            url: imageURL,
+//                            placeholderColor:
+//                                AppColors.secondarySystemBackground,
+//                            displayStyle:
+//                                .fixedFrame(
+//                                    width: imageSize,
+//                                    height: imageSize
+//                                ),
+//                            context:
+//                                "TracklistDetailsImage"
+//                        )
+//                        .clipShape(
+//                            RoundedRectangle(
+//                                cornerRadius: 12
+//                            )
+//                        )
+//                    }
+//
+//                    if !details.isEmpty {
+//                        PlaylistDetailsView(
+//                            details: details
+//                        )
+//                    }
+//
+//                    lowerSectionWithFooter()
+//                        .padding(.vertical, 12)
+//                }
+//                .frame(
+//                    maxWidth: .infinity,
+//                    alignment: .top
+//                )
+//            }
+//        }
+//    }
+//}
+//
+//// MARK: - Lower Section + Footer Loader
+//
+//private extension TracklistView {
+//
+//    @ViewBuilder
+//    func lowerSectionWithFooter() -> some View {
+//        LazyVStack(spacing: 8) {
+//            ForEach(data.tracks.items) { item in
+//                lowerItemCell(item)
+//            }
+//
+//            if data.tracks.hasMore {
+//                footerView
+//            }
+//        }
+//        .padding(.horizontal)
+//    }
+//
+//    @ViewBuilder
+//    var footerView: some View {
+//        switch data.footerState {
+//        case .idle:
+//            HStack {
+//                Spacer()
+//
+//                Color.clear
+//                    .frame(height: 44)
+//                    .onAppear {
+//                        print("footerView case .idle")
+//                        onLoadNextTracks()
+//                    }
+//
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//
+//        case .loading:
+//            HStack {
+//                Spacer()
+//                ProgressView()
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//
+//        case .error(let message):
+//            HStack {
+//                Spacer()
+//
+//                VStack(spacing: 6) {
+//                    Text(message.localized())
+//                        .foregroundColor(.secondary)
+//
+//                    Button("Повторить") {
+//                        onLoadNextTracks()
+//                    }
+//                }
+//
+//                Spacer()
+//            }
+//            .padding(.vertical, 12)
+//        }
+//    }
+//
+//    func lowerItemCell(
+//        _ item: LowerItem
+//    ) -> some View {
+//        HStack(spacing: 12) {
+//            Button {
+//                onSelectTrack(item)
+//            } label: {
+//                HStack(spacing: 12) {
+//                    thumbnail(for: item)
+//
+//                    VStack(
+//                        alignment: .leading,
+//                        spacing: 4
+//                    ) {
+//                        Text(item.title)
+//                            .font(.headline)
+//                            .foregroundColor(.primary)
+//                            .lineLimit(1)
+//
+//                        if let subtitle = item.subtitle {
+//                            Text(subtitle)
+//                                .font(.subheadline)
+//                                .foregroundColor(.secondary)
+//                                .lineLimit(1)
+//                                .multilineTextAlignment(.leading)
+//                                .frame(
+//                                    maxWidth: .infinity,
+//                                    alignment: .leading
+//                                )
+//                        }
+//                    }
+//
+//                    Spacer()
+//                }
+//            }
+//            .buttonStyle(.plain)
+//
+//            trackActionsMenu(for: item)
+//        }
+//    }
+//
+//    @ViewBuilder
+//    func trackActionsMenu(
+//        for item: LowerItem
+//    ) -> some View {
+//        Menu {
+//            Button {
+//                onAddToPlaylist(item)
+//            } label: {
+//                Label(
+//                    "Add to Playlist",
+//                    systemImage: "text.badge.plus"
+//                )
+//            }
+//
+//            Button {
+//                onPlayInYouTubeMusic(item)
+//            } label: {
+//                Label(
+//                    "Open in YouTube Music",
+//                    systemImage: "play.circle"
+//                )
+//            }
+//        } label: {
+//            Image(systemName: "ellipsis")
+//                .font(
+//                    .system(
+//                        size: 17,
+//                        weight: .bold
+//                    )
+//                )
+//                .foregroundColor(.primary)
+//                .frame(
+//                    width: 40,
+//                    height: 40
+//                )
+//                .contentShape(Rectangle())
+//        }
+//        .buttonStyle(.plain)
+//    }
+//
+//    @ViewBuilder
+//    func thumbnail(
+//        for item: LowerItem
+//    ) -> some View {
+//        
+//        let url = item.thumbnailURL
+//
+//        WebImageView(
+//            url: url,
+//            placeholderColor:
+//                AppColors.secondarySystemBackground,
+//            displayStyle:
+//                .fixedFrame(
+//                    width: 50,
+//                    height: 50
+//                ),
+//            context:
+//                "LowerItemThumbnail_\(item.id)"
+//        )
+//        .clipShape(
+//            RoundedRectangle(cornerRadius: 6)
+//        )
+//    }
+//}
+
+
+
+
+
 
 // before add let imageURL for case .droplistDetails
 //import SwiftUI

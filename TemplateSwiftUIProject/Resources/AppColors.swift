@@ -75,3 +75,4 @@ struct AppColors {
     static let pink = Color(.systemPink)
     static let black = Color(.black)
     }
+

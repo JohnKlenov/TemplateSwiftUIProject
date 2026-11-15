@@ -177,7 +177,7 @@ final class TracklistViewModel: ObservableObject {
                 Tracklist(
                     tracks: latestTracklist.tracks,
                     footerState: .error(
-                        "Не удалось загрузить данные"
+                        Localized.TracklistView.failedToLoadData
                     )
                 )
             )

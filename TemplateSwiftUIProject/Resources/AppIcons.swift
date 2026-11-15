@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 enum AppIcons {
     
     
@@ -38,11 +39,41 @@ enum AppIcons {
         static let eyeSlash = "eye.slash"
     }
     
+    // MARK: - Tracklist
+    enum Tracklist {
+        static let addToPlaylist = "text.badge.plus"
+        static let youtubeMusic = "play.circle"
+        static let more = "ellipsis"
+
+        static let success = "checkmark.circle.fill"
+        static let info = "info.circle.fill"
+        static let error = "exclamationmark.circle.fill"
+    }
+    
+    // MARK: - Actions
+       enum Actions {
+           static let refresh = "arrow.clockwise"
+           static let retry = "arrow.clockwise"
+//           static let close = "xmark"
+//           static let back = "chevron.left"
+//           static let forward = "chevron.right"
+       }
+    
     /// ContentErrorView — заглушка при критичной системной ошибке,
     /// которая делает невозможным дальнейшее использование стека View.
     enum ContentErrorView {
         static let warning = "exclamationmark.triangle"
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     // MARK: - Home View Navigation Stack

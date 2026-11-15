@@ -41,6 +41,17 @@
 
 "dropTopContentView.paginationError" = "¡Algo salió mal!";
 "dropTopContentView.loadMore" = "Cargar más";
+/* TracklistView */
+"tracklistView.loading" = "Cargando...";
+"tracklistView.failedToLoadData" = "No se pudieron cargar los datos";
+"tracklistView.retry" = "Reintentar";
+
+"tracklistView.toast.addedToPlaylist" = "Añadido a la lista de reproducción";
+"tracklistView.toast.trackAlreadyAdded" = "La canción ya está añadida";
+"tracklistView.toast.failedToAddTrack" = "No se pudo añadir la canción";
+
+"tracklistView.menu.addToPlaylist" = "Añadir a la lista de reproducción";
+"tracklistView.menu.openInYouTubeMusic" = "Abrir en YouTube Music";
 
 
 

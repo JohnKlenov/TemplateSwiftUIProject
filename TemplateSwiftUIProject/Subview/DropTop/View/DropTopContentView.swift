@@ -253,7 +253,7 @@ private extension DropTopContentView {
                     Label(
                         Localized.DropTopContentView
                             .loadMore.localized(),
-                        systemImage: "arrow.clockwise"
+                        systemImage: AppIcons.Actions.refresh
                     )
                     .font(.subheadline.weight(.medium))
                 }
