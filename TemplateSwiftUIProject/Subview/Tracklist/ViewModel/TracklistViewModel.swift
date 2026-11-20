@@ -5,7 +5,6 @@
 //  Created by Evgenyi on 27.08.2026.
 //
 
-// c DataRefreshState работает с allTrack + gym .. + в будущем со списком DropTop! (playlist + dropTopItem не меняется никогда поэтому их мы не отслеживаем для обновления)
 
 
 

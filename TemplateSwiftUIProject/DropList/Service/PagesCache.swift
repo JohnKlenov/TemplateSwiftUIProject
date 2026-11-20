@@ -90,7 +90,9 @@ actor PagesCache {
         return temporaryCache[key.cacheKey]
     }
 
-    // MARK: - Set
+    // =================================================
+    // MARK: - Cache
+    // =================================================
 
     func set(
         _ key: some PageCacheKey,
@@ -101,7 +103,27 @@ actor PagesCache {
         } else {
             temporaryCache[key.cacheKey] = page
         }
+
+        // Выводим All Tracks после каждого обновления кэша.
+        #if DEBUG
+        if key.cacheKey == "allTracks" {
+            printAllTracks(page)
+        }
+        #endif
     }
+    // MARK: - Set
+
+    
+//    func set(
+//        _ key: some PageCacheKey,
+//        page: LowerSectionPage
+//    ) {
+//        if key.isPermanentCache {
+//            permanentCache[key.cacheKey] = page
+//        } else {
+//            temporaryCache[key.cacheKey] = page
+//        }
+//    }
 
     // MARK: - Remove
 
@@ -157,6 +179,43 @@ actor PagesCache {
     ) {
         loadingKeys.remove(key.cacheKey)
     }
+    
+    // =================================================
+    // MARK: - Debug
+    // =================================================
+
+    #if DEBUG
+    private func printAllTracks(
+        _ page: LowerSectionPage
+    ) {
+        print("""
+
+        =================================================
+        ALL TRACKS CACHE
+        Total tracks: \(page.items.count)
+        Has more: \(page.hasMore)
+        =================================================
+
+        """)
+
+        for (index, item) in page.items.enumerated() {
+            print("""
+            [\(index + 1)]
+            ID: \(item.id)
+            Title: \(item.title)
+            Artist: \(item.subtitle ?? "nil")
+            Tag: \(item.tag ?? "nil")
+            -------------------------------------------------
+            """)
+        }
+
+        print("""
+        =================================================
+        END ALL TRACKS CACHE
+        =================================================
+        """)
+    }
+    #endif
 }
 
 

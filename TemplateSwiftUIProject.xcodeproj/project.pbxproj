@@ -28,6 +28,7 @@
 		5E481D863075333100D55309 /* DropTopContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D853075332E00D55309 /* DropTopContentView.swift */; };
 		5E481D883075341A00D55309 /* DropTopViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D873075341700D55309 /* DropTopViewInjected.swift */; };
 		5E481D8A30961F9100D55309 /* TestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D8930961F7600D55309 /* TestError.swift */; };
+		5E481D8C30B0894200D55309 /* LibraryCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D8B30B0893E00D55309 /* LibraryCoordinator.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -227,6 +228,7 @@
 		5E481D853075332E00D55309 /* DropTopContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopContentView.swift; sourceTree = "<group>"; };
 		5E481D873075341700D55309 /* DropTopViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopViewInjected.swift; sourceTree = "<group>"; };
 		5E481D8930961F7600D55309 /* TestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestError.swift; sourceTree = "<group>"; };
+		5E481D8B30B0893E00D55309 /* LibraryCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryCoordinator.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -1044,6 +1046,7 @@
 		5EAF5B162D4B85CF00D96FD6 /* Coordinator */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D8B30B0893E00D55309 /* LibraryCoordinator.swift */,
 				5EAF5B1A2D4B863B00D96FD6 /* MainCoordinator.swift */,
 				5E8F9C662D537949004036F6 /* TabSwitcher.swift */,
 				5E8F9C682D5379AF004036F6 /* HomeCoordinator.swift */,
@@ -1656,6 +1659,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5E481D8C30B0894200D55309 /* LibraryCoordinator.swift in Sources */,
 				5EA4FE242CE61ED8001CA401 /* DatabaseCRUDService.swift in Sources */,
 				5EC949F52CBBF5F8003736A9 /* AppDelegate.swift in Sources */,
 				5EA082A32ECF410300E244B8 /* ForgotPasswordViewInjected.swift in Sources */,

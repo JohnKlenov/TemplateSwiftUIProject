@@ -23,3 +23,42 @@ struct GalleryContentViewInjected: View {
     }
 }
 
+//import SwiftUI
+//
+//struct LibraryContentViewInjected: View {
+//
+//    @StateObject private var viewModel: LibraryContentViewModel
+//    
+//    init(dropListDataSource: DropListDataSource) {
+//        _viewModel = StateObject(
+//            wrappedValue: LibraryContentViewModel(dropListDataSource: dropListDataSource)
+//        )
+//    }
+//    
+//    var body: some View {
+//        LibraryContentView(viewModel: viewModel)
+//    }
+//}
+//
+//import SwiftUI
+//
+//struct LibraryContentView: View {
+//    
+//    @EnvironmentObject var localization: LocalizationService
+//    @ObservedObject var viewModel: LibraryContentViewModel
+//
+//    var body: some View {
+// ....
+//    }
+//
+//}
+//
+//import SwiftUI
+//
+//class LibraryViewModel:ObservableObject {
+//    var alertManager:AlertManager
+//    
+//    init(alertManager:AlertManager) {
+//        self.alertManager = alertManager
+//    }
+//}
