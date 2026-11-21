@@ -13,6 +13,280 @@ import SwiftUI
 ///Протокол Hashable используется для создания хэш-кода для объекта. Если тип соответствует Hashable, это означает, что экземпляры этого типа можно хэшировать, что требуется для использования в структурах данных, таких как словари и множества.
 
 
+
+
+// Droplist + Library
+
+enum DroplistFlow: Hashable {
+
+    // MARK: - Routes
+
+    case droplist
+    case someDroplistView
+    case library
+
+    case allTracks
+    case topDrops
+
+    case artists
+    case gym
+    case party
+    case rnb
+    case unpublished
+
+    case droplistDetails(
+        playlistId: String,
+        details: [String],
+        title: String,
+        imageURL: URL?
+    )
+
+    case topDropDetails(
+        playlistId: String,
+        title: String,
+        imageURL: URL?
+    )
+
+    case dropTopDetails(
+        playlistId: String,
+        title: String,
+        imageURL: URL?
+    )
+
+    // =================================================
+    // MARK: - Equatable
+    // =================================================
+
+    static func == (
+        lhs: DroplistFlow,
+        rhs: DroplistFlow
+    ) -> Bool {
+
+        switch (lhs, rhs) {
+
+        case (.droplist, .droplist),
+             (.someDroplistView, .someDroplistView),
+             (.library, .library),
+             (.allTracks, .allTracks),
+             (.topDrops, .topDrops),
+             (.artists, .artists),
+             (.gym, .gym),
+             (.party, .party),
+             (.rnb, .rnb),
+             (.unpublished, .unpublished):
+
+            return true
+
+        case (
+            .droplistDetails(
+                let lhsId,
+                let lhsDetails,
+                let lhsTitle,
+                let lhsImageURL
+            ),
+            .droplistDetails(
+                let rhsId,
+                let rhsDetails,
+                let rhsTitle,
+                let rhsImageURL
+            )
+        ):
+
+            return lhsId == rhsId
+                && lhsDetails == rhsDetails
+                && lhsTitle == rhsTitle
+                && lhsImageURL == rhsImageURL
+
+        case (
+            .topDropDetails(
+                let lhsId,
+                let lhsTitle,
+                let lhsImageURL
+            ),
+            .topDropDetails(
+                let rhsId,
+                let rhsTitle,
+                let rhsImageURL
+            )
+        ):
+
+            return lhsId == rhsId
+                && lhsTitle == rhsTitle
+                && lhsImageURL == rhsImageURL
+
+        case (
+            .dropTopDetails(
+                let lhsId,
+                let lhsTitle,
+                let lhsImageURL
+            ),
+            .dropTopDetails(
+                let rhsId,
+                let rhsTitle,
+                let rhsImageURL
+            )
+        ):
+
+            return lhsId == rhsId
+                && lhsTitle == rhsTitle
+                && lhsImageURL == rhsImageURL
+
+        default:
+            return false
+        }
+    }
+
+    // =================================================
+    // MARK: - Hashable
+    // =================================================
+
+    func hash(into hasher: inout Hasher) {
+
+        switch self {
+
+        case .droplist:
+            hasher.combine("droplist")
+
+        case .someDroplistView:
+            hasher.combine("someDroplistView")
+
+        case .library:
+            hasher.combine("library")
+
+        case .allTracks:
+            hasher.combine("allTracks")
+
+        case .topDrops:
+            hasher.combine("topDrops")
+
+        case .artists:
+            hasher.combine("artists")
+
+        case .gym:
+            hasher.combine("gym")
+
+        case .party:
+            hasher.combine("party")
+
+        case .rnb:
+            hasher.combine("rnb")
+
+        case .unpublished:
+            hasher.combine("unpublished")
+
+        case .droplistDetails(
+            let playlistId,
+            let details,
+            let title,
+            let imageURL
+        ):
+
+            hasher.combine("droplistDetails")
+            hasher.combine(playlistId)
+            hasher.combine(details)
+            hasher.combine(title)
+            hasher.combine(imageURL)
+
+        case .topDropDetails(
+            let playlistId,
+            let title,
+            let imageURL
+        ):
+
+            hasher.combine("topDropDetails")
+            hasher.combine(playlistId)
+            hasher.combine(title)
+            hasher.combine(imageURL)
+
+        case .dropTopDetails(
+            let playlistId,
+            let title,
+            let imageURL
+        ):
+
+            hasher.combine("dropTopDetails")
+            hasher.combine(playlistId)
+            hasher.combine(title)
+            hasher.combine(imageURL)
+        }
+    }
+}
+
+
+
+// profile
+
+enum AccountFlow: Hashable {
+    case account
+    case userInfo
+    case language
+    case aboutUs
+    case createAccount
+    case login
+    case reauthenticate
+    case forgotPassword
+    case userInfoEdit(UserProfile)
+
+    static func == (lhs: AccountFlow, rhs: AccountFlow) -> Bool {
+        switch (lhs, rhs) {
+        case (.account, .account),
+             (.userInfo, .userInfo),
+             (.language, .language),
+             (.aboutUs, .aboutUs),
+             (.createAccount, .createAccount),
+             (.login, .login),
+             (.reauthenticate, .reauthenticate),
+             (.forgotPassword, .forgotPassword):
+            return true
+        case (.userInfoEdit(let lhsProfile), .userInfoEdit(let rhsProfile)):
+            return lhsProfile.uid == rhsProfile.uid
+        default:
+            return false
+        }
+    }
+
+    func hash(into hasher: inout Hasher) {
+        switch self {
+        case .account: hasher.combine("account")
+        case .userInfo: hasher.combine("userInfo")
+        case .language: hasher.combine("language")
+        case .aboutUs: hasher.combine("aboutUs")
+        case .createAccount: hasher.combine("createAccount")
+        case .login: hasher.combine("login")
+        case .reauthenticate: hasher.combine("reauthenticate")
+        case .forgotPassword: hasher.combine("forgotPassword")
+        case .userInfoEdit(let profile):
+            hasher.combine("userInfoEdit")
+            // hasher.combine(profile.uid)
+        }
+    }
+}
+
+
+
+struct SheetItem: Identifiable {
+    var id = UUID()
+    var content: AnyView
+}
+
+struct FullScreenItem: Identifiable {
+    var id = UUID()
+    var content: AnyView
+}
+
+
+
+
+
+
+
+
+
+
+
+// MARK: - legacy
+
+
 enum HomeFlow: Hashable {
     case home
     case bookDetails(BookCloud)
@@ -51,161 +325,187 @@ enum HomeFlow: Hashable {
 }
 
 
-// MARK: - before case .dropTopDetails
 
-enum DroplistFlow: Hashable {
-
-    case droplist
-    case someDroplistView
-    case allTracks
-    case topDrops
-
-    case droplistDetails(
-        playlistId: String,
-        details: [String],
-        title: String,
-        imageURL: URL?
-    )
-
-    case topDropDetails(
-        playlistId: String,
-        title: String,
-        imageURL: URL?
-    )
-
-    case dropTopDetails(
-        playlistId: String,
-        title: String,
-        imageURL: URL?
-    )
-
-    // =================================================
-    // MARK: - Equatable
-    // =================================================
-
-    static func == (
-        lhs: DroplistFlow,
-        rhs: DroplistFlow
-    ) -> Bool {
-
+enum GalleryFlow: Hashable, Equatable {
+    case gallery
+    case someHomeView
+    static func == (lhs: GalleryFlow, rhs: GalleryFlow) -> Bool {
         switch (lhs, rhs) {
-
-        case (.droplist, .droplist),
-             (.someDroplistView, .someDroplistView),
-             (.allTracks, .allTracks),
-             (.topDrops, .topDrops):
+        case (.gallery, .gallery), (.someHomeView, .someHomeView):
             return true
-
-        case (
-            .droplistDetails(
-                let lhsId,
-                let lhsDetails,
-                let lhsTitle,
-                let lhsImageURL
-            ),
-            .droplistDetails(
-                let rhsId,
-                let rhsDetails,
-                let rhsTitle,
-                let rhsImageURL
-            )
-        ):
-            return lhsId == rhsId
-                && lhsDetails == rhsDetails
-                && lhsTitle == rhsTitle
-                && lhsImageURL == rhsImageURL
-
-        case (
-            .topDropDetails(
-                let lhsId,
-                let lhsTitle,
-                let lhsImageURL
-            ),
-            .topDropDetails(
-                let rhsId,
-                let rhsTitle,
-                let rhsImageURL
-            )
-        ):
-            return lhsId == rhsId
-                && lhsTitle == rhsTitle
-                && lhsImageURL == rhsImageURL
-
-        case (
-            .dropTopDetails(
-                let lhsId,
-                let lhsTitle,
-                let lhsImageURL
-            ),
-            .dropTopDetails(
-                let rhsId,
-                let rhsTitle,
-                let rhsImageURL
-            )
-        ):
-            return lhsId == rhsId
-                && lhsTitle == rhsTitle
-                && lhsImageURL == rhsImageURL
-
         default:
             return false
         }
     }
-
-    // =================================================
-    // MARK: - Hashable
-    // =================================================
-
-    func hash(into hasher: inout Hasher) {
-
-        switch self {
-
-        case .droplist:
-            hasher.combine("droplist")
-
-        case .someDroplistView:
-            hasher.combine("someDroplistView")
-
-        case .allTracks:
-            hasher.combine("allTracks")
-
-        case .topDrops:
-            hasher.combine("topDrops")
-
-        case .droplistDetails(
-            let playlistId,
-            let details,
-            let title,
-            let imageURL
-        ):
-            hasher.combine("droplistDetails")
-            hasher.combine(playlistId)
-            hasher.combine(details)
-            hasher.combine(title)
-            hasher.combine(imageURL)
-
-        case .topDropDetails(
-            let playlistId,
-            let title,
-            let imageURL
-        ):
-            hasher.combine("topDropDetails")
-            hasher.combine(playlistId)
-            hasher.combine(title)
-            hasher.combine(imageURL)
-
-        case .dropTopDetails(
-            let playlistId,
-            let title,
-            let imageURL
-        ):
-            hasher.combine("dropTopDetails")
-            hasher.combine(playlistId)
-            hasher.combine(title)
-            hasher.combine(imageURL)
+        
+        func hash(into hasher: inout Hasher) {
+            switch self {
+            case .gallery:
+                hasher.combine("gallery")
+            case .someHomeView:
+                hasher.combine("someHomeView")
+            }
         }
-    }
 }
+
+
+
+
+//// MARK: - before case .dropTopDetails
+//
+//enum DroplistFlow: Hashable {
+//
+//    case droplist
+//    case someDroplistView
+//    case allTracks
+//    case topDrops
+//
+//    case droplistDetails(
+//        playlistId: String,
+//        details: [String],
+//        title: String,
+//        imageURL: URL?
+//    )
+//
+//    case topDropDetails(
+//        playlistId: String,
+//        title: String,
+//        imageURL: URL?
+//    )
+//
+//    case dropTopDetails(
+//        playlistId: String,
+//        title: String,
+//        imageURL: URL?
+//    )
+//
+//    // =================================================
+//    // MARK: - Equatable
+//    // =================================================
+//
+//    static func == (
+//        lhs: DroplistFlow,
+//        rhs: DroplistFlow
+//    ) -> Bool {
+//
+//        switch (lhs, rhs) {
+//
+//        case (.droplist, .droplist),
+//             (.someDroplistView, .someDroplistView),
+//             (.allTracks, .allTracks),
+//             (.topDrops, .topDrops):
+//            return true
+//
+//        case (
+//            .droplistDetails(
+//                let lhsId,
+//                let lhsDetails,
+//                let lhsTitle,
+//                let lhsImageURL
+//            ),
+//            .droplistDetails(
+//                let rhsId,
+//                let rhsDetails,
+//                let rhsTitle,
+//                let rhsImageURL
+//            )
+//        ):
+//            return lhsId == rhsId
+//                && lhsDetails == rhsDetails
+//                && lhsTitle == rhsTitle
+//                && lhsImageURL == rhsImageURL
+//
+//        case (
+//            .topDropDetails(
+//                let lhsId,
+//                let lhsTitle,
+//                let lhsImageURL
+//            ),
+//            .topDropDetails(
+//                let rhsId,
+//                let rhsTitle,
+//                let rhsImageURL
+//            )
+//        ):
+//            return lhsId == rhsId
+//                && lhsTitle == rhsTitle
+//                && lhsImageURL == rhsImageURL
+//
+//        case (
+//            .dropTopDetails(
+//                let lhsId,
+//                let lhsTitle,
+//                let lhsImageURL
+//            ),
+//            .dropTopDetails(
+//                let rhsId,
+//                let rhsTitle,
+//                let rhsImageURL
+//            )
+//        ):
+//            return lhsId == rhsId
+//                && lhsTitle == rhsTitle
+//                && lhsImageURL == rhsImageURL
+//
+//        default:
+//            return false
+//        }
+//    }
+//
+//    // =================================================
+//    // MARK: - Hashable
+//    // =================================================
+//
+//    func hash(into hasher: inout Hasher) {
+//
+//        switch self {
+//
+//        case .droplist:
+//            hasher.combine("droplist")
+//
+//        case .someDroplistView:
+//            hasher.combine("someDroplistView")
+//
+//        case .allTracks:
+//            hasher.combine("allTracks")
+//
+//        case .topDrops:
+//            hasher.combine("topDrops")
+//
+//        case .droplistDetails(
+//            let playlistId,
+//            let details,
+//            let title,
+//            let imageURL
+//        ):
+//            hasher.combine("droplistDetails")
+//            hasher.combine(playlistId)
+//            hasher.combine(details)
+//            hasher.combine(title)
+//            hasher.combine(imageURL)
+//
+//        case .topDropDetails(
+//            let playlistId,
+//            let title,
+//            let imageURL
+//        ):
+//            hasher.combine("topDropDetails")
+//            hasher.combine(playlistId)
+//            hasher.combine(title)
+//            hasher.combine(imageURL)
+//
+//        case .dropTopDetails(
+//            let playlistId,
+//            let title,
+//            let imageURL
+//        ):
+//            hasher.combine("dropTopDetails")
+//            hasher.combine(playlistId)
+//            hasher.combine(title)
+//            hasher.combine(imageURL)
+//        }
+//    }
+//}
 
 
 //enum DroplistFlow: Hashable {
@@ -316,89 +616,6 @@ enum DroplistFlow: Hashable {
 //        }
 //    }
 //}
-
-
-enum GalleryFlow: Hashable, Equatable {
-    case gallery
-    case someHomeView
-    static func == (lhs: GalleryFlow, rhs: GalleryFlow) -> Bool {
-        switch (lhs, rhs) {
-        case (.gallery, .gallery), (.someHomeView, .someHomeView):
-            return true
-        default:
-            return false
-        }
-    }
-        
-        func hash(into hasher: inout Hasher) {
-            switch self {
-            case .gallery:
-                hasher.combine("gallery")
-            case .someHomeView:
-                hasher.combine("someHomeView")
-            }
-        }
-}
-
-
-
-enum AccountFlow: Hashable {
-    case account
-    case userInfo
-    case language
-    case aboutUs
-    case createAccount
-    case login
-    case reauthenticate
-    case forgotPassword
-    case userInfoEdit(UserProfile)
-
-    static func == (lhs: AccountFlow, rhs: AccountFlow) -> Bool {
-        switch (lhs, rhs) {
-        case (.account, .account),
-             (.userInfo, .userInfo),
-             (.language, .language),
-             (.aboutUs, .aboutUs),
-             (.createAccount, .createAccount),
-             (.login, .login),
-             (.reauthenticate, .reauthenticate),
-             (.forgotPassword, .forgotPassword):
-            return true
-        case (.userInfoEdit(let lhsProfile), .userInfoEdit(let rhsProfile)):
-            return lhsProfile.uid == rhsProfile.uid
-        default:
-            return false
-        }
-    }
-
-    func hash(into hasher: inout Hasher) {
-        switch self {
-        case .account: hasher.combine("account")
-        case .userInfo: hasher.combine("userInfo")
-        case .language: hasher.combine("language")
-        case .aboutUs: hasher.combine("aboutUs")
-        case .createAccount: hasher.combine("createAccount")
-        case .login: hasher.combine("login")
-        case .reauthenticate: hasher.combine("reauthenticate")
-        case .forgotPassword: hasher.combine("forgotPassword")
-        case .userInfoEdit(let profile):
-            hasher.combine("userInfoEdit")
-            // hasher.combine(profile.uid)
-        }
-    }
-}
-
-
-
-struct SheetItem: Identifiable {
-    var id = UUID()
-    var content: AnyView
-}
-
-struct FullScreenItem: Identifiable {
-    var id = UUID()
-    var content: AnyView
-}
 
 
 // before add let imageURL for case .droplistDetails

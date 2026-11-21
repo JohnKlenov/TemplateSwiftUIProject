@@ -8,6 +8,7 @@
 
 
 
+
 import Foundation
 
 enum Localized {
@@ -33,11 +34,13 @@ enum Localized {
 
     
     // MARK: - Tab Bar
+    
     enum TabBar {
         static let home = "tab.home"
-        static let gallery = "tab.gallery"
+        static let library = "tab.library"
         static let profile = "tab.profile"
     }
+
     
     
     // MARK: - Droplist View Navigation Stack
@@ -555,6 +558,21 @@ enum Localized {
     }
     
 }
+
+
+
+
+
+
+
+//    enum TabBar {
+//        static let home = "tab.home"
+//        static let gallery = "tab.gallery"
+//        static let profile = "tab.profile"
+//    }
+
+
+
 //
 //enum Localized {
 //    

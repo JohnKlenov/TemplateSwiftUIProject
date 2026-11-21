@@ -250,11 +250,79 @@ class ViewBuilderService: ObservableObject {
                 navigationTitle: title,
                 imageURL: imageURL
             )
+        case .library:
+            LibraryContentViewInjected()
+        case .artists:
+            SomeView()
+        case .gym:
+            SomeView()
+        case .party:
+            SomeView()
+        case .rnb:
+            SomeView()
+        case .unpublished:
+            SomeView()
         }
     }
     
+    @ViewBuilder
+    func accountViewBuild(page: AccountFlow) -> some View {
+        switch page {
+        case .userInfo:
+            SomeView()
+        case .language:
+            ChangeLanguageViewInjected()
+        case .aboutUs:
+            SomeView()
+        case .createAccount:
+            SignUpViewInjected(authorizationManager: authorizationManager)
+        case .account:
+            ContentAccountViewInjected(
+                authorizationManager: authorizationManager,
+                userInfoCellManager: userInfoCellManager
+            )
+        case .login:
+            SignInViewInjected(authorizationManager: authorizationManager)
+        case .reauthenticate:
+            ReauthenticateViewInjected(authorizationManager: authorizationManager)
+        case .forgotPassword:
+            ForgotPasswordViewInjected(authorizationManager: authorizationManager)
+        case .userInfoEdit(let profile):
+            UserInfoEditViewInjected(editManager: userInfoEditManager, profile: profile)
+        }
+    }
+
     
-    // MARK: - before case .dropTopDetails
+    /// будут ли у нас проблемы если у нас ViewBuilderService работает на двух стеках и на одгом мы дерним buildSheet что произойдет на втором стеке он тоже дернится?
+    @ViewBuilder
+    func buildSheet(sheet: SheetItem) -> some View {
+        sheet.content
+    }
+    
+    @ViewBuilder
+    func buildCover(cover: FullScreenItem) -> some View {
+        cover.content
+    }
+    
+    
+    // legacy 
+    @ViewBuilder
+    func galleryViewBuild(page: GalleryFlow) -> some View {
+        switch page {
+        case .gallery:
+            GalleryContentViewInjected(galleryManager: galleryManager)
+        case .someHomeView:
+            SomeView()
+        }
+    }
+}
+
+
+
+
+
+
+// MARK: - before case .dropTopDetails
 //    @ViewBuilder
 //    func dropViewBuild(page: DroplistFlow) -> some View {
 //        switch page {
@@ -314,60 +382,6 @@ class ViewBuilderService: ObservableObject {
 //            )
 //        }
 //    }
-
-    
-    
-    
-    @ViewBuilder
-    func galleryViewBuild(page: GalleryFlow) -> some View {
-        switch page {
-        case .gallery:
-            GalleryContentViewInjected(galleryManager: galleryManager)
-        case .someHomeView:
-            SomeView()
-        }
-    }
-    
-    
-    @ViewBuilder
-    func accountViewBuild(page: AccountFlow) -> some View {
-        switch page {
-        case .userInfo:
-            SomeView()
-        case .language:
-            ChangeLanguageViewInjected()
-        case .aboutUs:
-            SomeView()
-        case .createAccount:
-            SignUpViewInjected(authorizationManager: authorizationManager)
-        case .account:
-            ContentAccountViewInjected(
-                authorizationManager: authorizationManager,
-                userInfoCellManager: userInfoCellManager
-            )
-        case .login:
-            SignInViewInjected(authorizationManager: authorizationManager)
-        case .reauthenticate:
-            ReauthenticateViewInjected(authorizationManager: authorizationManager)
-        case .forgotPassword:
-            ForgotPasswordViewInjected(authorizationManager: authorizationManager)
-        case .userInfoEdit(let profile):
-            UserInfoEditViewInjected(editManager: userInfoEditManager, profile: profile)
-        }
-    }
-
-    
-    /// будут ли у нас проблемы если у нас ViewBuilderService работает на двух стеках и на одгом мы дерним buildSheet что произойдет на втором стеке он тоже дернится?
-    @ViewBuilder
-    func buildSheet(sheet: SheetItem) -> some View {
-        sheet.content
-    }
-    
-    @ViewBuilder
-    func buildCover(cover: FullScreenItem) -> some View {
-        cover.content
-    }
-}
 
 
 // before add let imageURL for case .droplistDetails

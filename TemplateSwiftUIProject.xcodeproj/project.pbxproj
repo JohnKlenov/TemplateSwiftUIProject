@@ -29,6 +29,11 @@
 		5E481D883075341A00D55309 /* DropTopViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D873075341700D55309 /* DropTopViewInjected.swift */; };
 		5E481D8A30961F9100D55309 /* TestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D8930961F7600D55309 /* TestError.swift */; };
 		5E481D8C30B0894200D55309 /* LibraryCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D8B30B0893E00D55309 /* LibraryCoordinator.swift */; };
+		5E481D9130B1C38A00D55309 /* LibraryContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9030B1C38800D55309 /* LibraryContentViewModel.swift */; };
+		5E481D9330B1C40400D55309 /* LibraryContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9230B1C40000D55309 /* LibraryContentView.swift */; };
+		5E481D9530B1C5E900D55309 /* LibraryContentViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9430B1C5E600D55309 /* LibraryContentViewInjected.swift */; };
+		5E481D9730B1C66C00D55309 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9630B1C66900D55309 /* LibraryView.swift */; };
+		5E481D9930B1C71D00D55309 /* LibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9830B1C71900D55309 /* LibraryViewModel.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -229,6 +234,11 @@
 		5E481D873075341700D55309 /* DropTopViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTopViewInjected.swift; sourceTree = "<group>"; };
 		5E481D8930961F7600D55309 /* TestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestError.swift; sourceTree = "<group>"; };
 		5E481D8B30B0893E00D55309 /* LibraryCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryCoordinator.swift; sourceTree = "<group>"; };
+		5E481D9030B1C38800D55309 /* LibraryContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryContentViewModel.swift; sourceTree = "<group>"; };
+		5E481D9230B1C40000D55309 /* LibraryContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryContentView.swift; sourceTree = "<group>"; };
+		5E481D9430B1C5E600D55309 /* LibraryContentViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryContentViewInjected.swift; sourceTree = "<group>"; };
+		5E481D9630B1C66900D55309 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		5E481D9830B1C71900D55309 /* LibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryViewModel.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -501,6 +511,34 @@
 			children = (
 				5E481D8930961F7600D55309 /* TestError.swift */,
 				5E481D83307531A300D55309 /* DropTopViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		5E481D8D30B1BD7000D55309 /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D8F30B1BD9100D55309 /* ViewModel */,
+				5E481D8E30B1BD8800D55309 /* View */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
+		5E481D8E30B1BD8800D55309 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D9630B1C66900D55309 /* LibraryView.swift */,
+				5E481D9430B1C5E600D55309 /* LibraryContentViewInjected.swift */,
+				5E481D9230B1C40000D55309 /* LibraryContentView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5E481D8F30B1BD9100D55309 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D9830B1C71900D55309 /* LibraryViewModel.swift */,
+				5E481D9030B1C38800D55309 /* LibraryContentViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -1328,6 +1366,7 @@
 		5EC949CE2CB526E5003736A9 /* TemplateSwiftUIProject */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D8D30B1BD7000D55309 /* Library */,
 				5E481D6030407C1F00D55309 /* Subview */,
 				5EC4B25B2F712F8D00F0C2D7 /* MusicAPI */,
 				5EC4B2582F43389E00F0C2D7 /* WebImageView */,
@@ -1699,6 +1738,7 @@
 				5E8F9CBF2D81A451004036F6 /* ShopsSectionView.swift in Sources */,
 				5EBBE6E72FBB01D6009AC141 /* DropViewModel.swift in Sources */,
 				5EC332E82E5C43820051BE5B /* ClearButtonModifier.swift in Sources */,
+				5E481D9330B1C40400D55309 /* LibraryContentView.swift in Sources */,
 				5EC88EDC2DB136F500A95224 /* AccountView.swift in Sources */,
 				5E00EE172F22368700A521AC /* GalleryContentViewInjected.swift in Sources */,
 				5EC332EC2E5C76020051BE5B /* PhotoPickerError.swift in Sources */,
@@ -1737,6 +1777,7 @@
 				5EBFD5D02E228D5200A3C74C /* FirestoreProfileService.swift in Sources */,
 				5EBBE6D72FAF5CC3009AC141 /* AdminModel.swift in Sources */,
 				5E481D6830407E7700D55309 /* TracklistViewModel.swift in Sources */,
+				5E481D9130B1C38A00D55309 /* LibraryContentViewModel.swift in Sources */,
 				5EBBE6DB2FAF5DC8009AC141 /* YouTubeAPIClient.swift in Sources */,
 				5EC88EEB2DBF8CEE00A95224 /* NetworkMonitor.swift in Sources */,
 				5E8F9CC12D81A476004036F6 /* PopularProductsSectionView.swift in Sources */,
@@ -1780,6 +1821,7 @@
 				5E8F9C712D537AA1004036F6 /* SomeView.swift in Sources */,
 				5EAF5B132D367E7E00D96FD6 /* ContentViewModel.swift in Sources */,
 				5EC332E52E48D3B40051BE5B /* UserInfoEditView.swift in Sources */,
+				5E481D9930B1C71D00D55309 /* LibraryViewModel.swift in Sources */,
 				5E8F9C902D634EA4004036F6 /* ContentErrorView.swift in Sources */,
 				5EA082AA2EDB0EFE00E244B8 /* ChangeLanguageView.swift in Sources */,
 				5EC88ED62DAA8A8500A95224 /* CrashlyticsInfo.swift in Sources */,
@@ -1821,6 +1863,7 @@
 				5E8F9C762D537CC5004036F6 /* BookDetailsViewModel.swift in Sources */,
 				5EC4B2642F73E31500F0C2D7 /* DescriptionAV.swift in Sources */,
 				5EC88EEE2DBF92A600A95224 /* NetworkStatusBanner.swift in Sources */,
+				5E481D9730B1C66C00D55309 /* LibraryView.swift in Sources */,
 				5EC949EA2CBA954F003736A9 /* OnboardingView.swift in Sources */,
 				5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */,
 				5EBFD5CC2E1D004E00A3C74C /* ContentAccountViewModel.swift in Sources */,
@@ -1838,6 +1881,7 @@
 				5E481D6630407D8800D55309 /* TracklistViewInjected.swift in Sources */,
 				5EC4B2572F41F0E700F0C2D7 /* FirestoreError.swift in Sources */,
 				5EC94A022CC2954C003736A9 /* GalleryView(test).swift in Sources */,
+				5E481D9530B1C5E900D55309 /* LibraryContentViewInjected.swift in Sources */,
 				5E8F9C9A2D65F573004036F6 /* Localized.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

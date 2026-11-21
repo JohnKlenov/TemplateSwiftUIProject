@@ -27,7 +27,7 @@ enum AppIcons {
     // MARK: - TabBar icons
     enum TabBar {
         static let home = "house.fill"
-        static let gallery = "photo.on.rectangle.fill"
+        static let library = "photo.on.rectangle.fill"
         static let profile = "person.crop.circle.fill"
     }
     
