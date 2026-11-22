@@ -189,60 +189,73 @@ final class DropListDataSource {
     }
 
     // MARK: - Pagination
-
+    
+    // Защищаем пагинацию от одновременных запросов для одного списка.
+    // beginLoading() атомарно проверяет и устанавливает блокировку по ключу списка.
+    // Если загрузка уже выполняется, повторный запрос отклоняется.
+    // После завершения загрузки или возникновения ошибки endLoading() снимает блокировку,
+    // позволяя при следующем вызове загрузить новую страницу.
     func loadNextPageIfNeeded(
         for item: CarouselItemType
     ) async throws -> NextPageResult {
 
-        // ============================================================
-        // Получаем текущее состояние конкретного списка.
-        //
-        // Для droplistDetails / topDropDetails cacheKey содержит
-        // playlistId, поэтому каждый playlist имеет свой cache.
-        // ============================================================
+        // Не допускаем параллельную загрузку одного списка.
+        let canStart = await pagesCache.beginLoading(item)
 
-        guard let currentPage =
-                await pagesCache.get(item)
-        else {
-
+        guard canStart else {
             return .invalidState
         }
 
-        // ============================================================
-        // Если больше страниц нет — сразу завершаем pagination.
-        // ============================================================
+        do {
+            // Получаем актуальное состояние списка после блокировки.
+            // Получаем текущее состояние конкретного списка.
+            // Для droplistDetails / topDropDetails cacheKey содержит
+            // playlistId, поэтому каждый playlist имеет свой cache.
+            guard let currentPage = await pagesCache.get(item) else {
+                await pagesCache.endLoading(item)
+                return .invalidState
+            }
 
-        guard currentPage.hasMore,
-              let lastSnapshot = currentPage.lastDocumentSnapshot
-        else {
+            // Проверяем наличие следующей страницы.
+            guard currentPage.hasMore,
+                  let lastSnapshot = currentPage.lastDocumentSnapshot
+            else {
+                await pagesCache.endLoading(item)
+                return .noMore
+            }
 
-            return .noMore
-        }
+            // Загружаем следующую страницу.
+            let nextPage =
+                try await firestoreService.fetchNextLowerPage(
+                    for: item,
+                    after: lastSnapshot,
+                    pageSize: pageSize
+                )
 
-        // ============================================================
-        // Получаем следующую страницу.
-        //
-        // Сам DropListFirestoreService определяет,
-        // откуда брать данные в зависимости от item.
-        // ============================================================
+            // Пустая страница означает конец списка.
+            if nextPage.items.isEmpty {
 
-        let nextPage =
-            try await firestoreService.fetchNextLowerPage(
-                for: item,
-                after: lastSnapshot,
-                pageSize: pageSize
-            )
+                let mergedPage = LowerSectionPage(
+                    items: currentPage.items,
+                    lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+                    hasMore: false
+                )
 
-        // ============================================================
-        // Пустая страница = конец списка.
-        // ============================================================
+                await pagesCache.set(
+                    item,
+                    page: mergedPage
+                )
 
-        if nextPage.items.isEmpty {
+                await pagesCache.endLoading(item)
 
+                return .noMore
+            }
+
+            // Объединяем старые и новые элементы.
             let mergedPage = LowerSectionPage(
-                items: currentPage.items,
-                lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
-                hasMore: false
+                items: currentPage.items + nextPage.items,
+                lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+                hasMore: nextPage.hasMore
             )
 
             await pagesCache.set(
@@ -250,31 +263,102 @@ final class DropListDataSource {
                 page: mergedPage
             )
 
-            return .noMore
+            await pagesCache.endLoading(item)
+
+            return .loaded(page: mergedPage)
+
+        } catch {
+            // Освобождаем блокировку даже при ошибке Firestore.
+            await pagesCache.endLoading(item)
+            throw error
         }
-
-        // ============================================================
-        // Нормальная страница.
-        // ============================================================
-
-        let mergedItems =
-            currentPage.items + nextPage.items
-
-        let mergedPage = LowerSectionPage(
-            items: mergedItems,
-            lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
-            hasMore: nextPage.hasMore
-        )
-
-        await pagesCache.set(
-            item,
-            page: mergedPage
-        )
-
-        return .loaded(
-            page: mergedPage
-        )
     }
+
+//    func loadNextPageIfNeeded(
+//        for item: CarouselItemType
+//    ) async throws -> NextPageResult {
+//
+//        // ============================================================
+//        // Получаем текущее состояние конкретного списка.
+//        //
+//        // Для droplistDetails / topDropDetails cacheKey содержит
+//        // playlistId, поэтому каждый playlist имеет свой cache.
+//        // ============================================================
+//
+//        guard let currentPage =
+//                await pagesCache.get(item)
+//        else {
+//
+//            return .invalidState
+//        }
+//
+//        // ============================================================
+//        // Если больше страниц нет — сразу завершаем pagination.
+//        // ============================================================
+//
+//        guard currentPage.hasMore,
+//              let lastSnapshot = currentPage.lastDocumentSnapshot
+//        else {
+//
+//            return .noMore
+//        }
+//
+//        // ============================================================
+//        // Получаем следующую страницу.
+//        //
+//        // Сам DropListFirestoreService определяет,
+//        // откуда брать данные в зависимости от item.
+//        // ============================================================
+//
+//        let nextPage =
+//            try await firestoreService.fetchNextLowerPage(
+//                for: item,
+//                after: lastSnapshot,
+//                pageSize: pageSize
+//            )
+//
+//        // ============================================================
+//        // Пустая страница = конец списка.
+//        // ============================================================
+//
+//        if nextPage.items.isEmpty {
+//
+//            let mergedPage = LowerSectionPage(
+//                items: currentPage.items,
+//                lastDocumentSnapshot: currentPage.lastDocumentSnapshot,
+//                hasMore: false
+//            )
+//
+//            await pagesCache.set(
+//                item,
+//                page: mergedPage
+//            )
+//
+//            return .noMore
+//        }
+//
+//        // ============================================================
+//        // Нормальная страница.
+//        // ============================================================
+//
+//        let mergedItems =
+//            currentPage.items + nextPage.items
+//
+//        let mergedPage = LowerSectionPage(
+//            items: mergedItems,
+//            lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+//            hasMore: nextPage.hasMore
+//        )
+//
+//        await pagesCache.set(
+//            item,
+//            page: mergedPage
+//        )
+//
+//        return .loaded(
+//            page: mergedPage
+//        )
+//    }
 
     // MARK: - Soft Refresh
 

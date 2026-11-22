@@ -124,9 +124,9 @@
 //            return "rnb"
 //        }
 //
-// то есть нам нужно делать запрос к Alltracks (/dropTracks/) с фильтром (Gym, Party или RnB) в зависимости на какую ячейку нажмем (все так же как у нас было раньше с пагинацией)
+// то есть нам нужно делать запрос к Alltracks (/dropTracks/) с фильтром (Gym, Party или RnB) в зависимости на какую ячейку нажмем
 // отображение полученных треков будет на экране TracklistViewInjected
-// то есть нужно будет добавить новые case для DroplistFlow - Gym, Party или RnB
+// то есть нужно будет добавить новые case для DroplistFlow - Gym, Party или RnB - они уже есть
 // и для trackType новые кейсы передавать (Gym, Party или RnB) но они уже есть в CarouselItemType
 // через:
 //@ViewBuilder

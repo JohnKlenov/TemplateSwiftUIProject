@@ -255,11 +255,26 @@ class ViewBuilderService: ObservableObject {
         case .artists:
             SomeView()
         case .gym:
-            SomeView()
+            TracklistViewInjected(
+                    dropListDataSource: dropListDataSource,
+                    playlistUser: playlistUser,
+                    trackType: .gym,
+                    navigationTitle: "Gym"
+                )
         case .party:
-            SomeView()
+            TracklistViewInjected(
+                    dropListDataSource: dropListDataSource,
+                    playlistUser: playlistUser,
+                    trackType: .party,
+                    navigationTitle: "Party"
+                )
         case .rnb:
-            SomeView()
+            TracklistViewInjected(
+                    dropListDataSource: dropListDataSource,
+                    playlistUser: playlistUser,
+                    trackType: .rnb,
+                    navigationTitle: "R&B"
+                )
         case .unpublished:
             SomeView()
         }

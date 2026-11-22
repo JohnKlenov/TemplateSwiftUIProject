@@ -1457,9 +1457,9 @@ private extension DropListFirestoreService {
 //            )
 //        }
 //    }
-
-
-
+//
+//
+//
 // MARK: - before case .dropTopDetails
 //    func fetchInitialLowerPage(
 //        for item: CarouselItemType,

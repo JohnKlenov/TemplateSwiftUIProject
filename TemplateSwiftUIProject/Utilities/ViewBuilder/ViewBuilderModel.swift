@@ -17,6 +17,8 @@ import SwiftUI
 
 // Droplist + Library
 
+// в будущем будет что то вроде ((gym + chill + party + triller)
+// но так как сейчас теги в треках други будем использовать (gym + party + rnb)
 enum DroplistFlow: Hashable {
 
     // MARK: - Routes
