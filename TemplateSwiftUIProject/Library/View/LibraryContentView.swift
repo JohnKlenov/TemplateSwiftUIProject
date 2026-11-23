@@ -149,7 +149,7 @@ struct LibraryContentView: View {
             )
 
         case .artists:
-            break
+            libraryCoordinator.navigateTo(page: .artists)
 
         case .gym:
             libraryCoordinator.navigateTo(page: .gym)

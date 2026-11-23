@@ -575,8 +575,18 @@ extension DropListDataSource {
 }
 
 
-
-
+// =================================================
+// MARK: - Artists
+// =================================================
+extension DropListDataSource {
+    
+    func fetchArtists() async throws -> [Artist] {
+        
+        let documents = try await firestoreService.fetchArtists()
+        
+        return documents.map(\.artist)
+    }
+}
 
 
 // MARK: - Instead of `DropTopPage`, use a generic `LowerSectionPage`, and merge `DropTopPagesCache` with `PagesCache`.

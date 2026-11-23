@@ -305,6 +305,8 @@ protocol DropListFirestoreServiceProtocol {
         pageSize: Int
     ) async throws -> LowerSectionPage
     
+    func fetchArtists() async throws -> [ArtistDocument]
+    
 }
 
 // MARK: - Service
@@ -495,7 +497,8 @@ final class DropListFirestoreService:
 
         case .gym,
              .party,
-             .rnb:
+             .rnb,
+             .artist:
             return try await fetchTracksPage(
                 tag: item.tag,
                 pageSize: pageSize,
@@ -551,7 +554,8 @@ final class DropListFirestoreService:
 
         case .gym,
              .party,
-             .rnb:
+             .rnb,
+             .artist:
             return try await fetchTracksPage(
                 tag: item.tag,
                 pageSize: pageSize,
@@ -1404,6 +1408,30 @@ private extension DropListFirestoreService {
 }
 
 
+// =================================================
+// MARK: - Artists
+// =================================================
+
+extension DropListFirestoreService {
+    
+    func fetchArtists() async throws -> [ArtistDocument] {
+        
+        let snapshot = try await db
+            .collection("Artists")
+            .order(
+                by: "orderIndex",
+                descending: false
+            )
+            .getDocuments()
+        
+        return try snapshot.documents.map { document in
+            
+            try document.data(
+                as: ArtistDocument.self
+            )
+        }
+    }
+}
 
 
 // MARK: - before case .dropTopDetails

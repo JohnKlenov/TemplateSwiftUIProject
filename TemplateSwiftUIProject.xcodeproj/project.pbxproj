@@ -34,6 +34,9 @@
 		5E481D9530B1C5E900D55309 /* LibraryContentViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9430B1C5E600D55309 /* LibraryContentViewInjected.swift */; };
 		5E481D9730B1C66C00D55309 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9630B1C66900D55309 /* LibraryView.swift */; };
 		5E481D9930B1C71D00D55309 /* LibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9830B1C71900D55309 /* LibraryViewModel.swift */; };
+		5E481D9E30B46A1700D55309 /* ArtistsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9D30B46A1400D55309 /* ArtistsViewModel.swift */; };
+		5E481DA030B46A5F00D55309 /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481D9F30B46A5900D55309 /* ArtistsView.swift */; };
+		5E481DA230B46AA500D55309 /* ArtistsViewInjected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E481DA130B46A9E00D55309 /* ArtistsViewInjected.swift */; };
 		5E5466092F781217009D7210 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5E5466082F781217009D7210 /* .gitignore */; };
 		5E54660B2F781339009D7210 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E54660A2F781339009D7210 /* Secrets.swift */; };
 		5E5466112F7A5DE5009D7210 /* TracksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5466102F7A5DE5009D7210 /* TracksListView.swift */; };
@@ -239,6 +242,9 @@
 		5E481D9430B1C5E600D55309 /* LibraryContentViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryContentViewInjected.swift; sourceTree = "<group>"; };
 		5E481D9630B1C66900D55309 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		5E481D9830B1C71900D55309 /* LibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryViewModel.swift; sourceTree = "<group>"; };
+		5E481D9D30B46A1400D55309 /* ArtistsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsViewModel.swift; sourceTree = "<group>"; };
+		5E481D9F30B46A5900D55309 /* ArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsView.swift; sourceTree = "<group>"; };
+		5E481DA130B46A9E00D55309 /* ArtistsViewInjected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsViewInjected.swift; sourceTree = "<group>"; };
 		5E5466082F781217009D7210 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5E54660A2F781339009D7210 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		5E5466102F7A5DE5009D7210 /* TracksListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracksListView.swift; sourceTree = "<group>"; };
@@ -445,6 +451,7 @@
 		5E481D6030407C1F00D55309 /* Subview */ = {
 			isa = PBXGroup;
 			children = (
+				5E481D9A30B469DD00D55309 /* Artists */,
 				5E481D803075315F00D55309 /* DropTop */,
 				5E481D6130407C3F00D55309 /* Tracklist */,
 			);
@@ -539,6 +546,32 @@
 			children = (
 				5E481D9830B1C71900D55309 /* LibraryViewModel.swift */,
 				5E481D9030B1C38800D55309 /* LibraryContentViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		5E481D9A30B469DD00D55309 /* Artists */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D9C30B469FA00D55309 /* ViewModel */,
+				5E481D9B30B469F200D55309 /* View */,
+			);
+			path = Artists;
+			sourceTree = "<group>";
+		};
+		5E481D9B30B469F200D55309 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				5E481DA130B46A9E00D55309 /* ArtistsViewInjected.swift */,
+				5E481D9F30B46A5900D55309 /* ArtistsView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		5E481D9C30B469FA00D55309 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				5E481D9D30B46A1400D55309 /* ArtistsViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -1769,6 +1802,7 @@
 				5E481D8A30961F9100D55309 /* TestError.swift in Sources */,
 				5E8F9C8C2D6348BF004036F6 /* BooksListView.swift in Sources */,
 				5EA4FE292CF5B558001CA401 /* BookDetailsView.swift in Sources */,
+				5E481DA030B46A5F00D55309 /* ArtistsView.swift in Sources */,
 				5EC88EE12DB2342700A95224 /* UserInfoCellView.swift in Sources */,
 				5EC88EDF2DB1377B00A95224 /* AccountViewModel.swift in Sources */,
 				5E8F9C742D537B0E004036F6 /* DataStore.swift in Sources */,
@@ -1781,6 +1815,7 @@
 				5EBBE6DB2FAF5DC8009AC141 /* YouTubeAPIClient.swift in Sources */,
 				5EC88EEB2DBF8CEE00A95224 /* NetworkMonitor.swift in Sources */,
 				5E8F9CC12D81A476004036F6 /* PopularProductsSectionView.swift in Sources */,
+				5E481D9E30B46A1700D55309 /* ArtistsViewModel.swift in Sources */,
 				5EA4FDC72CD8E780001CA401 /* BookEditView.swift in Sources */,
 				5E481D7D306FE6DB00D55309 /* PlaylistToastView.swift in Sources */,
 				5EC4B2662F74143300F0C2D7 /* DesignAndStructure.swift in Sources */,
@@ -1867,6 +1902,7 @@
 				5EC949EA2CBA954F003736A9 /* OnboardingView.swift in Sources */,
 				5EC94A102CC3CCA2003736A9 /* FirestoreCollectionObserverService.swift in Sources */,
 				5EBFD5CC2E1D004E00A3C74C /* ContentAccountViewModel.swift in Sources */,
+				5E481DA230B46AA500D55309 /* ArtistsViewInjected.swift in Sources */,
 				5EBFD5C42E1008C000A3C74C /* LifeCycleView.swift in Sources */,
 				5EC332F52E88002E0051BE5B /* DescriptionProfile.swift in Sources */,
 				5EC332F12E5EF01E0051BE5B /* StorageProfileService.swift in Sources */,

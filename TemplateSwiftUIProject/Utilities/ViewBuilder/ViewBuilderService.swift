@@ -253,7 +253,9 @@ class ViewBuilderService: ObservableObject {
         case .library:
             LibraryContentViewInjected()
         case .artists:
-            SomeView()
+            ArtistsViewInjected(
+                    dropListDataSource: dropListDataSource
+                )
         case .gym:
             TracklistViewInjected(
                     dropListDataSource: dropListDataSource,
@@ -277,6 +279,14 @@ class ViewBuilderService: ObservableObject {
                 )
         case .unpublished:
             SomeView()
+        case .artistDetails(tag: let tag, title: let title, imageURL: let imageURL):
+            TracklistViewInjected(
+                  dropListDataSource: dropListDataSource,
+                  playlistUser: playlistUser,
+                  trackType: .artist(tag: tag),
+                  navigationTitle: title,
+                  imageURL: imageURL
+              )
         }
     }
     
