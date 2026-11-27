@@ -449,26 +449,25 @@ struct DropTopDoc: Codable {
 }
 
 struct ArtistDocument: Codable {
-
     let name: String
     let tag: String
     let orderIndex: Int
     let imageURL: String?
-    let createdAt: Date
+    let createdAt: Date?
 
-    // MARK: - Mapping
-
+    // Mapping
     var artist: Artist {
-
         Artist(
             id: tag,
             name: name,
             tag: tag,
             orderIndex: orderIndex,
-            imageURL: imageURL.flatMap(URL.init(string:))
+            imageURL: imageURL.flatMap(URL.init(string:)) // Безопасно преобразуем String? в URL?, пропуская преобразование, если значение nil.
         )
     }
 }
+
+
 
 
 
@@ -731,6 +730,19 @@ extension DropTopTag: PageCacheKey {
     }
 }
 
+
+
+struct ArtistDocumentPage {
+    let documents: [ArtistDocument]
+    let lastDocumentSnapshot: DocumentSnapshot?
+    let hasMore: Bool
+}
+
+struct ArtistsPage {
+    let artists: [Artist]
+    let lastDocumentSnapshot: DocumentSnapshot?
+    let hasMore: Bool
+}
 
 struct Artist: Identifiable, Hashable {
 

@@ -289,11 +289,6 @@ protocol DropListFirestoreServiceProtocol {
         track: MyTrackCloud
     ) async throws
     
-    // =========================================================
-    // MARK: DropTop
-    // =========================================================
-    
-
     func fetchInitialDropTopPage(
         for tag: DropTopTag,
         pageSize: Int
@@ -305,7 +300,11 @@ protocol DropListFirestoreServiceProtocol {
         pageSize: Int
     ) async throws -> LowerSectionPage
     
-    func fetchArtists() async throws -> [ArtistDocument]
+//    func fetchArtists() async throws -> [ArtistDocument]
+    func fetchArtistsPage(
+        after lastSnapshot: DocumentSnapshot?,
+        pageSize: Int
+    ) async throws -> ArtistDocumentPage
     
 }
 
@@ -1412,26 +1411,232 @@ private extension DropListFirestoreService {
 // MARK: - Artists
 // =================================================
 
+
 extension DropListFirestoreService {
-    
-    func fetchArtists() async throws -> [ArtistDocument] {
-        
-        let snapshot = try await db
-            .collection("Artists")
-            .order(
-                by: "orderIndex",
-                descending: false
-            )
-            .getDocuments()
-        
-        return try snapshot.documents.map { document in
-            
-            try document.data(
-                as: ArtistDocument.self
-            )
+
+    func fetchArtistsPage(
+        after lastSnapshot: DocumentSnapshot?,
+        pageSize: Int
+    ) async throws -> ArtistDocumentPage {
+
+        try await withCheckedThrowingContinuation {
+            (
+                continuation: CheckedContinuation<
+                    ArtistDocumentPage,
+                    Error
+                >
+            ) in
+
+            // Сортировка и ограничение количества документов.
+            var query: Query = db.collection("Artists")
+                .order(
+                    by: "orderIndex",
+                    descending: false
+                )
+                .limit(to: pageSize)
+
+            // Переходим к следующей странице.
+            if let lastSnapshot {
+                query = query.start(
+                    afterDocument: lastSnapshot
+                )
+            }
+
+            query.getDocuments { [weak self] snapshot, error in
+                guard let self else {
+                    continuation.resume(
+                        throwing: CancellationError()
+                    )
+                    return
+                }
+
+                // Ошибка получения данных из Firestore.
+                if let error {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: error,
+                            context: .DropListFirestoreService_fetchArtists
+                        )
+                    )
+                    return
+                }
+
+                // Проверяем наличие snapshot.
+                guard let snapshot else {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.nilSnapshot,
+                            context: .DropListFirestoreService_fetchArtists
+                        )
+                    )
+                    return
+                }
+
+                // Пустая страница — конец коллекции.
+                if snapshot.documents.isEmpty {
+                    continuation.resume(
+                        returning: ArtistDocumentPage(
+                            documents: [],
+                            lastDocumentSnapshot: nil,
+                            hasMore: false
+                        )
+                    )
+                    return
+                }
+
+                // Безопасное декодирование каждого документа.
+                let documents: [ArtistDocument] =
+                    snapshot.documents.compactMap { document in
+                        do {
+                            return try document.data(
+                                as: ArtistDocument.self
+                            )
+                        } catch {
+                            let _ = self.errorHandler.handle(
+                                error: error,
+                                context:
+                                    "\(ErrorContext.DropListFirestoreService_fetchArtists_decodeDocument.rawValue) | \(document.documentID)"
+                            )
+
+                            return nil
+                        }
+                    }
+
+                // Ни один документ страницы не удалось декодировать.
+                guard !documents.isEmpty else {
+                    continuation.resume(
+                        throwing: FirestoreGetServiceError(
+                            underlying: AppInternalError.docsIsEmpty,
+                            context: .DropListFirestoreService_fetchArtists
+                        )
+                    )
+                    return
+                }
+
+                // Курсор берём из последнего документа Firestore,
+                // даже если его декодирование завершилось ошибкой.
+                let lastDocument = snapshot.documents.last
+
+                let hasMore = snapshot.documents.count >= pageSize
+
+                continuation.resume(
+                    returning: ArtistDocumentPage(
+                        documents: documents,
+                        lastDocumentSnapshot: lastDocument,
+                        hasMore: hasMore
+                    )
+                )
+            }
         }
     }
 }
+//extension DropListFirestoreService {
+//
+//    func fetchArtists() async throws -> [ArtistDocument] {
+//        try await withCheckedThrowingContinuation {
+//            (
+//                continuation: CheckedContinuation<
+//                    [ArtistDocument],
+//                    Error
+//                >
+//            ) in
+//
+//            let query: Query = db.collection("Artists")
+//
+//            query.getDocuments { [weak self] snapshot, error in
+//                guard let self else {
+//                    continuation.resume(
+//                        throwing: CancellationError()
+//                    )
+//                    return
+//                }
+//
+//                // Ошибка получения данных из Firestore.
+//                if let error {
+//                    continuation.resume(
+//                        throwing: FirestoreGetServiceError(
+//                            underlying: error,
+//                            context: .DropListFirestoreService_fetchArtists
+//                        )
+//                    )
+//                    return
+//                }
+//
+//                // Проверяем наличие snapshot.
+//                guard let snapshot else {
+//                    continuation.resume(
+//                        throwing: FirestoreGetServiceError(
+//                            underlying: AppInternalError.nilSnapshot,
+//                            context: .DropListFirestoreService_fetchArtists
+//                        )
+//                    )
+//                    return
+//                }
+//
+//                // Коллекция существует, но пока не содержит документов.
+//                if snapshot.documents.isEmpty {
+//                    continuation.resume(returning: [])
+//                    return
+//                }
+//
+//                // Безопасное декодирование каждого документа.
+//                var lastDecodingError: Error?
+//
+//                let documents: [ArtistDocument] =
+//                    snapshot.documents.compactMap { document in
+//                        do {
+//                            return try document.data(
+//                                as: ArtistDocument.self
+//                            )
+//                        } catch {
+//                            lastDecodingError = error
+//
+//                            let _ = self.errorHandler.handle(
+//                                error: error,
+//                                context:
+//                                    "\(ErrorContext.DropListFirestoreService_fetchArtists_decodeDocument.rawValue) | \(document.documentID)"
+//                            )
+//
+//                            return nil
+//                        }
+//                    }
+//
+//                // Все документы оказались повреждены.
+//                guard !documents.isEmpty else {
+//                    continuation.resume(
+//                        throwing: FirestoreGetServiceError(
+//                            underlying: lastDecodingError
+//                                ?? AppInternalError.docsIsEmpty,
+//                            context: .DropListFirestoreService_fetchArtists
+//                        )
+//                    )
+//                    return
+//                }
+//
+//                continuation.resume(returning: documents)
+//            }
+//        }
+//    }
+
+
+//    func fetchArtists() async throws -> [ArtistDocument] {
+//        
+//        let snapshot = try await db
+//            .collection("Artists")
+//            .order(
+//                by: "orderIndex",
+//                descending: false
+//            )
+//            .getDocuments()
+//        
+//        return try snapshot.documents.map { document in
+//            
+//            try document.data(
+//                as: ArtistDocument.self
+//            )
+//        }
+//    }
+//}
 
 
 // MARK: - before case .dropTopDetails
