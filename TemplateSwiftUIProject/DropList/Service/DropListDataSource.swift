@@ -75,7 +75,7 @@ final class DropListDataSource {
         errorHandler: ErrorDiagnosticsProtocol,
         alertManager: AlertManager = .shared,
         userProvider: CurrentUserProvider,
-        pageSize: Int = 10
+        pageSize: Int = 15
     ) {
         self.firestoreService = firestoreService
         self.errorHandler = errorHandler
@@ -581,23 +581,216 @@ extension DropListDataSource {
 
 extension DropListDataSource {
 
-    func fetchArtistsPage(
-        after lastSnapshot: DocumentSnapshot?,
-        pageSize: Int
-    ) async throws -> ArtistsPage {
+    // MARK: - Initial Loading
 
-        let page = try await firestoreService.fetchArtistsPage(
+    func loadInitialArtists() async throws -> LowerSectionPage {
+        let item = CarouselItemType.artists
+
+        // Сначала проверяем общий кэш.
+        if let cachedPage = await pagesCache.get(item) {
+            return cachedPage
+        }
+
+        // Не допускаем одновременную загрузку одной страницы.
+        guard await pagesCache.beginLoading(item) else {
+            if let cachedPage = await pagesCache.get(item) {
+                return cachedPage
+            }
+
+            throw CancellationError()
+        }
+
+        defer {
+            Task {
+                await pagesCache.endLoading(item)
+            }
+        }
+
+        let page = try await firestoreService.fetchInitialLowerPage(
+            for: item,
+            pageSize: pageSize
+        )
+
+        await pagesCache.set(item, page: page)
+
+        return page
+    }
+
+    // MARK: - Refresh
+
+    func refreshArtists() async throws -> LowerSectionPage {
+        let item = CarouselItemType.artists
+
+        // Удаляем старую страницу перед повторной загрузкой.
+        await pagesCache.remove(item)
+
+        guard await pagesCache.beginLoading(item) else {
+            throw CancellationError()
+        }
+
+        defer {
+            Task {
+                await pagesCache.endLoading(item)
+            }
+        }
+
+        let page = try await firestoreService.fetchInitialLowerPage(
+            for: item,
+            pageSize: pageSize
+        )
+
+        await pagesCache.set(item, page: page)
+
+        return page
+    }
+
+    // MARK: - Pagination
+
+    func loadNextArtistsPage() async throws -> LowerSectionPage? {
+        let item = CarouselItemType.artists
+
+        guard let currentPage = await pagesCache.get(item),
+              currentPage.hasMore,
+              let lastSnapshot = currentPage.lastDocumentSnapshot
+        else {
+            return nil
+        }
+
+        // Не допускаем повторную загрузку следующей страницы.
+        guard await pagesCache.beginLoading(item) else {
+            return nil
+        }
+
+        defer {
+            Task {
+                await pagesCache.endLoading(item)
+            }
+        }
+
+        let nextPage = try await firestoreService.fetchNextLowerPage(
+            for: item,
             after: lastSnapshot,
             pageSize: pageSize
         )
 
-        return ArtistsPage(
-            artists: page.documents.map(\.artist),
-            lastDocumentSnapshot: page.lastDocumentSnapshot,
-            hasMore: page.hasMore
+        let updatedPage = LowerSectionPage(
+            items: currentPage.items + nextPage.items,
+            lastDocumentSnapshot: nextPage.lastDocumentSnapshot,
+            hasMore: nextPage.hasMore
         )
+
+        await pagesCache.set(item, page: updatedPage)
+
+        return updatedPage
     }
 }
+
+
+
+
+//// =================================================
+//// MARK: - Artists — Pagination
+//// =================================================
+//
+//extension DropListDataSource {
+//
+//    func loadNextArtistsPageIfNeeded() async throws -> NextPageResult {
+//
+//        // MARK: - Pagination Lock
+//
+//        let canStart = await pagesCache.beginLoading(.artists)
+//
+//        guard canStart else {
+//            return .invalidState
+//        }
+//
+//        do {
+//            // MARK: - Current Page
+//
+//            guard let currentPage = await pagesCache.get(.artists) else {
+//                await pagesCache.endLoading(.artists)
+//                return .invalidState
+//            }
+//
+//            // MARK: - Next Page Validation
+//
+//            guard
+//                currentPage.hasMore,
+//                let lastSnapshot = currentPage.lastDocumentSnapshot
+//            else {
+//                await pagesCache.endLoading(.artists)
+//                return .noMore
+//            }
+//
+//            // MARK: - Firestore
+//
+//            let documentPage = try await firestoreService.fetchArtistsPage(
+//                after: lastSnapshot,
+//                pageSize: artistsPageSize
+//            )
+//
+//            let nextItems = documentPage.documents.map(\.lowerItem)
+//
+//            // MARK: - Empty Page
+//
+//            guard !nextItems.isEmpty else {
+//                let updatedPage = LowerSectionPage(
+//                    items: currentPage.items,
+//                    lastDocumentSnapshot:
+//                        documentPage.lastDocumentSnapshot
+//                        ?? currentPage.lastDocumentSnapshot,
+//                    hasMore: false
+//                )
+//
+//                await pagesCache.set(.artists, page: updatedPage)
+//                await pagesCache.endLoading(.artists)
+//
+//                return .noMore
+//            }
+//
+//            // MARK: - Merge Pages
+//
+//            let mergedPage = LowerSectionPage(
+//                items: currentPage.items + nextItems,
+//                lastDocumentSnapshot: documentPage.lastDocumentSnapshot,
+//                hasMore: documentPage.hasMore
+//            )
+//
+//            // MARK: - Save Cache
+//
+//            await pagesCache.set(.artists, page: mergedPage)
+//            await pagesCache.endLoading(.artists)
+//
+//            return .loaded(page: mergedPage)
+//
+//        } catch {
+//            await pagesCache.endLoading(.artists)
+//            throw error
+//        }
+//    }
+//}
+
+
+
+//extension DropListDataSource {
+//
+//    func fetchArtistsPage(
+//        after lastSnapshot: DocumentSnapshot?,
+//        pageSize: Int
+//    ) async throws -> ArtistsPage {
+//
+//        let page = try await firestoreService.fetchArtistsPage(
+//            after: lastSnapshot,
+//            pageSize: pageSize
+//        )
+//
+//        return ArtistsPage(
+//            artists: page.documents.map(\.artist),
+//            lastDocumentSnapshot: page.lastDocumentSnapshot,
+//            hasMore: page.hasMore
+//        )
+//    }
+//}
 
 
 //extension DropListDataSource {

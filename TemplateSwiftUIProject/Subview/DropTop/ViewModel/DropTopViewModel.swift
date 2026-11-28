@@ -283,11 +283,11 @@ final class DropTopViewModel: ObservableObject {
 
     // MARK: - Playlist Selection
 
-    func didSelectPlaylist(
-        _ item: LowerItem
-    ) {
-        // Навигация выполняется через Coordinator.
-    }
+//    func didSelectPlaylist(
+//        _ item: LowerItem
+//    ) {
+//        // Навигация выполняется через Coordinator.
+//    }
 
     deinit {
         currentPaginationTask?.cancel()

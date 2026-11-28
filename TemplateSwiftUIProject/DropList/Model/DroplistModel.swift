@@ -448,14 +448,17 @@ struct DropTopDoc: Codable {
     let tag: String
 }
 
+
 struct ArtistDocument: Codable {
+
     let name: String
     let tag: String
     let orderIndex: Int
     let imageURL: String?
     let createdAt: Date?
 
-    // Mapping
+    // MARK: - Mapping
+
     var artist: Artist {
         Artist(
             id: tag,
@@ -465,8 +468,17 @@ struct ArtistDocument: Codable {
             imageURL: imageURL.flatMap(URL.init(string:)) // Безопасно преобразуем String? в URL?, пропуская преобразование, если значение nil.
         )
     }
-}
 
+    var lowerItem: LowerItem {
+        LowerItem(
+            id: tag,
+            title: name,
+            coverImageURL: imageURL.flatMap(URL.init(string:)),
+            tag: tag,
+            orderIndex: orderIndex
+        )
+    }
+}
 
 
 
@@ -486,6 +498,7 @@ protocol PageCacheKey {
     var isPermanentCache: Bool { get }
 }
 
+import Foundation
 
 struct LowerItem: Identifiable, Hashable {
 
@@ -498,6 +511,7 @@ struct LowerItem: Identifiable, Hashable {
     let trackCount: Int?                   // только для треков
     let details: [String]                  // только для droplist
     let tag: String?
+    let orderIndex: Int?
 
     init(
         id: String,
@@ -508,7 +522,8 @@ struct LowerItem: Identifiable, Hashable {
         durationISO8601: String? = nil,
         trackCount: Int? = nil,
         details: [String] = [],
-        tag: String? = nil
+        tag: String? = nil,
+        orderIndex: Int? = nil
     ) {
         self.id = id
         self.title = title
@@ -519,6 +534,7 @@ struct LowerItem: Identifiable, Hashable {
         self.trackCount = trackCount
         self.details = details
         self.tag = tag
+        self.orderIndex = orderIndex
     }
 }
 
@@ -559,6 +575,7 @@ enum CarouselItemType: Hashable {
 
     case droplist
     case allTracks
+    case artists
     case gym
     case party
     case rnb
@@ -570,19 +587,18 @@ enum CarouselItemType: Hashable {
     case topDropDetails(playlistId: String)
     case dropTopDetails(playlistId: String)
 
-    // =================================================
     // MARK: - Cache Key
-    // =================================================
 
     var cacheKey: String {
-
         switch self {
-
         case .droplist:
             return "droplist"
 
         case .allTracks:
             return "allTracks"
+
+        case .artists:
+            return "artists"
 
         case .gym:
             return "gym"
@@ -607,14 +623,10 @@ enum CarouselItemType: Hashable {
         }
     }
 
-    // =================================================
     // MARK: - Tag
-    // =================================================
 
     var tag: String? {
-
         switch self {
-
         case .gym:
             return "gym"
 
@@ -629,6 +641,7 @@ enum CarouselItemType: Hashable {
 
         case .droplist,
              .allTracks,
+             .artists,
              .droplistDetails,
              .topDropDetails,
              .dropTopDetails:
@@ -644,9 +657,7 @@ enum CarouselItemType: Hashable {
 extension CarouselItemType: PageCacheKey {
 
     var isPermanentCache: Bool {
-
         switch self {
-
         case .droplistDetails,
              .topDropDetails,
              .dropTopDetails:
@@ -731,18 +742,13 @@ extension DropTopTag: PageCacheKey {
 }
 
 
+//struct ArtistDocumentPage {
+//
+//    let documents: [ArtistDocument]
+//    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
+//}
 
-struct ArtistDocumentPage {
-    let documents: [ArtistDocument]
-    let lastDocumentSnapshot: DocumentSnapshot?
-    let hasMore: Bool
-}
-
-struct ArtistsPage {
-    let artists: [Artist]
-    let lastDocumentSnapshot: DocumentSnapshot?
-    let hasMore: Bool
-}
 
 struct Artist: Identifiable, Hashable {
 
@@ -754,6 +760,426 @@ struct Artist: Identifiable, Hashable {
 }
 
 
+
+
+// MARK: - before new implementetion artist
+
+
+//import Foundation
+//import FirebaseFirestore
+//
+//
+//// MARK: - MyTrackCloud (users/{userId}/myTracks/{docId})
+//
+//struct MyTrackCloud: Identifiable, Codable, Equatable, Hashable {
+//    @DocumentID var id: String?
+//
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let createdAt: Date
+//}
+//
+//// let track = MyTrackCloud(item: item)
+//extension MyTrackCloud {
+//
+//    init(
+//        item: LowerItem
+//    ) {
+//        self.init(
+//            videoId: item.id,
+//            title: item.title,
+//            artist: item.subtitle,
+//            thumbnailURL: item.thumbnailURL?.absoluteString,
+//            createdAt: Date()
+//        )
+//    }
+//}
+//
+//
+//
+//// MARK: - 1. Firestore DTO (Data Transfer Objects)
+//
+////  PlaylistDoc — документ плейлиста (droplist/{playlistId})
+//
+//struct PlaylistDoc: Codable, Hashable {
+//    let playlistId: String
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    let createdAt: Date
+//    let details: [String]?
+//}
+//
+////  PlaylistTrackDoc — документ трека внутри плейлиста (droplist/{playlistId}/tracks/{videoId})
+//
+//struct PlaylistTrackDoc: Codable, Identifiable {
+//    let id: String                 // videoId
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let orderIndex: Int
+//    let createdAt: Date
+//}
+//
+//// TrackDoc — глобальный трек (dropTracks/{videoId})
+//
+//struct TrackDoc: Codable, Identifiable {
+//    let id: String?                 // videoId
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let tags: [String]?
+//    let playlists: [String]?
+//    let createdAt: Date
+//    let searchKeywords: [String]?
+//}
+//
+//
+//struct TopSectionDoc: Codable {
+//    let playlistId: String      // Критично → обязательное
+//    let title: String           // Критично → обязательное
+//    let description: String?    // Не критично → опциональное
+//    let coverImageURL: String?  // Не критично → опциональное
+//    let trackCount: Int         // Критично → обязательное
+//    let createdAt: Date?        // Может отсутствовать → опциональное
+//    let artists: [String]
+//    let orderIndex: Int         // Критично → обязательное
+//}
+//
+//// TopSectionTrackDoc — трек (topSections/tracks (subcollection)/{videoId})
+//
+//struct TopSectionTrackDoc: Codable, Identifiable {
+//    let id: String
+//    let videoId: String
+//    let title: String
+//    let artist: String?
+//    let thumbnailURL: String?
+//    let durationISO8601: String?
+//    let orderIndex: Int
+//    let createdAt: Date
+//}
+//
+//struct DropTopDoc: Codable {
+//    let playlistId: String
+//    let title: String
+//    let description: String?
+//    let coverImageURL: String?
+//    let trackCount: Int
+//    let createdAt: Date?
+//    let tag: String
+//}
+//
+//struct ArtistDocument: Codable {
+//    let name: String
+//    let tag: String
+//    let orderIndex: Int
+//    let imageURL: String?
+//    let createdAt: Date?
+//
+//    // Mapping
+//    var artist: Artist {
+//        Artist(
+//            id: tag,
+//            name: name,
+//            tag: tag,
+//            orderIndex: orderIndex,
+//            imageURL: imageURL.flatMap(URL.init(string:)) // Безопасно преобразуем String? в URL?, пропуская преобразование, если значение nil.
+//        )
+//    }
+//}
+//
+//
+//
+//
+//
+//// MARK: - 2. Domain Models (UI‑модели)
+//
+//// LowerItem — универсальная модель нижней секции
+//// Адаптирована под реальную структуру Firestore:
+//// - У плейлистов НЕТ sampleThumbnails → удалено
+//// - У треков thumbnail один → thumbnailURL
+//// - durationISO8601 добавлено для треков
+//
+//
+//protocol PageCacheKey {
+//
+//    var cacheKey: String { get }
+//    var isPermanentCache: Bool { get }
+//}
+//
+//
+//struct LowerItem: Identifiable, Hashable {
+//
+//    let id: String                         // playlistId или videoId
+//    let title: String
+//    let subtitle: String?                  // description (playlist) или artist (track)
+//    let coverImageURL: URL?                // только для плейлистов
+//    let thumbnailURL: URL?                 // только для треков
+//    let durationISO8601: String?           // только для треков
+//    let trackCount: Int?                   // только для треков
+//    let details: [String]                  // только для droplist
+//    let tag: String?
+//
+//    init(
+//        id: String,
+//        title: String,
+//        subtitle: String? = nil,
+//        coverImageURL: URL? = nil,
+//        thumbnailURL: URL? = nil,
+//        durationISO8601: String? = nil,
+//        trackCount: Int? = nil,
+//        details: [String] = [],
+//        tag: String? = nil
+//    ) {
+//        self.id = id
+//        self.title = title
+//        self.subtitle = subtitle
+//        self.coverImageURL = coverImageURL
+//        self.thumbnailURL = thumbnailURL
+//        self.durationISO8601 = durationISO8601
+//        self.trackCount = trackCount
+//        self.details = details
+//        self.tag = tag
+//    }
+//}
+//
+//struct DropData {
+//    let topSection: TopSectionModel
+//    let initialLowerSection: LowerSectionPage
+//    let footerState: FooterState
+//}
+//
+//// new model for TracklistView
+//struct Tracklist {
+//    let tracks: LowerSectionPage
+//    let footerState: FooterState
+//}
+//
+//
+//enum FooterState: Equatable {
+//    case idle          // footer виден, но не показывает загрузку
+//    case loading       // footer показывает ProgressView
+//    case error(String) // footer показывает ошибку + кнопку "Повторить"
+//}
+//
+//
+////  4. LowerSectionPage — страница пагинации
+//
+//struct LowerSectionPage {
+//    let items: [LowerItem]
+//    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
+//}
+//
+//
+////  5. CarouselItem — элементы средней секции
+//
+//enum CarouselItemType: Hashable {
+//
+//    // MARK: - Lists
+//
+//    case droplist
+//    case allTracks
+//    case gym
+//    case party
+//    case rnb
+//    case artist(tag: String)
+//
+//    // MARK: - Details
+//
+//    case droplistDetails(playlistId: String)
+//    case topDropDetails(playlistId: String)
+//    case dropTopDetails(playlistId: String)
+//
+//    // =================================================
+//    // MARK: - Cache Key
+//    // =================================================
+//
+//    var cacheKey: String {
+//
+//        switch self {
+//
+//        case .droplist:
+//            return "droplist"
+//
+//        case .allTracks:
+//            return "allTracks"
+//
+//        case .gym:
+//            return "gym"
+//
+//        case .party:
+//            return "party"
+//
+//        case .rnb:
+//            return "rnb"
+//
+//        case .artist(let tag):
+//            return "artist_\(tag)"
+//
+//        case .droplistDetails(let playlistId):
+//            return "droplistDetails_\(playlistId)"
+//
+//        case .topDropDetails(let playlistId):
+//            return "topDropDetails_\(playlistId)"
+//
+//        case .dropTopDetails(let playlistId):
+//            return "dropTopDetails_\(playlistId)"
+//        }
+//    }
+//
+//    // =================================================
+//    // MARK: - Tag
+//    // =================================================
+//
+//    var tag: String? {
+//
+//        switch self {
+//
+//        case .gym:
+//            return "gym"
+//
+//        case .party:
+//            return "party"
+//
+//        case .rnb:
+//            return "rnb"
+//
+//        case .artist(let tag):
+//            return tag
+//
+//        case .droplist,
+//             .allTracks,
+//             .droplistDetails,
+//             .topDropDetails,
+//             .dropTopDetails:
+//            return nil
+//        }
+//    }
+//}
+//
+//// =================================================
+//// MARK: - PageCacheKey
+//// =================================================
+//
+//extension CarouselItemType: PageCacheKey {
+//
+//    var isPermanentCache: Bool {
+//
+//        switch self {
+//
+//        case .droplistDetails,
+//             .topDropDetails,
+//             .dropTopDetails:
+//            return true
+//
+//        default:
+//            return false
+//        }
+//    }
+//}
+//
+//
+////  TopSectionModel — верхняя секция
+//
+//struct TopSectionModel: Identifiable {
+//    let id: String
+//    let title: String
+//    let items: [TopItem]
+//}
+//
+//struct TopItem: Identifiable {
+//    let id: String
+//    let title: String
+//    let imageURL: URL?
+//    let artists: [String]
+//}
+//
+//// DropTopTag - это выжимка лучших треков из наших списков Droplist
+//// по Top Year (за год) + Top Quarter(в году 4 квартала по 3 месяца в каждом и возможно не все треки из 4 квартолов попудут в Top Year) + Artist (список всех артистов попавших в Top Drop и каждый раз при выходе нового Top Year или Top Quarter мы будем пополнять их треками   -   тут нужно будет продумать как мы будем сортировать список потому что по дате будет не корректно нужны будут индексы)
+//enum DropTopTag: String, CaseIterable, Identifiable, Hashable {
+//    case all
+//    case topYear
+//    case topQuarter
+//    case artist
+//
+//    var id: String {
+//        rawValue
+//    }
+//
+//    var title: String {
+//        switch self {
+//        case .all:
+//            return Localized.DropTopContentView.Tag.all
+//
+//        case .topYear:
+//            return Localized.DropTopContentView.Tag.topYear
+//
+//        case .topQuarter:
+//            return Localized.DropTopContentView.Tag.topQuarter
+//
+//        case .artist:
+//            return Localized.DropTopContentView.Tag.artist
+//        }
+//    }
+//
+//    var firestoreTag: String? {
+//        switch self {
+//        case .all:
+//            return nil
+//
+//        case .topYear:
+//            return "topYear"
+//
+//        case .topQuarter:
+//            return "topQuarter"
+//
+//        case .artist:
+//            return "artist"
+//        }
+//    }
+//
+//    var cacheKey: String {
+//        "dropTop.\(rawValue)"
+//    }
+//}
+//
+//extension DropTopTag: PageCacheKey {
+//
+//    var isPermanentCache: Bool {
+//        false
+//    }
+//}
+//
+//
+//
+//struct ArtistDocumentPage {
+//    let documents: [ArtistDocument]
+//    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
+//}
+//
+//struct ArtistsPage {
+//    let artists: [Artist]
+//    let lastDocumentSnapshot: DocumentSnapshot?
+//    let hasMore: Bool
+//}
+//
+//struct Artist: Identifiable, Hashable {
+//
+//    let id: String
+//    let name: String
+//    let tag: String
+//    let orderIndex: Int
+//    let imageURL: URL?
+//}
 
 
 

@@ -368,7 +368,7 @@ private extension DropTopContentView {
     func openPlaylist(
         _ item: LowerItem
     ) {
-        viewModel.didSelectPlaylist(item)
+//        viewModel.didSelectPlaylist(item)
 
         droplistCoordinator.navigateTo(
             page: .dropTopDetails(
